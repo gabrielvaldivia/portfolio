@@ -28,7 +28,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Pages, People, Projects, Clients, SideProjects, Services, Users, Media],
+  collections: [Pages, People, Clients, Projects, SideProjects, Services, Users, Media],
   globals: [Navigation, SiteSettings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || 'default-secret-change-me-in-production',
@@ -42,16 +42,5 @@ export default buildConfig({
     push: false,
   }),
   sharp,
-  plugins: [
-    ...(process.env.BLOB_READ_WRITE_TOKEN
-      ? [
-          vercelBlobStorage({
-            collections: {
-              media: true,
-            },
-            token: process.env.BLOB_READ_WRITE_TOKEN,
-          }),
-        ]
-      : []),
-  ],
+  plugins: [],
 })

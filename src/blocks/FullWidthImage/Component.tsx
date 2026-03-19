@@ -6,7 +6,9 @@ type Props = {
 }
 
 export function FullWidthImageBlock({ image, border }: Props) {
-  if (!image?.url) return null
+  if (!image?.url) {
+    return <div className="bg-background-alt overflow-hidden aspect-video" />
+  }
 
   // Calculate natural aspect ratio from image dimensions
   const aspectRatio = image.width && image.height ? image.width / image.height : 16 / 9

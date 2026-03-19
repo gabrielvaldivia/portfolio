@@ -9,7 +9,10 @@ type Props = {
 
 export function FullWidthVideoBlock({ video, url, autoplay = true, loop = true, muted = true, controls = false }: Props) {
   const src = video?.url || url
-  if (!src) return null
+
+  if (!src) {
+    return <div className="bg-background-alt overflow-hidden aspect-video" />
+  }
 
   return (
     <div className="bg-background-alt overflow-hidden">
