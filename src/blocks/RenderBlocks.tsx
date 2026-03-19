@@ -34,16 +34,17 @@ const bgColorMap: Record<string, string> = {
 
 function ImageBlockComponent({ image, caption, border, columns, height, maxHeight, fit, bgColor, padding, _fillHeight }: { image: any; caption?: string; border?: boolean; columns?: string; height?: number; maxHeight?: number; fit?: string; bgColor?: string; padding?: number; _fillHeight?: boolean }) {
   if (!image?.url) return null
-  const isFull = !columns || columns === '6'
   const aspectRatio = image.width && image.height ? image.width / image.height : 16 / 9
-  const useAspectRatio = !_fillHeight
   const isPreset = bgColor && bgColor in bgColorMap
   const bg = isPreset ? bgColorMap[bgColor] : (bgColor ? '' : 'bg-background-alt')
   const customBg = !isPreset && bgColor ? bgColor : undefined
+  // On mobile, always use aspect ratio for natural sizing
+  // On desktop, partial-row blocks fill their grid cell height
+  const fillClass = _fillHeight ? 'desktop:h-full' : ''
   return (
-    <div className="h-full">
+    <div className={_fillHeight ? 'desktop:h-full' : ''}>
       <div
-        className={`${bg} overflow-hidden w-full h-full ${border ? 'border border-border' : ''}`}
+        className={`${bg} overflow-hidden w-full ${fillClass} ${border ? 'border border-border' : ''}`}
         style={{
           ...(height ? { height: `${height}px` } : {}),
           ...(maxHeight ? { maxHeight: `${maxHeight}px` } : {}),
@@ -51,13 +52,13 @@ function ImageBlockComponent({ image, caption, border, columns, height, maxHeigh
         }}
       >
         {padding ? (
-          <div className="h-full" style={{ padding: `${padding}px` }}>
-            <div className="relative overflow-hidden h-full" style={{ ...( useAspectRatio ? { aspectRatio } : { minHeight: 240 }) }}>
+          <div className={`${fillClass}`} style={{ padding: `${padding}px` }}>
+            <div className={`relative overflow-hidden ${fillClass}`} style={{ aspectRatio, ...(_fillHeight ? {} : {}) }}>
               <Image src={image.url} alt={image.alt || ''} fill className={fit === 'contain' ? 'object-contain' : 'object-cover'} sizes="100vw" />
             </div>
           </div>
         ) : (
-          <div className="relative w-full h-full overflow-hidden" style={{ ...(useAspectRatio && !height ? { aspectRatio } : {}), ...(!useAspectRatio && !height ? { minHeight: 240 } : {}) }}>
+          <div className={`relative w-full overflow-hidden ${fillClass}`} style={{ ...(!height ? { aspectRatio } : {}) }}>
             <Image src={image.url} alt={image.alt || ''} fill className={fit === 'contain' ? 'object-contain' : 'object-cover'} sizes="100vw" />
           </div>
         )}
@@ -150,9 +151,9 @@ export function RenderBlocks({ blocks }: { blocks?: any[] }) {
         return (
           <div
             key={block.id || i}
-            className={`${colSpan[cols] || 'desktop:col-span-6'} ${rows !== '1' ? (rowSpan[rows] || '') : ''} ${isPartialRow ? 'h-full' : ''}`}
+            className={`${colSpan[cols] || 'desktop:col-span-6'} ${rows !== '1' ? (rowSpan[rows] || '') : ''} ${isPartialRow ? 'desktop:h-full' : ''}`}
           >
-            <div className={isPartialRow || rows !== '1' ? 'h-full' : ''}>
+            <div className={isPartialRow || rows !== '1' ? 'desktop:h-full' : ''}>
               <Component {...block} _fillHeight={isPartialRow} />
             </div>
           </div>
