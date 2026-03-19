@@ -55,25 +55,25 @@ export default async function AboutPage() {
                     {talks.map((talk: any, i: number) => {
                       const thumb = talk.thumbnail as any
                       return (
-                        <div key={i} className="flex items-center gap-6 group">
+                        <div key={i} className="flex flex-col gap-3 group">
                           {thumb?.url && (
                             talk.url ? (
-                              <a href={talk.url} target="_blank" rel="noopener noreferrer" className="shrink-0 w-52 aspect-video rounded-lg overflow-hidden border border-border relative block">
-                                <Image src={thumb.url} alt={thumb.alt || talk.title} fill className="object-cover object-center" sizes="208px" />
+                              <a href={talk.url} target="_blank" rel="noopener noreferrer" className="w-full aspect-video rounded-lg overflow-hidden border border-border relative block">
+                                <Image src={thumb.url} alt={thumb.alt || talk.title} fill className="object-cover object-center" sizes="(min-width: 768px) 60vw, 100vw" />
                                 {talk.duration && (
                                   <span className="absolute bottom-1.5 right-1.5 bg-black/75 text-white text-[11px] font-mono px-1.5 py-0.5 rounded uppercase">{talk.duration}</span>
                                 )}
                               </a>
                             ) : (
-                              <div className="shrink-0 w-52 aspect-video rounded-lg overflow-hidden border border-border relative">
-                                <Image src={thumb.url} alt={thumb.alt || talk.title} fill className="object-cover object-center" sizes="208px" />
+                              <div className="w-full aspect-video rounded-lg overflow-hidden border border-border relative">
+                                <Image src={thumb.url} alt={thumb.alt || talk.title} fill className="object-cover object-center" sizes="(min-width: 768px) 60vw, 100vw" />
                                 {talk.duration && (
                                   <span className="absolute bottom-1.5 right-1.5 bg-black/75 text-white text-[11px] font-mono px-1.5 py-0.5 rounded uppercase">{talk.duration}</span>
                                 )}
                               </div>
                             )
                           )}
-                          <div className="flex-1">
+                          <div>
                             {talk.url ? (
                               <a href={talk.url} target="_blank" rel="noopener noreferrer" className="hover:opacity-60 transition-colors inline-flex items-baseline gap-2">
                                 <h4>{talk.title}</h4>
