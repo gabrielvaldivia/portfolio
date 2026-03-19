@@ -38,7 +38,7 @@ export default async function AboutPage() {
                 <div className="tablet:col-span-2">
                   <h3 className="sticky top-5">Bio</h3>
                 </div>
-                <div className="tablet:col-span-4 text-[20px] leading-[1.5]">
+                <div className="tablet:col-span-4 text-body-large">
                   <RichText data={page.bio} />
                 </div>
               </div>

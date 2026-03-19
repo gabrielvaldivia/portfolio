@@ -124,8 +124,12 @@ export default function DesignSystemPage() {
               <p>The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs.</p>
             </div>
             <div>
+              <span className="text-muted text-[13px] block mb-2">Body — 16 / 18 / 20px</span>
+              <p className="text-body">The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs.</p>
+            </div>
+            <div>
               <span className="text-muted text-[13px] block mb-2">Body Large — 18 / 22 / 26px</span>
-              <p className="text-[18px] tablet:text-[22px] desktop:text-[26px] leading-[1.4]">The quick brown fox jumps over the lazy dog.</p>
+              <p className="text-body-large">The quick brown fox jumps over the lazy dog.</p>
             </div>
             <div>
               <span className="text-muted text-[13px] block mb-2">Muted</span>
@@ -287,15 +291,15 @@ export default function DesignSystemPage() {
           <div className="grid grid-cols-1 desktop:grid-cols-3 gap-10">
             <div className="flex gap-5 items-start">
               <span className="text-content opacity-50 text-[20px] shrink-0">01</span>
-              <p className="text-[20px] leading-[1.4]">Example approach item showing numbered grid layout.</p>
+              <p className="text-body">Example approach item showing numbered grid layout.</p>
             </div>
             <div className="flex gap-5 items-start">
               <span className="text-content opacity-50 text-[20px] shrink-0">02</span>
-              <p className="text-[20px] leading-[1.4]">Another approach item with different content.</p>
+              <p className="text-body">Another approach item with different content.</p>
             </div>
             <div className="flex gap-5 items-start">
               <span className="text-content opacity-50 text-[20px] shrink-0">03</span>
-              <p className="text-[20px] leading-[1.4]">Third item completing the row.</p>
+              <p className="text-body">Third item completing the row.</p>
             </div>
           </div>
         )}

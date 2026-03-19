@@ -17,7 +17,7 @@ function SectionWithTitle({ title, cols, children, titleRight }: { title?: strin
   if (!title) return <>{children}</>
   if (cols === '6') {
     return (
-      <div className="flex flex-col tablet:grid tablet:grid-cols-6 gap-10">
+      <div className="flex flex-col tablet:grid tablet:grid-cols-6 gap-5 tablet:gap-10">
         <div className="tablet:col-span-2 flex items-start justify-between">
           <h3>{title}</h3>
           {titleRight}
@@ -28,7 +28,7 @@ function SectionWithTitle({ title, cols, children, titleRight }: { title?: strin
   }
   return (
     <div>
-      <div className="flex items-start justify-between pb-10">
+      <div className="flex items-start justify-between pb-5 tablet:pb-10">
         <h3>{title}</h3>
         {titleRight}
       </div>
@@ -52,7 +52,7 @@ export default async function HomePage() {
     switch (block.blockType) {
       case 'hero':
         return (
-          <section key={block.id || i} id="hero" className="pt-5 desktop:pt-20 tablet:mb-[-80px]">
+          <section key={block.id || i} id="hero" className="pt-0 desktop:pt-20 tablet:mb-[-80px]">
             {block.fullWidth ? (
               <div className="px-5 tablet:px-10">
                 <h1 className="text-[34px] tablet:hidden">{block.heading}</h1>
@@ -77,7 +77,7 @@ export default async function HomePage() {
         return (
           <section key={block.id || i}>
             {block.title && (
-              <Container><h3 className="pb-10">{block.title}</h3></Container>
+              <Container><h3 className="pb-5 tablet:pb-10">{block.title}</h3></Container>
             )}
             {fw ? (
             <HScrollContainer>
@@ -183,9 +183,9 @@ export default async function HomePage() {
                 )}
               </div>
               <div className="tablet:col-span-1 desktop:col-span-2">
-                {block.heading && <h2 className="pb-10">{block.heading}</h2>}
+                {block.heading && <h2 className="pb-5 tablet:pb-10">{block.heading}</h2>}
                 {block.text && (
-                  <div className="text-muted text-[18px] tablet:text-[22px] desktop:text-[26px] leading-[1.4]">
+                  <div className="text-muted text-body-large">
                     <RichText data={block.text} />
                   </div>
                 )}
@@ -213,12 +213,12 @@ export default async function HomePage() {
         if (!items.length) return null
         return (
           <Container key={block.id || i}>
-            <h3 className="pb-10">{block.title || 'Approach'}</h3>
+            <h3 className="pb-5 tablet:pb-10">{block.title || 'Approach'}</h3>
               <div className="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-6 tablet:gap-10 desktop:gap-20">
                 {items.map((item: any, j: number) => (
                   <div key={j} className="flex gap-5 items-start">
                     <span className="text-content opacity-50 text-[20px] shrink-0">{String(j + 1).padStart(2, '0')}</span>
-                    <div className="text-[20px] leading-[1.4]">
+                    <div className="text-body">
                       <RichText data={item.text} />
                     </div>
                   </div>
@@ -234,11 +234,12 @@ export default async function HomePage() {
         return (
           <section key={block.id || i}>
             <Container>
-              <div className="flex items-center justify-between pb-10">
+              <div className="flex items-center justify-between pb-5 tablet:pb-10">
                 <h3>{block.title || 'Clients'}</h3>
                 {block.linkUrl && (
-                  <Link href={block.linkUrl} className="text-muted hover:text-content transition-colors">
+                  <Link href={block.linkUrl} className="text-muted hover:opacity-60 transition-colors inline-flex items-center gap-1">
                     {block.linkText || 'View all'}
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg>
                   </Link>
                 )}
               </div>
@@ -257,7 +258,7 @@ export default async function HomePage() {
                       key={j}
                       className="text-content font-heading whitespace-nowrap"
                       style={{
-                        fontSize: `${block.fontSize || 48}px`,
+                        fontSize: `clamp(24px, 5vw, ${block.fontSize || 48}px)`,
                         opacity: (block.opacity || 30) / 100,
                       }}
                     >
@@ -288,7 +289,7 @@ export default async function HomePage() {
         return (
           <div key={block.id || i} id="contact">
             <div className="bg-background-alt rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] p-6 tablet:p-8 desktop:p-10">
-            {block.heading && <h3 className="pb-10">{block.heading}</h3>}
+            {block.heading && <h3 className="pb-5 tablet:pb-10">{block.heading}</h3>}
             {block.text && (
               <div className="text-muted text-[20px] leading-[1.4]">
                 <RichText data={block.text} />
@@ -361,9 +362,16 @@ export default async function HomePage() {
 
         return groups.map((group, gi) => {
           const isGrid = group.blocks.length > 1 || (group.blocks[0]?.columns || '6') !== '6'
+          const blockType = group.blocks[0]?.blockType
+          const prevBlockType = gi > 0 ? groups[gi - 1].blocks[groups[gi - 1].blocks.length - 1]?.blockType : null
+          // Keep original spacing between hero and featured projects, consistent spacing elsewhere
+          const isHeroFollowUp = blockType === 'hScroll' && prevBlockType === 'hero'
           return (
             <div key={gi}>
-              {gi > 0 && <div className="h-16 tablet:h-28 desktop:h-[200px]" />}
+              {gi > 0 && (isHeroFollowUp
+                ? <div className="h-8 tablet:h-28 desktop:h-[200px]" />
+                : <div className="h-10 tablet:h-28 desktop:h-[200px]" />
+              )}
               {isGrid ? (
                 <Container>
                   <div className="grid grid-cols-1 tablet:grid-cols-6 gap-10">
