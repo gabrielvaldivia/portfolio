@@ -103,25 +103,25 @@ export default async function AboutPage() {
                     {interviews.map((item: any, i: number) => {
                       const thumb = item.thumbnail as any
                       return (
-                        <div key={i} className="flex items-center gap-6 group">
+                        <div key={i} className="flex flex-col tablet:flex-row tablet:items-center gap-3 tablet:gap-6 group">
                           {thumb?.url && (
                             item.url ? (
-                              <a href={item.url} target="_blank" rel="noopener noreferrer" className="shrink-0 w-52 aspect-video rounded-lg overflow-hidden border border-border relative block">
-                                <Image src={thumb.url} alt={thumb.alt || item.title} fill className="object-cover object-center" sizes="208px" />
+                              <a href={item.url} target="_blank" rel="noopener noreferrer" className="w-full tablet:w-52 tablet:shrink-0 aspect-video rounded-lg overflow-hidden border border-border relative block">
+                                <Image src={thumb.url} alt={thumb.alt || item.title} fill className="object-cover object-center" sizes="(min-width: 768px) 208px, 100vw" />
                                 {item.duration && (
                                   <span className="absolute bottom-1.5 right-1.5 bg-black/75 text-white text-[11px] font-mono px-1.5 py-0.5 rounded uppercase">{item.duration}</span>
                                 )}
                               </a>
                             ) : (
-                              <div className="shrink-0 w-52 aspect-video rounded-lg overflow-hidden border border-border relative">
-                                <Image src={thumb.url} alt={thumb.alt || item.title} fill className="object-cover object-center" sizes="208px" />
+                              <div className="w-full tablet:w-52 tablet:shrink-0 aspect-video rounded-lg overflow-hidden border border-border relative">
+                                <Image src={thumb.url} alt={thumb.alt || item.title} fill className="object-cover object-center" sizes="(min-width: 768px) 208px, 100vw" />
                                 {item.duration && (
                                   <span className="absolute bottom-1.5 right-1.5 bg-black/75 text-white text-[11px] font-mono px-1.5 py-0.5 rounded uppercase">{item.duration}</span>
                                 )}
                               </div>
                             )
                           )}
-                          <div className="flex-1">
+                          <div className="tablet:flex-1">
                             {item.url ? (
                               <a href={item.url} target="_blank" rel="noopener noreferrer" className="hover:opacity-60 transition-colors inline-flex items-baseline gap-2">
                                 <h4>{item.title}</h4>
