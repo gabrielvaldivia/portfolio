@@ -1,6 +1,4 @@
 import { Container } from '@/components/Container'
-import { Avatar } from '@/components/Avatar'
-import { ServicePill } from '@/components/ServicePill'
 import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { RichText } from '@/components/RichText'
 import { getSideProjectBySlug, getSideProjects } from '@/lib/queries'
@@ -30,22 +28,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
-function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex gap-10 items-start">
-      <h6 className="w-[100px] shrink-0 pt-1">{label}</h6>
-      <div className="flex-1">{children}</div>
-    </div>
-  )
-}
 
 export default async function SideProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const project = await getSideProjectBySlug(slug) as any
   if (!project) notFound()
-
-  const team = (project.team || []) as any[]
-  const services = (project.services || []) as any[]
 
   return (
     <>
@@ -60,48 +47,43 @@ export default async function SideProjectPage({ params }: { params: Promise<{ sl
           <div className="pb-20">
             <h1 className="text-[34px] tablet:hidden">{project.title}</h1>
             <div className="hidden tablet:block">
-              <FitText className="font-heading">
+              <FitText className="font-heading" maxSize={200}>
                 {project.title}
               </FitText>
             </div>
           </div>
           <div className="flex flex-col gap-20">
-            <div className="flex flex-col tablet:flex-row gap-10 tablet:gap-10 desktop:gap-20">
-              <div className="flex-1">
+            <div className="flex flex-col gap-10">
+              <div className="max-w-[600px]">
                 {project.richDescription ? (
                   <RichText data={project.richDescription} />
                 ) : project.description ? (
                   <p className="text-body">{project.description}</p>
                 ) : null}
-              </div>
-
-              <div className="flex-1 space-y-5">
-                {team.length > 0 && (
-                  <MetaRow label="Team">
-                    <div className="flex flex-wrap gap-2.5">
-                      {team.map((person: any) => (
-                        <Avatar key={person.id} name={person.name} photo={person.photo} role={person.role} linkedIn={person.linkedIn} />
-                      ))}
-                    </div>
-                  </MetaRow>
-                )}
-
-                {services.length > 0 && (
-                  <MetaRow label="Services">
-                    <div className="flex flex-wrap gap-2.5">
-                      {services.map((s: any) => (
-                        <ServicePill key={s.id} title={s.title} size="small" />
-                      ))}
-                    </div>
-                  </MetaRow>
-                )}
-
                 {project.year && (
-                  <MetaRow label="Date">
-                    <p className="text-body">{project.year}</p>
-                  </MetaRow>
+                  <p className="text-muted opacity-50" style={{ marginTop: 20 }}>{project.year}</p>
                 )}
               </div>
+
+              {(project.links as any[])?.length > 0 && (
+                <div className="flex flex-wrap gap-3">
+                  {(project.links as any[]).map((link: any, i: number) => (
+                    <a
+                      key={i}
+                      href={link.url}
+                      target={link.url.startsWith('/') ? undefined : '_blank'}
+                      rel={link.url.startsWith('/') ? undefined : 'noopener noreferrer'}
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-content hover:opacity-80 transition-opacity font-medium"
+                      style={{ color: 'var(--color-inverse)' }}
+                    >
+                      {link.label}
+                      {!link.url.startsWith('/') && (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17L17 7M17 7H9M17 7V15" /></svg>
+                      )}
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
 
             <RenderBlocks blocks={project.content as any[]} />

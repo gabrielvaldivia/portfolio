@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import { RichText } from '@/components/RichText'
+import { VideoPlayer } from '@/components/VideoPlayer'
 
 function TextBlock({ title, content, columns }: { title?: string; content: any; columns?: string }) {
   if (!content) return null
@@ -31,10 +32,11 @@ const bgColorMap: Record<string, string> = {
   custom: '',
 }
 
-function ImageBlockComponent({ image, caption, border, columns, height, maxHeight, fit, bgColor, padding }: { image: any; caption?: string; border?: boolean; columns?: string; height?: number; maxHeight?: number; fit?: string; bgColor?: string; padding?: number }) {
+function ImageBlockComponent({ image, caption, border, columns, height, maxHeight, fit, bgColor, padding, _fillHeight }: { image: any; caption?: string; border?: boolean; columns?: string; height?: number; maxHeight?: number; fit?: string; bgColor?: string; padding?: number; _fillHeight?: boolean }) {
   if (!image?.url) return null
   const isFull = !columns || columns === '6'
   const aspectRatio = image.width && image.height ? image.width / image.height : 16 / 9
+  const useAspectRatio = !_fillHeight
   const isPreset = bgColor && bgColor in bgColorMap
   const bg = isPreset ? bgColorMap[bgColor] : (bgColor ? '' : 'bg-background-alt')
   const customBg = !isPreset && bgColor ? bgColor : undefined
@@ -45,29 +47,35 @@ function ImageBlockComponent({ image, caption, border, columns, height, maxHeigh
         style={{
           ...(height ? { height: `${height}px` } : {}),
           ...(maxHeight ? { maxHeight: `${maxHeight}px` } : {}),
-          ...(!height ? { aspectRatio } : {}),
-          ...(padding ? { padding: `${padding}px` } : {}),
           ...(customBg ? { backgroundColor: customBg } : {}),
         }}
       >
-        <div className="relative w-full h-full">
-          <Image src={image.url} alt={image.alt || ''} fill className={fit === 'contain' ? 'object-contain' : 'object-cover'} sizes="100vw" />
-        </div>
+        {padding ? (
+          <div className="h-full" style={{ padding: `${padding}px` }}>
+            <div className="relative overflow-hidden h-full" style={{ ...( useAspectRatio ? { aspectRatio } : { minHeight: 240 }) }}>
+              <Image src={image.url} alt={image.alt || ''} fill className={fit === 'contain' ? 'object-contain' : 'object-cover'} sizes="100vw" />
+            </div>
+          </div>
+        ) : (
+          <div className="relative w-full h-full overflow-hidden" style={{ ...(useAspectRatio && !height ? { aspectRatio } : {}), ...(!useAspectRatio && !height ? { minHeight: 240 } : {}) }}>
+            <Image src={image.url} alt={image.alt || ''} fill className={fit === 'contain' ? 'object-contain' : 'object-cover'} sizes="100vw" />
+          </div>
+        )}
       </div>
-      {caption && <p className="text-muted text-caption mt-2">{caption}</p>}
+      {caption && <p className="text-muted text-caption" style={{ marginTop: 10 }}>{caption}</p>}
     </div>
   )
 }
 
-function VideoBlockComponent({ video, url, caption, autoplay = true, loop = true, muted = true, controls = false }: any) {
+function VideoBlockComponent({ video, url, caption, loop = true, muted = true, controls = false }: any) {
   const src = video?.url || url
   if (!src) return null
   return (
     <div>
       <div className="bg-background-alt overflow-hidden">
-        <video src={src} autoPlay={autoplay} loop={loop} muted={muted} controls={controls} playsInline className="w-full h-auto" />
+        <VideoPlayer src={src} loop={loop} muted={muted} controls={controls} className="w-full h-auto" />
       </div>
-      {caption && <p className="text-muted text-caption mt-2">{caption}</p>}
+      {caption && <p className="text-muted text-caption" style={{ marginTop: 10 }}>{caption}</p>}
     </div>
   )
 }
@@ -123,14 +131,15 @@ export function RenderBlocks({ blocks }: { blocks?: any[] }) {
         if (!Component) return null
         const cols = block.columns || '6'
         const rows = block.rows || '1'
+        const isPartialRow = cols !== '6'
         const rowHeight = rows !== '1' ? parseInt(rows) * 200 + (parseInt(rows) - 1) * 40 : undefined
         return (
           <div
             key={block.id || i}
-            className={`${colSpan[cols] || 'desktop:col-span-6'} ${rows !== '1' ? (rowSpan[rows] || '') : ''} ${cols !== '6' ? 'h-full' : ''}`}
+            className={`${colSpan[cols] || 'desktop:col-span-6'} ${rows !== '1' ? (rowSpan[rows] || '') : ''} ${isPartialRow ? 'h-full' : ''}`}
           >
-            <div className={cols !== '6' || rows !== '1' ? 'h-full' : ''}>
-              <Component {...block} />
+            <div className={isPartialRow || rows !== '1' ? 'h-full' : ''}>
+              <Component {...block} _fillHeight={isPartialRow} />
             </div>
           </div>
         )

@@ -50,7 +50,7 @@ export function FitText({ children, className = '', mobileSize = 34, maxSize }: 
       <span
         ref={textRef}
         className="block whitespace-normal tablet:whitespace-nowrap"
-        style={{ lineHeight: 1.1, letterSpacing: '-0.04em', fontWeight: 400 }}
+        style={{ lineHeight: 1.15, letterSpacing: '-0.04em', fontWeight: 400 }}
       >
         {children}
       </span>
