@@ -1,0 +1,9 @@
+/* Hide blockName input only within blocks */
+.blocks-field .section-title {
+  display: none !important;
+}
+
+/* Add space between nav groups in sidebar */
+.nav-group + .nav-group {
+  margin-top: 24px !important;
+}

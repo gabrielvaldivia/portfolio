@@ -1,0 +1,719 @@
+{
+  "dex": {
+    "title": "Dex Camera",
+    "subtitle": null,
+    "description": "Dex turns real-world moments into language lessons for kids 3-8. Instead of passive screen time, Dex invites kids to notice the world around them and talk back to it, transforming routines into learning opportunities. The result is a gentle rhythm of daily speaking, listening, and discovery that feels like play but compounds into real progress.",
+    "date": "2024 - 2026",
+    "images": [
+      "https://framerusercontent.com/images/obm8pwOAfL1X7pNeGGQq2Zqbg.png",
+      "https://framerusercontent.com/images/cOLMnsD4Ezb17AC2DbzgrMFisRE.png",
+      "https://framerusercontent.com/images/T7a6Gzo21V2g7pFFGgyQd9kA.png",
+      "https://framerusercontent.com/images/qd04NRv5T7yJb31EWl2Us02PJ1k.png",
+      "https://framerusercontent.com/images/5pEnVVZCKCeJJnuSWewOcF87g.png",
+      "https://framerusercontent.com/images/7Kn3cYBrdTzJAXEbg2knHNMIRQ.png",
+      "https://framerusercontent.com/images/rxj7c7SZ8G8TUdvUaSafHlK8.jpg",
+      "https://framerusercontent.com/images/PCYMGmpw5vsOUnnPvm6g3LvxN4.png",
+      "https://framerusercontent.com/images/OL3eRsGQuparVyizIYUIJzFwk.png",
+      "https://framerusercontent.com/images/zTIzt0WEo082XiVMIRRoPVBWNvc.png",
+      "https://framerusercontent.com/images/80Fr1GkWSOQKzAhBePZsC8EagJA.png"
+    ],
+    "videos": [
+      "https://framerusercontent.com/assets/MLWPbW1dUQawJLhhun3dBwpgJak.mp4"
+    ],
+    "blocks": [
+      { "type": "title", "content": "Dex Camera" },
+      { "type": "description", "content": "Dex turns real-world moments into language lessons for kids 3-8..." },
+      { "type": "metadata", "team": true, "services": true, "date": "2024 - 2026" },
+      { "type": "video", "label": "Hero video" },
+      { "type": "section", "title": "Hardware", "description": "We collaborated with XIVO Design to create device shaped like a handheld magnifying glass with a camera on one side and a multi-touch screen on the other. Two tactile buttons keep controls simple: one to confirm, one to cancel. The device also includes a microphone, speaker, and accelerometer. Unlike tablets that encourage passive sitting, Dex's form factor invites children to hold it and carry it during active exploration--transforming how they engage with their environment." },
+      { "type": "image", "label": "Hardware render" },
+      { "type": "image-grid", "columns": 3, "label": "Renders and package" },
+      { "type": "section", "title": "Product photography", "description": "Using Google Gemini 3, Daniel from my team was able to create a unified visual language for ads, packaging, and the website. The images kept the device shape, colors, and proportions stable while letting us swap families, moods, and settings so every photo felt real and part of the same world." },
+      { "type": "image-pair", "label": "Product photos" },
+      { "type": "image-pair", "label": "Product photos" },
+      { "type": "section", "title": "Character Design", "description": "Children learn best when they connect with a character. We partnered with The Little Labs to design a friendly elephant who guides each activity and appears across our stories. The character greets kids, models tasks with simple cues, and celebrates progress with animations and audio. Consistent personality, voice, and pacing help build trust, so practice feels like a narrative that kids can follow and enjoy." },
+      { "type": "image-pair", "labels": ["Sketches", "Refinements"] },
+      { "type": "image", "label": "Character components in Figma" },
+      { "type": "image", "label": "Character poses" },
+      { "type": "section", "title": "Audio Feedback", "description": "Our character responds to every pronunciation attempt by scaling from micro-reactions to full reward moments, while sound design shifts from gentle guidance to triumphant stingers. Together, the motion and audio create a loop that's instantly understandable, playful, and measurably effective." },
+      { "type": "video", "label": "Incorrect animation" },
+      { "type": "video-pair", "labels": ["Correct animation", "Perfect animation"] },
+      { "type": "section", "title": "Prototypes", "description": "We developed high-fidelity prototypes to explore an interactive systems that would resonate with children by being both engaging and easy to use. These prototypes featured exposed sliders and customizable settings, giving the team the flexibility to test different configurations in real-time." },
+      { "type": "video", "label": "Interactive nav prototype" },
+      { "type": "section", "title": "Parent copilot", "description": "Dex includes a parent app that gives families clear visibility and transparency. I built a design system that extends the characters and visual language from the device into the app so it feels connected to the world children already know. The app needed to echo the playful tone kids recognize without feeling childish for parents. That meant rethinking color, scale, and motion so the character-driven style could guide parents through settings, activity logs, and controls in a way that felt intuitive and trustworthy. The result is an experience that feels like part of the same universe while still being built for the people managing it." },
+      { "type": "device-mockup", "device": "iPhone 15", "count": 3 }
+    ],
+    "team": [
+      { "name": "Reni Cao" },
+      { "name": "Charlie Zhang" },
+      { "name": "Susan Y" },
+      { "name": "Aparna Dixit", "url": "https://www.linkedin.com/in/aparnavdixit/" },
+      { "name": "Daniel Chung", "url": "https://danielchung.design/" }
+    ],
+    "services": ["Product design", "Hardware", "Branding", "content", "Strategy", "Marketing", "Go-to-market"]
+  },
+  "daylight": {
+    "title": "Daylight",
+    "subtitle": null,
+    "description": "The Daylight team has an ambitious view of how technology fits into our lives. They approached me to help with the design of an operating system that served as an antidote to how we use computers today. Together, we designed several key components of the OS, including the Onboarding, Home, App Management, Library, Reader, and Screen Time surfaces.",
+    "date": "2024",
+    "images": [
+      "https://framerusercontent.com/images/8svERbZLSxldfChqU88LMqHjqjM.png",
+      "https://framerusercontent.com/images/7Z9xmtEfuoolx6mZQx9fNEgf3oU.png",
+      "https://framerusercontent.com/images/SBzthDO9itjYTbZWj70CAplWYiU.png",
+      "https://framerusercontent.com/images/epshchfyttQQyOO71ZZe2kVFoMs.png",
+      "https://framerusercontent.com/images/jyn8NTkoz895QtZAqyPySafPdXQ.png",
+      "https://framerusercontent.com/images/j09mAjBuGrdAKdhXWoRUQvJfBCE.png",
+      "https://framerusercontent.com/images/nvVhXA1cIA83HY6G7BusqoLj3rg.png",
+      "https://framerusercontent.com/images/RVHahYJ554FoOMDVTgtEklTiaJA.png",
+      "https://framerusercontent.com/images/gvKQlNg1zrsr6iGyKo2W7mNpxA.png"
+    ],
+    "videos": [],
+    "blocks": [
+      { "type": "title", "content": "Daylight" },
+      { "type": "description", "content": "The Daylight team has an ambitious view..." },
+      { "type": "metadata", "team": true, "services": true, "date": "2024" },
+      { "type": "image", "label": "Hero image" },
+      { "type": "image-pair", "label": "OS screens" },
+      { "type": "section", "title": "Boot up animation", "description": "It starts with a single circle, floating in the void. As the device hums to life, the circle begins to shift, expanding and contracting with purpose. The once humble shape now stands as the Daylight logo--a symbol of clarity and thoughtful design. It's not just a boot-up sequence; it's a reflection of the brand's ethos, a seamless unfolding of something greater from something simple. It feels less like an animation and more like an arrival, setting the tone for what's to come." },
+      { "type": "device-mockup", "device": "Daylight DC1" },
+      { "type": "section", "title": "App selection", "description": "Imagine your device greeting you with a simple question: What do you want to do? This isn't about installing a slew of random apps. Instead, you're presented with intuitive, thoughtfully-organized categories based on actions. Each category offers a curated collection of apps designed to elevate those actions. This prototype moves beyond a traditional app selection screen, focusing on intent. Multiple designs are explored--some invite you to dive deep into personalization, while others streamline the process, making it as effortless as possible. It's a refreshing, action-first approach to onboarding that turns app selection into a moment of reflection, not routine." },
+      { "type": "device-mockup", "device": "Daylight DC1", "count": 3 },
+      { "type": "section", "title": "Home explorations", "description": "We drew inspiration from stationery that layers papers of different sizes to create depth and invite exploration. We translated that idea into the software by using overlapping panels that naturally rested over each other to provide clear wayfinding and focus. Since the edges are where the device is held, placing interface elements within reach made interactions feel immediate and grounded in the hand. The UI emerges from the perimeter, allowing the center to remain focused on the primary task. I worked in low-fidelity visuals that emphasized structure, interaction, and flow over surface detail. This allowed us to evaluate how the interface felt to use, ensuring that reachability, hierarchy, and physical alignment with the device guided the experience from the start." },
+      { "type": "device-mockup", "device": "Daylight DC1", "count": 3 },
+      { "type": "section", "title": "Web app", "description": "When we set out to design this web app, the goal was to create more than just a digital tool--it had to be a sanctuary. The user is invited into an interface that doesn't shout for attention but rather whispers, allowing them to engage at their own pace. On the login screen, a towering tree stretches toward the sky, reminding the user of growth, simplicity, and groundedness. To the right, minimalist login options extend a hand, asking users to step inside with ease--no clutter, just the essentials. The contrast between nature and technology subtly sets the tone from the very first interaction." },
+      { "type": "image", "label": "Web app login" },
+      { "type": "text-block", "content": "The library displays books and articles as cards. The layout is spacious and calming, offering users the ability to focus without distraction. Every element, from typography to icons, has been meticulously crafted to feel like an extension of the user's intent." },
+      { "type": "image", "label": "Web app library" },
+      { "type": "text-block", "content": "Settings are thoughtfully arranged, giving users control without overwhelming them. The navigation is seamless, whether you're tweaking your profile, syncing with cloud storage, or managing extensions. It's the kind of design that's there when you need it but fades away when you don't." },
+      { "type": "image", "label": "Web app settings" },
+      { "type": "section", "title": "Design System", "description": "The Design System reflects a design philosophy where aesthetics serve functionality, creating an environment where users can navigate with ease and focus on what matters. At the heart of this design system lies versatility, with a color palette that adapts to three distinct modes: Grayscale, Amber Light, and Amber Dark. Every option is calibrated to deliver a cohesive experience regardless of the environment or user preference. The amber modes infuse the interface with warmth, while grayscale provides a more muted, neutral backdrop, ensuring accessibility and aesthetic harmony." },
+      { "type": "image", "label": "Design system overview" },
+      { "type": "image", "label": "Design system components" },
+      { "type": "image", "label": "Design system colors" }
+    ],
+    "team": [
+      { "name": "Anjan Kata", "url": "https://x.com/anjankatta?lang=en" },
+      { "name": "Tanuj Lalwani", "url": "https://www.linkedin.com/in/tanujlalwani/" },
+      { "name": "Andrew Winget", "url": "https://www.linkedin.com/in/andrew-winget-93a43710/" }
+    ],
+    "services": ["Product design", "Strategy"]
+  },
+  "workmate": {
+    "title": "Workmate",
+    "subtitle": null,
+    "description": "Workmate is a platform that connects businesses with on-demand workers. I worked with the founders to design the product experience for both sides of the marketplace.",
+    "date": null,
+    "images": [],
+    "videos": [],
+    "blocks": [
+      { "type": "title", "content": "Workmate" }
+    ],
+    "team": [],
+    "services": []
+  },
+  "slingshot": {
+    "title": "Slingshot AI",
+    "subtitle": null,
+    "description": "Slingshot's mission is to develop first-of-its-class AI models for mental health. I worked with the founders and engineering team to design and launch their first consumer product, Ash: a voice-based AI therapist that brings mental health to anyone with a mobile phone. The app uses natural language to simulate therapy sessions with a trained professional over voice and text.",
+    "date": "Feb - Apr '24 (10 weeks)",
+    "images": [
+      "https://framerusercontent.com/images/sJg9h2Xm92ugbgko17RtftCUU.png",
+      "https://framerusercontent.com/images/SolorULHTDcK94tzNB7swCnMgIQ.png",
+      "https://framerusercontent.com/images/zgBZV1bbVsf7DtkSoTsvC3ePqs.png",
+      "https://framerusercontent.com/images/Ek4mhf0RFzho8k7yVlKD00fckGI.png"
+    ],
+    "videos": [
+      "https://framerusercontent.com/assets/MLWPbW1dUQawJLhhun3dBwpgJak.mp4"
+    ],
+    "blocks": [
+      { "type": "title", "content": "Slingshot AI" },
+      { "type": "description", "content": "Slingshot's mission is to develop first-of-its-class AI models for mental health..." },
+      { "type": "metadata", "team": true, "services": true, "date": "Feb - Apr '24 (10 weeks)" },
+      { "type": "image", "label": "Hero image" },
+      { "type": "section", "title": "Onboarding", "description": "The goal of the app's onboarding was to collect the relevant data for Ash to understand how to best help each user. After several explorations, we landed on a small survey that quickly jumped users into the first session with their coach." },
+      { "type": "video", "label": "Onboarding walkthrough" },
+      { "type": "section", "title": "Session duration", "description": "The team wanted to encourage 15 minute sessions with Ash and a natural way to wrap up each session. However, a countdown clock felt stressful in this context. I explored a few ways to represent the passage of time without relying on a countdown clock." },
+      { "type": "device-mockup", "device": "iPhone 15", "count": 2 },
+      { "type": "section", "title": "Modalities", "description": "The Slingshot team was ahead of its time exploring multi-modalities when interacting with LLMs. The goal was to support text, tap-to-speak, and hands-free audio to encourage natural and convenient ways to interact with your AI coach." },
+      { "type": "video", "label": "Using a single button to communicate 3 states: idle, listening, and thinking" },
+      { "type": "video", "label": "Early exploration of a more stark speaking (light) and listening (dark) states" },
+      { "type": "video", "label": "Demo of switching between 3 modalities: tap to speak, hands-free audio, and text" },
+      { "type": "section", "title": "Website", "description": "For Ash's website, we focused on finding imagery that conveyed the feeling of using the product. I explored a few different illustration styles but ultimately landed on a more abstract visual treatment." },
+      { "type": "image", "label": "Website hero" },
+      { "type": "image-pair", "label": "Website details" }
+    ],
+    "team": [
+      { "name": "Neil Parikh", "url": "https://www.linkedin.com/in/neilparikh/" },
+      { "name": "Daniel Reid Cahn", "url": "https://www.linkedin.com/in/cahnd/" },
+      { "name": "Kristian Freed", "url": "https://www.linkedin.com/in/kristianfreed/" },
+      { "name": "Guilherme Freire", "url": "https://www.linkedin.com/in/guilherme-freire-38954b251/" },
+      { "name": "Sebastian Martinez", "url": "https://www.linkedin.com/in/martin-ez/" }
+    ],
+    "services": ["Product Design", "Web Design", "Pitch Deck"]
+  },
+  "patreon": {
+    "title": "Patreon 2.0",
+    "subtitle": null,
+    "description": "Worked with the founders to develop a vision for the \"Patreon 2.0\" product experience. Led our mobile, design system, navigation, and creator onboarding redesigns, and helped grow the Design team from 3 to 15.",
+    "date": "2021 - 2022",
+    "images": [
+      "https://framerusercontent.com/images/Qs0e6Y5GB6DjZ4O10nwI0mmDfo.png",
+      "https://framerusercontent.com/images/CuLwHbrXZRrPc78VbMrgFBcaKuI.png",
+      "https://framerusercontent.com/images/9NelIE3FF9mjBKA8Q5P3QsvEnk.png",
+      "https://framerusercontent.com/images/RFt9cwljGX6M1VcsLkZ6HD3IPQ.png",
+      "https://framerusercontent.com/images/hmwAS74AARBTLJWnjLmlCbPm8.png",
+      "https://framerusercontent.com/images/J9bEv66SKUovvVHpW8U8d9Wrwgw.png",
+      "https://framerusercontent.com/images/epSC2BV1NAPPQQuttjpcPaV2lw.png",
+      "https://framerusercontent.com/images/Yie1ZC6PkO29T1IC2ryrt12W3FA.png"
+    ],
+    "videos": [
+      "https://framerusercontent.com/assets/MLWPbW1dUQawJLhhun3dBwpgJak.mp4"
+    ],
+    "blocks": [
+      { "type": "title", "content": "Patreon 2.0" },
+      { "type": "description", "content": "Worked with the founders to develop a vision for the 'Patreon 2.0' product experience..." },
+      { "type": "metadata", "team": true, "services": true, "date": "2021 - 2022" },
+      { "type": "video", "label": "Hero video" },
+      { "type": "section", "title": "Studio 2.0 Design System", "description": "Worked closely with the engineering and design teams to revamp the product's design system to include semantic colors, over 650 handcrafted icons, typography styles, and mobile and web components, encompassing the biggest change in Patreon's design language at the time." },
+      { "type": "image", "label": "Design system overview" },
+      { "type": "image", "label": "Icons" },
+      { "type": "image", "label": "Typography" },
+      { "type": "image", "label": "Components" },
+      { "type": "image", "label": "Mobile components" },
+      { "type": "section", "title": "Simplified Navigation", "description": "I led the redesign of Patreon's navigation and information architecture revamp. Our goal was to make the product more scalable to support additional features, like switching between member and creator profiles." },
+      { "type": "video", "label": "Navigation prototype" },
+      { "type": "image-pair", "label": "Navigation screens" },
+      { "type": "section", "title": "Audio Experience", "description": "Podcasts are a big part of Patreon but the audio browsing and playback experience did not meet user expectations when I joined the company. I managed the team that focused on the reimagining of the Patreon Audio experience, including a redesign of the audio player and audio tab for iOS and Android." },
+      { "type": "device-mockup", "device": "iPhone 13 Mini", "count": 3 }
+    ],
+    "team": [
+      { "name": "Simon Fung", "url": "https://www.linkedin.com/in/simonkfung/" },
+      { "name": "Grace Guo", "url": "https://www.linkedin.com/in/gracesiqiguo/" },
+      { "name": "Aislinn Kelly", "url": "https://www.linkedin.com/in/aislinnkelly/" },
+      { "name": "Aaron Shapiro", "url": "https://twitter.com/aaronshapiro" },
+      { "name": "Sean Leach", "url": "https://www.linkedin.com/in/iamseanleach/" },
+      { "name": "Daniel Giuditta", "url": "https://www.linkedin.com/in/danielgiuditta/" },
+      { "name": "Sharon Yu", "url": "https://www.linkedin.com/in/-sharon-yu-/" },
+      { "name": "Samwoo Ee" },
+      { "name": "Jonathan Arena", "url": "https://www.linkedin.com/in/jonathanarena/" },
+      { "name": "Nathan Rice", "url": "https://www.linkedin.com/in/nathanael-rice-567a2356/" },
+      { "name": "Sandeep Rajan", "url": "https://www.linkedin.com/in/sandeepayyappan/" },
+      { "name": "Mimi Xu", "url": "https://www.linkedin.com/in/mimiysxu/" },
+      { "name": "Shannon Ma", "url": "https://www.linkedin.com/in/shannonmma/" },
+      { "name": "Rishi Mody", "url": "https://www.linkedin.com/in/rishimody/" },
+      { "name": "Jared Smith", "url": "https://www.linkedin.com/in/jaredshaunsmith/" },
+      { "name": "Ted Lee", "url": "https://www.linkedin.com/in/tedleeprofile/" },
+      { "name": "Yifan Peng", "url": "https://www.linkedin.com/in/yifan-p-70a73020/" },
+      { "name": "Jeff Noh", "url": "https://www.linkedin.com/in/jeffnoh/" },
+      { "name": "Henry Fradley", "url": "https://www.linkedin.com/in/henryfradley/" },
+      { "name": "Evan Krambhul", "url": "https://www.linkedin.com/in/evan-krambuhl/" },
+      { "name": "Chris Eppstein", "url": "https://www.linkedin.com/in/chriseppstein/" }
+    ],
+    "services": ["Design System", "Mobile", "Web", "Team Leadership"]
+  },
+  "automatic": {
+    "title": "Automatic",
+    "subtitle": null,
+    "description": "Automatic talks to your car's onboard computer and learns about your driving style and gives you subtle audio cues to save on gas, notifies 911 in a crash, and explains what's wrong with the check engine light. Responsible for all user experience, encompassing marketing, branding, product design, and front-end development.",
+    "date": "2013",
+    "images": [
+      "https://framerusercontent.com/images/G2fRwYFSrhkfLs9ojXcSqpjuD8.png",
+      "https://framerusercontent.com/images/DOtINxKUMINKFUIARqCPk4Gjk.jpeg",
+      "https://framerusercontent.com/images/nBdOGi6cV6tlp6JnvXqr9XGPfp8.jpeg",
+      "https://framerusercontent.com/images/iwEBOSVxrsKUIyYMJX2vOHu3A.jpg",
+      "https://framerusercontent.com/images/ngA8YOOpQue4Avf689HuIFaXoE.png",
+      "https://framerusercontent.com/images/I6r9m8XaEjfRddsiYygt1jImTs.jpg",
+      "https://framerusercontent.com/images/GytNveadNDgOIKNvhisVolYLSc.gif",
+      "https://framerusercontent.com/images/UOziERt07JHbEdKHt0dmMbbBHso.webp",
+      "https://framerusercontent.com/images/sxdtG6hifW2Gcr6Lfg3Kz2wZv4.png",
+      "https://framerusercontent.com/images/qbgNh7y9YxnbnhghVBZPcqetyHs.png",
+      "https://framerusercontent.com/images/dx80FIsZTtKh1EnKgAX2NqD8L8.png",
+      "https://framerusercontent.com/images/zPEtXqYy0aHu7OEgaxuoNzniUg.png"
+    ],
+    "videos": [
+      "https://framerusercontent.com/assets/MLWPbW1dUQawJLhhun3dBwpgJak.mp4"
+    ],
+    "blocks": [
+      { "type": "title", "content": "Automatic" },
+      { "type": "description", "content": "Automatic talks to your car's onboard computer..." },
+      { "type": "metadata", "team": true, "services": true, "date": "2013" },
+      { "type": "image", "label": "Hero - phone in hand" },
+      { "type": "section", "title": "Automatic Link", "description": "Automatic is powered by a hardware adapter that was designed and engineered in-house. The Automatic Link plugs into the same port your mechanic uses when you take your car in for service. It's easily accessible near the steering wheel. The Link talks to your car's onboard computer and syncs with your iOS and Android app to enhance your driving experience." },
+      { "type": "image-pair", "label": "Hardware photos" },
+      { "type": "section", "title": "Mobile App", "description": "After plugging the Automatic Link into your car, the companion app is where all the magic happens. In the app, you can learn why the check engine light came on, browse your weekly trips, learn about your driving habits, and more." },
+      { "type": "image", "label": "App screens" },
+      { "type": "image-grid", "columns": 3, "label": "App details" },
+      { "type": "text-block", "content": "Because Automatic connects to your car's computer, it can learn about your driving habits and teach you how to improve your driving in order to save on gas. For example, we used the accelerometer in the app to detect when you make a hard acceleration or hard brake and alert you by playing a chirp in the device" },
+      { "type": "device-mockup", "device": "iPhone", "count": 2 },
+      { "type": "section", "title": "User onboarding", "description": "Welcoming new users to Automatic was no small task. I designed the introductory product tour and a carefully crafted setup process, which walked you through connecting your Link to your car and pairing it with your phone." },
+      { "type": "image", "label": "Onboarding screens" },
+      { "type": "section", "title": "Package Design", "description": "When designing the retail package for Automatic, it was important to showcase the product's features at a glance, while clearly explaining a complex system that involved both hardware and software." },
+      { "type": "image", "label": "Package front" },
+      { "type": "text-block", "content": "For the front cover, we decided to focus on the connection between the Automatic adapter and the Automatic app. We chose the Mini Cooper because it embodied the spirit of our product -- a car beloved by many for its elegance and simplicity. Opening the front flap felt like looking inside your favorite car. We showed how the adapter would connect to the car's OBD port, the app UI, and the Automatic adapter floating in the right pane." },
+      { "type": "image", "label": "Package open" }
+    ],
+    "team": [
+      { "name": "Ljuba Youngblum", "url": "https://www.ljuba.me/" },
+      { "name": "Eric Mai", "url": "https://www.linkedin.com/in/ericmai85/" },
+      { "name": "Ram Jayaraman", "url": "https://www.linkedin.com/in/ramprabhuj/" },
+      { "name": "Thejo Kote", "url": "https://www.linkedin.com/in/thejo/" }
+    ],
+    "services": ["0 -> 1", "Mobile", "Web", "Branding", "Strategy"]
+  },
+  "tonic": {
+    "title": "Tonic",
+    "subtitle": null,
+    "description": "Tonic combined machine learning and human editors to scour the web and find the most interesting articles to read everyday, curated just for you. We wanted Tonic to equip you to tell the best stories at a dinner party. The app learned from your activity and fine-tuned the recommendations as you go.",
+    "date": "2019 - 2020",
+    "images": [
+      "https://framerusercontent.com/images/PEQLA24D5IvckKbiulqRJGaGfBY.png",
+      "https://framerusercontent.com/images/9JLDgE655jHY9JmEUs467dzSo0w.png"
+    ],
+    "videos": [
+      "https://framerusercontent.com/assets/MLWPbW1dUQawJLhhun3dBwpgJak.mp4"
+    ],
+    "blocks": [
+      { "type": "title", "content": "Tonic" },
+      { "type": "description", "content": "Tonic combined machine learning and human editors..." },
+      { "type": "metadata", "team": true, "services": true, "date": "2019 - 2020" },
+      { "type": "image", "label": "Hero image" },
+      { "type": "section", "title": "Onboarding", "description": "I designed the onboarding flow to use concise language and colorful imagery to convey a simple value prop. Instead of explaining the mechanics of how it works, I focused on the desired feeling we wanted to achieve by using our app." },
+      { "type": "device-mockup", "device": "iPhone X", "count": 3 },
+      { "type": "text-block", "content": "How do we know what you'll like on your first try? Other apps will dump you in a flow where you'll choose categories and interests, but we found that to be grating. Instead, we showed users a sample of the content they could find behind the app and asked them to select five articles that they wanted to read by adding it to their bookmarks. This accomplished two goals: we introduced people to bookmarking, which is the main action they'd be performing when using Tonic and we avoided the ghost town problem and made sure users always had something to read, even on day one." },
+      { "type": "device-mockup", "device": "iPhone X" },
+      { "type": "section", "title": "Mindful Consumption", "description": "Our goal was to give people a reason to come back to the app without relying on engagement mining and growth tactics. We decided to apply the old adage of using quality over quantity. So instead of doom-scrolling through an infinite feed of content, we'd bundle the best into five recommendations every day. This made the app feel fresh and gave you a reason to come back every day, without having to rely on growth hacks or annoying notifications. Each bundle is uniquely tailored to you based on the app's knowledge of your interests. In each bundle there are 4 articles that we know you would love and a wild card: the best from a topic you may not typically be exposed to. That's how we delight and surprise people through our recommendations." },
+      { "type": "video", "label": "Bundle animation" },
+      { "type": "device-mockup", "device": "iPhone X", "count": 2 },
+      { "type": "section", "title": "Information Architecture", "description": "We wanted the app to feel simple and intuitive, so we designed the home experience to show everything you needed to see at a glance. Each recommendation is displayed as a beautiful card, where the content can shine and feel like something worthy of your time. After you read a recommendation, it moves away from your Recommended section and into the Last Opened section, so you can easily pick up where you left off. Below it, you can find the rest of the articles you've saved for later." },
+      { "type": "video", "label": "IA walkthrough" },
+      { "type": "device-mockup", "device": "iPhone X", "count": 2 },
+      { "type": "section", "title": "Feedback", "description": "We put a feedback button in the main screen that, when tapped, it allows any user to send an anonymous message directly to our Slack channel. It's a wonderful window into our users' minds. We get messages every day from users who love and hate our app and most importantly WHY they do." },
+      { "type": "image", "label": "Feedback Slack integration" },
+      { "type": "section", "title": "Transparency & Control", "description": "In the activity tab, we show a heart indicating how much we think you enjoyed every article you've read. At any point, you can correct that rating and teach the algorithm what you like by long pressing on the article and dragging your thumb to the rating. The heart then updates to reflect your desired rating. In the cases we got the recommendations entirely wrong, we encouraged people to swap their recommendations for a brand new one. In order to avoid variable rewards engagement hooks, we instated a limit of five swaps per day." },
+      { "type": "device-mockup", "device": "iPhone X", "count": 2 }
+    ],
+    "team": [
+      { "name": "Brian Whitman", "url": "https://www.linkedin.com/in/brianwhitman/" },
+      { "name": "Annika Goldman", "url": "https://www.linkedin.com/in/annikagoldman/" },
+      { "name": "Matt Ogle", "url": "https://www.linkedin.com/in/mattogle/" },
+      { "name": "Emma Tangoren", "url": "https://www.linkedin.com/in/emmatangoren/" },
+      { "name": "Laima Tazmin", "url": "https://www.linkedin.com/in/laima-tazmin-0800b917/" },
+      { "name": "Phil Bowden", "url": "https://www.linkedin.com/in/phillip-bowden-b8b70083/" },
+      { "name": "Bassey Etim", "url": "https://www.linkedin.com/in/bassey-etim-74748a6b/" },
+      { "name": "Amie Green", "url": "https://www.linkedin.com/in/amiegreen/" }
+    ],
+    "services": ["0 -> 1", "Strategy", "Branding", "Mobile", "Web"]
+  },
+  "shoebox": {
+    "title": "Shoebox",
+    "subtitle": null,
+    "description": "Shoebox helps you discover podcasts with a twist: rather than recommending individual shows, Shoebox builds mixtapes that are privately personalized to you. Bored with the usual? There's always something new to discover in the shoebox.",
+    "date": "2020",
+    "images": [
+      "https://framerusercontent.com/images/GFFxT7xiqNQYnm6JJTuLEXSiw.png"
+    ],
+    "videos": [],
+    "blocks": [
+      { "type": "title", "content": "Shoebox" },
+      { "type": "description", "content": "Shoebox helps you discover podcasts with a twist..." },
+      { "type": "metadata", "team": true, "services": true, "date": "2020" },
+      { "type": "image", "label": "Hero image" },
+      { "type": "section", "title": "Onboarding", "description": "People can import their listening history from their prefered podcast listening app like Pocket Cast and Overcast. Alternatively, they can fill out a simple three-step onboarding that specifies podcast length, type, and genre." },
+      { "type": "device-mockup", "device": "iPhone X" },
+      { "type": "section", "title": "Core UX", "description": "Each mixtape is represented as a cassette. Browse your mixtapes by horizontally scrolling and reading the Editor's Notes. Insert the cassette into the player and reveal the podcast episodes that make it. Tap the podcast episode icon in the bottom right to see more information about the currently playing episode. Eject the cassette by tapping the icon in the bottom left to choose a new mixtape." },
+      { "type": "device-mockup", "device": "iPhone X" }
+    ],
+    "team": [
+      { "name": "Brian Whitman", "url": "https://www.linkedin.com/in/brianwhitman/" },
+      { "name": "Annika Goldman", "url": "https://www.linkedin.com/in/annikagoldman/" },
+      { "name": "Matt Ogle", "url": "https://www.linkedin.com/in/mattogle/" },
+      { "name": "Emma Tangoren", "url": "https://www.linkedin.com/in/emmatangoren/" },
+      { "name": "Laima Tazmin", "url": "https://www.linkedin.com/in/laima-tazmin-0800b917/" },
+      { "name": "Phil Bowden", "url": "https://www.linkedin.com/in/phillip-bowden-b8b70083/" },
+      { "name": "Bassey Etim", "url": "https://www.linkedin.com/in/bassey-etim-74748a6b/" },
+      { "name": "Amie Green", "url": "https://www.linkedin.com/in/amiegreen/" }
+    ],
+    "services": ["0 -> 1", "Strategy", "Branding", "Mobile", "Web"]
+  },
+  "fb-360": {
+    "title": "Facebook 360",
+    "subtitle": null,
+    "description": "Founding member of Facebook's VR team dubbed Facebook 360. Worked on a variety of projects to bring immersive media to mobile as well as a home for immersive media consumption in Virtual Reality. Played a key role in growing the design team from 2 to 12 multi-disciplinary designers in 24 months.",
+    "date": "2016 - 2017",
+    "images": [
+      "https://framerusercontent.com/images/iMLBuB8leqyFaTc7sNC61OsEuoI.png",
+      "https://framerusercontent.com/images/MVOcfEuKU7pfU8sWyiMIi37M39w.png"
+    ],
+    "videos": [
+      "https://vimeo.com/170022869",
+      "https://vimeo.com/414242424",
+      "https://framerusercontent.com/assets/MLWPbW1dUQawJLhhun3dBwpgJak.mp4"
+    ],
+    "blocks": [
+      { "type": "title", "content": "Facebook 360" },
+      { "type": "description", "content": "Founding member of Facebook's VR team..." },
+      { "type": "metadata", "team": true, "services": true, "date": "2016 - 2017" },
+      { "type": "image", "label": "Hero image" },
+      { "type": "section", "title": "360 Photos", "description": "Led design to upgrade panoramic photos to 360 photos on Facebook. Responsible for the creation and consumption flow, immersive player, and spatial interactions." },
+      { "type": "video", "source": "vimeo", "label": "360 Photos demo" },
+      { "type": "section", "title": "Facebook 360", "description": "The first dedicated Facebook media app for the Gear VR platform, a destination to view 360 photos and videos from Facebook in VR. Facebook 360 is a one-stop shop for catching up on what you may have missed from your friends and pages you follow, immersing yourself in the 360 photos and videos you've saved while finding something new to enjoy." },
+      { "type": "image", "label": "Facebook 360 VR app" },
+      { "type": "video-grid", "columns": 3, "label": "VR interactions" },
+      { "type": "section", "title": "Facebook Spaces", "description": "Facebook's first step into social VR, which included explorations around virtual embodiment and social interactions in virtual environments. I was responsible for bringing the learnings from Facebook 360 into Facebook Spaces to consume immersive media with your friends." },
+      { "type": "video", "source": "vimeo", "label": "Facebook Spaces demo" },
+      { "type": "section", "title": "Facebook VR Resources", "description": "I led the creation of the Facebook VR Resources to ease the transition from 2D Product Design to Spatial Design. The site included links to articles from our team as well as Unity resources for designers. The site instrumental in growing our team by positioning Facebook as the leader in the industry at the time." },
+      { "type": "video", "label": "VR Resources site" }
+    ],
+    "team": [
+      { "name": "Charlie Sutton" },
+      { "name": "Cliff Warren" },
+      { "name": "Christophe Tauziet", "url": "https://www.linkedin.com/in/christophetauziet/" },
+      { "name": "Steph Engle", "url": "https://www.linkedin.com/in/stephanie-engle-41bba745/" },
+      { "name": "Maheen Sohail", "url": "https://www.linkedin.com/in/maheensohail/" },
+      { "name": "Katya Kostyukova", "url": "https://twitter.com/katya_alexander?lang=en" },
+      { "name": "Brian Schulman", "url": "https://www.linkedin.com/in/blschulman/" },
+      { "name": "Robert Chen", "url": "https://www.linkedin.com/in/chenrobert/" },
+      { "name": "Chris No", "url": "https://www.linkedin.com/in/chris-no-7152bb24/" },
+      { "name": "Richard Emms", "url": "https://www.linkedin.com/in/richardemms/" }
+    ],
+    "services": ["Virtual Reality", "Spatial Design", "Emerging Media", "Mobile"]
+  },
+  "fb-sharing": {
+    "title": "Facebook Sharing",
+    "subtitle": null,
+    "description": "A series of experiments aimed to increase original content shared by friends on Facebook. Pitched a project to leadership and moved to London for a year to build it. Founding designer for Facebook London, grew EMEA design team from 3 to 30 in 12 months. Shipped MVP to Italy and New Zealand, learnings informed IG Stories.",
+    "date": "2014 - 2015",
+    "images": [
+      "https://framerusercontent.com/images/SNLcPGdX2txjNK8GYUo9zEdw5w.jpg",
+      "https://framerusercontent.com/images/4fhOjk0uwBhUy3U8xyrHGxx618.png",
+      "https://framerusercontent.com/images/dZB8M6PwmXv1AgI9xWL9ElfSLw4.jpg",
+      "https://framerusercontent.com/images/4O12ncYoe3iQ88HiSl6K57JphI.jpg",
+      "https://framerusercontent.com/images/TvZtjtMAIexjAgsFz7ZbyQLHAnU.jpg",
+      "https://framerusercontent.com/images/IZfDVbbb4AWs1vM33rM5vAASao.jpg",
+      "https://framerusercontent.com/images/9eR81F3CPGFpFPtJlkb2Z0FNc.jpg",
+      "https://framerusercontent.com/images/0gMpEoNjyC9NU3gTyM1tWKnwz4.jpg",
+      "https://framerusercontent.com/images/ejfpEL0UmX2kDL7sUqhJAwsuc.jpg",
+      "https://framerusercontent.com/images/dBqK0g39L7zVetXPKLdxf45Qlo.png",
+      "https://framerusercontent.com/images/4LI1ISphjwHRtZFJeWzPRaqkX6Y.png"
+    ],
+    "videos": [
+      "https://framerusercontent.com/assets/MLWPbW1dUQawJLhhun3dBwpgJak.mp4"
+    ],
+    "blocks": [
+      { "type": "title", "content": "Facebook Sharing" },
+      { "type": "description", "content": "A series of experiments aimed to increase original content shared by friends on Facebook..." },
+      { "type": "metadata", "team": true, "services": true, "date": "2014 - 2015" },
+      { "type": "image", "label": "Hero image" },
+      { "type": "section", "title": "Composer", "description": "After a few months at the company, I joined the Content Creation team to work on the piece of UI that 2 billion people use to share their status: the Composer. As you can imagine, that's a very delicate environment to design around since any small change can be very disruptive for the platform. In spite of that, I was able to ship a redesigned composer, privacy picker, and a few experiments like ephemeral posts." },
+      { "type": "image", "label": "Composer redesign" },
+      { "type": "section", "title": "Multi-Post Stories", "description": "One of the main obstacles for posting on Facebook is the pressure of having a finished narrative arc before sharing with their friends. To address this, I prototyped and pitched Multi-Post Stories, a way to stitch Facebook posts into a longer story. The idea gained momentum internally, leading me to move to London for a year to build it with a small team of engineers and help establish the Facebook London team." },
+      { "type": "device-mockup", "device": "iPhone", "count": 3, "label": "Multi-Post Stories prototypes" },
+      { "type": "image-grid", "columns": 4, "rows": 2, "label": "Story tiles" },
+      { "type": "video", "label": "Multi-Post Stories demo" },
+      { "type": "section", "title": "Laser Tags", "description": "An iteration on Multi-Post Stories to make them collaborative. When you tag your friends in a post, they get an invitation to add to your story. This makes content creation on Facebook a multiplayer game for the first time in its history." },
+      { "type": "image", "label": "Laser Tags" }
+    ],
+    "team": [
+      { "name": "Charlie Deets", "url": "https://www.linkedin.com/in/charliedeets/" },
+      { "name": "Christophe Tauziet", "url": "https://www.linkedin.com/in/christophetauziet/" },
+      { "name": "Seth Weisfeld", "url": "https://www.linkedin.com/in/sethweisfeld/" },
+      { "name": "Jonathan Arena", "url": "https://www.linkedin.com/in/jonathanarena/" },
+      { "name": "Mills Baker", "url": "https://www.linkedin.com/in/millsbaker/" },
+      { "name": "Gemma Silvers", "url": "https://www.linkedin.com/in/gemma-silvers-7217231/" },
+      { "name": "Thiago Hirai", "url": "https://www.linkedin.com/in/thiago-hirai-4107921/" },
+      { "name": "Daniel Gibson", "url": "https://www.linkedin.com/in/daniel-gibson-8b39037/" },
+      { "name": "Leo Mancini", "url": "https://www.linkedin.com/in/leomancini/" },
+      { "name": "Blaise DiPersia", "url": "https://www.linkedin.com/in/blaise-dipersia-2007732a/" }
+    ],
+    "services": ["0 -> 1", "Strategy", "Mobile"]
+  },
+  "grandstand": {
+    "title": "Grandstand",
+    "subtitle": null,
+    "description": "I worked with Grandstand's CEO and founder to define the first version of the product and brand in preparation for their Seed round fundraise. Together we developed a product name and brand (complete with a custom typeface for the logo), an end-to-end interactive prototype, and a narrative for the pitch deck. After fundraising, I helped onboard a new designer and led design for two differentiated features for their alpha release in the Fall of 2023.",
+    "date": "2023",
+    "images": [
+      "https://framerusercontent.com/images/cvUmU62WRbLMKSNMharnwf6RVrk.png",
+      "https://framerusercontent.com/images/PPrvrKHbw5mVw5TBLyXimHYnrQ.png",
+      "https://framerusercontent.com/images/XFyUgZT117bIXfmiMKj52OUKmmk.png",
+      "https://framerusercontent.com/images/1aDj7JNPJI5Kbx0ij7RzAAk0s.png",
+      "https://framerusercontent.com/images/FkgtZR80iBNOknEzRjoGwalgs.png",
+      "https://framerusercontent.com/images/ifVJ4oLNXBg4xe1SVnx1smqI0w.png"
+    ],
+    "videos": [],
+    "blocks": [
+      { "type": "title", "content": "Grandstand" },
+      { "type": "description", "content": "I worked with Grandstand's CEO and founder..." },
+      { "type": "metadata", "team": true, "services": true, "date": "2023" },
+      { "type": "image", "label": "Hero image" },
+      { "type": "section", "title": "Athlete Profiles", "description": "Inspired by the tradition of collectible baseball cards, our athlete profiles let users create and customize their own digital cards with ease. The simple creation process ensures anyone can highlight their stats, stories, and milestones. Every athlete also gets a dedicated store, making it easy to share their profile and for fans to collect and support them." },
+      { "type": "device-mockup", "device": "iPhone 15", "count": 3 },
+      { "type": "section", "title": "Fan Events", "description": "Our fan events are built for versatility, effortlessly adjusting to the specific vibe of any sport. With customizable layouts and branding options, each event captures the spirit of its game. The adaptable design makes it simple to create memorable experiences that resonate with fans and athletes alike." },
+      { "type": "device-mockup", "device": "iPhone 15", "count": 3 },
+      { "type": "section", "title": "Design System", "description": "I built a comprehensive design system from the ground up, ensuring every component was consistent, reusable, and visually cohesive. This system streamlined collaboration, making it easy to hand off polished assets to the engineering team for seamless implementation. Every detail was thoughtfully documented, enabling smooth transitions from design to development." },
+      { "type": "image", "label": "Design system" },
+      { "type": "section", "title": "Brand", "description": "In developing the brand, we explored countless directions, always returning to a heavy focus on typography reminiscent of vintage sports ads. The result is a visual identity that blends nostalgia with modern sensibilities, using classic type treatments and expressive lettering to capture the energy and heritage of athletic culture." },
+      { "type": "image", "label": "Brand posters" },
+      { "type": "image", "label": "Brand typography" },
+      { "type": "image", "label": "Brand colors" },
+      { "type": "image", "label": "Brand applications" }
+    ],
+    "team": [
+      { "name": "Sandeep Rajan", "url": "https://www.linkedin.com/in/sandeepayyappan/" },
+      { "name": "Sandeep Rajan", "url": "https://www.linkedin.com/in/willyoshimura/" },
+      { "name": "Cody Smith", "url": "https://www.linkedin.com/in/codyismith/" }
+    ],
+    "services": ["0 -> 1", "Strategy", "Mobile", "Brand"]
+  },
+  "fb-pages": {
+    "title": "Facebook Pages",
+    "subtitle": null,
+    "description": "Led design for the interface that small business owners use to boost their posts and promote their pages. In addition, I collaborated with the design team on the information architecture and the Pages Manager App for iOS.",
+    "date": "2014",
+    "images": [
+      "https://framerusercontent.com/images/bUf5eZ7k6RUnpIUeZDP4UkhY.png"
+    ],
+    "videos": [],
+    "blocks": [
+      { "type": "title", "content": "Facebook Pages" },
+      { "type": "description", "content": "Led design for the interface that small business owners use to boost their posts..." },
+      { "type": "metadata", "team": true, "services": true, "date": "2014" },
+      { "type": "image", "label": "Pages Manager app" }
+    ],
+    "team": [
+      { "name": "Vika K", "url": "https://www.linkedin.com/in/mynameisvika/" },
+      { "name": "Myles Larson", "url": "https://www.linkedin.com/in/myleslarson/" },
+      { "name": "Cathy Lo", "url": "https://www.linkedin.com/in/cathy-lo-81819a1/" },
+      { "name": "Nathanael Cho" }
+    ],
+    "services": ["web", "mobile"]
+  },
+  "talk-turkey": {
+    "title": "Talk Turkey",
+    "subtitle": null,
+    "description": "Candid interviews through instant messages. The format could help us get more informal and honest conversations out of the interviewees and allow the reader to feel part of the conversation, as if the reader got a hold of my phone and opened a messaging app to find these conversations.",
+    "date": "2016",
+    "images": [
+      "https://framerusercontent.com/images/fmJDfUDWUYZAlQzQJmoJ2KjvRmU.webp",
+      "https://framerusercontent.com/images/zk4vbF3pZSryisMzv3KmRcEpc.png",
+      "https://framerusercontent.com/images/9LaXHTpsiOIjR3mpqF1SvKaVFig.png",
+      "https://framerusercontent.com/images/z7PEoP8990nwi1qs8K5H7Ak55Hk.png",
+      "https://framerusercontent.com/images/dI4nZeiAa2NoGOOjwe0nWxjgNlQ.jpg"
+    ],
+    "videos": [
+      "https://framerusercontent.com/assets/MLWPbW1dUQawJLhhun3dBwpgJak.mp4"
+    ],
+    "blocks": [
+      { "type": "title", "content": "Talk Turkey" },
+      { "type": "description", "content": "Candid interviews through instant messages..." },
+      { "type": "metadata", "team": true, "services": true, "date": "2016" },
+      { "type": "image", "label": "Hero image" },
+      { "type": "image", "label": "Website screenshot" },
+      { "type": "device-mockup-and-images", "label": "Phone mockup with video and press images" }
+    ],
+    "team": [
+      { "name": "Charlie Deets", "url": "https://www.linkedin.com/in/charliedeets/" }
+    ],
+    "services": ["Strategy", "Web", "Front end dev"]
+  },
+  "makeshift": {
+    "title": "Makeshift",
+    "subtitle": null,
+    "description": "Co-working studio and community space for product designers. A place for designers who enjoy the flexibility of remote work but miss the creative energy of working alongside friends and peers they respect. The space also hosted many events for creatives to collaborate and grow.",
+    "date": "2021 - 2022",
+    "images": [
+      "https://framerusercontent.com/images/MIqbekTqBOsz9TeAAXKn4WDZk.png",
+      "https://framerusercontent.com/images/bnvg5TVysNy76Qg3DGH8hGKZJ4.png",
+      "https://framerusercontent.com/images/GeTu16nLpMIrxsnEK6kLFT7Yt8.jpg",
+      "https://framerusercontent.com/images/u4kYj4W3wrEKhiR1VluwWU4aSM.jpg"
+    ],
+    "videos": [
+      "https://framerusercontent.com/assets/MLWPbW1dUQawJLhhun3dBwpgJak.mp4"
+    ],
+    "blocks": [
+      { "type": "title", "content": "Makeshift" },
+      { "type": "description", "content": "Co-working studio and community space for product designers..." },
+      { "type": "metadata", "team": true, "services": true, "date": "2021 - 2022" },
+      { "type": "image", "label": "Hero - studio photo" },
+      { "type": "video", "label": "Studio walkthrough" },
+      { "type": "image-grid", "columns": 2, "rows": 2, "label": "Studio photos" },
+      { "type": "video", "label": "Events" }
+    ],
+    "team": [
+      { "name": "Cliff Warren", "url": "https://www.linkedin.com/in/cliff-warren-ba656b3a/" },
+      { "name": "Oleg Panichev" }
+    ],
+    "services": ["Strategy", "web", "Front-end dev"]
+  },
+  "vectors": {
+    "title": "Vectors",
+    "subtitle": null,
+    "description": "A half-day event that celebrated how your identity informs your work. Tickets for the event were sold out within 48 hours with 300 people joining in person and over 4,000 remotely via livestream. We received incredible support from the community: #wearevectors was trending on Twitter, featuring people's reactions to the event",
+    "date": "2017",
+    "images": [
+      "https://framerusercontent.com/images/4PkYGIMrc1SnRnDe3rD94Lefgek.webp",
+      "https://framerusercontent.com/images/TUtDJBBnEa7484QRS4nA9ll715E.webp",
+      "https://framerusercontent.com/images/c7RBkpA9BbXrrEWie2YnT0O9xIU.webp"
+    ],
+    "videos": [
+      "https://framerusercontent.com/assets/MLWPbW1dUQawJLhhun3dBwpgJak.mp4"
+    ],
+    "blocks": [
+      { "type": "title", "content": "Vectors" },
+      { "type": "description", "content": "A half-day event that celebrated how your identity informs your work..." },
+      { "type": "metadata", "team": true, "services": true, "date": "2017" },
+      { "type": "video", "label": "Event highlight reel" },
+      { "type": "image-grid", "columns": 2, "rows": 2, "label": "Event photos" }
+    ],
+    "team": [
+      { "name": "Michelle Morrison", "url": "https://www.linkedin.com/in/morrisonmichelle/" },
+      { "name": "Julio Martinez", "url": "https://www.linkedin.com/in/martinezdf/" }
+    ],
+    "services": ["Strategy", "Creative Direction", "Front-end dev"]
+  },
+  "assembler": {
+    "title": "Assembler",
+    "subtitle": null,
+    "description": "Assembler (codename Ultraviolet) was an experiment ran by Google's Jigsaw to combat disinformation. Assembler used machine learning models to help journalists spot doctored photographs -- even ones created with the help of artificial intelligence.",
+    "date": "2018",
+    "images": [
+      "https://framerusercontent.com/images/I7wN61T4CZixN0NHqvGQ092GG4.png"
+    ],
+    "videos": [],
+    "blocks": [
+      { "type": "title", "content": "Assembler" },
+      { "type": "description", "content": "Assembler (codename Ultraviolet) was an experiment ran by Google's Jigsaw..." },
+      { "type": "metadata", "team": true, "services": true, "date": "2018" },
+      { "type": "image", "label": "Assembler interface" }
+    ],
+    "team": [
+      { "name": "Sneha Keshav", "url": "https://www.linkedin.com/in/sneha-keshav-26303b9/" },
+      { "name": "Robyn Kanner", "url": "https://www.linkedin.com/in/robynkanner/" },
+      { "name": "Santiago Andrigo", "url": "https://www.linkedin.com/in/santiagoandrigo/" }
+    ],
+    "services": ["Management", "Creative Direction"]
+  },
+  "sensible": {
+    "title": "Sensible",
+    "subtitle": null,
+    "description": "Sensible is a high-yield crypto account that enables users to earn passive income in BTC with up to 8% APY. Working closely with the Sensible team, we built a fully functional platform designed to be accessible even for those unfamiliar with cryptocurrency--streamlining wallet connections for quick onboarding, providing transparent yield information to support informed decisions, and creating an intuitive interface that makes managing assets and tracking earnings effortless.",
+    "date": "2025",
+    "images": [
+      "https://framerusercontent.com/images/lmnSgyiUj0r4VdSwKsqv979dd70.png",
+      "https://framerusercontent.com/images/IyeaZxlmSzBs3b2iivUGQZhMhIo.png",
+      "https://framerusercontent.com/images/E0Tg5DNOPnGZM2jbxe9vPSpPqn4.png"
+    ],
+    "videos": [],
+    "blocks": [
+      { "type": "title", "content": "Sensible" },
+      { "type": "description", "content": "Sensible is a high-yield crypto account..." },
+      { "type": "metadata", "team": true, "services": true, "date": "2025" },
+      { "type": "image", "label": "Hero - web app" },
+      { "type": "device-mockup", "device": "iPhone 15", "count": 3 },
+      { "type": "image", "label": "Dashboard" },
+      { "type": "image", "label": "Full page screenshot" }
+    ],
+    "team": [
+      { "name": "Jacob Frantz", "url": "https://www.linkedin.com/in/jacob-frantz/" },
+      { "name": "Zachary Salmon", "url": "https://www.linkedin.com/in/zachary-salmon/" },
+      { "name": "Daniel Chung", "url": "https://danielchung.design/" }
+    ],
+    "services": ["Branding", "Product Design", "Strategy"]
+  },
+  "1099policy": {
+    "title": "1099Policy",
+    "subtitle": null,
+    "description": "Six-week sprint to define a new brand and website for 1099Policy. We worked closely with the founders to determine company values and brand attributes, which we used to do a few divergent explorations before arriving at a final brand direction. Once the brand was established, we sat down with the founders to define a narrative and new visuals for the website.",
+    "date": "2023",
+    "images": [
+      "https://framerusercontent.com/images/liCpCNSSINyLmjN9FdfxQoXLsyU.png",
+      "https://framerusercontent.com/images/ddv3thiPq44HMv16Ujly0CYoAh0.png",
+      "https://framerusercontent.com/images/VRCxDRtfivQ10rfTiJoXWmNyw.png",
+      "https://framerusercontent.com/images/wMpb48rq9LLp2e8J2EziYyZfIM.png",
+      "https://framerusercontent.com/images/uNO0XyO9vH0FyoNUm5Wunka6CA0.png"
+    ],
+    "videos": [],
+    "blocks": [
+      { "type": "title", "content": "1099Policy" },
+      { "type": "description", "content": "Six-week sprint to define a new brand and website..." },
+      { "type": "metadata", "team": true, "services": true, "date": "2023" },
+      { "type": "image", "label": "Hero - website" },
+      { "type": "image-pair", "label": "Brand explorations" },
+      { "type": "image", "label": "Full page website" }
+    ],
+    "team": [
+      { "name": "Ray Ventura", "url": "https://www.linkedin.com/in/rayvace/" },
+      { "name": "Jae Yoon", "url": "https://www.linkedin.com/in/hellojaeho/" }
+    ],
+    "services": ["Branding", "Web Design"]
+  },
+  "supper": {
+    "title": "Supper",
+    "subtitle": null,
+    "description": "Supper is an AI-powered business intelligence tool that enables teams to ask business questions in natural language and get fast answers. Working with the Supper team, we built an intuitive product that lets users explore data and visualize trends without SQL knowledge, while transparent sourcing and consistent logic ensure insights feel reliable--helping teams align around shared metrics and reduce manual reporting.",
+    "date": "2023 - 2025",
+    "images": [
+      "https://framerusercontent.com/images/Itb31MpTlz07Vg8ksjg7BgYzLZU.png",
+      "https://framerusercontent.com/images/skskZQbS4pZP75EQSs2uSuQOFos.png",
+      "https://framerusercontent.com/images/IHsVqCWimEDeMCA3OyiMu2XrikY.png",
+      "https://framerusercontent.com/images/2mbhQPaPnX4tw1cKCKIh6HhkU4.png"
+    ],
+    "videos": [],
+    "blocks": [
+      { "type": "title", "content": "Supper" },
+      { "type": "description", "content": "Supper is an AI-powered business intelligence tool..." },
+      { "type": "metadata", "team": true, "services": true, "date": "2023 - 2025" },
+      { "type": "image", "label": "Web app screenshot 1" },
+      { "type": "image", "label": "Web app screenshot 2" },
+      { "type": "image", "label": "Web app screenshot 3" },
+      { "type": "device-mockup", "device": "iPhone 15", "count": 3 },
+      { "type": "image", "label": "Dashboard overview" }
+    ],
+    "team": [
+      { "name": "Lowell Putnam", "url": "https://www.linkedin.com/in/lowell-putnam/" },
+      { "name": "Andrew Salamon", "url": "https://www.linkedin.com/in/andysalamon/" },
+      { "name": "Daniel Chung", "url": "https://danielchung.design/" }
+    ],
+    "services": ["Branding", "Product Design", "Strategy"]
+  },
+  "ritual": {
+    "title": "Ritual Dental",
+    "subtitle": null,
+    "description": "I collaborated closely with the founding team at Ritual Dental to design their inaugural website, which served as the foundation for their digital presence. My work focused on designing intuitive and user-friendly core user experience flows and an insights platform to better understand patient's oral microbiome results through clear visualizations and data interpretation.",
+    "date": "2024",
+    "images": [
+      "https://framerusercontent.com/images/gjaoaPEsTNXBWs33YGphDwU.svg",
+      "https://framerusercontent.com/images/d6fQZeTIixcGxG30UpTWwTK1Dlc.png",
+      "https://framerusercontent.com/images/ChJeDUQAfx2Ppg4S0sBIIzrZGE8.png",
+      "https://framerusercontent.com/images/8pKaMPimQ128L143kHvDYHTZbc.png",
+      "https://framerusercontent.com/images/SV4iBJaFslFwugs27TGExKwPT0.png",
+      "https://framerusercontent.com/images/qyo7aUGlkhJBBBZWsFEv4bumM.png"
+    ],
+    "videos": [],
+    "blocks": [
+      { "type": "title", "content": "Ritual Dental" },
+      { "type": "description", "content": "I collaborated closely with the founding team at Ritual Dental..." },
+      { "type": "metadata", "team": true, "services": true, "date": "2024" },
+      { "type": "image", "label": "Logo on blue background" },
+      { "type": "section", "title": "Branding", "description": "My focus for Ritual's brand refresh was to make it feel more professional and polished while maintaining its approachable essence. I updated the typography to a bold, geometric typeface to convey confidence and clarity, while keeping the iconic yellow circular symbol to retain brand recognition and warmth. The color palette remains a calming blue, but with crisper, more readable white text. By enhancing the hierarchy and improving alignment, I aimed to balance professionalism with friendliness, reflecting the brand's growth and dedication to high-quality dental care" },
+      { "type": "image", "label": "Brand assets" },
+      { "type": "section", "title": "Website", "description": "For the Ritual Dental website, I wanted to balance clean, modern aesthetics with a warm and welcoming feel. The homepage highlights personalized, tech-driven care with clean typography, engaging imagery, and interactive elements, such as health scores and AI-powered insights. Throughout the site, I maintained a consistent visual language, prioritizing accessibility and clarity. The diverse color blocks emphasize different sections, making the content easy to scan, while the typography hierarchy creates a natural flow of information. Key elements like the mission and team pages reinforce the brand's human-centered approach, while the careers section reflects company values and culture in a visually cohesive and compelling way." },
+      { "type": "image", "label": "Website page 1" },
+      { "type": "image", "label": "Website page 2" },
+      { "type": "image", "label": "Website page 3" },
+      { "type": "section", "title": "Booking Flow", "description": "The booking flow for Ritual Dental is designed with a clean, user-friendly interface. The first screen allows users to select whether they're booking for themselves or for their child, then they're presented with appointment types, each clearly represented by simple icons, making it easy to find the service they need. Once the appointment type is selected, the flow moves on to choosing a time, divided into morning, afternoon, and evening slots. After selecting the time, the user enters their contact information on a clean, minimal form, ensuring the process remains straightforward and not overwhelming. Finally, the confirmation screen provides a detailed summary of the booking, with an option to reschedule or cancel the appointment." },
+      { "type": "device-mockup", "device": "iPhone 15", "count": 4 },
+      { "type": "section", "title": "Package", "description": "The physical package design seamlessly extends Ritual Dental's visual language, ensuring that the brand's ethos of high-quality care and technological advancement is conveyed from the moment patients interact with the product. The packaging mirrors the core brand elements, utilizing the signature dark blue background and vibrant yellow circle icon to maintain consistency and brand recognition. The sleek and minimal design of the kit reflects the modern, tech-forward approach of Ritual Dental, reinforcing trust in the innovative nature of their services." },
+      { "type": "image", "label": "Package design" }
+    ],
+    "team": [
+      { "name": "Arman Ozgun", "url": "https://www.linkedin.com/in/armanozgun/" },
+      { "name": "Natasha Awasthi", "url": "https://www.linkedin.com/in/natasha-awasthi-7070572" },
+      { "name": "Leah Gilmore", "url": "https://www.linkedin.com/in/leahgilmore/" },
+      { "name": "Alex Valdivia", "url": "https://www.alexvaldiviadesign.com/" },
+      { "name": "Daniel Chung", "url": "https://danielchung.design/" }
+    ],
+    "services": ["Web Design", "Product Design", "Branding"]
+  }
+}
