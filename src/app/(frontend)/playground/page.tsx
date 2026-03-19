@@ -55,23 +55,23 @@ export default async function PlaygroundPage() {
                     const href = project.slug ? `/playground/${project.slug}` : null
                     const isInternal = true
                     return (
-                      <div key={project.id} className="py-4 flex items-baseline gap-4 group min-w-0 overflow-hidden">
+                      <div key={project.id} className="py-4 flex flex-col tablet:flex-row tablet:items-baseline gap-1 tablet:gap-4 group min-w-0 overflow-hidden">
                         {href ? (
                           isInternal ? (
-                            <Link href={href} className="flex items-baseline gap-4 tablet:hover:opacity-60 transition-colors min-w-0">
-                              <h4 className="shrink-0">{project.title}</h4>
+                            <Link href={href} className="flex flex-col tablet:flex-row tablet:items-baseline gap-1 tablet:gap-4 tablet:hover:opacity-60 transition-colors min-w-0">
+                              <h4>{project.title}</h4>
                               {project.description && (
-                                <p className="text-muted overflow-hidden text-ellipsis whitespace-nowrap tablet:whitespace-normal tablet:overflow-visible tablet:inline-flex tablet:items-baseline tablet:gap-2">{project.description}<svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[7px] hidden tablet:block" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 6l6 6-6 6" /></svg></p>
+                                <p className="text-muted tablet:overflow-hidden tablet:text-ellipsis tablet:whitespace-nowrap tablet:inline-flex tablet:items-baseline tablet:gap-2">{project.description}<svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[7px] hidden tablet:block" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 6l6 6-6 6" /></svg></p>
                               )}
                               {!project.description && (
                                 <svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[7px] hidden tablet:block" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 6l6 6-6 6" /></svg>
                               )}
                             </Link>
                           ) : (
-                            <a href={href} target="_blank" rel="noopener noreferrer" className="flex items-baseline gap-4 tablet:hover:opacity-60 transition-colors min-w-0">
-                              <h4 className="shrink-0">{project.title}</h4>
+                            <a href={href} target="_blank" rel="noopener noreferrer" className="flex flex-col tablet:flex-row tablet:items-baseline gap-1 tablet:gap-4 tablet:hover:opacity-60 transition-colors min-w-0">
+                              <h4>{project.title}</h4>
                               {project.description && (
-                                <p className="text-muted overflow-hidden text-ellipsis whitespace-nowrap tablet:whitespace-normal tablet:overflow-visible tablet:inline-flex tablet:items-baseline tablet:gap-2">{project.description}<svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[7px] hidden tablet:block" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 6l6 6-6 6" /></svg></p>
+                                <p className="text-muted tablet:overflow-hidden tablet:text-ellipsis tablet:whitespace-nowrap tablet:inline-flex tablet:items-baseline tablet:gap-2">{project.description}<svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[7px] hidden tablet:block" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 6l6 6-6 6" /></svg></p>
                               )}
                               {!project.description && (
                                 <svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[7px] hidden tablet:block" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 6l6 6-6 6" /></svg>
@@ -80,9 +80,9 @@ export default async function PlaygroundPage() {
                           )
                         ) : (
                           <>
-                            <h4 className="shrink-0">{project.title}</h4>
+                            <h4>{project.title}</h4>
                             {project.description && (
-                              <p className="text-muted overflow-hidden text-ellipsis whitespace-nowrap tablet:whitespace-normal tablet:overflow-visible">{project.description}</p>
+                              <p className="text-muted">{project.description}</p>
                             )}
                           </>
                         )}
