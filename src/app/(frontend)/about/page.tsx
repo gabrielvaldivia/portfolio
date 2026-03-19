@@ -178,40 +178,40 @@ export default async function AboutPage() {
                     const thumb = project.image as any
                     const href = project.slug ? `/playground/${project.slug}` : null
                     return href ? (
-                      <Link key={i} href={href} className="flex items-center gap-6 group hover:opacity-60 transition-colors">
+                      <Link key={i} href={href} className="flex flex-col tablet:flex-row tablet:items-center gap-3 tablet:gap-6 group hover:opacity-60 transition-colors">
                         {thumb?.url && (
-                          <div className="shrink-0 w-52 aspect-video rounded-lg overflow-hidden border border-border relative">
+                          <div className="w-full tablet:w-52 tablet:shrink-0 aspect-video rounded-lg overflow-hidden border border-border relative">
                             <Image
                               src={thumb.url}
                               alt={thumb.alt || project.title}
                               fill
                               className="object-cover object-center"
-                              sizes="208px"
+                              sizes="(min-width: 768px) 208px, 100vw"
                             />
                           </div>
                         )}
-                        <div className="flex-1 flex items-baseline gap-4">
-                          <h4 className="shrink-0">{project.title}</h4>
+                        <div className="flex flex-col tablet:flex-row tablet:flex-1 tablet:items-baseline gap-1 tablet:gap-4">
+                          <h4>{project.title}</h4>
                           {project.description && (
                             <p className="text-muted inline-flex items-baseline gap-2">{project.description}<svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[5px]" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg></p>
                           )}
                         </div>
                       </Link>
                     ) : (
-                      <div key={i} className="flex items-center gap-6">
+                      <div key={i} className="flex flex-col tablet:flex-row tablet:items-center gap-3 tablet:gap-6">
                         {thumb?.url && (
-                          <div className="shrink-0 w-52 aspect-video rounded-lg overflow-hidden border border-border relative">
+                          <div className="w-full tablet:w-52 tablet:shrink-0 aspect-video rounded-lg overflow-hidden border border-border relative">
                             <Image
                               src={thumb.url}
                               alt={thumb.alt || project.title}
                               fill
                               className="object-cover object-center"
-                              sizes="208px"
+                              sizes="(min-width: 768px) 208px, 100vw"
                             />
                           </div>
                         )}
-                        <div className="flex-1 flex items-baseline gap-4">
-                          <h4 className="shrink-0">{project.title}</h4>
+                        <div className="flex flex-col tablet:flex-row tablet:flex-1 tablet:items-baseline gap-1 tablet:gap-4">
+                          <h4>{project.title}</h4>
                           {project.description && (
                             <p className="text-muted">{project.description}</p>
                           )}
