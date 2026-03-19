@@ -132,9 +132,15 @@ export function RenderBlocks({ blocks }: { blocks?: any[] }) {
 
   return (
     <div
-      className="grid grid-cols-1 desktop:grid-cols-6 desktop:grid-flow-dense gap-x-10 gap-y-10 tablet:gap-y-14 desktop:gap-y-20"
-      style={hasMultiRow ? { gridAutoRows: 'minmax(250px, auto)' } : undefined}
+      className={`grid grid-cols-1 desktop:grid-cols-6 desktop:grid-flow-dense gap-x-10 gap-y-10 tablet:gap-y-14 desktop:gap-y-20 ${hasMultiRow ? 'multi-row-grid' : ''}`}
     >
+      {hasMultiRow && (
+        <style dangerouslySetInnerHTML={{ __html: `
+          @media (min-width: 1280px) {
+            .multi-row-grid { grid-auto-rows: minmax(250px, auto); }
+          }
+        ` }} />
+      )}
       {blocks.map((block, i) => {
         const Component = blockComponents[block.blockType]
         if (!Component) return null
