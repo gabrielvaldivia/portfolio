@@ -9,10 +9,7 @@ export const FullWidthImage: Block = {
       type: 'upload',
       relationTo: 'media',
       required: false,
-      validate: (value: any, { required }: any) => {
-        // Allow empty/null values
-        return true
-      },
+      validate: (() => true as true) as any,
     },
     { name: 'border', type: 'checkbox', defaultValue: false },
   ],
