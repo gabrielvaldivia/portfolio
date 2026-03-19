@@ -29,7 +29,18 @@ export async function getClients() {
 
 export async function getSideProjects() {
   const payload = await getPayload()
-  return payload.find({ collection: 'side-projects', sort: 'order', limit: 100, depth: 1 })
+  return payload.find({ collection: 'side-projects', sort: 'order', limit: 100, depth: 2 })
+}
+
+export async function getSideProjectBySlug(slug: string) {
+  const payload = await getPayload()
+  const result = await payload.find({
+    collection: 'side-projects',
+    where: { slug: { equals: slug } },
+    depth: 3,
+    limit: 1,
+  })
+  return result.docs[0] || null
 }
 
 export async function getFeaturedTestimonials() {

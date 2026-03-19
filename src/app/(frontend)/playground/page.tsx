@@ -53,10 +53,13 @@ export default async function PlaygroundPage() {
                 <div className="flex-1">
                   {(grouped[year] as any[]).map((project: any) => {
                     const page = project.page as any
-                    const href = project.linkType === 'internal' && page
-                      ? `/${page.slug}`
-                      : project.url || null
-                    const isInternal = project.linkType === 'internal'
+                    const hasDetailPage = project.slug && (project.content as any[])?.length > 0
+                    const href = hasDetailPage
+                      ? `/playground/${project.slug}`
+                      : project.linkType === 'internal' && page
+                        ? `/${page.slug}`
+                        : project.url || null
+                    const isInternal = hasDetailPage || project.linkType === 'internal'
                     return (
                       <div key={project.id} className="py-4 flex items-baseline gap-4 group min-w-0 overflow-hidden">
                         {href ? (
