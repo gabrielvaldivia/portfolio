@@ -55,25 +55,25 @@ export default async function AboutPage() {
                     {talks.map((talk: any, i: number) => {
                       const thumb = talk.thumbnail as any
                       return (
-                        <div key={i} className="flex flex-col gap-3 group">
+                        <div key={i} className="flex flex-col tablet:flex-row tablet:items-center gap-3 tablet:gap-6 group">
                           {thumb?.url && (
                             talk.url ? (
-                              <a href={talk.url} target="_blank" rel="noopener noreferrer" className="w-full aspect-video rounded-lg overflow-hidden border border-border relative block">
-                                <Image src={thumb.url} alt={thumb.alt || talk.title} fill className="object-cover object-center" sizes="(min-width: 768px) 60vw, 100vw" />
+                              <a href={talk.url} target="_blank" rel="noopener noreferrer" className="w-full tablet:w-52 tablet:shrink-0 aspect-video rounded-lg overflow-hidden border border-border relative block">
+                                <Image src={thumb.url} alt={thumb.alt || talk.title} fill className="object-cover object-center" sizes="(min-width: 768px) 208px, 100vw" />
                                 {talk.duration && (
                                   <span className="absolute bottom-1.5 right-1.5 bg-black/75 text-white text-[11px] font-mono px-1.5 py-0.5 rounded uppercase">{talk.duration}</span>
                                 )}
                               </a>
                             ) : (
-                              <div className="w-full aspect-video rounded-lg overflow-hidden border border-border relative">
-                                <Image src={thumb.url} alt={thumb.alt || talk.title} fill className="object-cover object-center" sizes="(min-width: 768px) 60vw, 100vw" />
+                              <div className="w-full tablet:w-52 tablet:shrink-0 aspect-video rounded-lg overflow-hidden border border-border relative">
+                                <Image src={thumb.url} alt={thumb.alt || talk.title} fill className="object-cover object-center" sizes="(min-width: 768px) 208px, 100vw" />
                                 {talk.duration && (
                                   <span className="absolute bottom-1.5 right-1.5 bg-black/75 text-white text-[11px] font-mono px-1.5 py-0.5 rounded uppercase">{talk.duration}</span>
                                 )}
                               </div>
                             )
                           )}
-                          <div>
+                          <div className="tablet:flex-1">
                             {talk.url ? (
                               <a href={talk.url} target="_blank" rel="noopener noreferrer" className="hover:opacity-60 transition-colors inline-flex items-baseline gap-2">
                                 <h4>{talk.title}</h4>
