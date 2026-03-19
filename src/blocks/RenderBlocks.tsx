@@ -124,15 +124,23 @@ const rowSpan: Record<string, string> = {
 
 export function RenderBlocks({ blocks }: { blocks?: any[] }) {
   if (!blocks?.length) return null
+
+  // Check if any partial-row blocks use rows > 1 — if so, use fixed row sizing
+  const hasMultiRow = blocks.some(
+    (b) => b.columns && b.columns !== '6' && b.rows && b.rows !== '1',
+  )
+
   return (
-    <div className="grid grid-cols-1 desktop:grid-cols-6 desktop:grid-flow-dense gap-x-10 gap-y-10 tablet:gap-y-14 desktop:gap-y-20">
+    <div
+      className="grid grid-cols-1 desktop:grid-cols-6 desktop:grid-flow-dense gap-x-10 gap-y-10 tablet:gap-y-14 desktop:gap-y-20"
+      style={hasMultiRow ? { gridAutoRows: 'minmax(250px, auto)' } : undefined}
+    >
       {blocks.map((block, i) => {
         const Component = blockComponents[block.blockType]
         if (!Component) return null
         const cols = block.columns || '6'
         const rows = block.rows || '1'
         const isPartialRow = cols !== '6'
-        const rowHeight = rows !== '1' ? parseInt(rows) * 200 + (parseInt(rows) - 1) * 40 : undefined
         return (
           <div
             key={block.id || i}
