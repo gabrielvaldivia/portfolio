@@ -151,7 +151,7 @@ export default async function AboutPage() {
                     {patents.map((patent: any, i: number) => patent.url ? (
                       <a key={i} href={patent.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-6 group hover:opacity-60 transition-colors">
                         <div className="flex-1 flex items-baseline gap-2">
-                          <h4 className="shrink-0">{patent.title}</h4>
+                          <h4>{patent.title}</h4>
                           <svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[7px]" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 17L17 7M17 7H9M17 7V15" /></svg>
                         </div>
                       </a>
