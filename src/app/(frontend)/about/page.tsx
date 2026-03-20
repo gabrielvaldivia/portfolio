@@ -220,9 +220,9 @@ export default async function AboutPage() {
                     )
                   })}
                 </div>
-                <Link href="/playground" className="text-muted hover:text-content transition-colors inline-flex items-center gap-2 mt-8">
+                <Link href="/playground" className="text-muted hover:text-content transition-colors inline-flex items-center gap-2 mt-8 group">
                   View all
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg>
+                  <svg className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg>
                 </Link>
               </div>
             </div>

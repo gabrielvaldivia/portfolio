@@ -11,7 +11,7 @@ export const Media: CollectionConfig = {
     useAsTitle: 'alt',
   },
   upload: {
-    mimeTypes: ['image/*', 'video/*'],
+    mimeTypes: ['image/*', 'video/*', 'image/svg+xml'],
     imageSizes: [
       { name: 'thumbnail', width: 300, height: undefined, position: 'centre' },
       { name: 'small', width: 600, height: undefined, position: 'centre' },

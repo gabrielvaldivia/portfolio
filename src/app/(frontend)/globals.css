@@ -59,6 +59,10 @@
     --color-inverse-rgb: 0 0 0;
     --color-nav-active-text: #000000;
   }
+
+  .dark-invert {
+    filter: invert(1);
+  }
 }
 
 * {

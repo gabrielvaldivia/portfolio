@@ -6,6 +6,7 @@ import { RichText } from '@/components/RichText'
 import { ServicePill } from '@/components/ServicePill'
 import { HScrollContainer } from '@/components/HScrollContainer'
 import { FitText } from '@/components/FitText'
+import { SocialIcon } from '@/components/Icons'
 import { getPageBySlug, getClients, getFeaturedTestimonials } from '@/lib/queries'
 import { getPayload } from '@/lib/payload'
 import Image from 'next/image'
@@ -113,9 +114,9 @@ export default async function HomePage() {
                     <div className="shrink-0 w-[320px] tablet:w-[440px] desktop:w-[420px]">
                       <Link href="/work" className="block p-2">
                         <div className="rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] overflow-hidden bg-background-alt flex flex-col">
-                          <div className="aspect-square rounded-[14px] tablet:rounded-[26px] desktop:rounded-[32px] overflow-hidden m-1.5 tablet:m-2 flex items-center justify-center">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="text-muted">
-                              <path d="M5 12h14M12 5l7 7-7 7" />
+                          <div className="aspect-square rounded-[14px] tablet:rounded-[26px] desktop:rounded-[32px] overflow-hidden m-1.5 tablet:m-2 flex items-center justify-center p-16">
+                            <svg width="100%" height="100%" viewBox="0 0 200 200" fill="none" className="text-content">
+                              <path d="M21 31C15.477 31 11 35.477 11 41V159C11 164.523 15.477 169 21 169H179C184.523 169 189 164.523 189 159V61.361C189 55.838 184.523 51.361 179 51.361H84.081C83.022 51.361 82.006 50.94 81.256 50.192L64.947 33.921C63.072 32.05 60.532 31 57.884 31H21Z" stroke="currentColor" strokeWidth="2"/>
                             </svg>
                           </div>
                           <div className="px-4 py-3 tablet:px-6 tablet:py-4 desktop:px-8 desktop:py-6">
@@ -229,7 +230,9 @@ export default async function HomePage() {
       }
 
       case 'marqueeSection': {
-        const marqueeClients = (block.clients as any[])?.length ? (block.clients as any[]) : clients
+        const hiddenFromMarquee = ['Jigsaw', 'Google']
+        const marqueeClients = ((block.clients as any[])?.length ? (block.clients as any[]) : clients)
+          .filter((c: any) => !hiddenFromMarquee.includes(c.name))
         if (!marqueeClients.length) return null
         return (
           <section key={block.id || i}>
@@ -253,18 +256,33 @@ export default async function HomePage() {
                     '--marquee-speed': `${block.speed || 60}s`,
                   } as React.CSSProperties}
                 >
-                  {[...marqueeClients, ...marqueeClients].map((client: any, j: number) => (
-                    <span
-                      key={j}
-                      className="text-content font-heading whitespace-nowrap"
-                      style={{
-                        fontSize: `clamp(24px, 5vw, ${block.fontSize || 48}px)`,
-                        opacity: (block.opacity || 30) / 100,
-                      }}
-                    >
-                      {client.name}
-                    </span>
-                  ))}
+                  {[...marqueeClients, ...marqueeClients].map((client: any, j: number) => {
+                    const logo = client.logo as any
+                    return logo?.url ? (
+                      <img
+                        key={j}
+                        src={logo.url}
+                        alt={logo.alt || client.name}
+                        className="shrink-0 dark-invert"
+                        style={{
+                          height: `clamp(16px, 3vw, ${(block.fontSize || 48) * 0.6}px)`,
+                          width: 'auto',
+                          opacity: (block.opacity || 30) / 100,
+                        }}
+                      />
+                    ) : (
+                      <span
+                        key={j}
+                        className="text-content font-heading whitespace-nowrap"
+                        style={{
+                          fontSize: `clamp(24px, 5vw, ${block.fontSize || 48}px)`,
+                          opacity: (block.opacity || 30) / 100,
+                        }}
+                      >
+                        {client.name}
+                      </span>
+                    )
+                  })}
                 </div>
               </div>
             </div>
@@ -320,6 +338,7 @@ export default async function HomePage() {
                     rel="noopener noreferrer"
                     className="text-muted hover:text-content transition-colors text-[20px] inline-flex items-baseline gap-2 group"
                   >
+                    <SocialIcon platform={link.platform} className="shrink-0 translate-y-[2px]" />
                     {link.platform}
                     <svg className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity translate-y-[5px]" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 17L17 7M17 7H9M17 7V15" /></svg>
                   </a>
