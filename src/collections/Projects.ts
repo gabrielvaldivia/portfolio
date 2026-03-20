@@ -97,6 +97,17 @@ const VideoBlock: Block = {
     { name: 'video', type: 'upload', relationTo: 'media' },
     { name: 'url', type: 'text' },
     { name: 'caption', type: 'text' },
+    {
+      name: 'fit',
+      type: 'select' as const,
+      defaultValue: 'cover',
+      options: [
+        { label: 'Fill', value: 'cover' },
+        { label: 'Fit', value: 'contain' },
+      ],
+    },
+    { name: 'bgColor', type: 'text' as const, defaultValue: 'alt' },
+    { name: 'border', type: 'checkbox' as const, defaultValue: false },
     { name: 'autoplay', type: 'checkbox', defaultValue: true },
     { name: 'loop', type: 'checkbox', defaultValue: true },
     { name: 'muted', type: 'checkbox', defaultValue: true },
@@ -104,6 +115,24 @@ const VideoBlock: Block = {
   ],
 }
 
+
+const DC1Block: Block = {
+  slug: 'dc1',
+  labels: { singular: 'DC-1', plural: 'DC-1 Blocks' },
+  fields: [
+    layoutFields,
+    { name: 'video', type: 'upload', relationTo: 'media', required: true },
+  ],
+}
+
+const iPhone15Block: Block = {
+  slug: 'iphone15',
+  labels: { singular: 'iPhone 15', plural: 'iPhone 15 Blocks' },
+  fields: [
+    layoutFields,
+    { name: 'video', type: 'upload', relationTo: 'media', required: true },
+  ],
+}
 
 export const Projects: CollectionConfig = {
   slug: 'projects',
@@ -182,7 +211,7 @@ export const Projects: CollectionConfig = {
               name: 'content',
               type: 'blocks',
               admin: { initCollapsed: true },
-              blocks: [TextBlock, ImageBlock, VideoBlock],
+              blocks: [TextBlock, ImageBlock, VideoBlock, DC1Block, iPhone15Block],
             },
           ],
         },

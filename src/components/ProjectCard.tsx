@@ -11,7 +11,7 @@ type Props = {
 
 export function ProjectCard({ title, slug, subtitle, featuredImage, year }: Props) {
   return (
-    <Link href={`/work/${slug}`} className="group block p-2">
+    <Link href={`/work/${slug}`} className="group block tablet:p-2">
       <div className="rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] overflow-hidden bg-background-alt flex flex-col">
         {/* Square image area */}
         <div className="aspect-square rounded-[14px] tablet:rounded-[26px] desktop:rounded-[32px] overflow-hidden m-1.5 tablet:m-2 relative">

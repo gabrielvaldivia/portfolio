@@ -38,6 +38,12 @@ const socialIcons: Record<string, React.FC<{ className?: string }>> = {
   instagram: InstagramIcon,
 }
 
+export function HoverChevron() {
+  return (
+    <svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[4px]" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg>
+  )
+}
+
 export function SocialIcon({ platform, className }: { platform: string; className?: string }) {
   const key = platform.toLowerCase().replace(/[^a-z]/g, '')
   const Icon = socialIcons[key]

@@ -67,7 +67,7 @@
 
 @media (min-width: 1280px) {
   .content-block-grid {
-    grid-auto-rows: 200px;
+    grid-auto-rows: minmax(200px, auto);
   }
   [style*="--row-height"] {
     aspect-ratio: unset !important;

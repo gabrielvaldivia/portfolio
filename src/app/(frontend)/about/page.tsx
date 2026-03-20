@@ -4,6 +4,13 @@ import { getPageBySlug, getSideProjects } from '@/lib/queries'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
+import { HoverChevron } from '@/components/Icons'
+
+function HoverArrow() {
+  return (
+    <svg className="inline-block ml-2 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[0px]" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 17L17 7M17 7H9M17 7V15" /></svg>
+  )
+}
 
 export const metadata: Metadata = {
   title: 'About — Gabriel Valdivia',
@@ -40,10 +47,6 @@ export default async function AboutPage() {
                 </div>
                 <div className="tablet:col-span-4 text-body-large">
                   <RichText data={page.bio} />
-                  <Link href="/work" className="text-muted text-base hover:opacity-50 transition-opacity inline-flex items-center gap-1 mt-8">
-                    Learn more
-                    <svg className="shrink-0" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg>
-                  </Link>
                 </div>
               </div>
             )}
@@ -79,14 +82,13 @@ export default async function AboutPage() {
                           )}
                           <div className="tablet:flex-1">
                             {talk.url ? (
-                              <a href={talk.url} target="_blank" rel="noopener noreferrer" className="hover:opacity-60 transition-colors inline-flex items-baseline gap-2">
-                                <h4>{talk.title}</h4>
-                                <svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[5px]" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 17L17 7M17 7H9M17 7V15" /></svg>
+                              <a href={talk.url} target="_blank" rel="noopener noreferrer" className="hover:opacity-60 transition-colors">
+                                <h4 className="inline">{talk.title}<HoverArrow /></h4>
                               </a>
                             ) : (
                               <h4>{talk.title}</h4>
                             )}
-                            <p className="text-muted" style={{ marginTop: 12 }}>{talk.event}{talk.year && `, ${talk.year}`}</p>
+                            <p className="text-muted" style={{ marginTop: '8px' }}>{talk.event}{talk.year && `, ${talk.year}`}</p>
                           </div>
                         </div>
                       )
@@ -127,14 +129,13 @@ export default async function AboutPage() {
                           )}
                           <div className="tablet:flex-1">
                             {item.url ? (
-                              <a href={item.url} target="_blank" rel="noopener noreferrer" className="hover:opacity-60 transition-colors inline-flex items-baseline gap-2">
-                                <h4>{item.title}</h4>
-                                <svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[5px]" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 17L17 7M17 7H9M17 7V15" /></svg>
+                              <a href={item.url} target="_blank" rel="noopener noreferrer" className="hover:opacity-60 transition-colors">
+                                <h4 className="inline">{item.title}<HoverArrow /></h4>
                               </a>
                             ) : (
                               <h4>{item.title}</h4>
                             )}
-                            <p className="text-muted" style={{ marginTop: 12 }}>{item.event}{item.year && `, ${item.year}`}</p>
+                            <p className="text-muted" style={{ marginTop: '8px' }}>{item.event}{item.year && `, ${item.year}`}</p>
                           </div>
                         </div>
                       )
@@ -153,11 +154,8 @@ export default async function AboutPage() {
                 <div className="tablet:col-span-4">
                   <div className="flex flex-col gap-8">
                     {patents.map((patent: any, i: number) => patent.url ? (
-                      <a key={i} href={patent.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-6 group hover:opacity-60 transition-colors">
-                        <div className="flex-1 flex items-baseline gap-2">
-                          <h4>{patent.title}</h4>
-                          <svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[7px]" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 17L17 7M17 7H9M17 7V15" /></svg>
-                        </div>
+                      <a key={i} href={patent.url} target="_blank" rel="noopener noreferrer" className="group hover:opacity-60 transition-colors">
+                        <h4 className="inline">{patent.title}<HoverArrow /></h4>
                       </a>
                     ) : (
                       <div key={i} className="flex items-center gap-6">
@@ -197,7 +195,7 @@ export default async function AboutPage() {
                         <div className="flex flex-col tablet:flex-row tablet:flex-1 tablet:items-baseline gap-1 tablet:gap-4">
                           <h4>{project.title}</h4>
                           {project.description && (
-                            <p className="text-muted inline-flex items-baseline gap-2">{project.description}<svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[2px]" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg></p>
+                            <p className="text-muted inline-flex items-baseline gap-2">{project.description}<HoverChevron /></p>
                           )}
                         </div>
                       </Link>
@@ -226,7 +224,7 @@ export default async function AboutPage() {
                 </div>
                 <Link href="/playground" className="text-muted hover:opacity-50 transition-opacity inline-flex items-center gap-2 mt-8">
                   View all
-                  <svg className="shrink-0" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg>
+                  <svg className="shrink-0 translate-y-[1px]" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg>
                 </Link>
               </div>
             </div>

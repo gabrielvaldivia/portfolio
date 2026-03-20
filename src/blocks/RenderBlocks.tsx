@@ -81,16 +81,103 @@ function ImageBlockComponent({ image, caption, border, columns, rows, height, ma
   )
 }
 
-function VideoBlockComponent({ video, url, caption, loop = true, muted = true, controls = false }: any) {
+function VideoBlockComponent({ video, url, caption, rows, columns, fit, bgColor, border, loop = true, muted = true, controls = false }: any) {
   const src = video?.url || url
   if (!src) return null
+  const rowCount = parseInt(rows || '1', 10)
+  const rowHeight = ROW_HEIGHT * rowCount + ROW_GAP * (rowCount - 1)
+  const isPreset = bgColor && bgColor in bgColorMap
+  const bg = isPreset ? bgColorMap[bgColor] : (bgColor ? '' : 'bg-background-alt')
+  const customBg = !isPreset && bgColor ? bgColor : undefined
+  const objectFit = fit === 'contain' ? 'object-contain' : 'object-cover'
   return (
     <div>
-      <div className="bg-background-alt overflow-hidden">
-        <VideoPlayer src={src} loop={loop} muted={muted} controls={controls} className="w-full h-auto" />
+      <div
+        className={`${bg} overflow-hidden ${border ? 'border border-border' : ''}`}
+        style={{ ['--row-height' as string]: `${rowHeight}px`, ...(customBg ? { backgroundColor: customBg } : {}) }}
+      >
+        <VideoPlayer src={src} loop={loop} muted={muted} controls={controls} className={`w-full h-full ${objectFit}`} />
       </div>
       {caption && <p className="text-muted text-caption" style={{ marginTop: 10 }}>{caption}</p>}
     </div>
+  )
+}
+
+const DC1_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/DC1.png'
+const IPHONE15_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/iphone-15.png'
+
+function DC1Block({ id: blockId, video, rows }: { id?: string; video: any; rows?: string }) {
+  const src = video?.url
+  if (!src) return null
+  const rowCount = parseInt(rows || '1', 10)
+  const rowHeight = ROW_HEIGHT * rowCount + ROW_GAP * (rowCount - 1)
+  const id = `dc1-${blockId || 'x'}`
+  return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        #${id} { aspect-ratio: 718 / 960; width: 100%; }
+        @media (min-width: 1280px) {
+          #${id} { aspect-ratio: 718 / 960; height: ${rowHeight}px; width: auto; }
+        }
+      ` }} />
+      <div id={id} className="relative mx-auto overflow-hidden">
+        <div className="absolute inset-[6%] z-0">
+          <video
+            src={src}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <img
+          src={DC1_FRAME_URL}
+          alt=""
+          className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
+        />
+      </div>
+    </>
+  )
+}
+
+function iPhone15Block({ id: blockId, video, rows }: { id?: string; video: any; rows?: string }) {
+  const src = video?.url
+  if (!src) return null
+  const rowCount = parseInt(rows || '1', 10)
+  const rowHeight = ROW_HEIGHT * rowCount + ROW_GAP * (rowCount - 1)
+  const id = `iphone15-${blockId || 'x'}`
+  return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        #${id} { aspect-ratio: 2005 / 4096; max-width: 100%; height: 480px; }
+        @media (min-width: 810px) {
+          #${id} { height: 600px; }
+        }
+        @media (min-width: 1280px) {
+          #${id} { height: ${rowHeight}px; width: auto; }
+        }
+      ` }} />
+      <div className="w-full h-full flex items-center justify-center">
+        <div id={id} className="relative overflow-hidden">
+        <div className="absolute z-0 overflow-hidden" style={{ top: '2.1%', bottom: '2.0%', left: '4.9%', right: '4.9%', borderRadius: '5%' }}>
+          <video
+            src={src}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <img
+          src={IPHONE15_FRAME_URL}
+          alt=""
+          className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
+        />
+        </div>
+      </div>
+    </>
   )
 }
 
@@ -98,6 +185,8 @@ const blockComponents: Record<string, React.ComponentType<any>> = {
   text: TextBlock,
   image: ImageBlockComponent,
   video: VideoBlockComponent,
+  dc1: DC1Block,
+  iphone15: iPhone15Block,
   // Legacy block types for existing data
   sectionHeader: (props: any) => <TextBlock title={props.title} content={props.description} columns={props.columns} />,
   textContent: (props: any) => <TextBlock content={props.content} columns={props.columns} />,
@@ -149,9 +238,9 @@ export function RenderBlocks({ blocks }: { blocks?: any[] }) {
         return (
           <div
             key={block.id || i}
-            className={`${colSpan[cols] || 'desktop:col-span-6'} ${rows !== '1' ? (rowSpan[rows] || '') : ''}`}
+            className={`${colSpan[cols] || 'desktop:col-span-6'} ${rows !== '1' ? (rowSpan[rows] || '') : ''} ${block.blockType === 'dc1' || block.blockType === 'iphone15' ? 'bg-background-alt p-5 tablet:p-8 desktop:p-10' : ''}`}
           >
-            <div>
+            <div className={block.blockType === 'dc1' || block.blockType === 'iphone15' ? 'h-full flex items-center justify-center' : ''}>
               <Component {...block} />
             </div>
           </div>

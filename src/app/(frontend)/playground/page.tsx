@@ -3,6 +3,7 @@ import { FitText } from '@/components/FitText'
 import { getSideProjects } from '@/lib/queries'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { HoverChevron } from '@/components/Icons'
 
 export const metadata: Metadata = {
   title: 'Playground — Gabriel Valdivia',
@@ -61,20 +62,20 @@ export default async function PlaygroundPage() {
                             <Link href={href} className="flex flex-col tablet:flex-row tablet:items-baseline gap-1 tablet:gap-4 tablet:hover:opacity-60 transition-colors min-w-0">
                               <h4>{project.title}</h4>
                               {project.description && (
-                                <p className="text-muted tablet:overflow-hidden tablet:text-ellipsis tablet:whitespace-nowrap tablet:inline-flex tablet:items-baseline tablet:gap-2">{project.description}<svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[7px] hidden tablet:block" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 6l6 6-6 6" /></svg></p>
+                                <p className="text-muted tablet:overflow-hidden tablet:text-ellipsis tablet:whitespace-nowrap tablet:inline-flex tablet:items-baseline tablet:gap-2">{project.description}<HoverChevron /></p>
                               )}
                               {!project.description && (
-                                <svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[7px] hidden tablet:block" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 6l6 6-6 6" /></svg>
+                                <HoverChevron />
                               )}
                             </Link>
                           ) : (
                             <a href={href} target="_blank" rel="noopener noreferrer" className="flex flex-col tablet:flex-row tablet:items-baseline gap-1 tablet:gap-4 tablet:hover:opacity-60 transition-colors min-w-0">
                               <h4>{project.title}</h4>
                               {project.description && (
-                                <p className="text-muted tablet:overflow-hidden tablet:text-ellipsis tablet:whitespace-nowrap tablet:inline-flex tablet:items-baseline tablet:gap-2">{project.description}<svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[7px] hidden tablet:block" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 6l6 6-6 6" /></svg></p>
+                                <p className="text-muted tablet:overflow-hidden tablet:text-ellipsis tablet:whitespace-nowrap tablet:inline-flex tablet:items-baseline tablet:gap-2">{project.description}<HoverChevron /></p>
                               )}
                               {!project.description && (
-                                <svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[7px] hidden tablet:block" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 6l6 6-6 6" /></svg>
+                                <HoverChevron />
                               )}
                             </a>
                           )

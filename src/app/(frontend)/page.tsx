@@ -83,7 +83,7 @@ export default async function HomePage() {
             {fw ? (
             <HScrollContainer>
                 <div
-                  className={`flex items-stretch w-max gap-[4px] desktop:gap-[24px] px-5 tablet:px-10`}
+                  className={`flex items-stretch w-max gap-5 desktop:gap-[24px] px-5 tablet:px-10`}
                 >
                   {items.map((item: any) => (
                     <div
@@ -132,12 +132,12 @@ export default async function HomePage() {
             ) : (
             <HScrollContainer className="max-w-[1400px] mx-auto" snap maskOnMobile={false} dots>
               <div
-                className="flex items-stretch w-max px-5 tablet:px-10 gap-5 tablet:gap-10"
+                className="flex items-stretch w-max px-5 tablet:px-10 gap-8 tablet:gap-10"
               >
                 {items.map((item: any) => (
                   <div
                     key={item.id}
-                    className="shrink-0 w-[calc(100vw-40px)] tablet:w-[480px] snap-center"
+                    className="shrink-0 w-[calc(100vw-40px)] tablet:w-[480px] snap-start"
                   >
                     {block.source === 'featuredProjects' ? (
                       <ProjectCard
@@ -313,7 +313,7 @@ export default async function HomePage() {
             <div className="bg-background-alt rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] p-6 tablet:p-8 desktop:p-10">
             {block.heading && <h3 className="pb-5 tablet:pb-10">{block.heading}</h3>}
             {block.text && (
-              <div className="text-muted text-[20px] leading-[1.4]">
+              <div className="text-muted text-body">
                 <RichText data={block.text} />
               </div>
             )}
@@ -340,7 +340,7 @@ export default async function HomePage() {
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-muted hover:text-content transition-colors text-[20px] inline-flex items-baseline gap-2 group"
+                    className="text-muted hover:text-content transition-colors text-body inline-flex items-baseline gap-2 group"
                   >
                     <SocialIcon platform={link.platform} className="shrink-0 translate-y-[2px]" />
                     {link.platform}
