@@ -190,6 +190,10 @@ export default async function HomePage() {
                     <RichText data={block.text} />
                   </div>
                 )}
+                <Link href="/about" className="text-muted hover:opacity-50 transition-opacity inline-flex items-center gap-1 -mt-2">
+                  Learn more
+                  <svg className="shrink-0 translate-y-[2px]" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg>
+                </Link>
               </div>
             </div>
           </Container>

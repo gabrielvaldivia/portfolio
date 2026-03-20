@@ -40,7 +40,7 @@ export function Nav({ items }: { items: NavItem[] }) {
   const pathname = usePathname()
   const [activeHash, setActiveHash] = useState('')
 
-  const isProjectPage = (pathname?.startsWith('/work/') && pathname !== '/work') || (pathname?.startsWith('/playground/') && pathname !== '/playground') || pathname === '/about' || pathname === '/clients' || pathname === '/playground'
+  const isProjectPage = pathname?.startsWith('/work/') || pathname?.startsWith('/playground/') || pathname === '/about' || pathname === '/clients' || pathname === '/work'
   const isDesignSystem = pathname === '/design-system'
 
   useEffect(() => {

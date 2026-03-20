@@ -40,6 +40,10 @@ export default async function AboutPage() {
                 </div>
                 <div className="tablet:col-span-4 text-body-large">
                   <RichText data={page.bio} />
+                  <Link href="/work" className="text-muted text-base hover:opacity-50 transition-opacity inline-flex items-center gap-1 mt-8">
+                    Learn more
+                    <svg className="shrink-0" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg>
+                  </Link>
                 </div>
               </div>
             )}
@@ -193,7 +197,7 @@ export default async function AboutPage() {
                         <div className="flex flex-col tablet:flex-row tablet:flex-1 tablet:items-baseline gap-1 tablet:gap-4">
                           <h4>{project.title}</h4>
                           {project.description && (
-                            <p className="text-muted inline-flex items-baseline gap-2">{project.description}<svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[5px]" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg></p>
+                            <p className="text-muted inline-flex items-baseline gap-2">{project.description}<svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[2px]" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg></p>
                           )}
                         </div>
                       </Link>
@@ -220,9 +224,9 @@ export default async function AboutPage() {
                     )
                   })}
                 </div>
-                <Link href="/playground" className="text-muted hover:text-content transition-colors inline-flex items-center gap-2 mt-8 group">
+                <Link href="/playground" className="text-muted hover:opacity-50 transition-opacity inline-flex items-center gap-2 mt-8">
                   View all
-                  <svg className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg>
+                  <svg className="shrink-0" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg>
                 </Link>
               </div>
             </div>
