@@ -45,10 +45,19 @@ export default buildConfig({
   plugins: [
     s3Storage({
       collections: {
-        media: true,
+        media: {
+          disablePayloadAccessControl: true,
+          ...(process.env.R2_PUBLIC_URL
+            ? {
+                generateFileURL: ({ filename, prefix }) => {
+                  const parts = [process.env.R2_PUBLIC_URL, prefix, filename].filter(Boolean)
+                  return parts.join('/')
+                },
+              }
+            : {}),
+        },
       },
       bucket: process.env.R2_BUCKET || '',
-      acl: 'public-read',
       config: {
         endpoint: process.env.R2_ENDPOINT || '',
         credentials: {
