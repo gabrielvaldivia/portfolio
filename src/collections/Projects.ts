@@ -70,7 +70,18 @@ const ImageBlock: Block = {
     {
       type: 'row' as const,
       fields: [
-        { name: 'padding', type: 'number' as const },
+        {
+          name: 'padding',
+          type: 'select' as const,
+          options: [
+            { label: 'None', value: '0' },
+            { label: 'XS (10px)', value: '10' },
+            { label: 'S (20px)', value: '20' },
+            { label: 'M (40px)', value: '40' },
+            { label: 'L (60px)', value: '60' },
+            { label: 'XL (80px)', value: '80' },
+          ],
+        },
         { name: 'bgColor', type: 'text' as const, defaultValue: 'alt' },
       ],
     },

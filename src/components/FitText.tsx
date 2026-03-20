@@ -46,7 +46,7 @@ export function FitText({ children, className = '', mobileSize = 34, maxSize }: 
   }, [children, mobileSize, maxSize])
 
   return (
-    <div ref={containerRef} className={`overflow-hidden ${className}`}>
+    <div ref={containerRef} className={`overflow-visible ${className}`}>
       <span
         ref={textRef}
         className="block whitespace-normal tablet:whitespace-nowrap"

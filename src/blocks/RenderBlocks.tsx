@@ -6,7 +6,7 @@ function TextBlock({ title, content, columns }: { title?: string; content: any; 
   if (!content) return null
   if (columns === '6') {
     return (
-      <div className="grid grid-cols-1 desktop:grid-cols-6 gap-10">
+      <div className="grid grid-cols-1 desktop:grid-cols-6 gap-10 py-8 tablet:py-12 desktop:py-20">
         <div className="desktop:col-span-2">
           {title && <h3>{title}</h3>}
         </div>
@@ -17,7 +17,7 @@ function TextBlock({ title, content, columns }: { title?: string; content: any; 
     )
   }
   return (
-    <div>
+    <div className="py-8 tablet:py-12 desktop:py-20">
       {title && <h3 className="mb-4">{title}</h3>}
       <RichText data={content} />
     </div>
@@ -32,36 +32,49 @@ const bgColorMap: Record<string, string> = {
   custom: '',
 }
 
-function ImageBlockComponent({ image, caption, border, columns, height, maxHeight, fit, bgColor, padding, _fillHeight }: { image: any; caption?: string; border?: boolean; columns?: string; height?: number; maxHeight?: number; fit?: string; bgColor?: string; padding?: number; _fillHeight?: boolean }) {
+// Responsive padding: scale down on smaller screens
+const paddingClasses: Record<string, string> = {
+  '10': 'p-2 tablet:p-2.5',
+  '20': 'p-3 tablet:p-5',
+  '40': 'p-5 tablet:p-8 desktop:p-10',
+  '60': 'p-6 tablet:p-10 desktop:p-[60px]',
+  '80': 'p-8 tablet:p-12 desktop:p-20',
+}
+
+const ROW_HEIGHT = 200
+const ROW_GAP = 40 // matches desktop gap-10
+
+function ImageBlockComponent({ image, caption, border, columns, rows, height, maxHeight, fit, bgColor, padding, _fillHeight }: { image: any; caption?: string; border?: boolean; columns?: string; rows?: string; height?: number; maxHeight?: number; fit?: string; bgColor?: string; padding?: string | number; _fillHeight?: boolean }) {
   if (!image?.url) return null
   const aspectRatio = image.width && image.height ? image.width / image.height : 16 / 9
   const isPreset = bgColor && bgColor in bgColorMap
   const bg = isPreset ? bgColorMap[bgColor] : (bgColor ? '' : 'bg-background-alt')
   const customBg = !isPreset && bgColor ? bgColor : undefined
-  // On mobile, always use aspect ratio for natural sizing
-  // On desktop, partial-row blocks fill their grid cell height
-  const fillClass = _fillHeight ? 'desktop:h-full' : ''
+  const padStr = String(padding || '0')
+  const padClass = paddingClasses[padStr] || ''
+  const hasPadding = padStr !== '0' && padClass
+  const rowCount = parseInt(rows || '1', 10)
+  // On desktop, use rows to determine height (200px each + 40px gap between rows)
+  const rowHeight = rowCount > 0 ? ROW_HEIGHT * rowCount + ROW_GAP * (rowCount - 1) : null
   return (
-    <div className={_fillHeight ? 'desktop:h-full' : ''}>
+    <div>
       <div
-        className={`${bg} overflow-hidden w-full ${fillClass} ${border ? 'border border-border' : ''}`}
+        className={`${bg} overflow-hidden w-full ${border ? 'border border-border' : ''} ${fit === 'contain' ? 'flex items-center justify-center' : ''}`}
         style={{
-          ...(height ? { height: `${height}px` } : {}),
-          ...(maxHeight ? { maxHeight: `${maxHeight}px` } : {}),
           ...(customBg ? { backgroundColor: customBg } : {}),
         }}
       >
-        {padding ? (
-          <div className={`${fillClass}`} style={{ padding: `${padding}px` }}>
-            <div className={`relative overflow-hidden ${fillClass}`} style={{ aspectRatio, ...(_fillHeight ? {} : {}) }}>
-              <Image src={image.url} alt={image.alt || ''} fill className={fit === 'contain' ? 'object-contain' : 'object-cover'} sizes="100vw" />
-            </div>
-          </div>
-        ) : (
-          <div className={`relative w-full overflow-hidden ${fillClass}`} style={{ ...(!height ? { aspectRatio } : {}) }}>
+        <div
+          className={`relative w-full overflow-hidden ${hasPadding ? padClass : ''}`}
+          style={{
+            aspectRatio,
+            ...(rowHeight ? { ['--row-height' as string]: `${rowHeight}px` } : {}),
+          }}
+        >
+          <div className="relative w-full h-full">
             <Image src={image.url} alt={image.alt || ''} fill className={fit === 'contain' ? 'object-contain' : 'object-cover'} sizes="100vw" />
           </div>
-        )}
+        </div>
       </div>
       {caption && <p className="text-muted text-caption" style={{ marginTop: 10 }}>{caption}</p>}
     </div>
@@ -126,35 +139,20 @@ const rowSpan: Record<string, string> = {
 export function RenderBlocks({ blocks }: { blocks?: any[] }) {
   if (!blocks?.length) return null
 
-  // Check if any partial-row blocks use rows > 1 — if so, use fixed row sizing
-  const hasMultiRow = blocks.some(
-    (b) => b.columns && b.columns !== '6' && b.rows && b.rows !== '1',
-  )
-
   return (
-    <div
-      className={`grid grid-cols-1 desktop:grid-cols-6 desktop:grid-flow-dense gap-x-10 gap-y-10 tablet:gap-y-14 desktop:gap-y-20 ${hasMultiRow ? 'multi-row-grid' : ''}`}
-    >
-      {hasMultiRow && (
-        <style dangerouslySetInnerHTML={{ __html: `
-          @media (min-width: 1280px) {
-            .multi-row-grid { grid-auto-rows: minmax(250px, auto); }
-          }
-        ` }} />
-      )}
+    <div className="grid grid-cols-1 desktop:grid-cols-6 desktop:grid-flow-dense gap-5 tablet:gap-10 content-block-grid">
       {blocks.map((block, i) => {
         const Component = blockComponents[block.blockType]
         if (!Component) return null
         const cols = block.columns || '6'
         const rows = block.rows || '1'
-        const isPartialRow = cols !== '6'
         return (
           <div
             key={block.id || i}
-            className={`${colSpan[cols] || 'desktop:col-span-6'} ${rows !== '1' ? (rowSpan[rows] || '') : ''} ${isPartialRow ? 'desktop:h-full' : ''}`}
+            className={`${colSpan[cols] || 'desktop:col-span-6'} ${rows !== '1' ? (rowSpan[rows] || '') : ''}`}
           >
-            <div className={isPartialRow || rows !== '1' ? 'desktop:h-full' : ''}>
-              <Component {...block} _fillHeight={isPartialRow} />
+            <div>
+              <Component {...block} />
             </div>
           </div>
         )

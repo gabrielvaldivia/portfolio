@@ -65,6 +65,16 @@
   }
 }
 
+@media (min-width: 1280px) {
+  .content-block-grid {
+    grid-auto-rows: 200px;
+  }
+  [style*="--row-height"] {
+    aspect-ratio: unset !important;
+    height: var(--row-height);
+  }
+}
+
 * {
   box-sizing: border-box;
 }
