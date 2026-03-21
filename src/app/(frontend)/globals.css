@@ -78,6 +78,19 @@
   }
 }
 
+.dark-only {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .light-only {
+    display: none;
+  }
+  .dark-only {
+    display: block;
+  }
+}
+
 .bg-alt-hover {
   background-color: var(--color-background-alt-hover);
 }

@@ -71,7 +71,8 @@ const AboutBlock: Block = {
   labels: { singular: 'About', plural: 'About Sections' },
   fields: [
     columnsField,
-    { name: 'image', type: 'upload', relationTo: 'media' },
+    { name: 'image', type: 'upload', relationTo: 'media', label: 'Image (Light Mode)' },
+    { name: 'imageDark', type: 'upload', relationTo: 'media', label: 'Image (Dark Mode)' },
     { name: 'heading', type: 'text' },
     { name: 'text', type: 'richText' },
   ],

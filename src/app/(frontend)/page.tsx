@@ -171,14 +171,23 @@ export default async function HomePage() {
             <div id="about" className="scroll-mt-10 grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-10 tablet:gap-14 desktop:gap-20">
               <div>
                 {block.image && (
-                  <div className="sticky top-10 rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] overflow-hidden aspect-square tablet:aspect-[3/4] relative">
+                  <div className="sticky top-10 rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] overflow-hidden aspect-square tablet:aspect-[3/4] relative border border-border">
                     <Image
                       src={block.image.url}
                       alt={block.image.alt || 'About'}
                       fill
-                      className="object-cover"
+                      className={`object-cover ${block.imageDark ? 'light-only' : ''}`}
                       sizes="(max-width: 1280px) 100vw, 33vw"
                     />
+                    {block.imageDark && (
+                      <Image
+                        src={block.imageDark.url}
+                        alt={block.imageDark.alt || 'About'}
+                        fill
+                        className="object-cover dark-only"
+                        sizes="(max-width: 1280px) 100vw, 33vw"
+                      />
+                    )}
                   </div>
                 )}
               </div>
