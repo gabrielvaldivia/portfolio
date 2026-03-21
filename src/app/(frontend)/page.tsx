@@ -82,7 +82,7 @@ export default async function HomePage() {
               <Container><h3 className="pb-5 tablet:pb-10">{block.title}</h3></Container>
             )}
             {fw ? (
-            <MomentumScroll>
+            <HScrollContainer maskOnMobile={false}>
                 <div
                   className={`flex items-stretch w-max gap-5 desktop:gap-[24px] px-5 tablet:px-10`}
                 >
@@ -119,7 +119,7 @@ export default async function HomePage() {
                     </div>
                   )}
                 </div>
-            </MomentumScroll>
+            </HScrollContainer>
             ) : (
             <HScrollContainer className="max-w-[1400px] mx-auto" snap maskOnMobile={false} dots>
               <div
@@ -128,7 +128,7 @@ export default async function HomePage() {
                 {items.map((item: any) => (
                   <div
                     key={item.id}
-                    className="shrink-0 w-[calc(100vw-40px)] tablet:w-[480px] snap-start"
+                    className="shrink-0 w-[calc(100vw-40px)] tablet:w-[480px] snap-center"
                   >
                     {block.source === 'featuredProjects' ? (
                       <ProjectCard
