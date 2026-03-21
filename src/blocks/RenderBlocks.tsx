@@ -70,7 +70,7 @@ function ImageBlockComponent({ image, caption, border, rounded, shadow, columns,
           className={`relative w-full overflow-hidden ${fit === 'contain' ? 'flex items-center justify-center' : ''}`}
           style={{ aspectRatio, ...(rowHeight ? { ['--row-height' as string]: `${rowHeight}px` } : {}) }}
         >
-          <Image src={image.url} alt={image.alt || ''} fill className={`${fit === 'contain' ? 'object-contain' : 'object-cover'} ${rounded ? 'rounded-xl tablet:rounded-2xl desktop:rounded-3xl' : ''} ${shadow ? 'drop-shadow-xl' : ''}`} sizes="100vw" />
+          <Image src={image.url} alt={image.alt || ''} fill className={`${fit === 'contain' ? 'object-contain' : 'object-cover'} ${rounded ? 'rounded-xl tablet:rounded-2xl desktop:rounded-3xl' : ''} ${shadow ? 'drop-shadow-xl' : ''}`} sizes={columns === '1' ? '16vw' : columns === '2' ? '33vw' : columns === '3' ? '50vw' : columns === '4' ? '66vw' : '100vw'} />
         </div>
       </div>
       {caption && <p className="text-muted text-caption" style={{ marginTop: 10 }}>{caption}</p>}

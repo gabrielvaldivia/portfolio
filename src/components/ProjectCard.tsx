@@ -9,9 +9,10 @@ type Props = {
   year?: string
   href?: string
   icon?: React.ReactNode
+  priority?: boolean
 }
 
-export function ProjectCard({ title, slug, subtitle, featuredImage, year, href, icon }: Props) {
+export function ProjectCard({ title, slug, subtitle, featuredImage, year, href, icon, priority }: Props) {
   return (
     <Link href={href || `/work/${slug}`} className="group block tablet:p-2">
       <div className="rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] overflow-hidden bg-background-alt group-hover:bg-alt-hover transition-colors flex flex-col">
@@ -28,6 +29,7 @@ export function ProjectCard({ title, slug, subtitle, featuredImage, year, href, 
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
               sizes="(max-width: 810px) 100vw, (max-width: 1280px) 50vw, 33vw"
+              priority={priority}
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">

@@ -1,8 +1,15 @@
 import './globals.css'
 import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
 import { Nav } from '@/components/Nav'
 import { Footer } from '@/components/Footer'
 import { getNavigation, getSiteSettings } from '@/lib/queries'
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+})
 
 export const metadata: Metadata = {
   title: 'Gabriel Valdivia',
@@ -21,7 +28,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }))
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <body className="bg-background text-content">
         <Nav items={navItems} />
         <main>{children}</main>

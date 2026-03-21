@@ -86,7 +86,7 @@ export default async function HomePage() {
                 <div
                   className={`flex items-stretch w-max gap-5 desktop:gap-[24px] px-5 tablet:px-10`}
                 >
-                  {items.map((item: any) => (
+                  {items.map((item: any, idx: number) => (
                     <div
                       key={item.id}
                       className="shrink-0 w-[320px] tablet:w-[440px] desktop:w-[420px]"
@@ -98,6 +98,7 @@ export default async function HomePage() {
                           subtitle={item.subtitle}
                           featuredImage={item.featuredImage}
                           year={item.year}
+                          priority={idx === 0}
                         />
                       ) : (
                         <Testimonial
@@ -266,6 +267,7 @@ export default async function HomePage() {
                         src={logo.url}
                         alt={logo.alt || client.name}
                         className="shrink-0 dark-invert"
+                        loading="lazy"
                         style={{
                           height: `clamp(16px, 3vw, ${(block.fontSize || 48) * 0.6}px)`,
                           width: 'auto',
