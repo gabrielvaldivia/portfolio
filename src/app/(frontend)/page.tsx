@@ -192,7 +192,7 @@ export default async function HomePage() {
                 )}
               </div>
               <div className="tablet:col-span-1 desktop:col-span-2">
-                {block.heading && <h2 className="pb-5 tablet:pb-10">{block.heading}</h2>}
+                {block.heading && <h2 className="text-[22px] tablet:text-[28px] desktop:text-[36px] pb-5 tablet:pb-10">{block.heading}</h2>}
                 {block.text && (
                   <div className="text-muted text-body-large">
                     <RichText data={block.text} />
