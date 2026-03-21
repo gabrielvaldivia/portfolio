@@ -94,12 +94,17 @@ export function Nav({ items }: { items: NavItem[] }) {
     if (url.startsWith('/#')) {
       e.preventDefault()
       const id = url.replace('/#', '')
-      const el = document.getElementById(id)
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' })
+      if (id === 'hero') {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
         setActiveHash(url)
-      } else if (pathname !== '/') {
-        window.location.href = url
+      } else {
+        const el = document.getElementById(id)
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' })
+          setActiveHash(url)
+        } else if (pathname !== '/') {
+          window.location.href = url
+        }
       }
     }
   }

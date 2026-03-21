@@ -54,7 +54,7 @@ export default async function HomePage() {
     switch (block.blockType) {
       case 'hero':
         return (
-          <section key={block.id || i} id="hero" className="pt-0 tablet:pt-[60px] tablet:pb-[60px] desktop:pt-20 desktop:pb-0 tablet:mb-[-80px]">
+          <section key={block.id || i} id="hero" className="scroll-mt-0 pt-0 tablet:pt-[60px] tablet:pb-[60px] desktop:pt-20 desktop:pb-0 tablet:mb-[-80px]">
             {block.fullWidth ? (
               <div className="px-5 tablet:px-10">
                 <h1 className="text-[34px] tablet:hidden">{block.heading}</h1>
@@ -167,7 +167,7 @@ export default async function HomePage() {
       case 'aboutSection':
         return (
           <Container key={block.id || i}>
-            <div id="about" className="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-10 tablet:gap-14 desktop:gap-20">
+            <div id="about" className="scroll-mt-10 grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-10 tablet:gap-14 desktop:gap-20">
               <div>
                 {block.image && (
                   <div className="sticky top-10 rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] overflow-hidden aspect-square tablet:aspect-[3/4] relative">
