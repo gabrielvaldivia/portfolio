@@ -72,6 +72,7 @@ const textLayoutFields = {
 const TextBlock: Block = {
   slug: 'text',
   labels: { singular: 'Text', plural: 'Text Blocks' },
+  imageURL: '/block-icons/Text.svg',
   fields: [
     textLayoutFields,
     { name: 'title', type: 'text' },
@@ -117,6 +118,7 @@ const imageLayoutFields = {
 const ImageBlock: Block = {
   slug: 'image',
   labels: { singular: 'Image', plural: 'Images' },
+  imageURL: '/block-icons/Photo.svg',
   fields: [
     imageLayoutFields,
     { name: 'image', type: 'upload', relationTo: 'media', required: true },
@@ -162,6 +164,7 @@ const ImageBlock: Block = {
 const VideoBlock: Block = {
   slug: 'video',
   labels: { singular: 'Video', plural: 'Videos' },
+  imageURL: '/block-icons/Video.svg',
   fields: [
     imageLayoutFields,
     { name: 'video', type: 'upload', relationTo: 'media' },
@@ -210,6 +213,7 @@ const VideoBlock: Block = {
 const DC1Block: Block = {
   slug: 'dc1',
   labels: { singular: 'DC-1', plural: 'DC-1 Blocks' },
+  imageURL: '/block-icons/dc1.svg',
   fields: [
     imageLayoutFields,
     { name: 'video', type: 'upload', relationTo: 'media', required: true },
@@ -219,6 +223,7 @@ const DC1Block: Block = {
 const iPhone15Block: Block = {
   slug: 'iphone15',
   labels: { singular: 'iPhone 15', plural: 'iPhone 15 Blocks' },
+  imageURL: '/block-icons/iphone-15.svg',
   fields: [
     imageLayoutFields,
     { name: 'video', type: 'upload', relationTo: 'media' },
@@ -230,12 +235,26 @@ const iPhone15Block: Block = {
 const iPhone13MiniBlock: Block = {
   slug: 'iphone13mini',
   labels: { singular: 'iPhone 13 Mini', plural: 'iPhone 13 Mini Blocks' },
+  imageURL: '/block-icons/iphone13.svg',
   fields: [
     imageLayoutFields,
     { name: 'video', type: 'upload', relationTo: 'media' },
     { name: 'image', type: 'upload', relationTo: 'media' },
   ],
 }
+
+const iPhone5Block: Block = {
+  slug: 'iphone5',
+  labels: { singular: 'iPhone 5', plural: 'iPhone 5 Blocks' },
+  imageURL: '/block-icons/iphone5.svg',
+  fields: [
+    imageLayoutFields,
+    { name: 'video', type: 'upload', relationTo: 'media' },
+    { name: 'image', type: 'upload', relationTo: 'media' },
+  ],
+}
+
+export const contentBlocks = [TextBlock, ImageBlock, VideoBlock, DC1Block, iPhone15Block, iPhone13MiniBlock, iPhone5Block]
 
 export const Projects: CollectionConfig = {
   slug: 'projects',

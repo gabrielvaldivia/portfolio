@@ -107,6 +107,7 @@ const DC1_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/DC1.p
 const IPHONE15_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/iphone-15.png'
 const IPHONE15_NOTCH_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/iphone-15-notch.png'
 const IPHONE13MINI_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/iphone-13-mini.png'
+const IPHONE5_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/iphone5.png'
 
 function DC1Block({ id: blockId, video, rows }: { id?: string; video: any; rows?: string }) {
   const src = video?.url
@@ -233,6 +234,40 @@ function iPhone13MiniBlock({ id: blockId, video, image, rows }: { id?: string; v
   )
 }
 
+function iPhone5Block({ id: blockId, video, image, rows }: { id?: string; video: any; image?: any; rows?: string }) {
+  const src = video?.url || image?.url
+  if (!src) return null
+  const isVideo = !!video?.url
+  const rowCount = parseInt(rows || '1', 10)
+  const rowHeight = ROW_HEIGHT * rowCount + ROW_GAP * (rowCount - 1)
+  const id = `iphone5-${blockId || 'x'}`
+  return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        #${id} { aspect-ratio: 762 / 1597; max-width: 100%; height: 480px; }
+        @media (min-width: 810px) {
+          #${id} { height: 600px; }
+        }
+        @media (min-width: 1280px) {
+          #${id} { height: ${rowHeight}px; width: auto; }
+        }
+      ` }} />
+      <div className="w-full h-full flex items-center justify-center">
+        <div id={id} className="relative overflow-hidden">
+          <div className="absolute z-0 overflow-hidden" style={{ top: '14.3%', bottom: '13.7%', left: '8.2%', right: '6.9%' }}>
+            {isVideo ? (
+              <video src={src} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+            ) : (
+              <img src={src} alt={image?.alt || ''} className="w-full h-full object-cover" />
+            )}
+          </div>
+          <img src={IPHONE5_FRAME_URL} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" />
+        </div>
+      </div>
+    </>
+  )
+}
+
 const blockComponents: Record<string, React.ComponentType<any>> = {
   text: TextBlock,
   image: ImageBlockComponent,
@@ -240,6 +275,7 @@ const blockComponents: Record<string, React.ComponentType<any>> = {
   dc1: DC1Block,
   iphone15: iPhone15Block,
   iphone13mini: iPhone13MiniBlock,
+  iphone5: iPhone5Block,
   // Legacy block types for existing data
   sectionHeader: (props: any) => <TextBlock title={props.title} content={props.description} columns={props.columns} />,
   textContent: (props: any) => <TextBlock content={props.content} columns={props.columns} />,
@@ -291,9 +327,9 @@ export function RenderBlocks({ blocks }: { blocks?: any[] }) {
         return (
           <div
             key={block.id || i}
-            className={`${colSpan[cols] || 'desktop:col-span-6'} ${rows !== '1' ? (rowSpan[rows] || '') : ''} ${['dc1', 'iphone15', 'iphone13mini'].includes(block.blockType) ? 'bg-background-alt p-5 tablet:p-8 desktop:p-10' : ''}`}
+            className={`${colSpan[cols] || 'desktop:col-span-6'} ${rows !== '1' ? (rowSpan[rows] || '') : ''} ${['dc1', 'iphone15', 'iphone13mini', 'iphone5'].includes(block.blockType) ? 'bg-background-alt p-5 tablet:p-8 desktop:p-10' : ''}`}
           >
-            <div className={['dc1', 'iphone15', 'iphone13mini'].includes(block.blockType) ? 'h-full flex items-center justify-center' : ''}>
+            <div className={['dc1', 'iphone15', 'iphone13mini', 'iphone5'].includes(block.blockType) ? 'h-full flex items-center justify-center' : ''}>
               <Component {...block} />
             </div>
           </div>

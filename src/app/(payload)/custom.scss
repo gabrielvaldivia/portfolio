@@ -7,3 +7,20 @@
 .nav-group + .nav-group {
   margin-top: 24px !important;
 }
+
+/* Block icons: smaller size */
+.thumbnail-card__thumbnail img {
+  width: 100px !important;
+  height: 100px !important;
+}
+
+/* Block icons: white in dark mode */
+html[data-theme="dark"] .thumbnail-card__thumbnail img {
+  filter: invert(1) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .thumbnail-card__thumbnail img {
+    filter: invert(1) !important;
+  }
+}

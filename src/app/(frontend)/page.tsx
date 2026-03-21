@@ -5,6 +5,7 @@ import { FAQ } from '@/components/FAQ'
 import { RichText } from '@/components/RichText'
 import { ServicePill } from '@/components/ServicePill'
 import { HScrollContainer } from '@/components/HScrollContainer'
+import { MomentumScroll } from '@/components/MomentumScroll'
 import { FitText } from '@/components/FitText'
 import { SocialIcon } from '@/components/Icons'
 import { getPageBySlug, getClients, getFeaturedTestimonials } from '@/lib/queries'
@@ -81,7 +82,7 @@ export default async function HomePage() {
               <Container><h3 className="pb-5 tablet:pb-10">{block.title}</h3></Container>
             )}
             {fw ? (
-            <HScrollContainer maskOnMobile={false}>
+            <MomentumScroll>
                 <div
                   className={`flex items-stretch w-max gap-5 desktop:gap-[24px] px-5 tablet:px-10`}
                 >
@@ -112,23 +113,13 @@ export default async function HomePage() {
                   ))}
                   {block.source === 'featuredProjects' && (
                     <div className="shrink-0 w-[320px] tablet:w-[440px] desktop:w-[420px]">
-                      <Link href="/work" className="group block tablet:p-2">
-                        <div className="rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] overflow-hidden bg-background-alt flex flex-col h-full">
-                          <div className="aspect-square rounded-[14px] tablet:rounded-[26px] desktop:rounded-[32px] overflow-hidden m-1.5 tablet:m-2 flex items-center justify-center p-16">
-                            <svg width="100%" height="100%" viewBox="0 0 200 200" fill="none" className="text-content">
-                              <path d="M21 31C15.477 31 11 35.477 11 41V159C11 164.523 15.477 169 21 169H179C184.523 169 189 164.523 189 159V61.361C189 55.838 184.523 51.361 179 51.361H84.081C83.022 51.361 82.006 50.94 81.256 50.192L64.947 33.921C63.072 32.05 60.532 31 57.884 31H21Z" stroke="currentColor" strokeWidth="2"/>
-                            </svg>
-                          </div>
-                          <div className="p-5 tablet:p-7">
-                            <h4 className="text-content">Index</h4>
-                            <p className="text-muted text-[12px] tablet:text-[14px] desktop:text-[16px] mt-2">View all projects</p>
-                          </div>
-                        </div>
-                      </Link>
+                      <ProjectCard title="Index" slug="" subtitle="View all projects" href="/work" icon={
+                        <svg width="100%" height="100%" viewBox="0 0 200 200" fill="none"><path d="M21 31C15.477 31 11 35.477 11 41V159C11 164.523 15.477 169 21 169H179C184.523 169 189 164.523 189 159V61.361C189 55.838 184.523 51.361 179 51.361H84.081C83.022 51.361 82.006 50.94 81.256 50.192L64.947 33.921C63.072 32.05 60.532 31 57.884 31H21Z" stroke="currentColor" strokeWidth="2"/></svg>
+                      } />
                     </div>
                   )}
                 </div>
-            </HScrollContainer>
+            </MomentumScroll>
             ) : (
             <HScrollContainer className="max-w-[1400px] mx-auto" snap maskOnMobile={false} dots>
               <div
@@ -161,19 +152,9 @@ export default async function HomePage() {
                 ))}
                 {block.source === 'featuredProjects' && (
                   <div className="shrink-0 w-[calc(100vw-40px)] tablet:w-[480px] snap-start">
-                    <Link href="/work" className="group block tablet:p-2">
-                      <div className="rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] overflow-hidden bg-background-alt flex flex-col h-full">
-                        <div className="aspect-square rounded-[14px] tablet:rounded-[26px] desktop:rounded-[32px] overflow-hidden m-1.5 tablet:m-2 flex items-center justify-center p-16">
-                          <svg width="100%" height="100%" viewBox="0 0 200 200" fill="none" className="text-content">
-                            <path d="M21 31C15.477 31 11 35.477 11 41V159C11 164.523 15.477 169 21 169H179C184.523 169 189 164.523 189 159V61.361C189 55.838 184.523 51.361 179 51.361H84.081C83.022 51.361 82.006 50.94 81.256 50.192L64.947 33.921C63.072 32.05 60.532 31 57.884 31H21Z" stroke="currentColor" strokeWidth="2"/>
-                          </svg>
-                        </div>
-                        <div className="p-5 tablet:p-7">
-                          <h4 className="text-content">Index</h4>
-                          <p className="text-muted text-[12px] tablet:text-[14px] desktop:text-[16px] mt-2">View all projects</p>
-                        </div>
-                      </div>
-                    </Link>
+                    <ProjectCard title="Index" slug="" subtitle="View all projects" href="/work" icon={
+                      <svg width="100%" height="100%" viewBox="0 0 200 200" fill="none"><path d="M21 31C15.477 31 11 35.477 11 41V159C11 164.523 15.477 169 21 169H179C184.523 169 189 164.523 189 159V61.361C189 55.838 184.523 51.361 179 51.361H84.081C83.022 51.361 82.006 50.94 81.256 50.192L64.947 33.921C63.072 32.05 60.532 31 57.884 31H21Z" stroke="currentColor" strokeWidth="2"/></svg>
+                    } />
                   </div>
                 )}
               </div>

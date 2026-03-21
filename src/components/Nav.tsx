@@ -26,7 +26,7 @@ function CloseButton() {
   return (
     <button
       onClick={() => router.back()}
-      className="bg-floating hover:bg-hover transition-colors rounded-full w-10 h-10 flex items-center justify-center"
+      className="bg-floating hover:bg-hover transition-colors rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-[40px]"
       aria-label="Close"
     >
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -40,7 +40,7 @@ export function Nav({ items }: { items: NavItem[] }) {
   const pathname = usePathname()
   const [activeHash, setActiveHash] = useState('')
 
-  const isProjectPage = pathname?.startsWith('/work/') || pathname?.startsWith('/playground/') || pathname === '/about' || pathname === '/clients' || pathname === '/work'
+  const isProjectPage = pathname?.startsWith('/work/') || pathname?.startsWith('/playground/') || pathname === '/playground' || pathname === '/about' || pathname === '/clients' || pathname === '/work'
   const isDesignSystem = pathname === '/design-system'
 
   useEffect(() => {
