@@ -25,7 +25,13 @@ function CloseButton() {
 
   return (
     <button
-      onClick={() => router.back()}
+      onClick={() => {
+        document.documentElement.style.scrollBehavior = 'auto'
+        router.back()
+        setTimeout(() => {
+          document.documentElement.style.scrollBehavior = ''
+        }, 1000)
+      }}
       className="bg-floating hover:bg-hover transition-colors rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-[40px]"
       aria-label="Close"
     >
