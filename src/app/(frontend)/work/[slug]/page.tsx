@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex gap-10 items-start">
-      <h6 className="w-[100px] shrink-0 pt-1">{label}</h6>
+      <h6 className="w-[100px] shrink-0 pt-1 text-muted">{label}</h6>
       <div className="flex-1">{children}</div>
     </div>
   )
@@ -105,7 +105,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
 
                 {project.year && (
                   <MetaRow label="Date">
-                    <p className="text-[20px]">{project.year}</p>
+                    <p className="text-body">{project.year}</p>
                   </MetaRow>
                 )}
               </div>

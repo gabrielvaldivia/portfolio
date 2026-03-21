@@ -23,6 +23,7 @@
   --color-muted: rgb(var(--color-muted-rgb));
   --color-background: rgb(var(--color-background-rgb));
   --color-background-alt: rgb(var(--color-background-alt-rgb));
+  --color-background-alt-hover: rgb(var(--color-background-alt-hover-rgb));
   --color-border: rgb(var(--color-border-rgb));
   --color-border-strong: rgb(var(--color-border-strong-rgb));
   --color-elevated: rgb(var(--color-elevated-rgb));
@@ -36,6 +37,7 @@
   --color-muted-rgb: 0 0 0 / 0.6;
   --color-background-rgb: 255 255 255;
   --color-background-alt-rgb: 0 0 0 / 0.03;
+  --color-background-alt-hover-rgb: 0 0 0 / 0.06;
   --color-border-rgb: 0 0 0 / 0.05;
   --color-border-strong-rgb: 0 0 0 / 0.2;
   --color-elevated-rgb: 255 255 255;
@@ -51,6 +53,7 @@
     --color-muted-rgb: 255 255 255 / 0.7;
     --color-background-rgb: 0 0 0;
     --color-background-alt-rgb: 255 255 255 / 0.1;
+    --color-background-alt-hover-rgb: 255 255 255 / 0.15;
     --color-border-rgb: 255 255 255 / 0.2;
     --color-border-strong-rgb: 255 255 255 / 0.2;
     --color-elevated-rgb: 31 31 31;
@@ -73,6 +76,10 @@
     aspect-ratio: unset !important;
     height: var(--row-height);
   }
+}
+
+.bg-alt-hover {
+  background-color: var(--color-background-alt-hover);
 }
 
 * {
@@ -187,12 +194,16 @@ h5 {
 
 h6 {
   font-family: var(--font-mono);
-  font-size: var(--text-h6);
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: -0.03em;
   line-height: 1.2;
   font-weight: 400;
   margin: 0;
+}
+
+@media (min-width: 810px) {
+  h6 { font-size: var(--text-h6); }
 }
 
 .text-body {

@@ -6,7 +6,7 @@ function TextBlock({ title, content, columns }: { title?: string; content: any; 
   if (!content) return null
   if (columns === '6') {
     return (
-      <div className="grid grid-cols-1 desktop:grid-cols-6 gap-10 py-8 tablet:py-12 desktop:py-20">
+      <div className="grid grid-cols-1 desktop:grid-cols-6 gap-2 tablet:gap-6 desktop:gap-10 py-8 tablet:py-12 desktop:py-20">
         <div className="desktop:col-span-2">
           {title && <h3>{title}</h3>}
         </div>
