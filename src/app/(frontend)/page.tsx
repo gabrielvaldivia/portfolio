@@ -54,7 +54,7 @@ export default async function HomePage() {
     switch (block.blockType) {
       case 'hero':
         return (
-          <section key={block.id || i} id="hero" className="pt-0 desktop:pt-20 tablet:mb-[-80px]">
+          <section key={block.id || i} id="hero" className="pt-0 tablet:pt-[60px] tablet:pb-[60px] desktop:pt-20 desktop:pb-0 tablet:mb-[-80px]">
             {block.fullWidth ? (
               <div className="px-5 tablet:px-10">
                 <h1 className="text-[34px] tablet:hidden">{block.heading}</h1>
@@ -358,7 +358,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <section className="px-5 tablet:px-10 pt-10 pb-10">
+      <section className="px-5 tablet:px-10 pt-6 tablet:pt-10 pb-10">
         <h3 className="text-content opacity-50">
           <Link href="/">Gabriel Valdivia</Link>
         </h3>

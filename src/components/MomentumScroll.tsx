@@ -57,14 +57,15 @@ export function MomentumScroll({ children, className = '' }: { children: React.R
       lastX.current = e.clientX
       lastTime.current = Date.now()
       cancelAnimationFrame(animFrame.current)
-      el.setPointerCapture(e.pointerId)
-      el.style.cursor = 'grabbing'
     }
 
     const onPointerMove = (e: PointerEvent) => {
       if (!isDragging.current) return
       const dx = e.clientX - lastX.current
-      if (Math.abs(dx) > 3) didDrag = true
+      if (Math.abs(dx) > 5) {
+        didDrag = true
+        el.style.cursor = 'grabbing'
+      }
       const now = Date.now()
       const dt = now - lastTime.current || 1
       velocity.current = dx / dt * 16
@@ -81,7 +82,10 @@ export function MomentumScroll({ children, className = '' }: { children: React.R
     }
 
     const onClick = (e: MouseEvent) => {
-      if (didDrag) e.preventDefault()
+      if (didDrag) {
+        e.preventDefault()
+        e.stopPropagation()
+      }
     }
 
     const onWheel = (e: WheelEvent) => {
