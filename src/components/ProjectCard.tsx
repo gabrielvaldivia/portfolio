@@ -34,7 +34,7 @@ export function ProjectCard({ title, slug, subtitle, featuredImage, year }: Prop
           <h4 className="text-content">
             {title}
           </h4>
-          {subtitle && <p className="text-muted text-[12px] tablet:text-[14px] desktop:text-[16px] mt-2">{subtitle}</p>}
+          {subtitle && <p className="text-muted text-caption" style={{ marginTop: '8px' }}>{subtitle}</p>}
         </div>
       </div>
     </Link>

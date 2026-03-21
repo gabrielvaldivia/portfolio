@@ -112,16 +112,16 @@ export default async function HomePage() {
                   ))}
                   {block.source === 'featuredProjects' && (
                     <div className="shrink-0 w-[320px] tablet:w-[440px] desktop:w-[420px]">
-                      <Link href="/work" className="block p-2">
-                        <div className="rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] overflow-hidden bg-background-alt flex flex-col">
+                      <Link href="/work" className="group block tablet:p-2">
+                        <div className="rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] overflow-hidden bg-background-alt flex flex-col h-full">
                           <div className="aspect-square rounded-[14px] tablet:rounded-[26px] desktop:rounded-[32px] overflow-hidden m-1.5 tablet:m-2 flex items-center justify-center p-16">
                             <svg width="100%" height="100%" viewBox="0 0 200 200" fill="none" className="text-content">
                               <path d="M21 31C15.477 31 11 35.477 11 41V159C11 164.523 15.477 169 21 169H179C184.523 169 189 164.523 189 159V61.361C189 55.838 184.523 51.361 179 51.361H84.081C83.022 51.361 82.006 50.94 81.256 50.192L64.947 33.921C63.072 32.05 60.532 31 57.884 31H21Z" stroke="currentColor" strokeWidth="2"/>
                             </svg>
                           </div>
-                          <div className="px-4 py-3 tablet:px-6 tablet:py-4 desktop:px-8 desktop:py-6">
-                            <h3 className="text-content text-[16px] tablet:text-[20px] desktop:text-[24px] leading-[1.3] tracking-[-0.02em]">Index</h3>
-                            <p className="text-muted text-[12px] tablet:text-[14px] desktop:text-[16px] mt-0.5 tablet:mt-1">View all projects</p>
+                          <div className="p-5 tablet:p-7">
+                            <h4 className="text-content">Index</h4>
+                            <p className="text-muted text-[12px] tablet:text-[14px] desktop:text-[16px] mt-2">View all projects</p>
                           </div>
                         </div>
                       </Link>
@@ -159,6 +159,23 @@ export default async function HomePage() {
                     )}
                   </div>
                 ))}
+                {block.source === 'featuredProjects' && (
+                  <div className="shrink-0 w-[calc(100vw-40px)] tablet:w-[480px] snap-start">
+                    <Link href="/work" className="group block tablet:p-2">
+                      <div className="rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] overflow-hidden bg-background-alt flex flex-col h-full">
+                        <div className="aspect-square rounded-[14px] tablet:rounded-[26px] desktop:rounded-[32px] overflow-hidden m-1.5 tablet:m-2 flex items-center justify-center p-16">
+                          <svg width="100%" height="100%" viewBox="0 0 200 200" fill="none" className="text-content">
+                            <path d="M21 31C15.477 31 11 35.477 11 41V159C11 164.523 15.477 169 21 169H179C184.523 169 189 164.523 189 159V61.361C189 55.838 184.523 51.361 179 51.361H84.081C83.022 51.361 82.006 50.94 81.256 50.192L64.947 33.921C63.072 32.05 60.532 31 57.884 31H21Z" stroke="currentColor" strokeWidth="2"/>
+                          </svg>
+                        </div>
+                        <div className="p-5 tablet:p-7">
+                          <h4 className="text-content">Index</h4>
+                          <p className="text-muted text-[12px] tablet:text-[14px] desktop:text-[16px] mt-2">View all projects</p>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                )}
               </div>
             </HScrollContainer>
             )}
