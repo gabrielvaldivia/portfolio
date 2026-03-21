@@ -269,7 +269,7 @@ export default async function HomePage() {
                         className="shrink-0 dark-invert"
                         loading="lazy"
                         style={{
-                          height: `clamp(16px, 3vw, ${(block.fontSize || 48) * 0.6}px)`,
+                          height: `clamp(24px, 4vw, ${(block.fontSize || 48) * 0.6}px)`,
                           width: 'auto',
                           opacity: (block.opacity || 30) / 100,
                         }}
