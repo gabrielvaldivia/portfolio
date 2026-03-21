@@ -49,6 +49,7 @@ export function VideoPlayer({ src, loop = true, muted = true, controls = false, 
       loop={loop}
       muted={muted}
       playsInline
+      preload="none"
       className={className}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}

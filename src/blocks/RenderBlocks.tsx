@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import { RichText } from '@/components/RichText'
 import { VideoPlayer } from '@/components/VideoPlayer'
+import { LazyVideo } from '@/components/LazyVideo'
 
 function TextBlock({ title, content, columns }: { title?: string; content: any; columns?: string }) {
   if (!content) return null
@@ -125,19 +126,12 @@ function DC1Block({ id: blockId, video, rows }: { id?: string; video: any; rows?
       ` }} />
       <div id={id} className="relative mx-auto overflow-hidden">
         <div className="absolute inset-[6%] z-0">
-          <video
-            src={src}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-full object-cover"
-          />
+          <LazyVideo src={src} className="w-full h-full object-cover" />
         </div>
         <img
           src={DC1_FRAME_URL}
           alt=""
-          className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
+          className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" loading="lazy"
         />
       </div>
     </>
@@ -166,22 +160,15 @@ function iPhone15Block({ id: blockId, video, image, rows, showNotch }: { id?: st
         <div id={id} className="relative overflow-hidden">
         <div className="absolute z-0 overflow-hidden" style={{ top: '2.1%', bottom: '2.0%', left: '4.9%', right: '4.9%', borderRadius: '5%' }}>
           {isVideo ? (
-            <video
-              src={src}
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full h-full object-cover"
-            />
+            <LazyVideo src={src} className="w-full h-full object-cover" />
           ) : (
-            <img src={src} alt={image?.alt || ''} className="w-full h-full object-cover" />
+            <img src={src} alt={image?.alt || ''} className="w-full h-full object-cover" loading="lazy" />
           )}
         </div>
         <img
           src={showNotch ? IPHONE15_NOTCH_FRAME_URL : IPHONE15_FRAME_URL}
           alt=""
-          className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
+          className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" loading="lazy"
         />
         </div>
       </div>
@@ -211,22 +198,15 @@ function iPhone13MiniBlock({ id: blockId, video, image, rows }: { id?: string; v
         <div id={id} className="relative overflow-hidden">
           <div className="absolute z-0 overflow-hidden" style={{ top: '7.3%', bottom: '7.2%', left: '13.5%', right: '13.5%', borderRadius: '5%' }}>
             {isVideo ? (
-              <video
-                src={src}
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-full object-cover"
-              />
+              <LazyVideo src={src} className="w-full h-full object-cover" />
             ) : (
-              <img src={src} alt={image?.alt || ''} className="w-full h-full object-cover" />
+              <img src={src} alt={image?.alt || ''} className="w-full h-full object-cover" loading="lazy" />
             )}
           </div>
           <img
             src={IPHONE13MINI_FRAME_URL}
             alt=""
-            className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
+            className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" loading="lazy"
           />
         </div>
       </div>
@@ -256,12 +236,12 @@ function iPhone5Block({ id: blockId, video, image, rows }: { id?: string; video:
         <div id={id} className="relative overflow-hidden">
           <div className="absolute z-0 overflow-hidden" style={{ top: '14.3%', bottom: '13.7%', left: '8.2%', right: '6.9%' }}>
             {isVideo ? (
-              <video src={src} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+              <LazyVideo src={src} className="w-full h-full object-cover" />
             ) : (
-              <img src={src} alt={image?.alt || ''} className="w-full h-full object-cover" />
+              <img src={src} alt={image?.alt || ''} className="w-full h-full object-cover" loading="lazy" />
             )}
           </div>
-          <img src={IPHONE5_FRAME_URL} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" />
+          <img src={IPHONE5_FRAME_URL} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" loading="lazy" />
         </div>
       </div>
     </>
