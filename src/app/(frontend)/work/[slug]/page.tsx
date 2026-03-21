@@ -31,10 +31,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
-function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
+function MetaRow({ label, children, baseline }: { label: string; children: React.ReactNode; baseline?: boolean }) {
   return (
-    <div className="flex gap-10 items-start">
-      <h6 className="w-[100px] shrink-0 pt-1 text-muted">{label}</h6>
+    <div className={`flex gap-10 ${baseline ? 'items-baseline' : 'items-start'}`}>
+      <h6 className="w-[50px] tablet:w-[100px] shrink-0 text-muted" style={baseline ? undefined : { paddingTop: '10px' }}>{label}</h6>
       <div className="flex-1">{children}</div>
     </div>
   )
@@ -104,7 +104,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
                 )}
 
                 {project.year && (
-                  <MetaRow label="Date">
+                  <MetaRow label="Date" baseline>
                     <p className="text-body">{project.year}</p>
                   </MetaRow>
                 )}

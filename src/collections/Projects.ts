@@ -376,7 +376,7 @@ export const Projects: CollectionConfig = {
               name: 'content',
               type: 'blocks',
               admin: { initCollapsed: true },
-              blocks: [TextBlock, ImageBlock, VideoBlock, DC1Block, iPhone15Block, iPhone13MiniBlock],
+              blocks: contentBlocks,
             },
           ],
         },

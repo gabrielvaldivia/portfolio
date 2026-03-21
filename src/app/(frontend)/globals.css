@@ -203,7 +203,11 @@ h6 {
 }
 
 @media (min-width: 810px) {
-  h6 { font-size: var(--text-h6); }
+  h6 { font-size: 14px; }
+}
+
+@media (min-width: 1280px) {
+  h6 { font-size: 14px; }
 }
 
 .text-body {
