@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: 'Side projects and experiments',
 }
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 export default async function PlaygroundPage() {
   const { docs: projects } = await getSideProjects()

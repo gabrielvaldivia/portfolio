@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: 'Fractional Design Partner for Early-Stage Teams',
 }
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [navigation, settings] = await Promise.all([getNavigation(), getSiteSettings()])

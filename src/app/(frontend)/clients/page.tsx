@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: 'Companies I have worked with',
 }
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 export default async function ClientsPage() {
   const payload = await getPayload()

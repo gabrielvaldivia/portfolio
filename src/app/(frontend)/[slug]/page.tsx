@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 // Reserved slugs handled by other routes
 const RESERVED = ['work', 'about', 'clients', 'playground', 'design-system', 'admin']
