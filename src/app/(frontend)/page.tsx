@@ -81,7 +81,7 @@ export default async function HomePage() {
               <Container><h3 className="pb-5 tablet:pb-10">{block.title}</h3></Container>
             )}
             {fw ? (
-            <HScrollContainer>
+            <HScrollContainer maskOnMobile={false}>
                 <div
                   className={`flex items-stretch w-max gap-5 desktop:gap-[24px] px-5 tablet:px-10`}
                 >

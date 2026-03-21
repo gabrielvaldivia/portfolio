@@ -211,7 +211,7 @@ const DC1Block: Block = {
   slug: 'dc1',
   labels: { singular: 'DC-1', plural: 'DC-1 Blocks' },
   fields: [
-    layoutFields,
+    imageLayoutFields,
     { name: 'video', type: 'upload', relationTo: 'media', required: true },
   ],
 }
@@ -220,7 +220,7 @@ const iPhone15Block: Block = {
   slug: 'iphone15',
   labels: { singular: 'iPhone 15', plural: 'iPhone 15 Blocks' },
   fields: [
-    layoutFields,
+    imageLayoutFields,
     { name: 'video', type: 'upload', relationTo: 'media' },
     { name: 'image', type: 'upload', relationTo: 'media' },
     { name: 'showNotch', type: 'checkbox', defaultValue: false },
@@ -231,7 +231,7 @@ const iPhone13MiniBlock: Block = {
   slug: 'iphone13mini',
   labels: { singular: 'iPhone 13 Mini', plural: 'iPhone 13 Mini Blocks' },
   fields: [
-    layoutFields,
+    imageLayoutFields,
     { name: 'video', type: 'upload', relationTo: 'media' },
     { name: 'image', type: 'upload', relationTo: 'media' },
   ],
@@ -247,6 +247,49 @@ export const Projects: CollectionConfig = {
   },
   access: {
     read: () => true,
+  },
+  hooks: {
+    afterChange: [
+      async ({ doc, previousDoc, req }) => {
+        if (doc.featured === previousDoc?.featured) return doc
+        try {
+          const homePage = await req.payload.find({
+            collection: 'pages',
+            where: { slug: { equals: 'home' } },
+            limit: 1,
+            depth: 0,
+          })
+          const page = homePage.docs[0]
+          if (!page) return doc
+          const sections = (page as any).sections || []
+          let changed = false
+          for (const section of sections) {
+            if (section.blockType === 'hScroll' && section.source === 'featuredProjects') {
+              const projectIds: number[] = (section.projects || []).map((p: any) => typeof p === 'object' ? p.id : p)
+              if (doc.featured && !projectIds.includes(doc.id)) {
+                projectIds.push(doc.id)
+                section.projects = projectIds
+                changed = true
+              } else if (!doc.featured && projectIds.includes(doc.id)) {
+                section.projects = projectIds.filter((id: number) => id !== doc.id)
+                changed = true
+              }
+            }
+          }
+          if (changed) {
+            await req.payload.update({
+              collection: 'pages',
+              id: page.id,
+              data: { sections },
+              depth: 0,
+            })
+          }
+        } catch (e) {
+          // Silent fail — don't block project save
+        }
+        return doc
+      },
+    ],
   },
   fields: [
     // ── Sidebar ──

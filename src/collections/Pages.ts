@@ -188,6 +188,35 @@ export const Pages: CollectionConfig = {
   access: {
     read: () => true,
   },
+  hooks: {
+    afterChange: [
+      async ({ doc, previousDoc, req }) => {
+        if (doc.slug !== 'home') return doc
+        try {
+          const sections = (doc.sections || []) as any[]
+          const prevSections = (previousDoc?.sections || []) as any[]
+          for (const section of sections) {
+            if (section.blockType === 'hScroll' && section.source === 'featuredProjects') {
+              const currentIds: number[] = (section.projects || []).map((p: any) => typeof p === 'object' ? p.id : p)
+              const prevBlock = prevSections.find((s: any) => s.blockType === 'hScroll' && s.source === 'featuredProjects')
+              const prevIds: number[] = ((prevBlock?.projects || []) as any[]).map((p: any) => typeof p === 'object' ? p.id : p)
+              const added = currentIds.filter(id => !prevIds.includes(id))
+              const removed = prevIds.filter(id => !currentIds.includes(id))
+              for (const id of added) {
+                await req.payload.update({ collection: 'projects', id, data: { featured: true }, depth: 0 })
+              }
+              for (const id of removed) {
+                await req.payload.update({ collection: 'projects', id, data: { featured: false }, depth: 0 })
+              }
+            }
+          }
+        } catch (e) {
+          // Silent fail
+        }
+        return doc
+      },
+    ],
+  },
   fields: [
     {
       name: 'title',
