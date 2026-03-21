@@ -10,28 +10,20 @@ export function VideoPlayer({ src, loop = true, muted = true, controls = false, 
   className?: string
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const isDesktop = useRef(false)
 
-  useEffect(() => {
-    isDesktop.current = window.matchMedia('(hover: hover)').matches
-  }, [])
-
-  // Mobile: autoplay when in view
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (!isDesktop.current) {
-          if (entry.isIntersecting) {
-            video.play().catch(() => {})
-          } else {
-            video.pause()
-          }
+        if (entry.isIntersecting) {
+          video.play().catch(() => {})
+        } else {
+          video.pause()
         }
       },
-      { threshold: 0.5 }
+      { threshold: 0.3 }
     )
 
     observer.observe(video)
@@ -39,16 +31,16 @@ export function VideoPlayer({ src, loop = true, muted = true, controls = false, 
   }, [])
 
   const handleMouseEnter = useCallback(() => {
-    if (isDesktop.current) {
-      videoRef.current?.play().catch(() => {})
+    if (controls && videoRef.current) {
+      videoRef.current.controls = true
     }
-  }, [])
+  }, [controls])
 
   const handleMouseLeave = useCallback(() => {
-    if (isDesktop.current) {
-      videoRef.current?.pause()
+    if (controls && videoRef.current) {
+      videoRef.current.controls = false
     }
-  }, [])
+  }, [controls])
 
   return (
     <video
@@ -56,7 +48,6 @@ export function VideoPlayer({ src, loop = true, muted = true, controls = false, 
       src={src}
       loop={loop}
       muted={muted}
-      controls={controls}
       playsInline
       className={className}
       onMouseEnter={handleMouseEnter}

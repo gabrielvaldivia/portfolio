@@ -34,13 +34,83 @@ const layoutFields = {
 
 // ── Content Blocks ──
 
+const textLayoutFields = {
+  type: 'row' as const,
+  fields: [
+    {
+      name: 'columns',
+      label: 'Width',
+      type: 'select' as const,
+      defaultValue: '6',
+      options: [
+        { label: '1 Col', value: '1' },
+        { label: '2 Col', value: '2' },
+        { label: '3 Col', value: '3' },
+        { label: '4 Col', value: '4' },
+        { label: '5 Col', value: '5' },
+        { label: '6 Col', value: '6' },
+      ],
+    },
+    {
+      name: 'rows',
+      label: 'Height',
+      type: 'select' as const,
+      defaultValue: 'wrap',
+      options: [
+        { label: '1 Row', value: '1' },
+        { label: '2 Row', value: '2' },
+        { label: '3 Row', value: '3' },
+        { label: '4 Row', value: '4' },
+        { label: '5 Row', value: '5' },
+        { label: '6 Row', value: '6' },
+        { label: 'Wrap', value: 'wrap' },
+      ],
+    },
+  ],
+}
+
 const TextBlock: Block = {
   slug: 'text',
   labels: { singular: 'Text', plural: 'Text Blocks' },
   fields: [
-    layoutFields,
+    textLayoutFields,
     { name: 'title', type: 'text' },
     { name: 'content', type: 'richText', required: true },
+  ],
+}
+
+const imageLayoutFields = {
+  type: 'row' as const,
+  fields: [
+    {
+      name: 'columns',
+      label: 'Width',
+      type: 'select' as const,
+      defaultValue: '6',
+      options: [
+        { label: '1 Col', value: '1' },
+        { label: '2 Col', value: '2' },
+        { label: '3 Col', value: '3' },
+        { label: '4 Col', value: '4' },
+        { label: '5 Col', value: '5' },
+        { label: '6 Col', value: '6' },
+      ],
+    },
+    {
+      name: 'rows',
+      label: 'Height',
+      type: 'select' as const,
+      defaultValue: 'wrap',
+      options: [
+        { label: '1 Row', value: '1' },
+        { label: '2 Row', value: '2' },
+        { label: '3 Row', value: '3' },
+        { label: '4 Row', value: '4' },
+        { label: '5 Row', value: '5' },
+        { label: '6 Row', value: '6' },
+        { label: 'Wrap', value: 'wrap' },
+      ],
+    },
   ],
 }
 
@@ -48,14 +118,12 @@ const ImageBlock: Block = {
   slug: 'image',
   labels: { singular: 'Image', plural: 'Images' },
   fields: [
-    layoutFields,
+    imageLayoutFields,
     { name: 'image', type: 'upload', relationTo: 'media', required: true },
     { name: 'caption', type: 'text' },
     {
       type: 'row' as const,
       fields: [
-        { name: 'height', type: 'number' as const },
-        { name: 'maxHeight', type: 'number' as const },
         {
           name: 'fit',
           type: 'select' as const,
@@ -65,11 +133,6 @@ const ImageBlock: Block = {
             { label: 'Fit', value: 'contain' },
           ],
         },
-      ],
-    },
-    {
-      type: 'row' as const,
-      fields: [
         {
           name: 'padding',
           type: 'select' as const,
@@ -85,7 +148,14 @@ const ImageBlock: Block = {
         { name: 'bgColor', type: 'text' as const, defaultValue: 'alt' },
       ],
     },
-    { name: 'border', type: 'checkbox', defaultValue: false },
+    {
+      type: 'row' as const,
+      fields: [
+        { name: 'border', type: 'checkbox' as const, defaultValue: false },
+        { name: 'rounded', type: 'checkbox' as const, defaultValue: false },
+        { name: 'shadow', type: 'checkbox' as const, defaultValue: false },
+      ],
+    },
   ],
 }
 
@@ -93,25 +163,46 @@ const VideoBlock: Block = {
   slug: 'video',
   labels: { singular: 'Video', plural: 'Videos' },
   fields: [
-    layoutFields,
+    imageLayoutFields,
     { name: 'video', type: 'upload', relationTo: 'media' },
-    { name: 'url', type: 'text' },
     { name: 'caption', type: 'text' },
     {
-      name: 'fit',
-      type: 'select' as const,
-      defaultValue: 'cover',
-      options: [
-        { label: 'Fill', value: 'cover' },
-        { label: 'Fit', value: 'contain' },
+      type: 'row' as const,
+      fields: [
+        {
+          name: 'fit',
+          type: 'select' as const,
+          defaultValue: 'cover',
+          options: [
+            { label: 'Fill', value: 'cover' },
+            { label: 'Fit', value: 'contain' },
+          ],
+        },
+        {
+          name: 'padding',
+          type: 'select' as const,
+          options: [
+            { label: 'None', value: '0' },
+            { label: 'XS (10px)', value: '10' },
+            { label: 'S (20px)', value: '20' },
+            { label: 'M (40px)', value: '40' },
+            { label: 'L (60px)', value: '60' },
+            { label: 'XL (80px)', value: '80' },
+          ],
+        },
+        { name: 'bgColor', type: 'text' as const, defaultValue: 'alt' },
       ],
     },
-    { name: 'bgColor', type: 'text' as const, defaultValue: 'alt' },
-    { name: 'border', type: 'checkbox' as const, defaultValue: false },
-    { name: 'autoplay', type: 'checkbox', defaultValue: true },
-    { name: 'loop', type: 'checkbox', defaultValue: true },
-    { name: 'muted', type: 'checkbox', defaultValue: true },
-    { name: 'controls', type: 'checkbox', defaultValue: false },
+    {
+      type: 'row' as const,
+      fields: [
+        { name: 'border', type: 'checkbox' as const, defaultValue: false },
+        { name: 'autoplay', type: 'checkbox' as const, defaultValue: true },
+        { name: 'loop', type: 'checkbox' as const, defaultValue: true },
+        { name: 'muted', type: 'checkbox' as const, defaultValue: true },
+        { name: 'controls', type: 'checkbox' as const, defaultValue: false },
+      ],
+    },
   ],
 }
 
@@ -130,7 +221,19 @@ const iPhone15Block: Block = {
   labels: { singular: 'iPhone 15', plural: 'iPhone 15 Blocks' },
   fields: [
     layoutFields,
-    { name: 'video', type: 'upload', relationTo: 'media', required: true },
+    { name: 'video', type: 'upload', relationTo: 'media' },
+    { name: 'image', type: 'upload', relationTo: 'media' },
+    { name: 'showNotch', type: 'checkbox', defaultValue: false },
+  ],
+}
+
+const iPhone13MiniBlock: Block = {
+  slug: 'iphone13mini',
+  labels: { singular: 'iPhone 13 Mini', plural: 'iPhone 13 Mini Blocks' },
+  fields: [
+    layoutFields,
+    { name: 'video', type: 'upload', relationTo: 'media' },
+    { name: 'image', type: 'upload', relationTo: 'media' },
   ],
 }
 
@@ -211,7 +314,7 @@ export const Projects: CollectionConfig = {
               name: 'content',
               type: 'blocks',
               admin: { initCollapsed: true },
-              blocks: [TextBlock, ImageBlock, VideoBlock, DC1Block, iPhone15Block],
+              blocks: [TextBlock, ImageBlock, VideoBlock, DC1Block, iPhone15Block, iPhone13MiniBlock],
             },
           ],
         },
