@@ -55,6 +55,11 @@ export function BirthdayBalloons() {
   const [balloonStates, setBalloonStates] = useState<Balloon[]>([])
   const [done, setDone] = useState(false)
 
+  // Only show on March 23rd
+  const today = new Date()
+  const isBirthday = today.getMonth() === 2 && today.getDate() === 23
+  if (!isBirthday) return null
+
   const initBalloons = useCallback(() => {
     const w = window.innerWidth
     const isMobile = w < 768
@@ -218,9 +223,11 @@ export function BirthdayBalloons() {
           b.rotationSpeed = Math.sign(b.rotationSpeed) * 0.04
         }
 
-        // Floor
-        if (b.y + b.radius > h) {
-          b.y = h - b.radius
+        // Floor — on mobile, use donation pill top as floor if visible
+        const donationEl = document.getElementById('birthday-donation')
+        const floorY = (w < 810 && donationEl) ? donationEl.getBoundingClientRect().top : h
+        if (b.y + b.radius > floorY) {
+          b.y = floorY - b.radius
           b.vy = -Math.abs(b.vy) * BOUNCE_DAMPING
           if (Math.abs(b.vy) < 0.3) b.vy = 0
         }
@@ -339,7 +346,9 @@ export function BirthdayBalloons() {
             }
           }
 
-          if (c.y + c.size > h) {
+          const confettiFloorEl = document.getElementById('birthday-donation')
+          const confettiFloor = (w < 810 && confettiFloorEl) ? confettiFloorEl.getBoundingClientRect().top : h
+          if (c.y + c.size > confettiFloor) {
             c.y = h - c.size
             c.grounded = true
             c.groundedAt = now
