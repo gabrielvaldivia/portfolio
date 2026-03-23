@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Nav } from '@/components/Nav'
 import { Footer } from '@/components/Footer'
 import { BirthdayBalloons } from '@/components/BirthdayBalloons'
+import { BirthdayDonation } from '@/components/BirthdayDonation'
 import { getNavigation, getSiteSettings } from '@/lib/queries'
 
 export const revalidate = 60
@@ -58,6 +59,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="bg-background text-content">
         <BirthdayBalloons />
+        <BirthdayDonation />
         <Nav items={navItems} />
         <main>{children}</main>
         <Footer copyright={(navigation as any)?.copyright} />

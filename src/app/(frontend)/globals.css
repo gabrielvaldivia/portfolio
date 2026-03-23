@@ -117,6 +117,10 @@ body {
   letter-spacing: -0.01em;
 }
 
+body.birthday-donation-visible .birthday-nav {
+  bottom: 4rem;
+}
+
 @media (min-width: 810px) {
   body {
     font-size: 18px;
