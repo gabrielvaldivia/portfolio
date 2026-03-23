@@ -45,7 +45,7 @@ const paddingClasses: Record<string, string> = {
 const ROW_HEIGHT = 200
 const ROW_GAP = 40 // matches desktop gap-10
 
-function ImageBlockComponent({ image, caption, border, rounded, shadow, columns, rows, height, maxHeight, fit, bgColor, padding, _fillHeight }: { image: any; caption?: string; border?: boolean; rounded?: boolean; shadow?: boolean; columns?: string; rows?: string; height?: number; maxHeight?: number; fit?: string; bgColor?: string; padding?: string | number; _fillHeight?: boolean }) {
+function ImageBlockComponent({ image, caption, border, imageBorder, rounded, shadow, columns, rows, height, maxHeight, fit, bgColor, padding, _fillHeight }: { image: any; caption?: string; border?: boolean; imageBorder?: boolean; rounded?: boolean; shadow?: boolean; columns?: string; rows?: string; height?: number; maxHeight?: number; fit?: string; bgColor?: string; padding?: string | number; _fillHeight?: boolean }) {
   // Legacy: height/maxHeight still supported for old data but no longer in admin
   if (!image?.url) return null
   const aspectRatio = image.width && image.height ? image.width / image.height : 16 / 9
@@ -61,16 +61,17 @@ function ImageBlockComponent({ image, caption, border, rounded, shadow, columns,
   return (
     <div>
       <div
-        className={`${bg} w-full ${border ? 'border border-border' : ''} ${hasPadding ? padClass : ''} ${!hasPadding ? 'overflow-hidden' : ''}`}
+        className={`${bg} w-full ${border ? 'ring-1 ring-inset ring-border' : ''} ${hasPadding ? padClass : ''} ${!hasPadding ? 'overflow-hidden' : ''}`}
         style={{
           ...(customBg ? { backgroundColor: customBg } : {}),
         }}
       >
         <div
-          className={`relative w-full overflow-hidden ${fit === 'contain' ? 'flex items-center justify-center' : ''}`}
+          className={`relative w-full ${shadow ? '' : 'overflow-hidden'} ${fit === 'contain' ? 'flex items-center justify-center' : ''}`}
           style={{ aspectRatio, ...(rowHeight ? { ['--row-height' as string]: `${rowHeight}px` } : {}) }}
         >
-          <Image src={image.url} alt={image.alt || ''} fill className={`${fit === 'contain' ? 'object-contain' : 'object-cover'} ${rounded ? 'rounded-xl tablet:rounded-2xl desktop:rounded-3xl' : ''} ${shadow ? 'drop-shadow-xl' : ''}`} sizes={columns === '1' ? '16vw' : columns === '2' ? '33vw' : columns === '3' ? '50vw' : columns === '4' ? '66vw' : '100vw'} />
+          {imageBorder && <div className="absolute inset-0 z-10 ring-1 ring-inset ring-border pointer-events-none" />}
+          <Image src={image.url} alt={image.alt || ''} fill className={`${fit === 'contain' ? 'object-contain' : 'object-cover'} ${rounded ? 'rounded-lg tablet:rounded-xl desktop:rounded-2xl' : ''} ${shadow ? 'drop-shadow-md' : ''}`} sizes={columns === '1' ? '16vw' : columns === '2' ? '33vw' : columns === '3' ? '50vw' : columns === '4' ? '66vw' : '100vw'} />
         </div>
       </div>
       {caption && <p className="text-muted text-caption" style={{ marginTop: 10 }}>{caption}</p>}
@@ -109,6 +110,8 @@ const IPHONE15_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/
 const IPHONE15_NOTCH_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/iphone-15-notch.png'
 const IPHONE13MINI_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/iphone-13-mini.png'
 const IPHONE5_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/iphone5.png'
+const IPHONE6_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/iphone6-frame.png'
+const IPHONEX_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/iphonex.png'
 
 function DC1Block({ id: blockId, video, rows }: { id?: string; video: any; rows?: string }) {
   const src = video?.url
@@ -248,6 +251,74 @@ function iPhone5Block({ id: blockId, video, image, rows }: { id?: string; video:
   )
 }
 
+function iPhone6Block({ id: blockId, video, image, rows }: { id?: string; video: any; image?: any; rows?: string }) {
+  const src = video?.url || image?.url
+  if (!src) return null
+  const isVideo = !!video?.url
+  const rowCount = parseInt(rows || '1', 10)
+  const rowHeight = ROW_HEIGHT * rowCount + ROW_GAP * (rowCount - 1)
+  const id = `iphone6-${blockId || 'x'}`
+  return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        #${id} { aspect-ratio: 990 / 1934; max-width: 100%; height: 480px; }
+        @media (min-width: 810px) {
+          #${id} { height: 600px; }
+        }
+        @media (min-width: 1280px) {
+          #${id} { height: ${rowHeight}px; width: auto; }
+        }
+      ` }} />
+      <div className="w-full h-full flex items-center justify-center">
+        <div id={id} className="relative overflow-hidden">
+          <div className="absolute z-0 overflow-hidden" style={{ top: '15.4%', bottom: '15.6%', left: '12.2%', right: '11.7%' }}>
+            {isVideo ? (
+              <LazyVideo src={src} className="w-full h-full object-cover" />
+            ) : (
+              <img src={src} alt={image?.alt || ''} className="w-full h-full object-cover" loading="lazy" />
+            )}
+          </div>
+          <img src={IPHONE6_FRAME_URL} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" loading="lazy" />
+        </div>
+      </div>
+    </>
+  )
+}
+
+function iPhoneXBlock({ id: blockId, video, image, rows }: { id?: string; video: any; image?: any; rows?: string }) {
+  const src = video?.url || image?.url
+  if (!src) return null
+  const isVideo = !!video?.url
+  const rowCount = parseInt(rows || '1', 10)
+  const rowHeight = ROW_HEIGHT * rowCount + ROW_GAP * (rowCount - 1)
+  const id = `iphonex-${blockId || 'x'}`
+  return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        #${id} { aspect-ratio: 1405 / 2796; max-width: 100%; height: 480px; }
+        @media (min-width: 810px) {
+          #${id} { height: 600px; }
+        }
+        @media (min-width: 1280px) {
+          #${id} { height: ${rowHeight}px; width: auto; }
+        }
+      ` }} />
+      <div className="w-full h-full flex items-center justify-center">
+        <div id={id} className="relative overflow-hidden">
+          <div className="absolute z-0 overflow-hidden" style={{ top: '6.2%', bottom: '6.5%', left: '10.1%', right: '9.7%', borderRadius: '5%' }}>
+            {isVideo ? (
+              <LazyVideo src={src} className="w-full h-full object-cover" />
+            ) : (
+              <img src={src} alt={image?.alt || ''} className="w-full h-full object-cover" loading="lazy" />
+            )}
+          </div>
+          <img src={IPHONEX_FRAME_URL} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" loading="lazy" />
+        </div>
+      </div>
+    </>
+  )
+}
+
 const blockComponents: Record<string, React.ComponentType<any>> = {
   text: TextBlock,
   image: ImageBlockComponent,
@@ -256,6 +327,8 @@ const blockComponents: Record<string, React.ComponentType<any>> = {
   iphone15: iPhone15Block,
   iphone13mini: iPhone13MiniBlock,
   iphone5: iPhone5Block,
+  iphone6: iPhone6Block,
+  iphonex: iPhoneXBlock,
   // Legacy block types for existing data
   sectionHeader: (props: any) => <TextBlock title={props.title} content={props.description} columns={props.columns} />,
   textContent: (props: any) => <TextBlock content={props.content} columns={props.columns} />,
@@ -307,9 +380,9 @@ export function RenderBlocks({ blocks }: { blocks?: any[] }) {
         return (
           <div
             key={block.id || i}
-            className={`${colSpan[cols] || 'desktop:col-span-6'} ${rows !== '1' ? (rowSpan[rows] || '') : ''} ${['dc1', 'iphone15', 'iphone13mini', 'iphone5'].includes(block.blockType) ? 'bg-background-alt p-5 tablet:p-8 desktop:p-10' : ''}`}
+            className={`${colSpan[cols] || 'desktop:col-span-6'} ${rows !== '1' ? (rowSpan[rows] || '') : ''} ${['dc1', 'iphone15', 'iphone13mini', 'iphone5', 'iphone6', 'iphonex'].includes(block.blockType) ? 'bg-background-alt p-5 tablet:p-8 desktop:p-10' : ''}`}
           >
-            <div className={['dc1', 'iphone15', 'iphone13mini', 'iphone5'].includes(block.blockType) ? 'h-full flex items-center justify-center' : ''}>
+            <div className={['dc1', 'iphone15', 'iphone13mini', 'iphone5', 'iphone6', 'iphonex'].includes(block.blockType) ? 'h-full flex items-center justify-center' : ''}>
               <Component {...block} />
             </div>
           </div>

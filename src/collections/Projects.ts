@@ -153,7 +153,8 @@ const ImageBlock: Block = {
     {
       type: 'row' as const,
       fields: [
-        { name: 'border', type: 'checkbox' as const, defaultValue: false },
+        { name: 'border', type: 'checkbox' as const, defaultValue: false, label: 'Container Border' },
+        { name: 'imageBorder', type: 'checkbox' as const, defaultValue: false, label: 'Image Border' },
         { name: 'rounded', type: 'checkbox' as const, defaultValue: false },
         { name: 'shadow', type: 'checkbox' as const, defaultValue: false },
       ],
@@ -254,7 +255,29 @@ const iPhone5Block: Block = {
   ],
 }
 
-export const contentBlocks = [TextBlock, ImageBlock, VideoBlock, DC1Block, iPhone15Block, iPhone13MiniBlock, iPhone5Block]
+const iPhone6Block: Block = {
+  slug: 'iphone6',
+  labels: { singular: 'iPhone 6', plural: 'iPhone 6 Blocks' },
+  imageURL: '/block-icons/iphone6.svg',
+  fields: [
+    imageLayoutFields,
+    { name: 'video', type: 'upload', relationTo: 'media' },
+    { name: 'image', type: 'upload', relationTo: 'media' },
+  ],
+}
+
+const iPhoneXBlock: Block = {
+  slug: 'iphonex',
+  labels: { singular: 'iPhone X', plural: 'iPhone X Blocks' },
+  imageURL: '/block-icons/iphonex.svg',
+  fields: [
+    imageLayoutFields,
+    { name: 'video', type: 'upload', relationTo: 'media' },
+    { name: 'image', type: 'upload', relationTo: 'media' },
+  ],
+}
+
+export const contentBlocks = [DC1Block, ImageBlock, iPhone5Block, iPhone6Block, iPhoneXBlock, iPhone13MiniBlock, iPhone15Block, TextBlock, VideoBlock]
 
 export const Projects: CollectionConfig = {
   slug: 'projects',

@@ -23,12 +23,11 @@ export default async function WorkPage() {
         </h3>
       </section>
 
-      <section className="pb-20">
-        <Container>
+      <section className="pb-20 px-5 tablet:px-10">
           <div className="pb-20">
-            <h1 className="text-[34px] tablet:hidden">Index</h1>
+            <h1 className="text-[34px] tablet:hidden">Selected Work</h1>
             <div className="hidden tablet:block">
-              <FitText className="font-heading" maxSize={120}>Index</FitText>
+              <FitText className="font-heading" maxSize={120}>Selected Work</FitText>
             </div>
           </div>
           <div className="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-4">
@@ -42,7 +41,6 @@ export default async function WorkPage() {
               />
             ))}
           </div>
-        </Container>
       </section>
     </>
   )
