@@ -230,7 +230,7 @@ export default async function HomePage() {
               <div className="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-6 tablet:gap-10 desktop:gap-20">
                 {items.map((item: any, j: number) => (
                   <div key={j} className="flex gap-5 items-start">
-                    <span className="text-content opacity-50 text-[20px] shrink-0">{String(j + 1).padStart(2, '0')}</span>
+                    <span className="text-content opacity-50 text-[20px] shrink-0 w-[28px] tabular-nums">{String(j + 1).padStart(2, '0')}</span>
                     <div className="text-body">
                       <RichText data={item.text} />
                     </div>
@@ -327,10 +327,10 @@ export default async function HomePage() {
               </div>
             )}
             {block.availability && (
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border mt-8">
+              <a href="mailto:gabe@valdivia.works" className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border mt-8 hover:border-muted transition-colors">
                 <span className="relative flex w-2 h-2"><span className="absolute inset-0 rounded-full bg-green-400 animate-ping opacity-75" /><span className="relative w-2 h-2 rounded-full bg-green-500" /></span>
-                <span className="text-sm text-muted">{block.availability}</span>
-              </div>
+                <span className="text-sm text-muted group-hover:text-content transition-colors">{block.availability}</span>
+              </a>
             )}
             </div>
           </div>
@@ -349,9 +349,9 @@ export default async function HomePage() {
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-muted hover:text-content transition-colors text-body inline-flex items-baseline gap-2 group"
+                    className="text-muted hover:text-content transition-colors text-body inline-flex items-baseline gap-3 group"
                   >
-                    <SocialIcon platform={link.platform} className="shrink-0 translate-y-[2px]" />
+                    <span className="shrink-0 w-[18px] flex items-center justify-center translate-y-[2px]"><SocialIcon platform={link.platform} /></span>
                     {link.platform}
                     <svg className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity translate-y-[5px]" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 17L17 7M17 7H9M17 7V15" /></svg>
                   </a>
