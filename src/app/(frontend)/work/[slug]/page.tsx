@@ -25,9 +25,23 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const project = await getProjectBySlug(slug)
   if (!project) return {}
+  const title = `${project.meta?.title || project.title} — Gabriel Valdivia`
+  const description = project.meta?.description || project.subtitle || ''
+  const ogImage = project.meta?.image?.url || project.featuredImage?.url
   return {
-    title: `${project.meta?.title || project.title} — Gabriel Valdivia`,
-    description: project.meta?.description || project.subtitle || '',
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      ...(ogImage ? { images: [{ url: ogImage }] } : {}),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      ...(ogImage ? { images: [ogImage] } : {}),
+    },
   }
 }
 
