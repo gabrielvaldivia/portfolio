@@ -85,13 +85,13 @@ export function BirthdayBalloons() {
     const count = Math.floor(CONFETTI_PER_POP * (radius / BALLOON_RADIUS))
     for (let i = 0; i < count; i++) {
       const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5)
-      const speed = Math.random() * 12 + 5
+      const speed = Math.random() * 7 + 3
       newConfetti.push({
         id: Date.now() + i,
         x,
         y,
         vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 6,
+        vy: Math.sin(angle) * speed - 3,
         color: Math.random() > 0.5 ? color : COLORS[Math.floor(Math.random() * COLORS.length)],
         size: Math.random() * 8 + 4,
         rotation: Math.random() * 360,
@@ -313,7 +313,7 @@ export function BirthdayBalloons() {
       const confetti = confettiRef.current
       for (const c of confetti) {
         if (!c.grounded) {
-          c.vy += GRAVITY * 0.5
+          c.vy += GRAVITY * 2.5
           c.vx *= 0.99
           c.x += c.vx
           c.y += c.vy
