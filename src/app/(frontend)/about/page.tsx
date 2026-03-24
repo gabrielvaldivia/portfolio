@@ -177,7 +177,7 @@ export default async function AboutPage() {
               <div className="tablet:col-span-4">
                 <div className="flex flex-col gap-8">
                   {sideProjects.map((project: any, i: number) => {
-                    const thumb = project.image as any
+                    const thumb = project.featuredImage as any
                     const href = project.slug ? `/playground/${project.slug}` : null
                     return href ? (
                       <Link key={i} href={href} className="flex flex-col tablet:flex-row tablet:items-center gap-3 tablet:gap-6 group hover:opacity-60 transition-colors">
