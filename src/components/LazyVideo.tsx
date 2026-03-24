@@ -32,7 +32,7 @@ export function LazyVideo({ src, className = '' }: { src: string; className?: st
       muted
       playsInline
       preload="none"
-      className={className}
+      className={`block ${className}`}
     />
   )
 }

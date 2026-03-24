@@ -76,7 +76,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
         <Container>
           <div className="pb-20">
             <h1 className="text-[34px] tablet:hidden">{project.title}</h1>
-            <div className="hidden tablet:block">
+            <div className="hidden tablet:block" style={{ marginLeft: '-5px' }}>
               <FitText className="font-heading">
                 {project.title}
               </FitText>

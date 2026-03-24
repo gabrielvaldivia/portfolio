@@ -61,7 +61,7 @@ function ImageBlockComponent({ image, caption, border, imageBorder, rounded, sha
   return (
     <div>
       <div
-        className={`${bg} w-full ${border ? 'ring-1 ring-inset ring-border' : ''} ${hasPadding ? padClass : ''} ${!hasPadding ? 'overflow-hidden' : ''}`}
+        className={`${bg} w-full relative ${hasPadding ? padClass : ''} ${!hasPadding ? 'overflow-hidden' : ''}`}
         style={{
           ...(customBg ? { backgroundColor: customBg } : {}),
         }}
@@ -73,6 +73,7 @@ function ImageBlockComponent({ image, caption, border, imageBorder, rounded, sha
           {imageBorder && <div className="absolute inset-0 z-10 ring-1 ring-inset ring-border pointer-events-none" />}
           <Image src={image.url} alt={image.alt || ''} fill className={`${fit === 'contain' ? 'object-contain' : 'object-cover'} ${rounded ? 'rounded-lg tablet:rounded-xl desktop:rounded-2xl' : ''} ${shadow ? 'drop-shadow-md' : ''}`} sizes={columns === '1' ? '16vw' : columns === '2' ? '33vw' : columns === '3' ? '50vw' : columns === '4' ? '66vw' : '100vw'} />
         </div>
+        {border && <div className="absolute inset-0 z-10 ring-1 ring-inset pointer-events-none" style={{ '--tw-ring-color': 'rgba(0,0,0,0.1)' } as React.CSSProperties} />}
       </div>
       {caption && <p className="text-muted text-caption" style={{ marginTop: 10 }}>{caption}</p>}
     </div>

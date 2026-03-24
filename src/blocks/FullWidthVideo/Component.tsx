@@ -23,7 +23,7 @@ export function FullWidthVideoBlock({ video, url, autoplay = true, loop = true, 
         muted={muted}
         controls={controls}
         playsInline
-        className="w-full h-auto"
+        className="block w-full h-auto"
       />
     </div>
   )
