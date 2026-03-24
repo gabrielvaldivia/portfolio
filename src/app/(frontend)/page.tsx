@@ -171,7 +171,7 @@ export default async function HomePage() {
             <div id="about" className="scroll-mt-10 grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-10 tablet:gap-14 desktop:gap-20">
               <div>
                 {block.image && (
-                  <div className="sticky top-10 rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] overflow-hidden aspect-square tablet:aspect-[3/4] relative after:absolute after:inset-0 after:rounded-[20px] tablet:after:rounded-[30px] desktop:after:rounded-[40px] after:border after:border-border after:z-20 after:pointer-events-none">
+                  <div className="rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] overflow-hidden aspect-square tablet:aspect-[3/4] relative after:absolute after:inset-0 after:rounded-[20px] tablet:after:rounded-[30px] desktop:after:rounded-[40px] after:border after:border-border after:z-20 after:pointer-events-none">
                     <Image
                       src={block.image.url}
                       alt={block.image.alt || 'About'}
