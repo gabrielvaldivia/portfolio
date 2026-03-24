@@ -19,8 +19,9 @@ export function Testimonial({ quote, name, role, company, photo, linkedIn }: Pro
         )}
       </div>
       {photo?.url && (
-        <div className="w-11 h-11 rounded-full overflow-hidden shrink-0">
+        <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0">
           <Image src={photo.url} alt={photo.alt || name} width={44} height={44} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 rounded-full border border-border pointer-events-none" />
         </div>
       )}
     </div>

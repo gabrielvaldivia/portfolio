@@ -121,6 +121,15 @@ body.birthday-donation-visible .birthday-nav {
   bottom: 4rem;
 }
 
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+.animate-gradient-shift {
+  animation: gradient-shift 4s linear infinite;
+}
+
 @media (min-width: 810px) {
   body {
     font-size: 18px;

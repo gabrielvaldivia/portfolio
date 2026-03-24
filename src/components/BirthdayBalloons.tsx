@@ -54,6 +54,7 @@ export function BirthdayBalloons() {
   const dragRef = useRef<{ id: number; offsetX: number; offsetY: number; lastX: number; lastY: number; lastTime: number } | null>(null)
   const [balloonStates, setBalloonStates] = useState<Balloon[]>([])
   const [done, setDone] = useState(false)
+  const tiltRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
 
   // Only show on March 23rd
   const today = new Date()
@@ -193,6 +194,27 @@ export function BirthdayBalloons() {
 
     initBalloons()
 
+    // Device orientation for mobile tilt
+    const isMobile = window.innerWidth < 810
+    const handleOrientation = (e: DeviceOrientationEvent) => {
+      // gamma = left/right tilt (-90 to 90), beta = front/back tilt (-180 to 180)
+      const gamma = e.gamma || 0
+      const beta = e.beta || 0
+      // Normalize to a force multiplier (clamped)
+      tiltRef.current = {
+        x: Math.max(-1, Math.min(1, gamma / 30)),
+        y: Math.max(-1, Math.min(1, (beta - 45) / 30)), // 45deg is neutral holding position
+      }
+    }
+
+    if (isMobile) {
+      const DOE = DeviceOrientationEvent as any
+      // Only enable on devices that don't require permission (Android)
+      if (typeof DOE.requestPermission !== 'function') {
+        window.addEventListener('deviceorientation', handleOrientation)
+      }
+    }
+
     let frameCount = 0
     const animate = () => {
       const w = canvas.width
@@ -209,6 +231,10 @@ export function BirthdayBalloons() {
         if (dragging && dragging.id === b.id) continue
 
         b.vy += GRAVITY
+        // Apply device tilt as additional force
+        const tilt = tiltRef.current
+        b.vx += tilt.x * 0.15
+        b.vy += tilt.y * 0.1
         // Air resistance — stronger at higher speeds, like a light balloon
         b.vx *= AIR_DRAG
         b.vy *= AIR_DRAG
@@ -396,6 +422,7 @@ export function BirthdayBalloons() {
     return () => {
       cancelAnimationFrame(animFrameRef.current)
       window.removeEventListener('resize', resize)
+      window.removeEventListener('deviceorientation', handleOrientation)
     }
   }, [initBalloons])
 
