@@ -48,14 +48,14 @@ export default buildConfig({
       collections: {
         media: {
           disablePayloadAccessControl: true,
-          ...(process.env.R2_PUBLIC_URL
-            ? {
-                generateFileURL: ({ filename, prefix }) => {
-                  const parts = [process.env.R2_PUBLIC_URL, prefix, filename].filter(Boolean)
-                  return parts.join('/')
-                },
-              }
-            : {}),
+          generateFileURL: ({ filename, prefix }) => {
+            if (process.env.R2_PUBLIC_URL) {
+              const parts = [process.env.R2_PUBLIC_URL, prefix, filename].filter(Boolean)
+              return parts.join('/')
+            }
+            // Fallback to local static files when R2 public URL is not configured
+            return `/media/${filename}`
+          },
         },
       },
       bucket: process.env.R2_BUCKET || '',
