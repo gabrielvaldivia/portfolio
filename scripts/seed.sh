@@ -91,26 +91,26 @@ echo "Done (featured: $P1, $P2, $P3, $P4)"
 
 echo "=== Creating Side Projects ==="
 for sp in \
-  '{"title":"Recall","description":"A daily reflection app to fill any gaps","order":1}' \
-  '{"title":"Life OS","description":"A second brain out of markdown files","order":2}' \
-  '{"title":"Sumi","description":"The fastest way to commit your thoughts","order":3}' \
-  '{"title":"Slackdone","description":"A single Kanban across Slack workspaces","url":"https://slackdone.vercel.app/","order":4}' \
-  '{"title":"Venn","description":"Group recommendations for Youtube videos","url":"https://vennvideo.vercel.app/dashboard","order":5}' \
-  '{"title":"Falkor","description":"Collaborative storytelling with AI","url":"https://falkor.ink","order":6}' \
-  '{"title":"Katamari","description":"Social photo grid","url":"https://www.katamari.app","order":7}' \
-  '{"title":"Senso","description":"News through an ancient lens","url":"https://www.senso.news","order":8}' \
-  '{"title":"Promptly","description":"Auto-scrolling teleprompter","order":9}' \
-  '{"title":"Big Year","description":"A calendar for all-day events","url":"https://bigyear.app","order":10}' \
-  '{"title":"Skunk","description":"Social leaderboard for board games","url":"https://skunk.games","order":11}' \
-  '{"title":"Liveblog","description":"Time-based notes","order":12}' \
-  '{"title":"Flicktionary","description":"Guess the movie poster","url":"https://www.flicktionary.com/","order":13}' \
-  '{"title":"Letterfall","description":"Create words from falling letters","url":"https://letterfall.app/","order":14}' \
-  '{"title":"Rolodex","description":"Email-based personal CMS","order":15}' \
-  '{"title":"Projector","description":"Budgeting tool for fractional design","url":"https://projector.design","order":16}' \
-  '{"title":"Almanac","description":"A countdown for important events","order":17}' \
-  '{"title":"Makeshift","description":"A co-working space for designers","order":18}' \
-  '{"title":"Vectors","description":"Exploring how identity informs creative work","order":19}' \
-  '{"title":"Talk Turkey","description":"Candid interviews via chat","order":20}'; do
+  '{"title":"Recall","slug":"recall","description":"A daily reflection app to fill any gaps","order":1}' \
+  '{"title":"Life OS","slug":"life-os","description":"A second brain out of markdown files","order":2}' \
+  '{"title":"Sumi","slug":"sumi","description":"The fastest way to commit your thoughts","order":3}' \
+  '{"title":"Slackdone","slug":"slackdone","description":"A single Kanban across Slack workspaces","order":4}' \
+  '{"title":"Venn","slug":"venn","description":"Group recommendations for Youtube videos","order":5}' \
+  '{"title":"Falkor","slug":"falkor","description":"Collaborative storytelling with AI","order":6}' \
+  '{"title":"Katamari","slug":"katamari","description":"Social photo grid","order":7}' \
+  '{"title":"Senso","slug":"senso","description":"News through an ancient lens","order":8}' \
+  '{"title":"Promptly","slug":"promptly","description":"Auto-scrolling teleprompter","order":9}' \
+  '{"title":"Big Year","slug":"big-year","description":"A calendar for all-day events","order":10}' \
+  '{"title":"Skunk","slug":"skunk","description":"Social leaderboard for board games","order":11}' \
+  '{"title":"Liveblog","slug":"liveblog","description":"Time-based notes","order":12}' \
+  '{"title":"Flicktionary","slug":"flicktionary","description":"Guess the movie poster","order":13}' \
+  '{"title":"Letterfall","slug":"letterfall","description":"Create words from falling letters","order":14}' \
+  '{"title":"Rolodex","slug":"rolodex","description":"Email-based personal CMS","order":15}' \
+  '{"title":"Projector","slug":"projector","description":"Budgeting tool for fractional design","order":16}' \
+  '{"title":"Almanac","slug":"almanac","description":"A countdown for important events","order":17}' \
+  '{"title":"Makeshift","slug":"makeshift","description":"A co-working space for designers","order":18}' \
+  '{"title":"Vectors","slug":"vectors","description":"Exploring how identity informs creative work","order":19}' \
+  '{"title":"Talk Turkey","slug":"talk-turkey","description":"Candid interviews via chat","order":20}'; do
   post "side-projects" "$sp" > /dev/null
 done
 echo "Done"
