@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   description: 'Designer and creative technologist',
 }
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 export default async function AboutPage() {
   const page = await getPageBySlug('about')
@@ -30,7 +30,7 @@ export default async function AboutPage() {
 
   return (
     <>
-      <section className="px-5 tablet:px-10 pt-10 pb-10">
+      <section className="px-5 tablet:px-10 pt-6 tablet:pt-10 pb-10">
         <h3 className="text-content opacity-50">
           <Link href="/">Gabriel Valdivia</Link>
         </h3>
@@ -177,7 +177,7 @@ export default async function AboutPage() {
               <div className="tablet:col-span-4">
                 <div className="flex flex-col gap-8">
                   {sideProjects.map((project: any, i: number) => {
-                    const thumb = project.image as any
+                    const thumb = project.featuredImage as any
                     const href = project.slug ? `/playground/${project.slug}` : null
                     return href ? (
                       <Link key={i} href={href} className="flex flex-col tablet:flex-row tablet:items-center gap-3 tablet:gap-6 group hover:opacity-60 transition-colors">

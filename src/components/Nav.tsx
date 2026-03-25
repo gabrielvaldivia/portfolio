@@ -25,8 +25,14 @@ function CloseButton() {
 
   return (
     <button
-      onClick={() => router.back()}
-      className="bg-floating hover:bg-hover transition-colors rounded-full w-10 h-10 flex items-center justify-center"
+      onClick={() => {
+        document.documentElement.style.scrollBehavior = 'auto'
+        router.back()
+        setTimeout(() => {
+          document.documentElement.style.scrollBehavior = ''
+        }, 1000)
+      }}
+      className="bg-floating hover:bg-hover transition-colors rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-[40px]"
       aria-label="Close"
     >
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -40,7 +46,7 @@ export function Nav({ items }: { items: NavItem[] }) {
   const pathname = usePathname()
   const [activeHash, setActiveHash] = useState('')
 
-  const isProjectPage = pathname?.startsWith('/work/') || pathname?.startsWith('/playground/') || pathname === '/about' || pathname === '/clients' || pathname === '/work'
+  const isProjectPage = pathname?.startsWith('/work/') || pathname?.startsWith('/playground/') || pathname === '/playground' || pathname === '/about' || pathname === '/clients' || pathname === '/work'
   const isDesignSystem = pathname === '/design-system'
 
   useEffect(() => {
@@ -88,12 +94,17 @@ export function Nav({ items }: { items: NavItem[] }) {
     if (url.startsWith('/#')) {
       e.preventDefault()
       const id = url.replace('/#', '')
-      const el = document.getElementById(id)
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' })
+      if (id === 'hero') {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
         setActiveHash(url)
-      } else if (pathname !== '/') {
-        window.location.href = url
+      } else {
+        const el = document.getElementById(id)
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' })
+          setActiveHash(url)
+        } else if (pathname !== '/') {
+          window.location.href = url
+        }
       }
     }
   }
@@ -120,7 +131,7 @@ export function Nav({ items }: { items: NavItem[] }) {
       </nav>
 
       {/* Mobile nav — bottom fixed */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 tablet:hidden flex items-center justify-center gap-2 p-4 pb-[max(16px,env(safe-area-inset-bottom))]">
+      <nav className="fixed bottom-0 left-0 right-0 z-[61] tablet:hidden flex items-center justify-center gap-2 p-4 pb-[max(16px,env(safe-area-inset-bottom))] transition-[bottom] duration-300 birthday-nav">
         {items.map((item) => (
           <NavPill key={item.url} item={item} active={isActive(item.url)} onClick={handleClick} />
         ))}

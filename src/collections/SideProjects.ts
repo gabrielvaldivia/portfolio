@@ -1,95 +1,5 @@
-import type { Block, CollectionConfig } from 'payload'
-
-const layoutFields = {
-  type: 'row' as const,
-  fields: [
-    {
-      name: 'columns',
-      type: 'select' as const,
-      defaultValue: '6',
-      options: [
-        { label: '1 Col', value: '1' },
-        { label: '2 Col', value: '2' },
-        { label: '3 Col', value: '3' },
-        { label: '4 Col', value: '4' },
-        { label: '5 Col', value: '5' },
-        { label: '6 Col', value: '6' },
-      ],
-    },
-    {
-      name: 'rows',
-      type: 'select' as const,
-      defaultValue: '1',
-      options: [
-        { label: '1 Row', value: '1' },
-        { label: '2 Row', value: '2' },
-        { label: '3 Row', value: '3' },
-        { label: '4 Row', value: '4' },
-        { label: '5 Row', value: '5' },
-        { label: '6 Row', value: '6' },
-      ],
-    },
-  ],
-}
-
-const TextBlock: Block = {
-  slug: 'text',
-  labels: { singular: 'Text', plural: 'Text Blocks' },
-  fields: [
-    layoutFields,
-    { name: 'title', type: 'text' },
-    { name: 'content', type: 'richText', required: true },
-  ],
-}
-
-const ImageBlock: Block = {
-  slug: 'image',
-  labels: { singular: 'Image', plural: 'Images' },
-  fields: [
-    layoutFields,
-    { name: 'image', type: 'upload', relationTo: 'media', required: true },
-    { name: 'caption', type: 'text' },
-    {
-      type: 'row' as const,
-      fields: [
-        { name: 'height', type: 'number' as const },
-        { name: 'maxHeight', type: 'number' as const },
-        {
-          name: 'fit',
-          type: 'select' as const,
-          defaultValue: 'cover',
-          options: [
-            { label: 'Fill', value: 'cover' },
-            { label: 'Fit', value: 'contain' },
-          ],
-        },
-      ],
-    },
-    {
-      type: 'row' as const,
-      fields: [
-        { name: 'padding', type: 'number' as const },
-        { name: 'bgColor', type: 'text' as const, defaultValue: 'alt' },
-      ],
-    },
-    { name: 'border', type: 'checkbox', defaultValue: false },
-  ],
-}
-
-const VideoBlock: Block = {
-  slug: 'video',
-  labels: { singular: 'Video', plural: 'Videos' },
-  fields: [
-    layoutFields,
-    { name: 'video', type: 'upload', relationTo: 'media' },
-    { name: 'url', type: 'text' },
-    { name: 'caption', type: 'text' },
-    { name: 'autoplay', type: 'checkbox', defaultValue: true },
-    { name: 'loop', type: 'checkbox', defaultValue: true },
-    { name: 'muted', type: 'checkbox', defaultValue: true },
-    { name: 'controls', type: 'checkbox', defaultValue: false },
-  ],
-}
+import type { CollectionConfig } from 'payload'
+import { contentBlocks } from './Projects'
 
 export const SideProjects: CollectionConfig = {
   slug: 'side-projects',
@@ -151,7 +61,7 @@ export const SideProjects: CollectionConfig = {
               name: 'content',
               type: 'blocks',
               admin: { initCollapsed: true },
-              blocks: [TextBlock, ImageBlock, VideoBlock],
+              blocks: contentBlocks,
             },
           ],
         },

@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 // Reserved slugs handled by other routes
 const RESERVED = ['work', 'about', 'clients', 'playground', 'design-system', 'admin']
@@ -44,7 +44,7 @@ export default async function DynamicPage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
-      <section className="px-5 tablet:px-10 pt-10 pb-10">
+      <section className="px-5 tablet:px-10 pt-6 tablet:pt-10 pb-10">
         <h3 className="text-content opacity-50">
           <Link href="/">Gabriel Valdivia</Link>
         </h3>

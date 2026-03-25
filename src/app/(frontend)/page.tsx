@@ -5,6 +5,7 @@ import { FAQ } from '@/components/FAQ'
 import { RichText } from '@/components/RichText'
 import { ServicePill } from '@/components/ServicePill'
 import { HScrollContainer } from '@/components/HScrollContainer'
+import { MomentumScroll } from '@/components/MomentumScroll'
 import { FitText } from '@/components/FitText'
 import { SocialIcon } from '@/components/Icons'
 import { getPageBySlug, getClients, getFeaturedTestimonials } from '@/lib/queries'
@@ -12,7 +13,7 @@ import { getPayload } from '@/lib/payload'
 import Image from 'next/image'
 import Link from 'next/link'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 function SectionWithTitle({ title, cols, children, titleRight }: { title?: string; cols: string; children: React.ReactNode; titleRight?: React.ReactNode }) {
   if (!title) return <>{children}</>
@@ -53,7 +54,7 @@ export default async function HomePage() {
     switch (block.blockType) {
       case 'hero':
         return (
-          <section key={block.id || i} id="hero" className="pt-0 desktop:pt-20 tablet:mb-[-80px]">
+          <section key={block.id || i} id="hero" className="scroll-mt-0 pt-0 tablet:pt-[60px] tablet:pb-[60px] desktop:pt-20 desktop:pb-0 tablet:mb-[-80px]">
             {block.fullWidth ? (
               <div className="px-5 tablet:px-10">
                 <h1 className="text-[34px] tablet:hidden">{block.heading}</h1>
@@ -85,7 +86,7 @@ export default async function HomePage() {
                 <div
                   className={`flex items-stretch w-max gap-5 desktop:gap-[24px] px-5 tablet:px-10`}
                 >
-                  {items.map((item: any) => (
+                  {items.map((item: any, idx: number) => (
                     <div
                       key={item.id}
                       className="shrink-0 w-[320px] tablet:w-[440px] desktop:w-[420px]"
@@ -97,6 +98,7 @@ export default async function HomePage() {
                           subtitle={item.subtitle}
                           featuredImage={item.featuredImage}
                           year={item.year}
+                          priority={idx === 0}
                         />
                       ) : (
                         <Testimonial
@@ -112,19 +114,9 @@ export default async function HomePage() {
                   ))}
                   {block.source === 'featuredProjects' && (
                     <div className="shrink-0 w-[320px] tablet:w-[440px] desktop:w-[420px]">
-                      <Link href="/work" className="group block tablet:p-2">
-                        <div className="rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] overflow-hidden bg-background-alt flex flex-col h-full">
-                          <div className="aspect-square rounded-[14px] tablet:rounded-[26px] desktop:rounded-[32px] overflow-hidden m-1.5 tablet:m-2 flex items-center justify-center p-16">
-                            <svg width="100%" height="100%" viewBox="0 0 200 200" fill="none" className="text-content">
-                              <path d="M21 31C15.477 31 11 35.477 11 41V159C11 164.523 15.477 169 21 169H179C184.523 169 189 164.523 189 159V61.361C189 55.838 184.523 51.361 179 51.361H84.081C83.022 51.361 82.006 50.94 81.256 50.192L64.947 33.921C63.072 32.05 60.532 31 57.884 31H21Z" stroke="currentColor" strokeWidth="2"/>
-                            </svg>
-                          </div>
-                          <div className="p-5 tablet:p-7">
-                            <h4 className="text-content">Index</h4>
-                            <p className="text-muted text-[12px] tablet:text-[14px] desktop:text-[16px] mt-2">View all projects</p>
-                          </div>
-                        </div>
-                      </Link>
+                      <ProjectCard title="Index" slug="" subtitle="View all projects" href="/work" icon={
+                        <svg width="100%" height="100%" viewBox="0 0 200 200" fill="none"><path d="M21 31C15.477 31 11 35.477 11 41V159C11 164.523 15.477 169 21 169H179C184.523 169 189 164.523 189 159V61.361C189 55.838 184.523 51.361 179 51.361H84.081C83.022 51.361 82.006 50.94 81.256 50.192L64.947 33.921C63.072 32.05 60.532 31 57.884 31H21Z" stroke="currentColor" strokeWidth="2"/></svg>
+                      } />
                     </div>
                   )}
                 </div>
@@ -137,7 +129,7 @@ export default async function HomePage() {
                 {items.map((item: any) => (
                   <div
                     key={item.id}
-                    className="shrink-0 w-[calc(100vw-40px)] tablet:w-[480px] snap-start"
+                    className="shrink-0 w-[calc(100vw-40px)] tablet:w-[480px] snap-center"
                   >
                     {block.source === 'featuredProjects' ? (
                       <ProjectCard
@@ -161,19 +153,9 @@ export default async function HomePage() {
                 ))}
                 {block.source === 'featuredProjects' && (
                   <div className="shrink-0 w-[calc(100vw-40px)] tablet:w-[480px] snap-start">
-                    <Link href="/work" className="group block tablet:p-2">
-                      <div className="rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] overflow-hidden bg-background-alt flex flex-col h-full">
-                        <div className="aspect-square rounded-[14px] tablet:rounded-[26px] desktop:rounded-[32px] overflow-hidden m-1.5 tablet:m-2 flex items-center justify-center p-16">
-                          <svg width="100%" height="100%" viewBox="0 0 200 200" fill="none" className="text-content">
-                            <path d="M21 31C15.477 31 11 35.477 11 41V159C11 164.523 15.477 169 21 169H179C184.523 169 189 164.523 189 159V61.361C189 55.838 184.523 51.361 179 51.361H84.081C83.022 51.361 82.006 50.94 81.256 50.192L64.947 33.921C63.072 32.05 60.532 31 57.884 31H21Z" stroke="currentColor" strokeWidth="2"/>
-                          </svg>
-                        </div>
-                        <div className="p-5 tablet:p-7">
-                          <h4 className="text-content">Index</h4>
-                          <p className="text-muted text-[12px] tablet:text-[14px] desktop:text-[16px] mt-2">View all projects</p>
-                        </div>
-                      </div>
-                    </Link>
+                    <ProjectCard title="Index" slug="" subtitle="View all projects" href="/work" icon={
+                      <svg width="100%" height="100%" viewBox="0 0 200 200" fill="none"><path d="M21 31C15.477 31 11 35.477 11 41V159C11 164.523 15.477 169 21 169H179C184.523 169 189 164.523 189 159V61.361C189 55.838 184.523 51.361 179 51.361H84.081C83.022 51.361 82.006 50.94 81.256 50.192L64.947 33.921C63.072 32.05 60.532 31 57.884 31H21Z" stroke="currentColor" strokeWidth="2"/></svg>
+                    } />
                   </div>
                 )}
               </div>
@@ -186,22 +168,31 @@ export default async function HomePage() {
       case 'aboutSection':
         return (
           <Container key={block.id || i}>
-            <div id="about" className="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-10 tablet:gap-14 desktop:gap-20">
+            <div id="about" className="scroll-mt-10 grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-10 tablet:gap-14 desktop:gap-20">
               <div>
                 {block.image && (
-                  <div className="sticky top-10 rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] overflow-hidden aspect-square tablet:aspect-[3/4] relative">
+                  <div className="rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] overflow-hidden aspect-square tablet:aspect-[3/4] relative after:absolute after:inset-0 after:rounded-[20px] tablet:after:rounded-[30px] desktop:after:rounded-[40px] after:border after:border-border after:z-20 after:pointer-events-none">
                     <Image
                       src={block.image.url}
                       alt={block.image.alt || 'About'}
                       fill
-                      className="object-cover"
+                      className={`object-cover ${block.imageDark ? 'light-only' : ''}`}
                       sizes="(max-width: 1280px) 100vw, 33vw"
                     />
+                    {block.imageDark && (
+                      <Image
+                        src={block.imageDark.url}
+                        alt={block.imageDark.alt || 'About'}
+                        fill
+                        className="object-cover dark-only"
+                        sizes="(max-width: 1280px) 100vw, 33vw"
+                      />
+                    )}
                   </div>
                 )}
               </div>
               <div className="tablet:col-span-1 desktop:col-span-2">
-                {block.heading && <h2 className="pb-5 tablet:pb-10">{block.heading}</h2>}
+                {block.heading && <h2 className="text-[22px] tablet:text-[28px] desktop:text-[36px] pb-5 tablet:pb-10">{block.heading}</h2>}
                 {block.text && (
                   <div className="text-muted text-body-large">
                     <RichText data={block.text} />
@@ -239,7 +230,7 @@ export default async function HomePage() {
               <div className="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-6 tablet:gap-10 desktop:gap-20">
                 {items.map((item: any, j: number) => (
                   <div key={j} className="flex gap-5 items-start">
-                    <span className="text-content opacity-50 text-[20px] shrink-0">{String(j + 1).padStart(2, '0')}</span>
+                    <span className="text-content opacity-50 text-[20px] shrink-0 w-[28px] tabular-nums">{String(j + 1).padStart(2, '0')}</span>
                     <div className="text-body">
                       <RichText data={item.text} />
                     </div>
@@ -285,8 +276,9 @@ export default async function HomePage() {
                         src={logo.url}
                         alt={logo.alt || client.name}
                         className="shrink-0 dark-invert"
+                        loading="lazy"
                         style={{
-                          height: `clamp(16px, 3vw, ${(block.fontSize || 48) * 0.6}px)`,
+                          height: `clamp(24px, 4vw, ${(block.fontSize || 48) * 0.6}px)`,
                           width: 'auto',
                           opacity: (block.opacity || 30) / 100,
                         }}
@@ -335,10 +327,10 @@ export default async function HomePage() {
               </div>
             )}
             {block.availability && (
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border mt-8">
+              <a href="mailto:gabe@valdivia.works" className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border mt-8 hover:border-muted transition-colors">
                 <span className="relative flex w-2 h-2"><span className="absolute inset-0 rounded-full bg-green-400 animate-ping opacity-75" /><span className="relative w-2 h-2 rounded-full bg-green-500" /></span>
-                <span className="text-sm text-muted">{block.availability}</span>
-              </div>
+                <span className="text-sm text-muted group-hover:text-content transition-colors">{block.availability}</span>
+              </a>
             )}
             </div>
           </div>
@@ -357,9 +349,9 @@ export default async function HomePage() {
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-muted hover:text-content transition-colors text-body inline-flex items-baseline gap-2 group"
+                    className="text-muted hover:text-content transition-colors text-body inline-flex items-baseline gap-3 group"
                   >
-                    <SocialIcon platform={link.platform} className="shrink-0 translate-y-[2px]" />
+                    <span className="shrink-0 w-[18px] flex items-center justify-center translate-y-[2px]"><SocialIcon platform={link.platform} /></span>
                     {link.platform}
                     <svg className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity translate-y-[5px]" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 17L17 7M17 7H9M17 7V15" /></svg>
                   </a>
@@ -377,7 +369,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <section className="px-5 tablet:px-10 pt-10 pb-10">
+      <section className="px-5 tablet:px-10 pt-6 tablet:pt-10 pb-10">
         <h3 className="text-content opacity-50">
           <Link href="/">Gabriel Valdivia</Link>
         </h3>

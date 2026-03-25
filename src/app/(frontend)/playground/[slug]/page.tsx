@@ -7,7 +7,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { FitText } from '@/components/FitText'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 export async function generateStaticParams() {
   try {
@@ -36,7 +36,7 @@ export default async function SideProjectPage({ params }: { params: Promise<{ sl
 
   return (
     <>
-      <section className="px-5 tablet:px-10 pt-10 pb-10">
+      <section className="px-5 tablet:px-10 pt-6 tablet:pt-10 pb-10">
         <h3 className="text-content opacity-50">
           <Link href="/">Gabriel Valdivia</Link>
         </h3>

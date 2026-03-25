@@ -1,7 +1,7 @@
 export function ServicePill({ title, size = 'large' }: { title: string; size?: 'small' | 'large' }) {
   if (size === 'small') {
     return (
-      <span className="inline-block px-4 py-2 rounded-full font-mono text-[13px] uppercase tracking-[-0.03em] text-content border border-border-strong whitespace-nowrap">
+      <span className="inline-block px-4 py-2 rounded-full font-mono text-[13px] tablet:text-[14px] uppercase tracking-[-0.03em] text-content border border-border-strong whitespace-nowrap">
         {title}
       </span>
     )

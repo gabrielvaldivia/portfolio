@@ -10,7 +10,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { FitText } from '@/components/FitText'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 export async function generateStaticParams() {
   try {
@@ -25,16 +25,30 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const project = await getProjectBySlug(slug)
   if (!project) return {}
+  const title = `${project.meta?.title || project.title} — Gabriel Valdivia`
+  const description = project.meta?.description || project.subtitle || ''
+  const ogImage = project.meta?.image?.url || project.featuredImage?.url
   return {
-    title: `${project.meta?.title || project.title} — Gabriel Valdivia`,
-    description: project.meta?.description || project.subtitle || '',
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      ...(ogImage ? { images: [{ url: ogImage }] } : {}),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      ...(ogImage ? { images: [ogImage] } : {}),
+    },
   }
 }
 
-function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
+function MetaRow({ label, children, baseline }: { label: string; children: React.ReactNode; baseline?: boolean }) {
   return (
-    <div className="flex gap-10 items-start">
-      <h6 className="w-[100px] shrink-0 pt-1">{label}</h6>
+    <div className={`flex gap-10 ${baseline ? 'items-baseline' : 'items-start'}`}>
+      <h6 className="w-[50px] tablet:w-[100px] shrink-0 text-muted" style={baseline ? undefined : { paddingTop: '10px' }}>{label}</h6>
       <div className="flex-1">{children}</div>
     </div>
   )
@@ -52,7 +66,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
   return (
     <>
       {/* Header */}
-      <section className="px-5 tablet:px-10 pt-10 pb-10">
+      <section className="px-5 tablet:px-10 pt-6 tablet:pt-10 pb-10">
         <h3 className="text-content opacity-50">
           <Link href="/">Gabriel Valdivia</Link>
         </h3>
@@ -62,7 +76,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
         <Container>
           <div className="pb-20">
             <h1 className="text-[34px] tablet:hidden">{project.title}</h1>
-            <div className="hidden tablet:block">
+            <div className="hidden tablet:block" style={{ marginLeft: '-5px' }}>
               <FitText className="font-heading">
                 {project.title}
               </FitText>
@@ -104,8 +118,8 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
                 )}
 
                 {project.year && (
-                  <MetaRow label="Date">
-                    <p className="text-[20px]">{project.year}</p>
+                  <MetaRow label="Date" baseline>
+                    <p className="text-body">{project.year}</p>
                   </MetaRow>
                 )}
               </div>

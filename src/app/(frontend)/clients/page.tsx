@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: 'Companies I have worked with',
 }
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 export default async function ClientsPage() {
   const payload = await getPayload()
@@ -50,7 +50,7 @@ export default async function ClientsPage() {
 
   return (
     <>
-      <section className="px-5 tablet:px-10 pt-10 pb-10">
+      <section className="px-5 tablet:px-10 pt-6 tablet:pt-10 pb-10">
         <h3 className="text-content opacity-50">
           <Link href="/">Gabriel Valdivia</Link>
         </h3>
