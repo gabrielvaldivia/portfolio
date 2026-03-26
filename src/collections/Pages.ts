@@ -9,19 +9,44 @@ import { TwoColumn } from '../blocks/TwoColumn/config'
 
 const isType = (type: string) => (data: any) => data?.type === type
 
-const columnsField: Field = {
-  name: 'columns',
-  type: 'select',
-  defaultValue: '6',
-  options: [
-    { label: '1 Column', value: '1' },
-    { label: '2 Columns', value: '2' },
-    { label: '3 Columns', value: '3' },
-    { label: '4 Columns', value: '4' },
-    { label: '5 Columns', value: '5' },
-    { label: '6 Columns', value: '6' },
-  ],
+const sizeFields: Field = {
+  type: 'row',
   admin: { position: 'sidebar' },
+  fields: [
+    {
+      name: 'columns',
+      label: 'Width',
+      type: 'select',
+      defaultValue: '6',
+      options: [
+        { label: '1 col', value: '1' },
+        { label: '2 cols', value: '2' },
+        { label: '3 cols', value: '3' },
+        { label: '4 cols', value: '4' },
+        { label: '5 cols', value: '5' },
+        { label: '6 cols', value: '6' },
+      ],
+    },
+    {
+      name: 'rows',
+      label: 'Height',
+      type: 'select',
+      defaultValue: 'auto',
+      options: [
+        { label: 'Auto', value: 'auto' },
+        { label: '1 row', value: '1' },
+        { label: '2 rows', value: '2' },
+        { label: '3 rows', value: '3' },
+        { label: '4 rows', value: '4' },
+        { label: '5 rows', value: '5' },
+        { label: '6 rows', value: '6' },
+        { label: '7 rows', value: '7' },
+        { label: '8 rows', value: '8' },
+        { label: '9 rows', value: '9' },
+        { label: '10 rows', value: '10' },
+      ],
+    },
+  ],
 }
 
 // ── Section Blocks (for Home page) ──
@@ -30,7 +55,7 @@ const HeroBlock: Block = {
   slug: 'hero',
   labels: { singular: 'Hero', plural: 'Heroes' },
   fields: [
-    columnsField,
+    sizeFields,
     { name: 'heading', type: 'text', required: true },
     { name: 'fullWidth', type: 'checkbox', defaultValue: false, admin: { position: 'sidebar' } },
   ],
@@ -40,7 +65,7 @@ const HScrollBlock: Block = {
   slug: 'hScroll',
   labels: { singular: 'Horizontal Scroll', plural: 'Horizontal Scrolls' },
   fields: [
-    columnsField,
+    sizeFields,
     { name: 'title', type: 'text' },
     {
       name: 'source',
@@ -70,7 +95,7 @@ const AboutBlock: Block = {
   slug: 'aboutSection',
   labels: { singular: 'About', plural: 'About Sections' },
   fields: [
-    columnsField,
+    sizeFields,
     { name: 'image', type: 'upload', relationTo: 'media', label: 'Image (Light Mode)' },
     { name: 'imageDark', type: 'upload', relationTo: 'media', label: 'Image (Dark Mode)' },
     { name: 'heading', type: 'text' },
@@ -82,7 +107,7 @@ const PillGridBlock: Block = {
   slug: 'pillGrid',
   labels: { singular: 'Pill Grid', plural: 'Pill Grids' },
   fields: [
-    columnsField,
+    sizeFields,
     { name: 'title', type: 'text', defaultValue: 'Capabilities' },
     {
       name: 'source',
@@ -100,7 +125,7 @@ const NumberedGridBlock: Block = {
   slug: 'numberedGrid',
   labels: { singular: 'Numbered Grid', plural: 'Numbered Grids' },
   fields: [
-    columnsField,
+    sizeFields,
     { name: 'title', type: 'text', defaultValue: 'Approach' },
     {
       name: 'items',
@@ -116,7 +141,7 @@ const MarqueeBlock: Block = {
   slug: 'marqueeSection',
   labels: { singular: 'Marquee', plural: 'Marquees' },
   fields: [
-    columnsField,
+    sizeFields,
     { name: 'title', type: 'text', defaultValue: 'Clients' },
     {
       name: 'clients',
@@ -135,16 +160,30 @@ const MarqueeBlock: Block = {
 
 const AccordionBlock: Block = {
   slug: 'accordion',
-  labels: { singular: 'FAQ', plural: 'FAQs' },
+  labels: { singular: 'Chat', plural: 'Chats' },
   fields: [
-    columnsField,
-    { name: 'title', type: 'text', defaultValue: 'FAQs' },
+    sizeFields,
+    { name: 'title', type: 'text', defaultValue: 'Ask me anything' },
+    { name: 'apiKey', type: 'text', label: 'Anthropic API Key', admin: { description: 'Your Claude API key (sk-ant-...)' } },
+    { name: 'model', type: 'text', label: 'Model', defaultValue: 'claude-haiku-4-5-20251001', admin: { description: 'Claude model ID (e.g. claude-haiku-4-5-20251001, claude-sonnet-4-5-20250514)' } },
+    { name: 'gabosApiUrl', type: 'text', label: 'Content API URL', defaultValue: 'https://gabos.vercel.app', admin: { description: 'URL for the gabos content API (blog + tweets)' } },
+    { name: 'systemPromptExtra', type: 'textarea', label: 'Extra Instructions', admin: { description: 'Additional instructions appended to the system prompt' } },
     {
       name: 'items',
       type: 'array',
+      label: 'Suggested Questions',
       fields: [
         { name: 'question', type: 'text', required: true },
         { name: 'answer', type: 'text', required: true },
+      ],
+    },
+    {
+      name: 'links',
+      type: 'array',
+      label: 'Quick Links',
+      fields: [
+        { name: 'platform', type: 'text', required: true },
+        { name: 'url', type: 'text', required: true },
       ],
     },
   ],
@@ -154,7 +193,7 @@ const CalloutBlock: Block = {
   slug: 'callout',
   labels: { singular: 'Callout', plural: 'Callouts' },
   fields: [
-    columnsField,
+    sizeFields,
     { name: 'heading', type: 'text' },
     { name: 'text', type: 'richText' },
     { name: 'availability', type: 'text', admin: { description: 'e.g. "Available for new projects"' } },
@@ -165,7 +204,7 @@ const SocialLinksBlock: Block = {
   slug: 'socialLinks',
   labels: { singular: 'Social Links', plural: 'Social Links' },
   fields: [
-    columnsField,
+    sizeFields,
     { name: 'title', type: 'text', defaultValue: 'Elsewhere' },
     {
       name: 'links',

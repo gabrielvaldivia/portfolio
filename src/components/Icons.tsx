@@ -30,12 +30,23 @@ export function InstagramIcon({ className }: { className?: string }) {
   )
 }
 
+export function EmailIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="M22 7l-10 7L2 7" />
+    </svg>
+  )
+}
+
 const socialIcons: Record<string, React.FC<{ className?: string }>> = {
   twitter: TwitterIcon,
   x: TwitterIcon,
   substack: SubstackIcon,
   linkedin: LinkedInIcon,
   instagram: InstagramIcon,
+  email: EmailIcon,
+  mail: EmailIcon,
 }
 
 export function HoverChevron() {

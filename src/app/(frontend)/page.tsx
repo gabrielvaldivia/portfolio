@@ -1,15 +1,16 @@
 import { Container } from '@/components/Container'
 import { ProjectCard } from '@/components/ProjectCard'
 import { Testimonial } from '@/components/Testimonial'
-import { FAQ } from '@/components/FAQ'
 import { RichText } from '@/components/RichText'
 import { ServicePill } from '@/components/ServicePill'
 import { HScrollContainer } from '@/components/HScrollContainer'
 import { MomentumScroll } from '@/components/MomentumScroll'
 import { FitText } from '@/components/FitText'
 import { SocialIcon } from '@/components/Icons'
+import { Chat } from '@/components/Chat'
 import { getPageBySlug, getClients, getFeaturedTestimonials } from '@/lib/queries'
 import { getPayload } from '@/lib/payload'
+import { buildContext } from '@/lib/buildContext'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -45,8 +46,17 @@ export default async function HomePage() {
   const services = await payload.find({ collection: 'services', sort: 'order', limit: 20, where: { featured: { equals: true } } })
   const { docs: clients } = await getClients()
   const { docs: testimonials } = await getFeaturedTestimonials()
+  const { faqItems } = await buildContext()
+  const allProjects = await payload.find({ collection: 'projects', sort: 'order', limit: 100, depth: 0 })
+  const projectLinks = allProjects.docs.map((p: any) => ({ title: p.title, slug: p.slug }))
 
   const sections = (page?.sections || []) as any[]
+  const aboutImage = sections.find((s: any) => s.blockType === 'aboutSection')?.image?.url || ''
+  const chatBlock = sections.find((s: any) => s.blockType === 'accordion')
+  const socialLinks = (chatBlock?.links || []).map((l: any) => ({
+    platform: l.platform,
+    url: l.url,
+  }))
 
   function renderSection(block: any, i: number) {
     const cols = block.columns || '6'
@@ -304,22 +314,32 @@ export default async function HomePage() {
       }
 
       case 'accordion': {
-        const items = (block.items || []) as any[]
-        if (!items.length) return null
-        const faqItems = items.map((item: any) => ({ question: item.question, answer: item.answer }))
+        const isFullWidth = cols === '6'
         return (
-          <Container key={block.id || i}>
-            <SectionWithTitle title={block.title || 'FAQs'} cols={cols}>
-              <FAQ items={faqItems} />
-            </SectionWithTitle>
+          <Container key={block.id || i} className="h-full">
+            {isFullWidth ? (
+              <div className="grid grid-cols-1 tablet:grid-cols-6 gap-5 tablet:gap-10 h-full">
+                {block.title && <div className="tablet:col-span-2 flex items-start"><h3>{block.title}</h3></div>}
+                <div className="tablet:col-span-4 bg-background-alt rounded-[20px] tablet:rounded-[30px] p-5 tablet:p-8 h-full min-h-[400px]">
+                  <Chat faqItems={faqItems} avatarUrl={aboutImage} projects={projectLinks} socialLinks={socialLinks} />
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col h-full">
+                {block.title && <h3 className="pb-5 tablet:pb-10">{block.title}</h3>}
+                <div className="bg-background-alt rounded-[20px] tablet:rounded-[30px] p-5 tablet:p-8 flex-1 min-h-0">
+                  <Chat faqItems={faqItems} avatarUrl={aboutImage} projects={projectLinks} socialLinks={socialLinks} />
+                </div>
+              </div>
+            )}
           </Container>
         )
       }
 
       case 'callout':
         return (
-          <div key={block.id || i} id="contact">
-            <div className="bg-background-alt rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] p-6 tablet:p-8 desktop:p-10">
+          <div key={block.id || i} id="contact" className="h-full">
+            <div className="bg-background-alt rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] p-6 tablet:p-8 desktop:p-10 h-full">
             {block.heading && <h3 className="pb-5 tablet:pb-10">{block.heading}</h3>}
             {block.text && (
               <div className="text-muted text-body">
@@ -340,7 +360,7 @@ export default async function HomePage() {
         const links = (block.links || []) as any[]
         if (!links.length) return null
         return (
-          <div key={block.id || i} className="p-6 tablet:p-8 desktop:p-10">
+          <div key={block.id || i} className="h-full">
             <SectionWithTitle title={block.title || 'Elsewhere'} cols={cols}>
               <div className="grid grid-cols-2 gap-x-4 gap-y-8">
                 {links.map((link: any, j: number) => (
@@ -381,8 +401,10 @@ export default async function HomePage() {
           const cols = block.columns || '6'
           if (cols !== '6') {
             const lastGroup = groups[groups.length - 1]
-            const lastGroupCols = lastGroup?.blocks.reduce((sum: number, b: any) => sum + parseInt(b.columns || '6'), 0)
-            if (lastGroup && lastGroupCols && lastGroupCols < 6) {
+            const lastBlock = lastGroup?.blocks[lastGroup.blocks.length - 1]
+            const lastBlockCols = lastBlock ? (lastBlock.columns || '6') : '6'
+            // Group consecutive non-full-width blocks together
+            if (lastGroup && lastBlockCols !== '6') {
               lastGroup.blocks.push(block)
             } else {
               groups.push({ blocks: [block] })
@@ -406,19 +428,26 @@ export default async function HomePage() {
               )}
               {isGrid ? (
                 <Container>
-                  <div className="grid grid-cols-1 tablet:grid-cols-6 gap-10">
+                  <div className="grid grid-cols-1 tablet:grid-cols-6 tablet:auto-rows-[200px] gap-5 tablet:gap-10" style={{ gridAutoFlow: 'dense' }}>
                     {group.blocks.map((block: any, bi: number) => {
                       const cols = block.columns || '6'
+                      const rowsVal = block.rows && block.rows !== 'auto' ? parseInt(block.rows) : null
                       const spanMap: Record<string, string> = { '1': 'tablet:col-span-1', '2': 'tablet:col-span-2', '3': 'tablet:col-span-3', '4': 'tablet:col-span-4', '5': 'tablet:col-span-5', '6': 'tablet:col-span-6' }
+                      const rowSpanMap: Record<string, string> = { '1': 'tablet:row-span-1', '2': 'tablet:row-span-2', '3': 'tablet:row-span-3', '4': 'tablet:row-span-4', '5': 'tablet:row-span-5', '6': 'tablet:row-span-6', '7': 'tablet:row-span-7', '8': 'tablet:row-span-8', '9': 'tablet:row-span-9', '10': 'tablet:row-span-10' }
                       const spanClass = spanMap[cols] || 'tablet:col-span-6'
+                      const rowSpanClass = rowsVal ? (rowSpanMap[String(rowsVal)] || '') : ''
                       return (
-                        <div key={block.id || `${gi}-${bi}`} className={spanClass}>
+                        <div key={block.id || `${gi}-${bi}`} className={`${spanClass} ${rowSpanClass}`}>
                           {renderSection(block, gi * 100 + bi)}
                         </div>
                       )
                     })}
                   </div>
                 </Container>
+              ) : group.blocks[0].rows && group.blocks[0].rows !== 'auto' ? (
+                <div style={{ height: `${parseInt(group.blocks[0].rows) * 200 + (parseInt(group.blocks[0].rows) - 1) * 40}px` }}>
+                  {renderSection(group.blocks[0], gi)}
+                </div>
               ) : (
                 renderSection(group.blocks[0], gi)
               )}
