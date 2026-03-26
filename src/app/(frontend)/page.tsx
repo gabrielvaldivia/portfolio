@@ -316,7 +316,7 @@ export default async function HomePage() {
       case 'accordion': {
         const isFullWidth = cols === '6'
         return (
-          <Container key={block.id || i} className="h-full">
+          <Container key={block.id || i} className="h-full" id="contact">
             {isFullWidth ? (
               <div className="grid grid-cols-1 tablet:grid-cols-6 gap-5 tablet:gap-10 h-full">
                 {block.title && <div className="tablet:col-span-2 flex items-start"><h3>{block.title}</h3></div>}
