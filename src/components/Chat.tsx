@@ -345,8 +345,7 @@ export function Chat({
               <button
                 key={i}
                 onClick={() => sendMessage(faq.question)}
-                className="shrink-0 px-4 py-2.5 text-body text-muted rounded-[23px] hover:text-content transition-colors whitespace-nowrap cursor-pointer"
-                style={{ backgroundImage: `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='23' ry='23' stroke='%23ccc' stroke-width='1.5' stroke-dasharray='8%2c 6' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e")` }}
+                className="shrink-0 px-3 py-1.5 text-caption tablet:px-4 tablet:py-2.5 tablet:text-body text-black/45 dark:text-white/45 rounded-full hover:text-content transition-colors whitespace-nowrap cursor-pointer border border-dashed border-black/15 dark:border-white/15"
               >
                 {faq.question}
               </button>
