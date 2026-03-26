@@ -183,6 +183,7 @@ export function Chat({
   const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', content: greetings[0] }])
   const [showLinks, setShowLinks] = useState(false)
   const [inputFocused, setInputFocused] = useState(false)
+  const [iconsCollapsed, setIconsCollapsed] = useState(false)
   const [isMultiline, setIsMultiline] = useState(false)
   const linksRef = useRef<HTMLDivElement>(null)
   const hasRandomized = useRef(false)
@@ -210,6 +211,16 @@ export function Chat({
   const inputRef = useRef<HTMLInputElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const userScrolledUp = useRef(false)
+
+  const shouldCollapse = inputFocused || !!input.trim()
+  useEffect(() => {
+    if (shouldCollapse) {
+      setIconsCollapsed(true)
+    } else {
+      const timer = setTimeout(() => setIconsCollapsed(false), 300)
+      return () => clearTimeout(timer)
+    }
+  }, [shouldCollapse])
 
   const handleScroll = useCallback(() => {
     const el = scrollRef.current
@@ -358,33 +369,44 @@ export function Chat({
       <form onSubmit={handleSubmit} className="flex items-end gap-2 pt-2">
         {socialLinks.length > 0 && (
           <div ref={linksRef} className="relative shrink-0 flex items-end">
-            {/* Container that collapses from N icons to 1 */}
-            <div className={`flex gap-2 transition-all duration-300 ease-in-out ${inputFocused || input.trim() ? 'w-[42px] tablet:w-[45px] desktop:w-[48px] overflow-hidden' : ''}`}>
-              {inputFocused || input.trim() ? (
-                <button
-                  type="button"
-                  onClick={() => setShowLinks(!showLinks)}
-                  className={`w-[42px] tablet:w-[45px] desktop:w-[48px] h-[42px] tablet:h-[45px] desktop:h-[48px] flex items-center justify-center rounded-full transition-all duration-300 cursor-pointer shrink-0 ${showLinks ? 'bg-black/10 dark:bg-white/10 rotate-45' : 'bg-black/[0.02] dark:bg-white/[0.02] hover:bg-black/5 dark:hover:bg-white/5'}`}
+            <div className={`flex gap-2 items-end transition-all duration-300 ease-in-out ${iconsCollapsed ? 'overflow-hidden' : ''}`}
+              style={shouldCollapse ? { width: '42px' } : undefined}
+            >
+              {/* Plus button — always in DOM, overlays first icon position */}
+              <button
+                type="button"
+                onClick={() => setShowLinks(!showLinks)}
+                className={`w-[42px] tablet:w-[45px] desktop:w-[48px] h-[42px] tablet:h-[45px] desktop:h-[48px] flex items-center justify-center rounded-full cursor-pointer shrink-0 transition-all duration-300 ease-in-out ${
+                  shouldCollapse
+                    ? `opacity-100 ${showLinks ? 'bg-black/10 dark:bg-white/10 rotate-45' : 'bg-black/[0.02] dark:bg-white/[0.02] hover:bg-black/5 dark:hover:bg-white/5'}`
+                    : 'opacity-0 pointer-events-none'
+                } absolute left-0 bottom-0 z-10`}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+              </button>
+
+              {/* Social icons */}
+              {socialLinks.map((link, idx) => (
+                <a
+                  key={idx}
+                  href={shouldCollapse ? undefined : link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`w-[42px] tablet:w-[45px] desktop:w-[48px] h-[42px] tablet:h-[45px] desktop:h-[48px] flex items-center justify-center rounded-full bg-black/[0.02] dark:bg-white/[0.02] hover:bg-black/5 dark:hover:bg-white/5 text-muted hover:text-content cursor-pointer shrink-0 transition-all duration-300 ease-in-out ${
+                    shouldCollapse ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
+                  }`}
+                  style={{
+                    transitionDelay: shouldCollapse ? '0ms' : `${idx * 30}ms`,
+                  }}
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <path d="M12 5v14M5 12h14" />
-                  </svg>
-                </button>
-              ) : (
-                socialLinks.map((link, i) => (
-                  <a
-                    key={i}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-[42px] tablet:w-[45px] desktop:w-[48px] h-[42px] tablet:h-[45px] desktop:h-[48px] flex items-center justify-center rounded-full bg-black/[0.02] dark:bg-white/[0.02] hover:bg-black/5 dark:hover:bg-white/5 text-muted hover:text-content transition-colors cursor-pointer shrink-0"
-                  >
-                    <SocialIcon platform={link.platform} />
-                  </a>
-                ))
-              )}
+                  <SocialIcon platform={link.platform} />
+                </a>
+              ))}
             </div>
-            {showLinks && (inputFocused || input.trim()) && (
+
+            {showLinks && shouldCollapse && (
               <div className="absolute bottom-12 left-0 bg-background rounded-[16px] shadow-lg border border-border py-2 min-w-[160px] z-10">
                 {socialLinks.map((link, i) => (
                   <a
