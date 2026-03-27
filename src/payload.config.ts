@@ -14,6 +14,7 @@ import { Clients } from './collections/Clients'
 import { Services } from './collections/Services'
 import { SideProjects } from './collections/SideProjects'
 import { Pages } from './collections/Pages'
+import { Conversations } from './collections/Conversations'
 
 import { SiteSettings } from './globals/SiteSettings'
 import { Navigation } from './globals/Navigation'
@@ -28,7 +29,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Pages, People, Clients, Projects, SideProjects, Services, Users, Media],
+  collections: [Pages, People, Clients, Projects, SideProjects, Services, Conversations, Users, Media],
   globals: [Navigation, SiteSettings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || 'default-secret-change-me-in-production',

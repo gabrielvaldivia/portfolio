@@ -177,7 +177,10 @@ export async function POST(req: Request) {
   })
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   const { faqItems } = await buildContext()
-  return Response.json({ faqItems })
+  const city = req.headers.get('x-vercel-ip-city') || ''
+  const country = req.headers.get('x-vercel-ip-country') || ''
+  const location = city ? `${decodeURIComponent(city)}${country ? `, ${country}` : ''}` : ''
+  return Response.json({ faqItems, location })
 }

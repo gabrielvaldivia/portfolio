@@ -109,21 +109,27 @@ function AssistantMessage({
   avatarUrl,
   topMargin,
   projects,
+  animate = true,
 }: {
   paragraphs: string[]
   avatarUrl?: string
   topMargin: string
   projects: ProjectLink[]
+  animate?: boolean
 }) {
-  const [visibleCount, setVisibleCount] = useState(1)
+  const [visibleCount, setVisibleCount] = useState(animate ? 1 : paragraphs.length)
 
   useEffect(() => {
-    if (visibleCount >= paragraphs.length) return
+    if (!animate || visibleCount >= paragraphs.length) return
     const timer = setTimeout(() => {
       setVisibleCount((c) => c + 1)
     }, 1000)
     return () => clearTimeout(timer)
-  }, [visibleCount, paragraphs.length])
+  }, [visibleCount, paragraphs.length, animate])
+
+  useEffect(() => {
+    if (!animate) setVisibleCount(paragraphs.length)
+  }, [animate, paragraphs.length])
 
   const visible = paragraphs.slice(0, visibleCount)
 
@@ -143,7 +149,7 @@ function AssistantMessage({
             className="w-fit px-4 py-2.5 text-body rounded-[23px] bg-background dark:bg-white/10 text-content"
             style={{
               textWrap: 'pretty',
-              animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both',
+              ...(animate ? { animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both' } : {}),
             } as React.CSSProperties}
           >
             {text ? (
@@ -162,6 +168,38 @@ function AssistantMessage({
   )
 }
 
+type Conversation = {
+  id: number
+  title: string
+  location?: string
+  messages: Message[]
+  updatedAt: string
+}
+
+const GREETINGS = [
+  "Hey! What can I help you with?",
+  "Hi there! Ask me anything.",
+  "Hey! What would you like to know?",
+  "Hi! What's on your mind?",
+  "Hey there! How can I help?",
+]
+
+function formatDate(date: string | Date) {
+  return new Date(date).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
+function HamburgerIcon() {
+  return (
+    <svg width="20" height="14" viewBox="0 0 20 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <path d="M1 2h18M1 10h12" />
+    </svg>
+  )
+}
+
 export function Chat({
   faqItems,
   avatarUrl,
@@ -173,26 +211,50 @@ export function Chat({
   projects?: ProjectLink[]
   socialLinks?: SocialLink[]
 }) {
-  const greetings = [
-    "Hey! What can I help you with?",
-    "Hi there! Ask me anything.",
-    "Hey! What would you like to know?",
-    "Hi! What's on your mind?",
-    "Hey there! How can I help?",
-  ]
-  const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', content: greetings[0] }])
+  const [messages, setMessages] = useState<Message[]>(() => {
+    if (typeof window !== 'undefined' && sessionStorage.getItem('conversationId')) return []
+    return [{ role: 'assistant', content: GREETINGS[0] }]
+  })
   const [showLinks, setShowLinks] = useState(false)
   const [inputFocused, setInputFocused] = useState(false)
   const [iconsCollapsed, setIconsCollapsed] = useState(false)
   const [isMultiline, setIsMultiline] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [hasScrolled, setHasScrolled] = useState(false)
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [conversationId, setConversationId] = useState<number | null>(null)
+  const [animateBubbles, setAnimateBubbles] = useState(true)
   const linksRef = useRef<HTMLDivElement>(null)
   const hasRandomized = useRef(false)
+  const locationRef = useRef('')
 
   useEffect(() => {
-    if (!hasRandomized.current) {
+    if (!hasRandomized.current && !sessionStorage.getItem('conversationId')) {
       hasRandomized.current = true
-      const random = greetings[Math.floor(Math.random() * greetings.length)]
+      const random = GREETINGS[Math.floor(Math.random() * GREETINGS.length)]
       setMessages([{ role: 'assistant', content: random }])
+    }
+    // Fetch location
+    fetch('/chat')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.location) locationRef.current = data.location
+      })
+      .catch(() => {})
+    // Restore conversation from session
+    const savedId = sessionStorage.getItem('conversationId')
+    if (savedId) {
+      setAnimateBubbles(false)
+      fetch(`/chat/conversations/${savedId}`)
+        .then((r) => r.json())
+        .then((doc) => {
+          if (doc.messages?.length) {
+            setMessages(doc.messages)
+            setConversationId(doc.id)
+          }
+          setTimeout(() => setAnimateBubbles(true), 100)
+        })
+        .catch(() => setAnimateBubbles(true))
     }
   }, [])
 
@@ -227,6 +289,7 @@ export function Chat({
     if (!el) return
     const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40
     userScrolledUp.current = !atBottom
+    setHasScrolled(el.scrollTop > 10)
   }, [])
 
   useEffect(() => {
@@ -296,6 +359,63 @@ export function Chat({
     setIsStreaming(false)
   }
 
+  // Save conversation after streaming completes
+  useEffect(() => {
+    if (isStreaming) return
+    if (messages.length < 2 || !messages.some((m) => m.role === 'user')) return
+
+    if (conversationId) {
+      fetch(`/chat/conversations/${conversationId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages }),
+      }).catch(() => {})
+    } else {
+      const loc = locationRef.current
+      const title = formatDate(new Date()) + (loc ? ` · ${loc}` : '')
+      fetch('/chat/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, location: loc, messages }),
+      })
+        .then((r) => r.json())
+        .then((doc) => {
+          if (doc.id) {
+            setConversationId(doc.id)
+            sessionStorage.setItem('conversationId', String(doc.id))
+          }
+        })
+        .catch(() => {})
+    }
+  }, [isStreaming])
+
+  function loadConversations() {
+    fetch('/chat/conversations')
+      .then((r) => r.json())
+      .then((docs) => setConversations(docs))
+      .catch(() => {})
+  }
+
+  function loadConversation(conv: Conversation) {
+    setAnimateBubbles(false)
+    setSidebarOpen(false)
+    // Delay setting messages until after animation flag is committed
+    requestAnimationFrame(() => {
+      setMessages(conv.messages)
+      setConversationId(conv.id)
+      sessionStorage.setItem('conversationId', String(conv.id))
+      requestAnimationFrame(() => setAnimateBubbles(true))
+    })
+  }
+
+  function startNewConversation() {
+    const random = GREETINGS[Math.floor(Math.random() * GREETINGS.length)]
+    setMessages([{ role: 'assistant', content: random }])
+    setConversationId(null)
+    sessionStorage.removeItem('conversationId')
+    setSidebarOpen(false)
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     sendMessage(input)
@@ -304,9 +424,58 @@ export function Chat({
   const showSuggestions = messages.length === 1 && messages[0].role === 'assistant'
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
+      {/* Hamburger */}
+      <button
+        onClick={() => { setSidebarOpen(true); loadConversations() }}
+        className={`absolute top-1 left-0 z-20 w-10 h-10 flex items-center justify-center rounded-full text-muted hover:text-content transition-all duration-200 cursor-pointer ${hasScrolled ? 'bg-background/60 dark:bg-white/10 backdrop-blur-xl' : ''}`}
+      >
+        <HamburgerIcon />
+      </button>
+
+      {/* Sidebar */}
+      <div
+        className={`absolute inset-0 z-30 flex transition-opacity duration-200 ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+      >
+        <div
+          className={`w-[280px] bg-background rounded-[20px] border border-border p-4 flex flex-col h-full transition-transform duration-300 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        >
+          <div className="flex items-center justify-between pb-4">
+            <span className="text-caption text-muted">Conversations</span>
+            <button
+              onClick={startNewConversation}
+              className="text-caption text-muted hover:text-content transition-colors cursor-pointer"
+            >
+              New
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto space-y-1">
+            {conversations.map((conv) => (
+              <button
+                key={conv.id}
+                onClick={() => loadConversation(conv)}
+                className={`w-full text-left px-3 py-2.5 rounded-[12px] transition-colors cursor-pointer ${
+                  conv.id === conversationId ? 'bg-black/5 dark:bg-white/5' : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.02]'
+                }`}
+              >
+                <div className="text-caption text-content truncate">
+                  {conv.title}{conv.location ? ` · ${conv.location}` : ''}
+                </div>
+                <div className="text-caption text-muted truncate mt-0.5">
+                  {conv.messages?.find((m: Message) => m.role === 'user')?.content || 'No messages'}
+                </div>
+              </button>
+            ))}
+            {conversations.length === 0 && (
+              <p className="text-caption text-muted px-3 py-2">No conversations yet</p>
+            )}
+          </div>
+        </div>
+        <div className="flex-1" onClick={() => setSidebarOpen(false)} />
+      </div>
+
       {/* Messages */}
-      <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-1 py-4" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 16px, black)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 16px, black)' }}>
+      <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-1 py-4 pt-14" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 16px, black)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 16px, black)' }}>
         <div className="flex flex-col">
           {messages.map((msg, i) => {
             const prevRole = i > 0 ? messages[i - 1].role : null
@@ -318,7 +487,7 @@ export function Chat({
                 <div
                   key={i}
                   className={`flex justify-end ${topMargin}`}
-                  style={{ animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both' }}
+                  style={animateBubbles ? { animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both' } : undefined}
                 >
                   <div
                     className="w-fit max-w-[85%] px-4 py-2.5 text-body rounded-[23px] bg-blue-500 text-white"
@@ -342,6 +511,7 @@ export function Chat({
                 avatarUrl={avatarUrl}
                 topMargin={topMargin}
                 projects={projects}
+                animate={animateBubbles}
               />
             )
           })}
