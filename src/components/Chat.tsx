@@ -543,7 +543,7 @@ export function Chat({
       {/* Mobile avatar header */}
       {avatarUrl && (
         <div className="tablet:!hidden flex justify-center pt-2 pb-1">
-          <div className="w-10 h-10 rounded-full relative overflow-hidden">
+          <div className="w-8 h-8 rounded-full relative overflow-hidden">
             <img src={avatarUrl} alt="" className={`absolute inset-0 w-full h-full object-cover ${avatarUrlDark ? 'light-only' : ''}`} />
             {avatarUrlDark && <img src={avatarUrlDark} alt="" className="absolute inset-0 w-full h-full object-cover dark-only" />}
           </div>

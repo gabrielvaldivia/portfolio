@@ -458,7 +458,7 @@ export default async function HomePage() {
         })
       })()}
 
-      <div className="h-16 tablet:h-28 desktop:h-[200px]" />
+      <div className="h-20 tablet:h-28 desktop:h-[200px]" />
     </>
   )
 }
