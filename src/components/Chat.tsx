@@ -140,7 +140,7 @@ function AssistantMessage({
         {visible.map((text, pi) => (
           <div
             key={pi}
-            className="w-fit px-4 py-2.5 text-body rounded-[23px] bg-background text-content"
+            className="w-fit px-4 py-2.5 text-body rounded-[23px] bg-background dark:bg-white/10 text-content"
             style={{
               textWrap: 'pretty',
               animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both',
@@ -212,7 +212,7 @@ export function Chat({
   const scrollRef = useRef<HTMLDivElement>(null)
   const userScrolledUp = useRef(false)
 
-  const shouldCollapse = inputFocused || !!input.trim()
+  const shouldCollapse = inputFocused || !!input.trim() || showLinks
   useEffect(() => {
     if (shouldCollapse) {
       setIconsCollapsed(true)
@@ -435,11 +435,16 @@ export function Chat({
             onFocus={() => setInputFocused(true)}
             onBlur={() => setTimeout(() => setInputFocused(false), 200)}
             onChange={(e) => {
-              setInput(e.target.value)
+              const val = e.target.value
+              setInput(val)
               const el = e.target
               el.style.height = 'auto'
-              el.style.height = el.scrollHeight + 'px'
-              setIsMultiline(el.scrollHeight > 50)
+              if (val.trim()) {
+                el.style.height = el.scrollHeight + 'px'
+                setIsMultiline(el.scrollHeight > 50)
+              } else {
+                setIsMultiline(false)
+              }
             }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
