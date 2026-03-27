@@ -557,6 +557,10 @@ export function Chat({
   }
 
   const showSuggestions = messages.length === 1 && messages[0].role === 'assistant'
+  const [shuffledFaqs, setShuffledFaqs] = useState(faqItems)
+  useEffect(() => {
+    setShuffledFaqs([...faqItems].sort(() => Math.random() - 0.5))
+  }, [])
 
   // Extract follow-up questions from the last assistant message
   const followUps: string[] = (() => {
@@ -679,10 +683,10 @@ export function Chat({
       </div>
 
       {/* Suggested pills */}
-      {showSuggestions && faqItems.length > 0 && (
+      {showSuggestions && shuffledFaqs.length > 0 && (
         <ScrollMask className="px-1 pb-3">
           <div className="flex gap-2 w-max">
-            {faqItems.map((faq, i) => (
+            {shuffledFaqs.map((faq, i) => (
               <button
                 key={i}
                 onClick={() => sendMessage(faq.question)}
