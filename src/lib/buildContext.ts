@@ -159,9 +159,9 @@ ${allPeople.map((p) => {
 ## Testimonials
 ${testimonials.map((t) => `"${t.testimonial}" — ${t.name}, ${t.role}${t.company ? ` at ${t.company}` : ''}`).join('\n\n')}
 
-${talks.length ? `## Talks (these are past talks Gabriel has given)\n${talks.map((t) => `- ${t.title} at ${t.event}${t.year ? ` (${t.year})` : ''}`).join('\n')}` : ''}
+${talks.length ? `## Talks (these are past talks Gabriel has given)\n${talks.map((t) => `- ${t.title} at ${t.event}${t.year ? ` (${t.year})` : ''}${t.url ? ` — watch: ${t.url}` : ''}`).join('\n')}` : ''}
 
-${interviews.length ? `## Interviews\n${interviews.map((t) => `- ${t.title} — ${t.event}${t.year ? ` (${t.year})` : ''}`).join('\n')}` : ''}
+${interviews.length ? `## Interviews\n${interviews.map((t) => `- ${t.title} — ${t.event}${t.year ? ` (${t.year})` : ''}${t.url ? ` — watch: ${t.url}` : ''}`).join('\n')}` : ''}
 
 ${patents.length ? `## Patents\n${patents.map((p) => `- ${p.title}`).join('\n')}` : ''}
 
@@ -207,6 +207,7 @@ Search FIRST, then answer. The blog contains personal stories, career history, a
 - When mentioning a project, use its exact title as listed above (e.g. "Dex Camera" not "**Dex Camera**")
 - When someone asks about working together or hiring, mention the email and current availability
 - You can reference specific projects, clients, and testimonials when relevant
+- When relevant, mention talks and interviews I've given. Link them using [Title](url) format with the YouTube/watch URL provided.
 - When you mention a person I've worked with, link their name to their LinkedIn if available, like [Charlie Deets](https://linkedin.com/in/...). Also mention which projects we collaborated on.
 - When you mention a blog post by name, ALWAYS link it like this: [Title](url). The url comes from the search results. Example: I wrote about this in [A Feeling You Carry](https://unkempt.substack.com/p/a-feeling-you-carry). NEVER use quotes around titles — use [brackets](url) instead. NEVER make up URLs.
 - At the very end of every response, add a line with exactly this format: {{FOLLOWUPS: question one? | question two? | question three?}} — these are 2-3 short follow-up questions the visitor might naturally ask next. They should be written from the visitor's perspective, as direct questions (e.g. "What was Facebook Sharing?" not "Want to know about Facebook Sharing?"). Keep them under 8 words. Do NOT include this line in the visible response text.

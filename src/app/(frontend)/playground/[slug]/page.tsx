@@ -77,6 +77,7 @@ export default async function SideProjectPage({ params }: { params: Promise<{ sl
                             </span>
                           )
                         })}
+                        <span className="text-muted opacity-50">.</span>
                       </>
                     )}
                   </p>
