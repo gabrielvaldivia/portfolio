@@ -163,7 +163,7 @@ const AccordionBlock: Block = {
   labels: { singular: 'Chat', plural: 'Chats' },
   fields: [
     sizeFields,
-    { name: 'fixedHeight', type: 'text', label: 'Fixed Height', defaultValue: '70dvh', admin: { description: 'CSS height value (e.g. 70dvh, 600px, auto). Applied on mobile, overridden by rows on desktop.' } },
+    { name: 'fixedHeight', type: 'text', label: 'Fixed Height', defaultValue: '85dvh', admin: { description: 'CSS height value (e.g. 70dvh, 600px, auto). Applied on mobile, overridden by rows on desktop.' } },
     { name: 'title', type: 'text', defaultValue: 'Ask me anything' },
     { name: 'apiKey', type: 'text', label: 'Anthropic API Key', admin: { description: 'Your Claude API key (sk-ant-...)' } },
     { name: 'model', type: 'text', label: 'Model', defaultValue: 'claude-haiku-4-5-20251001', admin: { description: 'Claude model ID (e.g. claude-haiku-4-5-20251001, claude-sonnet-4-5-20250514)' } },
