@@ -28,6 +28,11 @@ type BlogPost = {
   url: string | null
 }
 
+type PersonLink = {
+  name: string
+  linkedin: string
+}
+
 function stripMarkdown(text: string): string {
   return text
     .replace(/\*\*(.+?)\*\*/g, '$1')
@@ -38,20 +43,28 @@ function stripMarkdown(text: string): string {
 
 const linkStyle = { textDecoration: 'underline', textUnderlineOffset: '3px' }
 
-function linkify(text: string, projects: ProjectLink[], blogPosts: BlogPost[] = []): React.ReactNode[] {
+function linkify(text: string, projects: ProjectLink[], blogPosts: BlogPost[] = [], people: PersonLink[] = [], sideProjects: { title: string; slug: string }[] = []): React.ReactNode[] {
   text = stripMarkdown(text)
 
   const sortedProjects = [...projects].sort((a, b) => b.title.length - a.title.length)
   const projectNames = sortedProjects.map((p) => p.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+  const sortedPeople = [...people].sort((a, b) => b.name.length - a.name.length)
+  const peopleNames = sortedPeople.map((p) => p.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+  const sortedSideProjects = [...sideProjects].sort((a, b) => b.title.length - a.title.length)
+  const sideProjectNames = sortedSideProjects.map((p) => p.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
 
-  // Match: [text](url), emails, bare URLs, or project names
+  // Match: [text](url), emails, bare URLs, project names, side project names, or people names
   const mdLink = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/
   const email = /[\w.-]+@[\w.-]+\.\w+/
   const url = /https?:\/\/[^\s),]+/
   const projectPat = projectNames.length ? new RegExp(`\\b(${projectNames.join('|')})\\b`, 'i') : null
+  const sideProjectPat = sideProjectNames.length ? new RegExp(`\\b(${sideProjectNames.join('|')})\\b`, 'i') : null
+  const peoplePat = peopleNames.length ? new RegExp(`\\b(${peopleNames.join('|')})\\b`, 'i') : null
 
   const patterns = [mdLink.source, email.source, url.source]
   if (projectPat) patterns.push(projectPat.source)
+  if (sideProjectPat) patterns.push(sideProjectPat.source)
+  if (peoplePat) patterns.push(peoplePat.source)
   const combined = new RegExp(`(${patterns.join('|')})`, 'gi')
 
   const parts: React.ReactNode[] = []
@@ -105,7 +118,25 @@ function linkify(text: string, projects: ProjectLink[], blogPosts: BlogPost[] = 
           </a>,
         )
       } else {
-        parts.push(matched)
+        const sideProject = sortedSideProjects.find((p) => p.title.toLowerCase() === matched.toLowerCase())
+        if (sideProject) {
+          parts.push(
+            <a key={key++} href={`/playground/${sideProject.slug}`} style={linkStyle}>
+              {matched}
+            </a>,
+          )
+        } else {
+        const person = sortedPeople.find((p) => p.name.toLowerCase() === matched.toLowerCase())
+        if (person) {
+          parts.push(
+            <a key={key++} href={person.linkedin} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+              {matched}
+            </a>,
+          )
+        } else {
+          parts.push(matched)
+        }
+      }
       }
     }
 
@@ -125,6 +156,8 @@ function AssistantMessage({
   avatarUrlDark,
   topMargin,
   projects,
+  people = [],
+  sideProjects = [],
   blogPosts = [],
   animate = true,
 }: {
@@ -133,6 +166,8 @@ function AssistantMessage({
   avatarUrlDark?: string
   topMargin: string
   projects: ProjectLink[]
+  people?: PersonLink[]
+  sideProjects?: { title: string; slug: string }[]
   blogPosts?: BlogPost[]
   animate?: boolean
 }) {
@@ -168,7 +203,7 @@ function AssistantMessage({
             style={animate ? { animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both' } : undefined}
           >
             {text ? (
-              linkify(text, projects, blogPosts)
+              linkify(text, projects, blogPosts, people, sideProjects)
             ) : (
               <span className="inline-flex items-center gap-1 py-1">
                 <span className="w-1.5 h-1.5 bg-current opacity-40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -189,6 +224,48 @@ type Conversation = {
   location?: string
   messages: Message[]
   updatedAt: string
+}
+
+function ScrollMask({ children, className = '', extraStyle }: { children: React.ReactNode; className?: string; extraStyle?: React.CSSProperties }) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [maskLeft, setMaskLeft] = useState(false)
+  const [maskRight, setMaskRight] = useState(false)
+
+  const updateMask = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const hasOverflow = el.scrollWidth > el.clientWidth
+    setMaskLeft(hasOverflow && el.scrollLeft > 2)
+    setMaskRight(hasOverflow && el.scrollLeft < el.scrollWidth - el.clientWidth - 2)
+  }, [])
+
+  useEffect(() => {
+    updateMask()
+    const el = scrollRef.current
+    if (!el) return
+    const observer = new ResizeObserver(updateMask)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [updateMask])
+
+  const mask = maskLeft && maskRight
+    ? 'linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent)'
+    : maskLeft
+    ? 'linear-gradient(to right, transparent, black 40px, black)'
+    : maskRight
+    ? 'linear-gradient(to right, black, black calc(100% - 40px), transparent)'
+    : 'none'
+
+  return (
+    <div
+      ref={scrollRef}
+      onScroll={updateMask}
+      className={`overflow-x-auto scrollbar-hide ${className}`}
+      style={{ maskImage: mask, WebkitMaskImage: mask, ...extraStyle }}
+    >
+      {children}
+    </div>
+  )
 }
 
 const GREETINGS = [
@@ -220,12 +297,16 @@ export function Chat({
   avatarUrl,
   avatarUrlDark,
   projects = [],
+  sideProjects = [],
+  people = [],
   socialLinks = [],
 }: {
   faqItems: FAQItem[]
   avatarUrl?: string
   avatarUrlDark?: string
   projects?: ProjectLink[]
+  sideProjects?: { title: string; slug: string }[]
+  people?: PersonLink[]
   socialLinks?: SocialLink[]
 }) {
   const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', content: GREETINGS[0] }])
@@ -587,6 +668,8 @@ export function Chat({
                 avatarUrlDark={avatarUrlDark}
                 topMargin={topMargin}
                 projects={projects}
+                people={people}
+                sideProjects={sideProjects}
                 blogPosts={blogPosts}
                 animate={animateBubbles}
               />
@@ -597,7 +680,7 @@ export function Chat({
 
       {/* Suggested pills */}
       {showSuggestions && faqItems.length > 0 && (
-        <div className="px-1 pb-3 overflow-x-auto scrollbar-hide" style={{ maskImage: 'linear-gradient(to right, black 85%, transparent)', WebkitMaskImage: 'linear-gradient(to right, black 85%, transparent)' }}>
+        <ScrollMask className="px-1 pb-3">
           <div className="flex gap-2 w-max">
             {faqItems.map((faq, i) => (
               <button
@@ -609,12 +692,12 @@ export function Chat({
               </button>
             ))}
           </div>
-        </div>
+        </ScrollMask>
       )}
 
       {/* Follow-up pills */}
       {!showSuggestions && followUps.length > 0 && (
-        <div className="px-1 pb-3 overflow-x-auto scrollbar-hide" style={{ maskImage: 'linear-gradient(to right, black 85%, transparent)', WebkitMaskImage: 'linear-gradient(to right, black 85%, transparent)', animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
+        <ScrollMask className="px-1 pb-3" extraStyle={{ animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
           <div className="flex gap-2 w-max">
             {followUps.map((q, i) => (
               <button
@@ -626,7 +709,7 @@ export function Chat({
               </button>
             ))}
           </div>
-        </div>
+        </ScrollMask>
       )}
 
       {/* Input */}

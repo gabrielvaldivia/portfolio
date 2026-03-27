@@ -45,6 +45,12 @@ export const SideProjects: CollectionConfig = {
             { name: 'richDescription', type: 'richText' },
             { name: 'year', type: 'text' },
             {
+              name: 'collaborators',
+              type: 'relationship',
+              relationTo: 'people',
+              hasMany: true,
+            },
+            {
               name: 'links',
               type: 'array',
               fields: [

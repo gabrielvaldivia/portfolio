@@ -61,7 +61,25 @@ export default async function SideProjectPage({ params }: { params: Promise<{ sl
                   <p className="text-body">{project.description}</p>
                 ) : null}
                 {project.year && (
-                  <p className="text-muted opacity-50" style={{ marginTop: 20 }}>{project.year}</p>
+                  <p style={{ marginTop: 20 }}>
+                    <span className="text-muted opacity-50">{project.year}</span>
+                    {(project.collaborators as any[])?.length > 0 && (
+                      <>
+                        <span className="text-muted opacity-50"> · In collaboration with </span>
+                        {(project.collaborators as any[]).map((c: any, i: number, arr: any[]) => {
+                          const name = typeof c === 'object' ? c.name : c
+                          const linkedin = typeof c === 'object' ? c.linkedIn : null
+                          const separator = i === 0 ? '' : i === arr.length - 1 ? ' and ' : ', '
+                          return (
+                            <span key={i}>
+                              {separator && <span className="text-muted opacity-50">{separator}</span>}
+                              {linkedin ? <a href={linkedin} target="_blank" rel="noopener noreferrer" className="text-muted opacity-55 hover:opacity-100 hover:underline underline-offset-[3px] transition-all">{name}</a> : <span className="text-muted opacity-50">{name}</span>}
+                            </span>
+                          )
+                        })}
+                      </>
+                    )}
+                  </p>
                 )}
               </div>
 

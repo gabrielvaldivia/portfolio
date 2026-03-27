@@ -154,15 +154,23 @@ export async function POST(req: Request) {
     ]
   }
 
-  // Fallback if loop exhausted
+  // Fallback: try once more without tools
+  const fallbackResponse = await anthropic.messages.create({
+    model: modelId,
+    max_tokens: 1024,
+    system: systemPrompt,
+    messages: currentMessages,
+  })
+
+  const fallbackText = fallbackResponse.content
+    .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+    .map((b) => b.text)
+    .join('')
+
   const encoder = new TextEncoder()
   const readable = new ReadableStream({
     start(controller) {
-      controller.enqueue(
-        encoder.encode(
-          `data: ${JSON.stringify({ text: "Let me get back to you on that — feel free to email me at gabe@valdivia.works." })}\n\n`,
-        ),
-      )
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: fallbackText || "Feel free to email me at gabe@valdivia.works and I'll get back to you." })}\n\n`))
       controller.enqueue(encoder.encode('data: [DONE]\n\n'))
       controller.close()
     },

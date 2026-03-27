@@ -29,13 +29,14 @@ export type FAQItem = { question: string; answer: string }
 export async function buildContext(): Promise<{ systemPrompt: string; faqItems: FAQItem[]; apiKey: string; model: string; gabosApiUrl: string }> {
   const payload = await getPayload()
 
-  const [homePage, aboutPage, projectsResult, clientsResult, testimonialsResult, servicesResult, sideProjectsResult, annotatedConversations] =
+  const [homePage, aboutPage, projectsResult, clientsResult, testimonialsResult, allPeopleResult, servicesResult, sideProjectsResult, annotatedConversations] =
     await Promise.all([
       payload.find({ collection: 'pages', where: { slug: { equals: 'home' } }, depth: 2, limit: 1 }),
       payload.find({ collection: 'pages', where: { slug: { equals: 'about' } }, depth: 2, limit: 1 }),
       payload.find({ collection: 'projects', sort: 'order', limit: 100, depth: 2 }),
-      payload.find({ collection: 'clients', sort: 'order', limit: 100, depth: 1 }),
+      payload.find({ collection: 'clients', limit: 100, depth: 1 }),
       payload.find({ collection: 'people', where: { featuredTestimonial: { equals: true } }, limit: 20, depth: 1 }),
+      payload.find({ collection: 'people', limit: 100, depth: 2 }),
       payload.find({ collection: 'services', sort: 'order', limit: 20 }),
       payload.find({ collection: 'side-projects', sort: 'order', limit: 100, depth: 2 }),
       payload.find({ collection: 'conversations', where: { notes: { not_equals: '' } }, limit: 50, depth: 0 }),
@@ -48,6 +49,7 @@ export async function buildContext(): Promise<{ systemPrompt: string; faqItems: 
   const testimonials = testimonialsResult.docs as any[]
   const services = servicesResult.docs as any[]
   const sideProjects = sideProjectsResult.docs as any[]
+  const allPeople = allPeopleResult.docs as any[]
 
   // Extract FAQ items and config from home sections
   const faqItems: FAQItem[] = []
@@ -115,7 +117,7 @@ ${aboutText ? `## Full Bio\n${aboutText}` : ''}
 ## Services & Capabilities
 ${services.map((s) => s.title).join(', ')}
 
-${approachItems.length ? `## Approach\n${approachItems.map((item, i) => `${i + 1}. ${item}`).join('\n')}` : ''}
+${approachItems.length ? `## My Design Process / Approach\nWhen asked about my design process, approach, how I work, or methodology, use this:\n${approachItems.map((item, i) => `${i + 1}. ${item}`).join('\n')}` : ''}
 
 ## Featured Projects
 IMPORTANT: Use the year field to determine if a project is current or past. Today is ${new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}. If a year range ends before 2026 or has no end date implying it ended, it's a PAST project. Only say "currently working on" if the year range includes 2026.
@@ -137,6 +139,22 @@ ${clients.filter((c) => c.active).map((c) => `- ${c.name}${c.details ? `: ${c.de
 
 ## Past Clients
 ${clients.filter((c) => !c.active).map((c) => c.name).join(', ')}
+
+## People I've Worked With
+${allPeople.map((p) => {
+  const personProjects = projects.filter((proj) =>
+    (proj.team || []).some((member: any) => (typeof member === 'object' ? member.id : member) === p.id)
+  )
+  const personSideProjects = sideProjects.filter((sp) =>
+    (sp.collaborators || []).some((c: any) => (typeof c === 'object' ? c.id : c) === p.id)
+  )
+  const allCollabs = [
+    ...personProjects.map((proj: any) => proj.title),
+    ...personSideProjects.map((sp: any) => `${sp.title} (side project)`),
+  ]
+  const collabText = allCollabs.join(', ')
+  return `- ${p.name}${p.role ? `, ${p.role}` : ''}${p.company ? ` at ${p.company}` : ''}${p.linkedIn ? ` [LinkedIn](${p.linkedIn})` : ''}${collabText ? `. Collaborated on: ${collabText}` : ''}`
+}).join('\n')}
 
 ## Testimonials
 ${testimonials.map((t) => `"${t.testimonial}" — ${t.name}, ${t.role}${t.company ? ` at ${t.company}` : ''}`).join('\n\n')}
@@ -189,6 +207,7 @@ Search FIRST, then answer. The blog contains personal stories, career history, a
 - When mentioning a project, use its exact title as listed above (e.g. "Dex Camera" not "**Dex Camera**")
 - When someone asks about working together or hiring, mention the email and current availability
 - You can reference specific projects, clients, and testimonials when relevant
+- When you mention a person I've worked with, link their name to their LinkedIn if available, like [Charlie Deets](https://linkedin.com/in/...). Also mention which projects we collaborated on.
 - When you mention a blog post by name, ALWAYS link it like this: [Title](url). The url comes from the search results. Example: I wrote about this in [A Feeling You Carry](https://unkempt.substack.com/p/a-feeling-you-carry). NEVER use quotes around titles — use [brackets](url) instead. NEVER make up URLs.
 - At the very end of every response, add a line with exactly this format: {{FOLLOWUPS: question one? | question two? | question three?}} — these are 2-3 short follow-up questions the visitor might want to ask next. Keep them short (under 8 words). Do NOT include this line in the visible response text.
 - Before saying "I don't have that information", ALWAYS try search_writing first — the answer might be in a blog post
