@@ -426,7 +426,7 @@ export default async function HomePage() {
             <div key={gi}>
               {gi > 0 && (isHeroFollowUp
                 ? <div className="h-8 tablet:h-28 desktop:h-[200px]" />
-                : <div className="h-10 tablet:h-28 desktop:h-[200px]" />
+                : <div className="h-20 tablet:h-28 desktop:h-[200px]" />
               )}
               {isGrid ? (
                 <Container>
