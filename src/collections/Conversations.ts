@@ -19,5 +19,12 @@ export const Conversations: CollectionConfig = {
       name: 'messages',
       type: 'json',
     },
+    {
+      name: 'notes',
+      type: 'textarea',
+      admin: {
+        description: 'Your answer or notes about this conversation. This will be used as context for future chats when similar questions are asked.',
+      },
+    },
   ],
 }

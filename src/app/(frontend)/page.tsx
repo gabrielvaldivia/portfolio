@@ -320,14 +320,14 @@ export default async function HomePage() {
             {isFullWidth ? (
               <div className="flex flex-col tablet:grid tablet:grid-cols-6 gap-5 tablet:gap-10 h-full">
                 {block.title && <div className="tablet:col-span-2 flex items-start"><h3>{block.title}</h3></div>}
-                <div className="tablet:col-span-4 bg-background-alt rounded-[20px] tablet:rounded-[30px] p-5 tablet:p-8 h-[80dvh] tablet:h-full tablet:min-h-[400px]">
+                <div className="tablet:col-span-4 bg-background-alt rounded-[20px] tablet:rounded-[30px] p-5 tablet:p-8 h-[80dvh] tablet:h-full tablet:min-h-[400px] overflow-hidden">
                   <Chat faqItems={faqItems} avatarUrl={aboutImage} projects={projectLinks} socialLinks={socialLinks} />
                 </div>
               </div>
             ) : (
               <div className="flex flex-col h-full">
                 {block.title && <h3 className="pb-5 tablet:pb-10">{block.title}</h3>}
-                <div className="bg-background-alt rounded-[20px] tablet:rounded-[30px] p-5 tablet:p-8 flex-1 min-h-0">
+                <div className="bg-background-alt rounded-[20px] tablet:rounded-[30px] p-5 tablet:p-8 flex-1 min-h-0 overflow-hidden">
                   <Chat faqItems={faqItems} avatarUrl={aboutImage} projects={projectLinks} socialLinks={socialLinks} />
                 </div>
               </div>

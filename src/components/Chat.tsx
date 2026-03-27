@@ -146,11 +146,8 @@ function AssistantMessage({
         {visible.map((text, pi) => (
           <div
             key={pi}
-            className="w-fit px-4 py-2.5 text-body rounded-[23px] bg-background dark:bg-white/10 text-content"
-            style={{
-              textWrap: 'pretty',
-              ...(animate ? { animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both' } : {}),
-            } as React.CSSProperties}
+            className="w-fit px-4 py-2.5 text-body rounded-[23px] bg-background dark:bg-white/10 text-content chat-bubble"
+            style={animate ? { animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both' } : undefined}
           >
             {text ? (
               linkify(text, projects)
@@ -211,10 +208,7 @@ export function Chat({
   projects?: ProjectLink[]
   socialLinks?: SocialLink[]
 }) {
-  const [messages, setMessages] = useState<Message[]>(() => {
-    if (typeof window !== 'undefined' && sessionStorage.getItem('conversationId')) return []
-    return [{ role: 'assistant', content: GREETINGS[0] }]
-  })
+  const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', content: GREETINGS[0] }])
   const [showLinks, setShowLinks] = useState(false)
   const [inputFocused, setInputFocused] = useState(false)
   const [iconsCollapsed, setIconsCollapsed] = useState(false)
@@ -227,9 +221,12 @@ export function Chat({
   const linksRef = useRef<HTMLDivElement>(null)
   const hasRandomized = useRef(false)
   const locationRef = useRef('')
+  const notifyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hasNotified = useRef(false)
 
   useEffect(() => {
-    if (!hasRandomized.current && !sessionStorage.getItem('conversationId')) {
+    const savedId = sessionStorage.getItem('conversationId')
+    if (!hasRandomized.current && !savedId) {
       hasRandomized.current = true
       const random = GREETINGS[Math.floor(Math.random() * GREETINGS.length)]
       setMessages([{ role: 'assistant', content: random }])
@@ -242,7 +239,6 @@ export function Chat({
       })
       .catch(() => {})
     // Restore conversation from session
-    const savedId = sessionStorage.getItem('conversationId')
     if (savedId) {
       setAnimateBubbles(false)
       fetch(`/chat/conversations/${savedId}`)
@@ -301,6 +297,8 @@ export function Chat({
   async function sendMessage(text: string) {
     if (!text.trim() || isStreaming) return
     userScrolledUp.current = false
+    hasNotified.current = false
+    if (notifyTimer.current) clearTimeout(notifyTimer.current)
 
     const userMessage: Message = { role: 'user', content: text.trim() }
     const newMessages = [...messages, userMessage]
@@ -387,6 +385,27 @@ export function Chat({
         })
         .catch(() => {})
     }
+
+    // Schedule email notification 1 min after last response
+    if (!isStreaming && messages.some((m) => m.role === 'user')) {
+      if (notifyTimer.current) clearTimeout(notifyTimer.current)
+      hasNotified.current = false
+      notifyTimer.current = setTimeout(() => {
+        if (hasNotified.current) return
+        hasNotified.current = true
+        const id = conversationId
+        if (!id) return
+        fetch('/chat/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            conversationId: id,
+            title: formatDate(new Date()) + (locationRef.current ? ` · ${locationRef.current}` : ''),
+            messages,
+          }),
+        }).catch(() => {})
+      }, 60000)
+    }
   }, [isStreaming])
 
   function loadConversations() {
@@ -435,16 +454,19 @@ export function Chat({
 
       {/* Sidebar */}
       <div
-        className={`absolute inset-0 z-30 flex transition-opacity duration-200 ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        className={`absolute -inset-5 tablet:-inset-8 z-30 transition-opacity duration-200 ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
       >
+        {/* Overlay */}
+        <div className={`absolute inset-0 transition-colors duration-300 ${sidebarOpen ? 'bg-black/50' : ''}`} onClick={() => setSidebarOpen(false)} />
+        {/* Sidebar */}
         <div
-          className={`w-[280px] bg-background rounded-[20px] border border-border p-4 flex flex-col h-full transition-transform duration-300 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+          className={`relative w-[320px] bg-background dark:bg-[#2a2a2a] rounded-[20px] p-4 m-2 flex flex-col h-[calc(100%-16px)] transition-transform duration-300 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
         >
-          <div className="flex items-center justify-between pb-4">
-            <span className="text-caption text-muted">Conversations</span>
+          <div className="flex items-center justify-between pt-1 pb-4 px-3">
+            <span className="text-body font-medium text-content">Conversations</span>
             <button
               onClick={startNewConversation}
-              className="text-caption text-muted hover:text-content transition-colors cursor-pointer"
+              className="text-[15px] text-muted hover:text-content transition-colors cursor-pointer"
             >
               New
             </button>
@@ -458,10 +480,10 @@ export function Chat({
                   conv.id === conversationId ? 'bg-black/5 dark:bg-white/5' : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.02]'
                 }`}
               >
-                <div className="text-caption text-content truncate">
-                  {conv.title}{conv.location ? ` · ${conv.location}` : ''}
+                <div className="text-[13px] text-muted truncate">
+                  {conv.title}
                 </div>
-                <div className="text-caption text-muted truncate mt-0.5">
+                <div className="text-[16px] text-content truncate mt-0.5">
                   {conv.messages?.find((m: Message) => m.role === 'user')?.content || 'No messages'}
                 </div>
               </button>
@@ -471,7 +493,6 @@ export function Chat({
             )}
           </div>
         </div>
-        <div className="flex-1" onClick={() => setSidebarOpen(false)} />
       </div>
 
       {/* Messages */}
@@ -490,8 +511,7 @@ export function Chat({
                   style={animateBubbles ? { animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both' } : undefined}
                 >
                   <div
-                    className="w-fit max-w-[85%] px-4 py-2.5 text-body rounded-[23px] bg-blue-500 text-white"
-                    style={{ textWrap: 'pretty' } as React.CSSProperties}
+                    className="w-fit max-w-[85%] px-4 py-2.5 text-body rounded-[23px] bg-blue-500 text-white chat-bubble"
                   >
                     {msg.content}
                   </div>
