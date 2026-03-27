@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   const lastUserMessage = userMessages[userMessages.length - 1]?.content || ''
   const preview = messages
     .slice(-6)
-    .map((m: any) => `${m.role === 'user' ? '→' : '←'} ${m.content}`)
+    .map((m: any) => `${m.role === 'user' ? '→' : '←'} ${m.content.replace(/\{\{FOLLOWUPS:.*?\}\}/g, '').trim()}`)
     .join('\n\n')
 
   try {
