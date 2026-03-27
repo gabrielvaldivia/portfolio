@@ -9,7 +9,7 @@ export function Footer({ copyright }: { copyright?: string }) {
   const [flipped, setFlipped] = useState(false)
 
   return (
-    <footer className="py-10 pb-24 tablet:py-20">
+    <footer className="pb-24 tablet:pb-20">
       <Container>
         <p
           className="text-muted text-sm font-mono uppercase tracking-[-0.03em] text-center cursor-pointer select-none"

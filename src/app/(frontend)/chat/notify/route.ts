@@ -17,7 +17,7 @@ export async function POST(req: Request) {
 
   try {
     await resend.emails.send({
-      from: 'Portfolio Chat <chat@valdivia.works>',
+      from: 'Portfolio Chat <onboarding@resend.dev>',
       to: 'gabe@valdivia.works',
       subject: `New chat: "${lastUserMessage.slice(0, 60)}${lastUserMessage.length > 60 ? '...' : ''}"`,
       text: `New conversation on your portfolio${title ? ` (${title})` : ''}.\n\nRecent messages:\n\n${preview}\n\n—\nView in admin: ${process.env.NEXT_PUBLIC_SERVER_URL || 'https://gabrielvaldivia.com'}/admin/collections/conversations/${conversationId}`,

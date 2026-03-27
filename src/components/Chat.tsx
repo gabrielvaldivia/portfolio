@@ -107,12 +107,14 @@ function linkify(text: string, projects: ProjectLink[]): React.ReactNode[] {
 function AssistantMessage({
   paragraphs,
   avatarUrl,
+  avatarUrlDark,
   topMargin,
   projects,
   animate = true,
 }: {
   paragraphs: string[]
   avatarUrl?: string
+  avatarUrlDark?: string
   topMargin: string
   projects: ProjectLink[]
   animate?: boolean
@@ -136,11 +138,10 @@ function AssistantMessage({
   return (
     <div className={`flex items-end gap-2 ${topMargin}`}>
       {avatarUrl && (
-        <img
-          src={avatarUrl}
-          alt=""
-          className="w-[42px] tablet:w-[45px] desktop:w-[48px] h-[42px] tablet:h-[45px] desktop:h-[48px] rounded-full object-cover shrink-0"
-        />
+        <div className="!hidden tablet:!block w-[45px] desktop:w-[48px] h-[45px] desktop:h-[48px] rounded-full shrink-0 relative overflow-hidden">
+          <img src={avatarUrl} alt="" className={`absolute inset-0 w-full h-full object-cover ${avatarUrlDark ? 'light-only' : ''}`} />
+          {avatarUrlDark && <img src={avatarUrlDark} alt="" className="absolute inset-0 w-full h-full object-cover dark-only" />}
+        </div>
       )}
       <div className="flex flex-col gap-1 max-w-[85%]">
         {visible.map((text, pi) => (
@@ -152,7 +153,7 @@ function AssistantMessage({
             {text ? (
               linkify(text, projects)
             ) : (
-              <span className="inline-flex gap-1 py-1">
+              <span className="inline-flex items-center gap-1 py-1">
                 <span className="w-1.5 h-1.5 bg-current opacity-40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                 <span className="w-1.5 h-1.5 bg-current opacity-40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                 <span className="w-1.5 h-1.5 bg-current opacity-40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
@@ -200,11 +201,13 @@ function HamburgerIcon() {
 export function Chat({
   faqItems,
   avatarUrl,
+  avatarUrlDark,
   projects = [],
   socialLinks = [],
 }: {
   faqItems: FAQItem[]
   avatarUrl?: string
+  avatarUrlDark?: string
   projects?: ProjectLink[]
   socialLinks?: SocialLink[]
 }) {
@@ -289,10 +292,19 @@ export function Chat({
   }, [])
 
   useEffect(() => {
-    if (!userScrolledUp.current) {
-      scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight })
-    }
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages])
+
+  // Also scroll when AssistantMessage reveals new paragraphs
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const observer = new MutationObserver(() => {
+      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+    })
+    observer.observe(el, { childList: true, subtree: true })
+    return () => observer.disconnect()
+  }, [])
 
   async function sendMessage(text: string) {
     if (!text.trim() || isStreaming) return
@@ -447,7 +459,7 @@ export function Chat({
       {/* Hamburger */}
       <button
         onClick={() => { setSidebarOpen(true); loadConversations() }}
-        className={`absolute top-1 left-0 z-20 w-10 h-10 flex items-center justify-center rounded-full text-muted hover:text-content transition-all duration-200 cursor-pointer ${hasScrolled ? 'bg-background/60 dark:bg-white/10 backdrop-blur-xl' : ''}`}
+        className={`absolute top-1 left-0 z-20 w-10 h-10 flex items-center justify-center rounded-full text-muted hover:text-content transition-all duration-200 cursor-pointer ${hasScrolled ? 'tablet:bg-background/60 tablet:dark:bg-white/10 tablet:backdrop-blur-xl' : ''}`}
       >
         <HamburgerIcon />
       </button>
@@ -457,7 +469,7 @@ export function Chat({
         className={`absolute -inset-5 tablet:-inset-8 z-30 transition-opacity duration-200 ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
       >
         {/* Overlay */}
-        <div className={`absolute inset-0 transition-colors duration-300 ${sidebarOpen ? 'bg-black/50' : ''}`} onClick={() => setSidebarOpen(false)} />
+        <div className={`absolute inset-0 transition-colors duration-300 ${sidebarOpen ? 'bg-black/20' : ''}`} onClick={() => setSidebarOpen(false)} />
         {/* Sidebar */}
         <div
           className={`relative w-[320px] bg-background dark:bg-[#2a2a2a] rounded-[20px] p-4 m-2 flex flex-col h-[calc(100%-16px)] transition-transform duration-300 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
@@ -495,8 +507,18 @@ export function Chat({
         </div>
       </div>
 
+      {/* Mobile avatar header */}
+      {avatarUrl && (
+        <div className="tablet:!hidden flex justify-center pt-2 pb-1">
+          <div className="w-10 h-10 rounded-full relative overflow-hidden">
+            <img src={avatarUrl} alt="" className={`absolute inset-0 w-full h-full object-cover ${avatarUrlDark ? 'light-only' : ''}`} />
+            {avatarUrlDark && <img src={avatarUrlDark} alt="" className="absolute inset-0 w-full h-full object-cover dark-only" />}
+          </div>
+        </div>
+      )}
+
       {/* Messages */}
-      <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-1 py-4 pt-14 scrollbar-hide" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 16px, black)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 16px, black)' }}>
+      <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-1 py-4 pt-2 tablet:pt-14 scrollbar-hide" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 16px, black)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 16px, black)' }}>
         <div className="flex flex-col">
           {messages.map((msg, i) => {
             const prevRole = i > 0 ? messages[i - 1].role : null
@@ -529,6 +551,7 @@ export function Chat({
                 key={i}
                 paragraphs={paragraphs}
                 avatarUrl={avatarUrl}
+                avatarUrlDark={avatarUrlDark}
                 topMargin={topMargin}
                 projects={projects}
                 animate={animateBubbles}
