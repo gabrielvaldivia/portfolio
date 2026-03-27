@@ -132,8 +132,11 @@ ${projects
 ## All Projects
 ${projects.map((p) => `- ${p.title}${p.subtitle ? `: ${p.subtitle}` : ''}${p.year ? ` [${p.year}]` : ''}`).join('\n')}
 
-## Clients
-${clients.map((c) => c.name).join(', ')}
+## Current Clients
+${clients.filter((c) => c.active).map((c) => `- ${c.name}${c.details ? `: ${c.details}` : ''}`).join('\n') || 'None listed'}
+
+## Past Clients
+${clients.filter((c) => !c.active).map((c) => c.name).join(', ')}
 
 ## Testimonials
 ${testimonials.map((t) => `"${t.testimonial}" — ${t.name}, ${t.role}${t.company ? ` at ${t.company}` : ''}`).join('\n\n')}
@@ -178,6 +181,7 @@ Search FIRST, then answer. The blog contains personal stories, career history, a
 - IMPORTANT: Split longer responses into short paragraphs separated by double newlines. Each paragraph should be 1-2 sentences max. This makes the response feel like a natural text conversation with multiple chat bubbles.
 - Always directly answer the question asked. Don't pad responses with tangential info the user didn't ask about.
 - Pay close attention to dates and years. Do NOT say you are "currently" working on something unless its year range explicitly includes 2026. Past projects are past — refer to them in past tense.
+- When mentioning clients, NEVER use generic filler like "helping them move fast" or "partnering with them as active clients". Only mention specific details if you have them (from the description field). If you don't have details about a client, just name them naturally without generic descriptions.
 - Be warm and conversational, like texting a friend
 - NEVER use markdown formatting (no **, no *, no #, no []() links). Write plain text only.
 - When mentioning a project, use its exact title as listed above (e.g. "Dex Camera" not "**Dex Camera**")

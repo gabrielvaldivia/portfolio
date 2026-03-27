@@ -24,7 +24,7 @@ export async function getProjectBySlug(slug: string) {
 
 export async function getClients() {
   const payload = await getPayload()
-  return payload.find({ collection: 'clients', sort: 'order', limit: 100, depth: 1 })
+  return payload.find({ collection: 'clients', limit: 100, depth: 1 })
 }
 
 export async function getSideProjects() {

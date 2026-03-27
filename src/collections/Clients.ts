@@ -6,7 +6,7 @@ export const Clients: CollectionConfig = {
     pagination: { defaultLimit: 100 },
     group: 'Work',
     useAsTitle: 'name',
-    defaultColumns: ['name', 'website', 'order'],
+    defaultColumns: ['name', 'active', 'website'],
   },
   access: {
     read: () => true,
@@ -14,33 +14,23 @@ export const Clients: CollectionConfig = {
   fields: [
     { name: 'name', type: 'text', required: true },
     { name: 'logo', type: 'upload', relationTo: 'media' },
-    {
-      name: 'linkType',
-      type: 'select',
-      defaultValue: 'external',
-      options: [
-        { label: 'External URL', value: 'external' },
-        { label: 'Internal Page', value: 'internal' },
-      ],
-    },
-    {
-      name: 'website',
-      type: 'text',
-      admin: { condition: (_: any, siblingData: any) => siblingData?.linkType === 'external' },
-    },
-    {
-      name: 'page',
-      type: 'relationship',
-      relationTo: ['pages', 'projects'],
-      admin: { condition: (_: any, siblingData: any) => siblingData?.linkType === 'internal' },
-    },
+    { name: 'website', type: 'text' },
     { name: 'description', type: 'textarea' },
-    { name: 'order', type: 'number', defaultValue: 0 },
+    { name: 'details', type: 'textarea', admin: { description: 'Longer description used as context for the AI chat. Not shown on the site.' } },
+    { name: 'active', type: 'checkbox', defaultValue: false, label: 'Active Client' },
     {
-      name: 'projects',
-      type: 'join',
-      collection: 'projects',
-      on: 'client',
+      type: 'collapsible',
+      label: 'Projects',
+      admin: { initCollapsed: false },
+      fields: [
+        {
+          name: 'projects',
+          label: ' ',
+          type: 'join',
+          collection: 'projects',
+          on: 'client',
+        },
+      ],
     },
   ],
 }
