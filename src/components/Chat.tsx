@@ -23,6 +23,11 @@ type SocialLink = {
   url: string
 }
 
+type BlogPost = {
+  title: string
+  url: string | null
+}
+
 function stripMarkdown(text: string): string {
   return text
     .replace(/\*\*(.+?)\*\*/g, '$1')
@@ -33,7 +38,7 @@ function stripMarkdown(text: string): string {
 
 const linkStyle = { textDecoration: 'underline', textUnderlineOffset: '3px' }
 
-function linkify(text: string, projects: ProjectLink[]): React.ReactNode[] {
+function linkify(text: string, projects: ProjectLink[], blogPosts: BlogPost[] = []): React.ReactNode[] {
   text = stripMarkdown(text)
 
   const sortedProjects = [...projects].sort((a, b) => b.title.length - a.title.length)
@@ -64,9 +69,19 @@ function linkify(text: string, projects: ProjectLink[]): React.ReactNode[] {
     // Markdown link [text](url)
     const mdMatch = matched.match(/^\[([^\]]+)\]\((https?:\/\/[^)]+)\)$/)
     if (mdMatch) {
+      const linkTitle = mdMatch[1]
+      let linkUrl = mdMatch[2]
+      // ALWAYS use URL from blog index — never trust the model's URL
+      const titleLower = linkTitle.toLowerCase().replace(/[^a-z0-9\s]/g, '')
+      const blogMatch = blogPosts.find((b) => {
+        if (!b.url) return false
+        const bt = b.title.toLowerCase().replace(/[^a-z0-9\s]/g, '')
+        return bt === titleLower || bt.includes(titleLower) || titleLower.includes(bt)
+      })
+      if (blogMatch?.url) linkUrl = blogMatch.url
       parts.push(
-        <a key={key++} href={mdMatch[2]} target="_blank" rel="noopener noreferrer" style={linkStyle}>
-          {mdMatch[1]}
+        <a key={key++} href={linkUrl} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+          {linkTitle}
         </a>,
       )
     } else if (/^https?:\/\//.test(matched)) {
@@ -110,6 +125,7 @@ function AssistantMessage({
   avatarUrlDark,
   topMargin,
   projects,
+  blogPosts = [],
   animate = true,
 }: {
   paragraphs: string[]
@@ -117,6 +133,7 @@ function AssistantMessage({
   avatarUrlDark?: string
   topMargin: string
   projects: ProjectLink[]
+  blogPosts?: BlogPost[]
   animate?: boolean
 }) {
   const [visibleCount, setVisibleCount] = useState(animate ? 1 : paragraphs.length)
@@ -136,7 +153,7 @@ function AssistantMessage({
   const visible = paragraphs.slice(0, visibleCount)
 
   return (
-    <div className={`flex items-end gap-2 ${topMargin}`}>
+    <div className={`flex items-end gap-3 ${topMargin}`}>
       {avatarUrl && (
         <div className="!hidden tablet:!block w-[45px] desktop:w-[48px] h-[45px] desktop:h-[48px] rounded-full shrink-0 relative overflow-hidden">
           <img src={avatarUrl} alt="" className={`absolute inset-0 w-full h-full object-cover ${avatarUrlDark ? 'light-only' : ''}`} />
@@ -151,7 +168,7 @@ function AssistantMessage({
             style={animate ? { animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both' } : undefined}
           >
             {text ? (
-              linkify(text, projects)
+              linkify(text, projects, blogPosts)
             ) : (
               <span className="inline-flex items-center gap-1 py-1">
                 <span className="w-1.5 h-1.5 bg-current opacity-40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -224,6 +241,7 @@ export function Chat({
   const linksRef = useRef<HTMLDivElement>(null)
   const hasRandomized = useRef(false)
   const locationRef = useRef('')
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
   const notifyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hasNotified = useRef(false)
 
@@ -240,6 +258,11 @@ export function Chat({
       .then((data) => {
         if (data.location) locationRef.current = data.location
       })
+      .catch(() => {})
+    // Fetch blog index for URL correction
+    fetch('https://gabos.vercel.app/api/search?q=')
+      .then((r) => r.json())
+      .then((posts) => setBlogPosts(posts))
       .catch(() => {})
     // Restore conversation from session
     if (savedId) {
@@ -454,6 +477,16 @@ export function Chat({
 
   const showSuggestions = messages.length === 1 && messages[0].role === 'assistant'
 
+  // Extract follow-up questions from the last assistant message
+  const followUps: string[] = (() => {
+    if (isStreaming) return []
+    const lastMsg = [...messages].reverse().find((m) => m.role === 'assistant')
+    if (!lastMsg?.content) return []
+    const match = lastMsg.content.match(/\{\{FOLLOWUPS:\s*(.+?)\}\}/)
+    if (!match) return []
+    return match[1].split('|').map((q) => q.trim()).filter(Boolean)
+  })()
+
   return (
     <div className="flex flex-col h-full relative">
       {/* Hamburger */}
@@ -543,7 +576,7 @@ export function Chat({
 
             // Assistant: split into paragraphs, reveal with delay
             const paragraphs = msg.content
-              ? msg.content.split(/\n\n+/).filter(Boolean)
+              ? msg.content.replace(/\{\{FOLLOWUPS:.*?\}\}/g, '').split(/\n\n+/).filter(Boolean)
               : ['']
 
             return (
@@ -554,6 +587,7 @@ export function Chat({
                 avatarUrlDark={avatarUrlDark}
                 topMargin={topMargin}
                 projects={projects}
+                blogPosts={blogPosts}
                 animate={animateBubbles}
               />
             )
@@ -578,11 +612,28 @@ export function Chat({
         </div>
       )}
 
+      {/* Follow-up pills */}
+      {!showSuggestions && followUps.length > 0 && (
+        <div className="px-1 pb-3 overflow-x-auto scrollbar-hide" style={{ maskImage: 'linear-gradient(to right, black 85%, transparent)', WebkitMaskImage: 'linear-gradient(to right, black 85%, transparent)', animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
+          <div className="flex gap-2 w-max">
+            {followUps.map((q, i) => (
+              <button
+                key={i}
+                onClick={() => sendMessage(q)}
+                className="shrink-0 px-3 py-1.5 text-caption tablet:px-4 tablet:py-2.5 tablet:text-body text-black/45 dark:text-white/45 rounded-full hover:text-content transition-colors whitespace-nowrap cursor-pointer border border-dashed border-black/15 dark:border-white/15"
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Input */}
-      <form onSubmit={handleSubmit} className="flex items-end gap-2 pt-2">
+      <form onSubmit={handleSubmit} className="flex items-end gap-3 pt-2">
         {socialLinks.length > 0 && (
           <div ref={linksRef} className="relative shrink-0 flex items-end">
-            <div className={`flex gap-2 items-end transition-all duration-300 ease-in-out ${iconsCollapsed ? 'overflow-hidden' : ''}`}
+            <div className={`flex items-end transition-all duration-300 ease-in-out ${iconsCollapsed ? 'overflow-hidden' : 'gap-2'}`}
               style={shouldCollapse ? { width: '42px' } : undefined}
             >
               {/* Plus button — always in DOM, overlays first icon position */}
