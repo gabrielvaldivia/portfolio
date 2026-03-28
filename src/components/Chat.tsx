@@ -666,7 +666,7 @@ export function Chat({
               New
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto space-y-1">
+          <div className="flex-1 overflow-y-auto space-y-1" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 16px, black calc(100% - 16px), transparent)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 16px, black calc(100% - 16px), transparent)' }}>
             {conversations.map((conv) => (
               <button
                 key={conv.id}
