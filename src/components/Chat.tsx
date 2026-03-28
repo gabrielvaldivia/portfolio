@@ -722,7 +722,7 @@ export function Chat({
       )}
 
       {/* Messages */}
-      <div ref={scrollRef} onScroll={handleScroll} className={`flex-1 overflow-y-auto px-1 py-4 pt-2 tablet:pt-14 scrollbar-hide ${fullPage ? 'pt-10' : ''}`} style={{ maskImage: 'linear-gradient(to bottom, transparent, black 16px, black)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 16px, black)' }}>
+      <div ref={scrollRef} onScroll={handleScroll} className={`flex-1 overflow-y-auto px-1 py-4 pt-2 tablet:pt-14 scrollbar-hide ${fullPage ? 'pt-10' : ''}`} style={{ maskImage: fullPage ? 'linear-gradient(to bottom, transparent, black 48px, black)' : 'linear-gradient(to bottom, transparent, black 16px, black)', WebkitMaskImage: fullPage ? 'linear-gradient(to bottom, transparent, black 48px, black)' : 'linear-gradient(to bottom, transparent, black 16px, black)' }}>
         <div className={`flex flex-col ${fullPage ? 'max-w-[720px] mx-auto' : ''}`}>
           {messages.map((msg, i) => {
             const prevRole = i > 0 ? messages[i - 1].role : null
@@ -915,7 +915,7 @@ export function Chat({
   return (
     <div className="flex h-full tablet:p-5 tablet:gap-5">
       {/* Desktop persistent sidebar */}
-      <div className="hidden tablet:flex flex-col w-[320px] shrink-0 bg-background-alt rounded-[20px] tablet:rounded-[30px]">
+      <div className="hidden tablet:flex flex-col w-[320px] shrink-0 rounded-[20px] tablet:rounded-[30px]">
         <div className="flex items-center justify-between pt-5 pb-4 px-7">
           <span className="text-body font-medium text-content">Conversations</span>
           <button
