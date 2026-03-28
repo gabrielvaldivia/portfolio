@@ -340,6 +340,7 @@ export function Chat({
   const [iconsCollapsed, setIconsCollapsed] = useState(false)
   const [isMultiline, setIsMultiline] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
   const [hasScrolled, setHasScrolled] = useState(false)
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [conversationId, setConversationId] = useState<number | null>(null)
@@ -352,7 +353,10 @@ export function Chat({
   const hasNotified = useRef(false)
 
   useEffect(() => {
-    const savedId = sessionStorage.getItem('conversationId')
+    // Check for ?chat= URL param first
+    const urlParams = new URLSearchParams(window.location.search)
+    const chatParam = urlParams.get('chat')
+    const savedId = chatParam || sessionStorage.getItem('conversationId')
     if (!hasRandomized.current && !savedId) {
       hasRandomized.current = true
       const random = GREETINGS[Math.floor(Math.random() * GREETINGS.length)]
@@ -377,8 +381,45 @@ export function Chat({
         .then((r) => r.json())
         .then((doc) => {
           if (doc.messages?.length) {
-            setMessages(doc.messages)
-            setConversationId(doc.id)
+            const lastMsg = doc.messages[doc.messages.length - 1]
+            if (lastMsg.role === 'assistant' && !lastMsg.content) {
+              // Retry the failed response
+              const withoutEmpty = doc.messages.filter((m: Message) => m.content)
+              setMessages([...withoutEmpty, { role: 'assistant', content: '' }])
+              setConversationId(doc.id)
+              setIsStreaming(true)
+              setTimeout(() => setAnimateBubbles(true), 100)
+              fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages: withoutEmpty }),
+              }).then(async (res) => {
+                const reader = res.body?.getReader()
+                const decoder = new TextDecoder()
+                let accumulated = ''
+                while (reader) {
+                  const { done, value } = await reader.read()
+                  if (done) break
+                  const chunk = decoder.decode(value)
+                  for (const line of chunk.split('\n')) {
+                    if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                      try {
+                        accumulated += JSON.parse(line.slice(6)).text
+                        setMessages((prev) => {
+                          const updated = [...prev]
+                          updated[updated.length - 1] = { role: 'assistant', content: accumulated }
+                          return updated
+                        })
+                      } catch {}
+                    }
+                  }
+                }
+                setIsStreaming(false)
+              }).catch(() => setIsStreaming(false))
+            } else {
+              setMessages(doc.messages)
+              setConversationId(doc.id)
+            }
           }
           setTimeout(() => setAnimateBubbles(true), 100)
         })
@@ -607,6 +648,30 @@ export function Chat({
         <HamburgerIcon />
       </button>
 
+      {/* Share link */}
+      {conversationId && (
+        <button
+          onClick={() => {
+            const url = `${window.location.origin}/?chat=${conversationId}#contact`
+            navigator.clipboard.writeText(url)
+            setCopied(true)
+            setTimeout(() => setCopied(false), 2000)
+          }}
+          className={`absolute top-1 right-0 z-20 w-10 h-10 flex items-center justify-center rounded-full text-muted hover:text-content transition-all duration-200 cursor-pointer ${hasScrolled ? 'tablet:bg-background/60 tablet:dark:bg-white/10 tablet:backdrop-blur-xl' : ''}`}
+        >
+          {copied ? (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+            </svg>
+          )}
+        </button>
+      )}
+
       {/* Sidebar */}
       <div
         className={`absolute -inset-5 tablet:-inset-8 z-30 transition-opacity duration-200 ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
@@ -661,7 +726,7 @@ export function Chat({
       )}
 
       {/* Messages */}
-      <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-1 py-4 pt-2 tablet:pt-14 scrollbar-hide" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 16px, black)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 16px, black)' }}>
+      <div ref={scrollRef} onScroll={handleScroll} className={`flex-1 overflow-y-auto px-1 py-4 pt-2 tablet:pt-14 scrollbar-hide ${hasScrolled ? 'chat-scroll-mask' : ''}`}>
         <div className="flex flex-col">
           {messages.map((msg, i) => {
             const prevRole = i > 0 ? messages[i - 1].role : null

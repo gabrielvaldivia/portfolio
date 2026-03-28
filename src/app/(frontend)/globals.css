@@ -319,6 +319,18 @@ a {
   .chat-bubble { text-wrap: pretty; }
 }
 
+.chat-scroll-mask {
+  mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 12px, rgba(0,0,0,0.5) 30px, black 48px, black);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 12px, rgba(0,0,0,0.5) 30px, black 48px, black);
+}
+
+@media (min-width: 810px) {
+  .chat-scroll-mask {
+    mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 20px, rgba(0,0,0,0.5) 50px, black 80px, black);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 20px, rgba(0,0,0,0.5) 50px, black 80px, black);
+  }
+}
+
 @keyframes fadeScale {
   from { opacity: 0; transform: scale(0.5); }
   to { opacity: 1; transform: scale(1); }
