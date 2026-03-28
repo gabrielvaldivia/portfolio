@@ -190,7 +190,7 @@ export default async function HomePage() {
       case 'aboutSection':
         return (
           <Container key={block.id || i}>
-            <div id="about" className="scroll-mt-32 grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-10 tablet:gap-14 desktop:gap-20">
+            <div id="about" className="scroll-mt-5 tablet:scroll-mt-32 grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-10 tablet:gap-14 desktop:gap-20">
               <div>
                 {block.image && (
                   <div className="rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] overflow-hidden aspect-square tablet:aspect-[3/4] relative after:absolute after:inset-0 after:rounded-[20px] tablet:after:rounded-[30px] desktop:after:rounded-[40px] after:border after:border-border after:z-20 after:pointer-events-none">
@@ -328,7 +328,7 @@ export default async function HomePage() {
       case 'accordion': {
         const isFullWidth = cols === '6'
         return (
-          <Container key={block.id || i} className="h-full scroll-mt-32" id="contact">
+          <Container key={block.id || i} className="h-full scroll-mt-5 tablet:scroll-mt-32" id="contact">
             {isFullWidth ? (
               <div className="flex flex-col tablet:grid tablet:grid-cols-6 gap-5 tablet:gap-10 h-full">
                 {block.title && <div className="tablet:col-span-2 flex items-start"><h3>{block.title}</h3></div>}

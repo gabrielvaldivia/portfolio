@@ -320,8 +320,8 @@ a {
 }
 
 .chat-scroll-mask {
-  mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 12px, rgba(0,0,0,0.5) 30px, black 48px, black);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 12px, rgba(0,0,0,0.5) 30px, black 48px, black);
+  mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 16px, rgba(0,0,0,0.5) 40px, black 60px, black);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 16px, rgba(0,0,0,0.5) 40px, black 60px, black);
 }
 
 @media (min-width: 810px) {
