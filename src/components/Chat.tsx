@@ -703,7 +703,7 @@ export function Chat({
         </div>
       </div>
 
-      {/* Mobile avatar header */}
+      {/* Mobile avatar header — centered in top bar for fullPage */}
       {avatarUrl && !fullPage && (
         <div className="tablet:!hidden flex justify-center pt-2 pb-1">
           <div className="w-8 h-8 rounded-full relative overflow-hidden">
@@ -712,9 +712,17 @@ export function Chat({
           </div>
         </div>
       )}
+      {avatarUrl && fullPage && (
+        <div className="tablet:hidden absolute top-6 left-0 right-0 z-10 flex justify-center pointer-events-none">
+          <div className="w-8 h-8 rounded-full relative overflow-hidden">
+            <img src={avatarUrl} alt="" className={`absolute inset-0 w-full h-full object-cover ${avatarUrlDark ? 'light-only' : ''}`} />
+            {avatarUrlDark && <img src={avatarUrlDark} alt="" className="absolute inset-0 w-full h-full object-cover dark-only" />}
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
-      <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-1 py-4 pt-2 tablet:pt-14 scrollbar-hide" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 16px, black)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 16px, black)' }}>
+      <div ref={scrollRef} onScroll={handleScroll} className={`flex-1 overflow-y-auto px-1 py-4 pt-2 tablet:pt-14 scrollbar-hide ${fullPage ? 'pt-10' : ''}`} style={{ maskImage: 'linear-gradient(to bottom, transparent, black 16px, black)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 16px, black)' }}>
         <div className={`flex flex-col ${fullPage ? 'max-w-[720px] mx-auto' : ''}`}>
           {messages.map((msg, i) => {
             const prevRole = i > 0 ? messages[i - 1].role : null
@@ -905,9 +913,9 @@ export function Chat({
   if (!fullPage) return chatArea
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full tablet:p-5 tablet:gap-5">
       {/* Desktop persistent sidebar */}
-      <div className="hidden tablet:flex flex-col w-[320px] border-r border-border shrink-0">
+      <div className="hidden tablet:flex flex-col w-[320px] shrink-0 bg-background-alt rounded-[20px] tablet:rounded-[30px]">
         <div className="flex items-center justify-between pt-5 pb-4 px-7">
           <span className="text-body font-medium text-content">Conversations</span>
           <button
@@ -941,7 +949,7 @@ export function Chat({
       </div>
 
       {/* Chat area */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 tablet:bg-background-alt tablet:rounded-[20px] tablet:rounded-[30px]">
         {chatArea}
       </div>
     </div>
