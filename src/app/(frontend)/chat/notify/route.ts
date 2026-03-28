@@ -1,27 +1,14 @@
-import { Resend } from 'resend'
+import { sendNotification } from './send'
 
 export async function POST(req: Request) {
-  const resend = new Resend(process.env.RESEND_API_KEY)
   const { conversationId, title, messages } = await req.json()
 
   if (!messages?.length) {
     return Response.json({ error: 'No messages' }, { status: 400 })
   }
 
-  const userMessages = messages.filter((m: any) => m.role === 'user')
-  const lastUserMessage = userMessages[userMessages.length - 1]?.content || ''
-  const preview = messages
-    .slice(-6)
-    .map((m: any) => `${m.role === 'user' ? '→' : '←'} ${m.content.replace(/\{\{FOLLOWUPS:.*?\}\}/g, '').trim()}`)
-    .join('\n\n')
-
   try {
-    await resend.emails.send({
-      from: 'Portfolio Chat <onboarding@resend.dev>',
-      to: 'gabe@valdivia.works',
-      subject: `New chat: "${lastUserMessage.slice(0, 60)}${lastUserMessage.length > 60 ? '...' : ''}"`,
-      text: `New conversation on your portfolio${title ? ` (${title})` : ''}.\n\nRecent messages:\n\n${preview}\n\n—\nView in admin: ${process.env.NEXT_PUBLIC_SERVER_URL || 'https://gabrielvaldivia.com'}/admin/collections/conversations/${conversationId}`,
-    })
+    await sendNotification({ conversationId, title, messages })
     return Response.json({ ok: true })
   } catch (e: any) {
     console.error('Email notification failed:', e.message)

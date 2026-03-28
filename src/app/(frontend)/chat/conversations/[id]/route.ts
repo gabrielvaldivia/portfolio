@@ -1,4 +1,5 @@
 import { getPayload } from '@/lib/payload'
+import { sendNotification } from '../../notify/send'
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -26,6 +27,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       id,
       data: { messages },
     })
+
+    // Send email notification in the background
+    const title = (doc as any).title || ''
+    sendNotification({ conversationId: id, title, messages }).catch(() => {})
+
     return Response.json(doc)
   } catch {
     return Response.json({ error: 'Not found' }, { status: 404 })

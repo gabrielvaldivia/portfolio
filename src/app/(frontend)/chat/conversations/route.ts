@@ -1,4 +1,5 @@
 import { getPayload } from '@/lib/payload'
+import { sendNotification } from '../notify/send'
 
 export async function GET() {
   const payload = await getPayload()
@@ -23,6 +24,9 @@ export async function POST(req: Request) {
     collection: 'conversations',
     data: { title, location: location || '', messages },
   })
+
+  // Send email notification in the background
+  sendNotification({ conversationId: doc.id, title, messages }).catch(() => {})
 
   return Response.json(doc)
 }
