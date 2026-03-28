@@ -349,8 +349,6 @@ export function Chat({
   const hasRandomized = useRef(false)
   const locationRef = useRef('')
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
-  const notifyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const hasNotified = useRef(false)
 
   useEffect(() => {
     // Check for ?chat= URL param first
@@ -479,9 +477,6 @@ export function Chat({
   async function sendMessage(text: string) {
     if (!text.trim() || isStreaming) return
     userScrolledUp.current = false
-    hasNotified.current = false
-    if (notifyTimer.current) clearTimeout(notifyTimer.current)
-
     const userMessage: Message = { role: 'user', content: text.trim() }
     const newMessages = [...messages, userMessage]
     setMessages(newMessages)
@@ -568,26 +563,6 @@ export function Chat({
         .catch(() => {})
     }
 
-    // Schedule email notification 1 min after last response
-    if (!isStreaming && messages.some((m) => m.role === 'user')) {
-      if (notifyTimer.current) clearTimeout(notifyTimer.current)
-      hasNotified.current = false
-      notifyTimer.current = setTimeout(() => {
-        if (hasNotified.current) return
-        hasNotified.current = true
-        const id = conversationId
-        if (!id) return
-        fetch('/chat/notify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            conversationId: id,
-            title: formatDate(new Date()) + (locationRef.current ? ` · ${locationRef.current}` : ''),
-            messages,
-          }),
-        }).catch(() => {})
-      }, 60000)
-    }
   }, [isStreaming])
 
   function loadConversations() {
