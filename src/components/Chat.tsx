@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { SocialIcon } from './Icons'
 
 type Message = {
@@ -315,16 +316,24 @@ function HamburgerIcon() {
   )
 }
 
-export function Chat({
-  faqItems,
-  avatarUrl,
-  avatarUrlDark,
-  projects = [],
-  sideProjects = [],
-  people = [],
-  socialLinks = [],
-  talks = [],
-}: {
+function LinkIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
+  )
+}
+
+function CheckIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 6L9 17l-5-5" />
+    </svg>
+  )
+}
+
+type ChatProps = {
   faqItems: FAQItem[]
   avatarUrl?: string
   avatarUrlDark?: string
@@ -333,7 +342,27 @@ export function Chat({
   people?: PersonLink[]
   socialLinks?: SocialLink[]
   talks?: TalkLink[]
-}) {
+}
+
+export function Chat(props: ChatProps) {
+  return (
+    <Suspense>
+      <ChatInner {...props} />
+    </Suspense>
+  )
+}
+
+function ChatInner({
+  faqItems,
+  avatarUrl,
+  avatarUrlDark,
+  projects = [],
+  sideProjects = [],
+  people = [],
+  socialLinks = [],
+  talks = [],
+}: ChatProps) {
+  const searchParams = useSearchParams()
   const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', content: GREETINGS[0] }])
   const [showLinks, setShowLinks] = useState(false)
   const [inputFocused, setInputFocused] = useState(false)
@@ -344,6 +373,7 @@ export function Chat({
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [conversationId, setConversationId] = useState<number | null>(null)
   const [animateBubbles, setAnimateBubbles] = useState(true)
+  const [linkCopied, setLinkCopied] = useState(false)
   const linksRef = useRef<HTMLDivElement>(null)
   const hasRandomized = useRef(false)
   const locationRef = useRef('')
@@ -352,7 +382,8 @@ export function Chat({
   const hasNotified = useRef(false)
 
   useEffect(() => {
-    const savedId = sessionStorage.getItem('conversationId')
+    const urlConversationId = searchParams.get('conversation')
+    const savedId = urlConversationId || sessionStorage.getItem('conversationId')
     if (!hasRandomized.current && !savedId) {
       hasRandomized.current = true
       const random = GREETINGS[Math.floor(Math.random() * GREETINGS.length)]
@@ -370,7 +401,7 @@ export function Chat({
       .then((r) => r.json())
       .then((posts) => setBlogPosts(posts))
       .catch(() => {})
-    // Restore conversation from session
+    // Restore conversation from URL param or session
     if (savedId) {
       setAnimateBubbles(false)
       fetch(`/chat/conversations/${savedId}`)
@@ -379,6 +410,7 @@ export function Chat({
           if (doc.messages?.length) {
             setMessages(doc.messages)
             setConversationId(doc.id)
+            sessionStorage.setItem('conversationId', String(doc.id))
           }
           setTimeout(() => setAnimateBubbles(true), 100)
         })
@@ -606,6 +638,22 @@ export function Chat({
       >
         <HamburgerIcon />
       </button>
+
+      {/* Copy link */}
+      {conversationId && (
+        <button
+          onClick={() => {
+            const url = `${window.location.origin}/chat/${conversationId}`
+            navigator.clipboard.writeText(url).then(() => {
+              setLinkCopied(true)
+              setTimeout(() => setLinkCopied(false), 2000)
+            })
+          }}
+          className={`absolute top-1 right-0 z-20 w-10 h-10 flex items-center justify-center rounded-full text-muted hover:text-content transition-all duration-200 cursor-pointer ${hasScrolled ? 'tablet:bg-background/60 tablet:dark:bg-white/10 tablet:backdrop-blur-xl' : ''}`}
+        >
+          {linkCopied ? <CheckIcon /> : <LinkIcon />}
+        </button>
+      )}
 
       {/* Sidebar */}
       <div
