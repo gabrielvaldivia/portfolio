@@ -775,24 +775,22 @@ export function Chat({
 
       {/* Suggested pills */}
       {showSuggestions && shuffledFaqs.length > 0 && (
-        <ScrollMask className="px-1 pb-3">
-          <div className="flex gap-2 w-max">
-            {shuffledFaqs.map((faq, i) => (
-              <button
-                key={i}
-                onClick={() => sendMessage(faq.question)}
-                className="shrink-0 px-3 py-1.5 text-caption tablet:px-4 tablet:py-2.5 tablet:text-body text-black/45 dark:text-white/45 rounded-full hover:text-content transition-colors whitespace-nowrap cursor-pointer border border-dashed border-black/15 dark:border-white/15"
-              >
-                {faq.question}
-              </button>
-            ))}
-          </div>
-        </ScrollMask>
+        <div className="px-1 pb-3 flex flex-col gap-2">
+          {shuffledFaqs.slice(0, 4).map((faq, i) => (
+            <button
+              key={i}
+              onClick={() => sendMessage(faq.question)}
+              className="w-fit px-3 py-1.5 text-caption tablet:px-4 tablet:py-2.5 tablet:text-body text-black/45 dark:text-white/45 rounded-full hover:text-content transition-colors cursor-pointer border border-dashed border-black/15 dark:border-white/15"
+            >
+              {faq.question}
+            </button>
+          ))}
+        </div>
       )}
 
       {/* Follow-up pills */}
       {!showSuggestions && followUps.length > 0 && (
-        <ScrollMask className="px-1 pb-3" extraStyle={{ animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
+        <ScrollMask className="px-1 pb-1 tablet:pb-3" extraStyle={{ animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
           <div className="flex gap-2 w-max">
             {followUps.map((q, i) => (
               <button
