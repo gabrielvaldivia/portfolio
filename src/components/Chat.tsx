@@ -655,7 +655,7 @@ export function Chat({
         <div className={`absolute inset-0 transition-colors duration-300 ${sidebarOpen ? 'bg-black/20' : ''}`} onClick={() => setSidebarOpen(false)} />
         {/* Sidebar */}
         <div
-          className={`relative w-[320px] bg-background dark:bg-[#2a2a2a] rounded-[20px] p-4 m-2 flex flex-col h-[calc(100%-16px)] transition-transform duration-300 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+          className={`relative w-[320px] bg-background dark:bg-[#2a2a2a] rounded-[12px] tablet:rounded-[22px] p-4 m-2 flex flex-col h-[calc(100%-16px)] transition-transform duration-300 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
         >
           <div className="flex items-center justify-between pt-1 pb-4 px-3">
             <span className="text-body font-medium text-content">Conversations</span>
