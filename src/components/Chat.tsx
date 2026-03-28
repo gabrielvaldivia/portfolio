@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { SocialIcon } from './Icons'
 
 type Message = {
@@ -342,17 +341,11 @@ type ChatProps = {
   people?: PersonLink[]
   socialLinks?: SocialLink[]
   talks?: TalkLink[]
+  fullPage?: boolean
+  initialConversationId?: number
 }
 
-export function Chat(props: ChatProps) {
-  return (
-    <Suspense>
-      <ChatInner {...props} />
-    </Suspense>
-  )
-}
-
-function ChatInner({
+export function Chat({
   faqItems,
   avatarUrl,
   avatarUrlDark,
@@ -361,8 +354,9 @@ function ChatInner({
   people = [],
   socialLinks = [],
   talks = [],
+  fullPage = false,
+  initialConversationId,
 }: ChatProps) {
-  const searchParams = useSearchParams()
   const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', content: GREETINGS[0] }])
   const [showLinks, setShowLinks] = useState(false)
   const [inputFocused, setInputFocused] = useState(false)
@@ -382,8 +376,7 @@ function ChatInner({
   const hasNotified = useRef(false)
 
   useEffect(() => {
-    const urlConversationId = searchParams.get('conversation')
-    const savedId = urlConversationId || sessionStorage.getItem('conversationId')
+    const savedId = initialConversationId ? String(initialConversationId) : sessionStorage.getItem('conversationId')
     if (!hasRandomized.current && !savedId) {
       hasRandomized.current = true
       const random = GREETINGS[Math.floor(Math.random() * GREETINGS.length)]
@@ -554,6 +547,10 @@ function ChatInner({
           if (doc.id) {
             setConversationId(doc.id)
             sessionStorage.setItem('conversationId', String(doc.id))
+            if (fullPage) {
+              window.history.replaceState(null, '', `/chat/${doc.id}`)
+              loadConversations()
+            }
           }
         })
         .catch(() => {})
@@ -588,6 +585,11 @@ function ChatInner({
       .catch(() => {})
   }
 
+  // Load conversations on mount in fullPage mode (for persistent sidebar)
+  useEffect(() => {
+    if (fullPage) loadConversations()
+  }, [fullPage])
+
   function loadConversation(conv: Conversation) {
     setAnimateBubbles(false)
     setSidebarOpen(false)
@@ -596,6 +598,7 @@ function ChatInner({
       setMessages(conv.messages)
       setConversationId(conv.id)
       sessionStorage.setItem('conversationId', String(conv.id))
+      if (fullPage) window.history.replaceState(null, '', `/chat/${conv.id}`)
       requestAnimationFrame(() => setAnimateBubbles(true))
     })
   }
@@ -629,12 +632,36 @@ function ChatInner({
     return match[1].split('|').map((q) => q.trim()).filter(Boolean)
   })()
 
-  return (
-    <div className="flex flex-col h-full relative">
-      {/* Hamburger */}
+  const conversationList = (
+    <div className="flex-1 overflow-y-auto space-y-1">
+      {conversations.map((conv) => (
+        <button
+          key={conv.id}
+          onClick={() => loadConversation(conv)}
+          className={`w-full text-left px-3 py-2.5 rounded-[12px] transition-colors cursor-pointer ${
+            conv.id === conversationId ? 'bg-black/5 dark:bg-white/5' : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.02]'
+          }`}
+        >
+          <div className="text-[13px] text-muted truncate">
+            {conv.title}
+          </div>
+          <div className="text-[16px] text-content truncate mt-0.5">
+            {conv.messages?.find((m: Message) => m.role === 'user')?.content || 'No messages'}
+          </div>
+        </button>
+      ))}
+      {conversations.length === 0 && (
+        <p className="text-caption text-muted px-3 py-2">No conversations yet</p>
+      )}
+    </div>
+  )
+
+  const chatArea = (
+    <div className={`flex flex-col h-full relative ${fullPage ? 'p-5 tablet:p-8' : ''}`}>
+      {/* Hamburger — hidden on desktop in fullPage mode */}
       <button
         onClick={() => { setSidebarOpen(true); loadConversations() }}
-        className={`absolute top-1 left-0 z-20 w-10 h-10 flex items-center justify-center rounded-full text-muted hover:text-content transition-all duration-200 cursor-pointer ${hasScrolled ? 'tablet:bg-background/60 tablet:dark:bg-white/10 tablet:backdrop-blur-xl' : ''}`}
+        className={`absolute top-1 left-0 z-20 w-10 h-10 flex items-center justify-center rounded-full text-muted hover:text-content transition-all duration-200 cursor-pointer ${fullPage ? 'tablet:hidden' : ''} ${fullPage ? (hasScrolled ? 'bg-background/60 dark:bg-white/10 backdrop-blur-xl' : '') : (hasScrolled ? 'tablet:bg-background/60 tablet:dark:bg-white/10 tablet:backdrop-blur-xl' : '')} ${fullPage ? 'top-6 left-5' : ''}`}
       >
         <HamburgerIcon />
       </button>
@@ -649,19 +676,17 @@ function ChatInner({
               setTimeout(() => setLinkCopied(false), 2000)
             })
           }}
-          className={`absolute top-1 right-0 z-20 w-10 h-10 flex items-center justify-center rounded-full text-muted hover:text-content transition-all duration-200 cursor-pointer ${hasScrolled ? 'tablet:bg-background/60 tablet:dark:bg-white/10 tablet:backdrop-blur-xl' : ''}`}
+          className={`absolute top-1 right-0 z-20 w-10 h-10 flex items-center justify-center rounded-full text-muted hover:text-content transition-all duration-200 cursor-pointer ${hasScrolled ? 'tablet:bg-background/60 tablet:dark:bg-white/10 tablet:backdrop-blur-xl' : ''} ${fullPage ? 'top-6 right-5' : ''}`}
         >
           {linkCopied ? <CheckIcon /> : <LinkIcon />}
         </button>
       )}
 
-      {/* Sidebar */}
+      {/* Mobile sidebar overlay */}
       <div
-        className={`absolute -inset-5 tablet:-inset-8 z-30 transition-opacity duration-200 ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        className={`absolute ${fullPage ? '-inset-5' : '-inset-5 tablet:-inset-8'} z-30 transition-opacity duration-200 ${fullPage ? 'tablet:hidden' : ''} ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
       >
-        {/* Overlay */}
         <div className={`absolute inset-0 transition-colors duration-300 ${sidebarOpen ? 'bg-black/20' : ''}`} onClick={() => setSidebarOpen(false)} />
-        {/* Sidebar */}
         <div
           className={`relative w-[320px] bg-background dark:bg-[#2a2a2a] rounded-[20px] p-4 m-2 flex flex-col h-[calc(100%-16px)] transition-transform duration-300 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
         >
@@ -674,32 +699,12 @@ function ChatInner({
               New
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto space-y-1">
-            {conversations.map((conv) => (
-              <button
-                key={conv.id}
-                onClick={() => loadConversation(conv)}
-                className={`w-full text-left px-3 py-2.5 rounded-[12px] transition-colors cursor-pointer ${
-                  conv.id === conversationId ? 'bg-black/5 dark:bg-white/5' : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.02]'
-                }`}
-              >
-                <div className="text-[13px] text-muted truncate">
-                  {conv.title}
-                </div>
-                <div className="text-[16px] text-content truncate mt-0.5">
-                  {conv.messages?.find((m: Message) => m.role === 'user')?.content || 'No messages'}
-                </div>
-              </button>
-            ))}
-            {conversations.length === 0 && (
-              <p className="text-caption text-muted px-3 py-2">No conversations yet</p>
-            )}
-          </div>
+          {conversationList}
         </div>
       </div>
 
       {/* Mobile avatar header */}
-      {avatarUrl && (
+      {avatarUrl && !fullPage && (
         <div className="tablet:!hidden flex justify-center pt-2 pb-1">
           <div className="w-8 h-8 rounded-full relative overflow-hidden">
             <img src={avatarUrl} alt="" className={`absolute inset-0 w-full h-full object-cover ${avatarUrlDark ? 'light-only' : ''}`} />
@@ -710,7 +715,7 @@ function ChatInner({
 
       {/* Messages */}
       <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-1 py-4 pt-2 tablet:pt-14 scrollbar-hide" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 16px, black)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 16px, black)' }}>
-        <div className="flex flex-col">
+        <div className={`flex flex-col ${fullPage ? 'max-w-[720px] mx-auto' : ''}`}>
           {messages.map((msg, i) => {
             const prevRole = i > 0 ? messages[i - 1].role : null
             const sameAsPrev = prevRole === msg.role
@@ -732,7 +737,6 @@ function ChatInner({
               )
             }
 
-            // Assistant: split into paragraphs, reveal with delay
             const paragraphs = msg.content
               ? msg.content.replace(/\{\{FOLLOWUPS:.*?\}\}/g, '').split(/\n\n+/).filter(Boolean)
               : ['']
@@ -759,7 +763,7 @@ function ChatInner({
       {/* Suggested pills */}
       {showSuggestions && shuffledFaqs.length > 0 && (
         <ScrollMask className="px-1 pb-3">
-          <div className="flex gap-2 w-max">
+          <div className={`flex gap-2 w-max ${fullPage ? 'max-w-[720px] mx-auto' : ''}`}>
             {shuffledFaqs.map((faq, i) => (
               <button
                 key={i}
@@ -776,7 +780,7 @@ function ChatInner({
       {/* Follow-up pills */}
       {!showSuggestions && followUps.length > 0 && (
         <ScrollMask className="px-1 pb-3" extraStyle={{ animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
-          <div className="flex gap-2 w-max">
+          <div className={`flex gap-2 w-max ${fullPage ? 'max-w-[720px] mx-auto' : ''}`}>
             {followUps.map((q, i) => (
               <button
                 key={i}
@@ -791,13 +795,12 @@ function ChatInner({
       )}
 
       {/* Input */}
-      <form onSubmit={handleSubmit} className="flex items-end gap-3 pt-2">
+      <form onSubmit={handleSubmit} className={`flex items-end gap-3 pt-2 ${fullPage ? 'max-w-[720px] mx-auto w-full' : ''}`}>
         {socialLinks.length > 0 && (
           <div ref={linksRef} className="relative shrink-0 flex items-end">
             <div className={`flex items-end transition-all duration-300 ease-in-out ${iconsCollapsed ? 'overflow-hidden' : 'gap-2'}`}
               style={shouldCollapse ? { width: '42px' } : undefined}
             >
-              {/* Plus button — always in DOM, overlays first icon position */}
               <button
                 type="button"
                 onClick={() => setShowLinks(!showLinks)}
@@ -812,7 +815,6 @@ function ChatInner({
                 </svg>
               </button>
 
-              {/* Social icons */}
               {socialLinks.map((link, idx) => (
                 <a
                   key={idx}
@@ -897,6 +899,51 @@ function ChatInner({
           )}
         </div>
       </form>
+    </div>
+  )
+
+  if (!fullPage) return chatArea
+
+  return (
+    <div className="flex h-full">
+      {/* Desktop persistent sidebar */}
+      <div className="hidden tablet:flex flex-col w-[320px] border-r border-border shrink-0">
+        <div className="flex items-center justify-between pt-5 pb-4 px-7">
+          <span className="text-body font-medium text-content">Conversations</span>
+          <button
+            onClick={startNewConversation}
+            className="text-[15px] text-muted hover:text-content transition-colors cursor-pointer"
+          >
+            New
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto space-y-1 px-3 pb-4">
+          {conversations.map((conv) => (
+            <button
+              key={conv.id}
+              onClick={() => loadConversation(conv)}
+              className={`w-full text-left px-3 py-2.5 rounded-[12px] transition-colors cursor-pointer ${
+                conv.id === conversationId ? 'bg-black/5 dark:bg-white/5' : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.02]'
+              }`}
+            >
+              <div className="text-[13px] text-muted truncate">
+                {conv.title}
+              </div>
+              <div className="text-[16px] text-content truncate mt-0.5">
+                {conv.messages?.find((m: Message) => m.role === 'user')?.content || 'No messages'}
+              </div>
+            </button>
+          ))}
+          {conversations.length === 0 && (
+            <p className="text-caption text-muted px-3 py-2">No conversations yet</p>
+          )}
+        </div>
+      </div>
+
+      {/* Chat area */}
+      <div className="flex-1 min-w-0">
+        {chatArea}
+      </div>
     </div>
   )
 }
