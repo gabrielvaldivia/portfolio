@@ -33,6 +33,11 @@ type PersonLink = {
   linkedin: string
 }
 
+type TalkLink = {
+  title: string
+  url: string
+}
+
 function stripMarkdown(text: string): string {
   return text
     .replace(/\*\*(.+?)\*\*/g, '$1')
@@ -43,7 +48,7 @@ function stripMarkdown(text: string): string {
 
 const linkStyle = { textDecoration: 'underline', textUnderlineOffset: '3px' }
 
-function linkify(text: string, projects: ProjectLink[], blogPosts: BlogPost[] = [], people: PersonLink[] = [], sideProjects: { title: string; slug: string }[] = []): React.ReactNode[] {
+function linkify(text: string, projects: ProjectLink[], blogPosts: BlogPost[] = [], people: PersonLink[] = [], sideProjects: { title: string; slug: string }[] = [], talks: TalkLink[] = []): React.ReactNode[] {
   text = stripMarkdown(text)
 
   const sortedProjects = [...projects].sort((a, b) => b.title.length - a.title.length)
@@ -52,18 +57,22 @@ function linkify(text: string, projects: ProjectLink[], blogPosts: BlogPost[] = 
   const peopleNames = sortedPeople.map((p) => p.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
   const sortedSideProjects = [...sideProjects].sort((a, b) => b.title.length - a.title.length)
   const sideProjectNames = sortedSideProjects.map((p) => p.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+  const sortedTalks = [...talks].sort((a, b) => b.title.length - a.title.length)
+  const talkNames = sortedTalks.map((t) => t.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
 
-  // Match: [text](url), emails, bare URLs, project names, side project names, or people names
+  // Match: [text](url), emails, bare URLs, project names, side project names, talk names, or people names
   const mdLink = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/
   const email = /[\w.-]+@[\w.-]+\.\w+/
   const url = /https?:\/\/[^\s),]+/
   const projectPat = projectNames.length ? new RegExp(`\\b(${projectNames.join('|')})\\b`, 'i') : null
   const sideProjectPat = sideProjectNames.length ? new RegExp(`\\b(${sideProjectNames.join('|')})\\b`, 'i') : null
+  const talkPat = talkNames.length ? new RegExp(`"(${talkNames.join('|')})"`, 'i') : null
   const peoplePat = peopleNames.length ? new RegExp(`\\b(${peopleNames.join('|')})\\b`, 'i') : null
 
   const patterns = [mdLink.source, email.source, url.source]
   if (projectPat) patterns.push(projectPat.source)
   if (sideProjectPat) patterns.push(sideProjectPat.source)
+  if (talkPat) patterns.push(talkPat.source)
   if (peoplePat) patterns.push(peoplePat.source)
   const combined = new RegExp(`(${patterns.join('|')})`, 'gi')
 
@@ -126,17 +135,29 @@ function linkify(text: string, projects: ProjectLink[], blogPosts: BlogPost[] = 
             </a>,
           )
         } else {
-        const person = sortedPeople.find((p) => p.name.toLowerCase() === matched.toLowerCase())
-        if (person) {
-          parts.push(
-            <a key={key++} href={person.linkedin} target="_blank" rel="noopener noreferrer" style={linkStyle}>
-              {matched}
-            </a>,
-          )
-        } else {
-          parts.push(matched)
+          // Check for talk/interview titles (matched includes surrounding quotes)
+          const talkTitleMatch = matched.match(/^"(.+)"$/)
+          const talkTitle = talkTitleMatch ? talkTitleMatch[1] : null
+          const talk = talkTitle ? sortedTalks.find((t) => t.title.toLowerCase() === talkTitle.toLowerCase()) : null
+          if (talk) {
+            parts.push(
+              <span key={key++}>
+                &quot;<a href={talk.url} target="_blank" rel="noopener noreferrer" style={linkStyle}>{talkTitle}</a>&quot;
+              </span>,
+            )
+          } else {
+            const person = sortedPeople.find((p) => p.name.toLowerCase() === matched.toLowerCase())
+            if (person) {
+              parts.push(
+                <a key={key++} href={person.linkedin} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+                  {matched}
+                </a>,
+              )
+            } else {
+              parts.push(matched)
+            }
+          }
         }
-      }
       }
     }
 
@@ -159,6 +180,7 @@ function AssistantMessage({
   people = [],
   sideProjects = [],
   blogPosts = [],
+  talks = [],
   animate = true,
 }: {
   paragraphs: string[]
@@ -169,6 +191,7 @@ function AssistantMessage({
   people?: PersonLink[]
   sideProjects?: { title: string; slug: string }[]
   blogPosts?: BlogPost[]
+  talks?: TalkLink[]
   animate?: boolean
 }) {
   const [visibleCount, setVisibleCount] = useState(animate ? 1 : paragraphs.length)
@@ -203,7 +226,7 @@ function AssistantMessage({
             style={animate ? { animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both' } : undefined}
           >
             {text ? (
-              linkify(text, projects, blogPosts, people, sideProjects)
+              linkify(text, projects, blogPosts, people, sideProjects, talks)
             ) : (
               <span className="inline-flex items-center gap-1 py-1">
                 <span className="w-1.5 h-1.5 bg-current opacity-40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -300,6 +323,7 @@ export function Chat({
   sideProjects = [],
   people = [],
   socialLinks = [],
+  talks = [],
 }: {
   faqItems: FAQItem[]
   avatarUrl?: string
@@ -308,6 +332,7 @@ export function Chat({
   sideProjects?: { title: string; slug: string }[]
   people?: PersonLink[]
   socialLinks?: SocialLink[]
+  talks?: TalkLink[]
 }) {
   const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', content: GREETINGS[0] }])
   const [showLinks, setShowLinks] = useState(false)
@@ -675,6 +700,7 @@ export function Chat({
                 people={people}
                 sideProjects={sideProjects}
                 blogPosts={blogPosts}
+                talks={talks}
                 animate={animateBubbles}
               />
             )

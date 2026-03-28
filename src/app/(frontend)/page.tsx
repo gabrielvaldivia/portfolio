@@ -53,6 +53,12 @@ export default async function HomePage() {
   const peopleLinks = allPeople.docs.filter((p: any) => p.linkedIn).map((p: any) => ({ name: p.name, linkedin: p.linkedIn }))
   const allSideProjects = await payload.find({ collection: 'side-projects', sort: 'order', limit: 100, depth: 0 })
   const sideProjectLinks = allSideProjects.docs.filter((p: any) => p.slug).map((p: any) => ({ title: p.title, slug: p.slug }))
+  const aboutPage = await payload.find({ collection: 'pages', where: { slug: { equals: 'about' } }, depth: 0, limit: 1 })
+  const aboutData = aboutPage.docs[0] as any
+  const talkLinks = [
+    ...((aboutData?.talks || []) as any[]).filter((t: any) => t.url).map((t: any) => ({ title: t.title, url: t.url })),
+    ...((aboutData?.interviews || []) as any[]).filter((t: any) => t.url).map((t: any) => ({ title: t.title, url: t.url })),
+  ]
 
   const sections = (page?.sections || []) as any[]
   const aboutSection = sections.find((s: any) => s.blockType === 'aboutSection')
@@ -327,14 +333,14 @@ export default async function HomePage() {
               <div className="flex flex-col tablet:grid tablet:grid-cols-6 gap-5 tablet:gap-10 h-full">
                 {block.title && <div className="tablet:col-span-2 flex items-start"><h3>{block.title}</h3></div>}
                 <div className="tablet:col-span-4 bg-background-alt rounded-[20px] tablet:rounded-[30px] p-5 tablet:p-8 tablet:h-full tablet:min-h-[400px] overflow-hidden" style={{ height: block.fixedHeight || '70dvh' }}>
-                  <Chat faqItems={faqItems} avatarUrl={aboutImage} avatarUrlDark={aboutImageDark} projects={projectLinks} sideProjects={sideProjectLinks} people={peopleLinks} socialLinks={socialLinks} />
+                  <Chat faqItems={faqItems} avatarUrl={aboutImage} avatarUrlDark={aboutImageDark} projects={projectLinks} sideProjects={sideProjectLinks} people={peopleLinks} socialLinks={socialLinks} talks={talkLinks} />
                 </div>
               </div>
             ) : (
               <div className="flex flex-col h-full">
                 {block.title && <h3 className="pb-5 tablet:pb-10">{block.title}</h3>}
                 <div className="bg-background-alt rounded-[20px] tablet:rounded-[30px] p-5 tablet:p-8 tablet:flex-1 min-h-0 overflow-hidden" style={{ height: block.fixedHeight || '70dvh' }}>
-                  <Chat faqItems={faqItems} avatarUrl={aboutImage} avatarUrlDark={aboutImageDark} projects={projectLinks} sideProjects={sideProjectLinks} people={peopleLinks} socialLinks={socialLinks} />
+                  <Chat faqItems={faqItems} avatarUrl={aboutImage} avatarUrlDark={aboutImageDark} projects={projectLinks} sideProjects={sideProjectLinks} people={peopleLinks} socialLinks={socialLinks} talks={talkLinks} />
                 </div>
               </div>
             )}
