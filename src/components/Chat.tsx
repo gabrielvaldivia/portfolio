@@ -348,6 +348,8 @@ export function Chat({
   const linksRef = useRef<HTMLDivElement>(null)
   const hasRandomized = useRef(false)
   const locationRef = useRef('')
+  const notifyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hasNotified = useRef(false)
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
 
   useEffect(() => {
@@ -365,6 +367,7 @@ export function Chat({
       .then((r) => r.json())
       .then((data) => {
         if (data.location) locationRef.current = data.location
+        if (data.suggestions?.length) setSuggestions(data.suggestions)
       })
       .catch(() => {})
     // Fetch blog index for URL correction
@@ -477,6 +480,8 @@ export function Chat({
   async function sendMessage(text: string) {
     if (!text.trim() || isStreaming) return
     userScrolledUp.current = false
+    hasNotified.current = false
+    if (notifyTimer.current) clearTimeout(notifyTimer.current)
     const userMessage: Message = { role: 'user', content: text.trim() }
     const newMessages = [...messages, userMessage]
     setMessages(newMessages)
@@ -563,7 +568,42 @@ export function Chat({
         .catch(() => {})
     }
 
+    // Schedule notification 60s after last response
+    if (!isStreaming && messages.some((m) => m.role === 'user')) {
+      if (notifyTimer.current) clearTimeout(notifyTimer.current)
+      hasNotified.current = false
+      notifyTimer.current = setTimeout(() => sendNotify(), 60000)
+    }
   }, [isStreaming])
+
+  function sendNotify() {
+    if (hasNotified.current) return
+    hasNotified.current = true
+    const id = conversationId
+    if (!id) return
+    const blob = new Blob([JSON.stringify({
+      conversationId: id,
+      title: formatDate(new Date()) + (locationRef.current ? ` · ${locationRef.current}` : ''),
+      messages,
+    })], { type: 'application/json' })
+    // Use sendBeacon for reliability when tab is closing
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('/chat/notify', blob)
+    } else {
+      fetch('/chat/notify', { method: 'POST', body: blob }).catch(() => {})
+    }
+  }
+
+  // Send notification when user leaves the page
+  useEffect(() => {
+    const handleUnload = () => {
+      if (messages.some((m) => m.role === 'user') && !hasNotified.current) {
+        sendNotify()
+      }
+    }
+    window.addEventListener('beforeunload', handleUnload)
+    return () => window.removeEventListener('beforeunload', handleUnload)
+  }, [messages, conversationId])
 
   function loadConversations() {
     fetch('/chat/conversations')
@@ -598,10 +638,7 @@ export function Chat({
   }
 
   const showSuggestions = messages.length === 1 && messages[0].role === 'assistant'
-  const [shuffledFaqs, setShuffledFaqs] = useState(faqItems)
-  useEffect(() => {
-    setShuffledFaqs([...faqItems].sort(() => Math.random() - 0.5))
-  }, [])
+  const [suggestions, setSuggestions] = useState<string[]>([])
 
   // Extract follow-up questions from the last assistant message
   const followUps: string[] = (() => {
@@ -749,15 +786,15 @@ export function Chat({
       </div>
 
       {/* Suggested pills */}
-      {showSuggestions && shuffledFaqs.length > 0 && (
-        <div className="px-1 pb-3 flex flex-col gap-2">
-          {shuffledFaqs.slice(0, 4).map((faq, i) => (
+      {showSuggestions && suggestions.length > 0 && (
+        <div className="px-1 pb-3 flex flex-col items-start gap-2">
+          {suggestions.map((q, i) => (
             <button
               key={i}
-              onClick={() => sendMessage(faq.question)}
-              className="w-fit px-3 py-1.5 text-caption tablet:px-4 tablet:py-2.5 tablet:text-body text-black/45 dark:text-white/45 rounded-full hover:text-content transition-colors cursor-pointer border border-dashed border-black/15 dark:border-white/15"
+              onClick={() => sendMessage(q)}
+              className="w-fit px-3 py-1.5 text-caption tablet:px-4 tablet:py-2.5 tablet:text-body text-left text-black/45 dark:text-white/45 rounded-[16px] tablet:rounded-[20px] hover:text-content transition-colors cursor-pointer border border-dashed border-black/15 dark:border-white/15"
             >
-              {faq.question}
+              {q}
             </button>
           ))}
         </div>
