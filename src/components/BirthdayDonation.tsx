@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from 'react'
 
-export function BirthdayDonation() {
+export function BirthdayDonation({ force = false }: { force?: boolean }) {
   const [dismissed, setDismissed] = useState(false)
 
   const today = new Date()
   const isBirthday = today.getMonth() === 2 && today.getDate() === 23
 
   useEffect(() => {
-    if (isBirthday && !dismissed) {
+    if ((isBirthday || force) && !dismissed) {
       document.body.classList.add('birthday-donation-visible')
     } else {
       document.body.classList.remove('birthday-donation-visible')
@@ -17,7 +17,7 @@ export function BirthdayDonation() {
     return () => document.body.classList.remove('birthday-donation-visible')
   }, [isBirthday, dismissed])
 
-  if (!isBirthday || dismissed) return null
+  if ((!isBirthday && !force) || dismissed) return null
 
   return (
     <div id="birthday-donation" className="fixed bottom-0 left-0 right-0 tablet:bottom-6 tablet:left-1/2 tablet:right-auto tablet:-translate-x-1/2 z-[60] flex items-center justify-center gap-3 bg-background/80 backdrop-blur-xl rounded-none tablet:rounded-full px-5 py-4 tablet:py-3 " style={{ boxShadow: '0 0 20px rgba(0,0,0,0.08)' }}>

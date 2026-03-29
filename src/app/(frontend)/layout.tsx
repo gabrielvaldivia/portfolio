@@ -2,8 +2,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { Nav } from '@/components/Nav'
 import { Footer } from '@/components/Footer'
-import { BirthdayBalloons } from '@/components/BirthdayBalloons'
-import { BirthdayDonation } from '@/components/BirthdayDonation'
+import { OverlayManager } from '@/components/OverlayManager'
 import { getNavigation, getSiteSettings } from '@/lib/queries'
 
 export const revalidate = 60
@@ -58,8 +57,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         )}
       </head>
       <body className="bg-background text-content">
-        <BirthdayBalloons />
-        <BirthdayDonation />
+        <OverlayManager overlays={(s?.overlays as any[]) || []} />
         <Nav items={navItems} />
         <main>{children}</main>
         <Footer copyright={(navigation as any)?.copyright} />

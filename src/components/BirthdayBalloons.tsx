@@ -44,7 +44,7 @@ const CONFETTI_PER_POP = 60
 const CONFETTI_FADE_DELAY = 2000
 const CONFETTI_FADE_DURATION = 1500
 
-export function BirthdayBalloons() {
+export function BirthdayBalloons({ force = false }: { force?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const balloonsRef = useRef<Balloon[]>([])
@@ -59,7 +59,7 @@ export function BirthdayBalloons() {
   // Only show on March 23rd
   const today = new Date()
   const isBirthday = today.getMonth() === 2 && today.getDate() === 23
-  if (!isBirthday) return null
+  if (!isBirthday && !force) return null
 
   const initBalloons = useCallback(() => {
     const w = window.innerWidth

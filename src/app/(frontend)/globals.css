@@ -89,6 +89,9 @@
   .dark-only {
     display: block;
   }
+  :root {
+    --shadow-filter: invert(1);
+  }
 }
 
 .bg-alt-hover {
