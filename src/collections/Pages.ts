@@ -175,7 +175,7 @@ const AccordionBlock: Block = {
       label: 'Suggested Questions',
       fields: [
         { name: 'question', type: 'text', required: true },
-        { name: 'answer', type: 'text', required: true },
+        { name: 'answer', type: 'richText', required: true },
       ],
     },
     {

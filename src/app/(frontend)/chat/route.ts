@@ -186,30 +186,14 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const { faqItems, apiKey } = await buildContext()
+  const { faqItems } = await buildContext()
   const city = req.headers.get('x-vercel-ip-city') || ''
   const country = req.headers.get('x-vercel-ip-country') || ''
   const location = city ? `${decodeURIComponent(city)}${country ? `, ${country}` : ''}` : ''
 
-  // Generate 4 random suggested questions
-  let suggestions: string[] = []
-  const key = apiKey || process.env.ANTHROPIC_API_KEY
-  if (key) {
-    try {
-      const anthropic = new Anthropic({ apiKey: key })
-      const faqContext = faqItems.map((f) => f.question).join(', ')
-      const res = await anthropic.messages.create({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 200,
-        messages: [{
-          role: 'user',
-          content: `You're a startup founder considering hiring a fractional design partner. Generate exactly 4 short questions (under 8 words each) you'd ask before deciding to work together. Think like a busy founder evaluating fit: questions about experience, how engagements work, past clients, background, opinions on design, what they've built, etc. Be specific and practical, not generic. Avoid questions about metrics, ROI, or measurable results. Don't repeat these: ${faqContext}. Return ONLY the 4 questions separated by | with no other text.`,
-        }],
-      })
-      const text = res.content[0].type === 'text' ? res.content[0].text : ''
-      suggestions = text.split('|').map((q) => q.trim()).filter(Boolean).slice(0, 4)
-    } catch {}
-  }
+  // Shuffle and pick 4 random questions
+  const shuffled = [...faqItems].sort(() => Math.random() - 0.5).slice(0, 4)
+  const suggestions = shuffled.map((f) => f.question)
 
   return Response.json({ faqItems, location, suggestions })
 }

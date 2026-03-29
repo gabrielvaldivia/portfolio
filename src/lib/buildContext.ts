@@ -24,7 +24,7 @@ function extractText(richText: any): string {
   return ''
 }
 
-export type FAQItem = { question: string; answer: string }
+export type FAQItem = { question: string; answer: string; showAsPill?: boolean }
 
 export async function buildContext(): Promise<{ systemPrompt: string; faqItems: FAQItem[]; apiKey: string; model: string; gabosApiUrl: string }> {
   const payload = await getPayload()
@@ -68,6 +68,7 @@ export async function buildContext(): Promise<{ systemPrompt: string; faqItems: 
         faqItems.push({
           question: item.question,
           answer: typeof item.answer === 'string' ? item.answer : extractText(item.answer),
+          showAsPill: item.showAsPill !== false,
         })
       }
     }
