@@ -14,7 +14,7 @@ export const People: CollectionConfig = {
   fields: [
     { name: 'name', type: 'text', required: true },
     { name: 'photo', type: 'upload', relationTo: 'media' },
-    { name: 'linkedIn', type: 'text' },
+    { name: 'linkedIn', type: 'text', label: 'Link' },
     { name: 'role', type: 'text' },
     { name: 'company', type: 'text' },
     {
