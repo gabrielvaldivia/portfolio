@@ -26,7 +26,15 @@ function extractText(richText: any): string {
 
 export type FAQItem = { question: string; answer: string; showAsPill?: boolean }
 
-export async function buildContext(): Promise<{ systemPrompt: string; faqItems: FAQItem[]; apiKey: string; model: string; gabosApiUrl: string }> {
+type CachedContext = { systemPrompt: string; faqItems: FAQItem[]; apiKey: string; model: string; gabosApiUrl: string }
+let contextCache: { data: CachedContext; timestamp: number } | null = null
+const CACHE_TTL = 120_000 // 2 minutes
+
+export async function buildContext(): Promise<CachedContext> {
+  if (contextCache && Date.now() - contextCache.timestamp < CACHE_TTL) {
+    return contextCache.data
+  }
+
   const payload = await getPayload()
 
   const [homePage, aboutPage, projectsResult, clientsResult, testimonialsResult, allPeopleResult, servicesResult, sideProjectsResult, annotatedConversations] =
@@ -221,5 +229,7 @@ Search FIRST, then answer. The blog contains personal stories, career history, a
 - Never make up information that isn't provided above or returned by tools
 ${systemPromptExtra ? `\n## Additional Instructions\n${systemPromptExtra}` : ''}`
 
-  return { systemPrompt, faqItems, apiKey, model, gabosApiUrl }
+  const result = { systemPrompt, faqItems, apiKey, model, gabosApiUrl }
+  contextCache = { data: result, timestamp: Date.now() }
+  return result
 }

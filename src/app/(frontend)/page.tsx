@@ -14,7 +14,7 @@ import { buildContext } from '@/lib/buildContext'
 import Image from 'next/image'
 import Link from 'next/link'
 
-export const revalidate = 60
+export const revalidate = 300
 
 function SectionWithTitle({ title, cols, children, titleRight }: { title?: string; cols: string; children: React.ReactNode; titleRight?: React.ReactNode }) {
   if (!title) return <>{children}</>

@@ -539,34 +539,39 @@ export function Chat({
     setIsStreaming(false)
   }
 
-  // Save conversation after streaming completes
+  // Save conversation after streaming completes (debounced)
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
     if (isStreaming) return
     if (messages.length < 2 || !messages.some((m) => m.role === 'user')) return
 
-    if (conversationId) {
-      fetch(`/chat/conversations/${conversationId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages }),
-      }).catch(() => {})
-    } else {
-      const loc = locationRef.current
-      const title = formatDate(new Date()) + (loc ? ` · ${loc}` : '')
-      fetch('/chat/conversations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, location: loc, messages }),
-      })
-        .then((r) => r.json())
-        .then((doc) => {
-          if (doc.id) {
-            setConversationId(doc.id)
-            sessionStorage.setItem('conversationId', String(doc.id))
-          }
+    // Debounce: wait 3 seconds before saving to batch rapid exchanges
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(() => {
+      if (conversationId) {
+        fetch(`/chat/conversations/${conversationId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages }),
+        }).catch(() => {})
+      } else {
+        const loc = locationRef.current
+        const title = formatDate(new Date()) + (loc ? ` · ${loc}` : '')
+        fetch('/chat/conversations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, location: loc, messages }),
         })
-        .catch(() => {})
-    }
+          .then((r) => r.json())
+          .then((doc) => {
+            if (doc.id) {
+              setConversationId(doc.id)
+              sessionStorage.setItem('conversationId', String(doc.id))
+            }
+          })
+          .catch(() => {})
+      }
+    }, 3000)
 
     // Schedule notification 60s after last response
     if (!isStreaming && messages.some((m) => m.role === 'user')) {
