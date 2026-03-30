@@ -162,11 +162,15 @@ ${allPeople.map((p) => {
     ...personSideProjects.map((sp: any) => `${sp.title} (side project)`),
   ]
   const collabText = allCollabs.join(', ')
-  return `- ${p.name}${p.role ? `, ${p.role}` : ''}${p.company ? ` at ${p.company}` : ''}${p.linkedIn ? ` [LinkedIn](${p.linkedIn})` : ''}${collabText ? `. Collaborated on: ${collabText}` : ''}`
+  const companyName = typeof p.company === 'object' ? p.company?.name : ''
+  return `- ${p.name}${p.role ? `, ${p.role}` : ''}${companyName ? ` at ${companyName}` : ''}${p.linkedIn ? ` [LinkedIn](${p.linkedIn})` : ''}${collabText ? `. Collaborated on: ${collabText}` : ''}`
 }).join('\n')}
 
 ## Testimonials
-${testimonials.map((t) => `"${t.testimonial}" — ${t.name}, ${t.role}${t.company ? ` at ${t.company}` : ''}`).join('\n\n')}
+${testimonials.map((t) => {
+  const co = typeof t.company === 'object' ? t.company?.name : ''
+  return `"${t.testimonial}" — ${t.name}, ${t.role}${co ? ` at ${co}` : ''}`
+}).join('\n\n')}
 
 ${talks.length ? `## Talks (these are past talks Gabriel has given)\n${talks.map((t) => `- ${t.title} at ${t.event}${t.year ? ` (${t.year})` : ''}${t.url ? ` — watch: ${t.url}` : ''}`).join('\n')}` : ''}
 

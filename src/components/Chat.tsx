@@ -492,12 +492,17 @@ export function Chat({
     setMessages([...newMessages, assistantMessage])
 
     try {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 30000)
+
       const res = await fetch('/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: newMessages }),
+        signal: controller.signal,
       })
 
+      clearTimeout(timeout)
       const reader = res.body?.getReader()
       const decoder = new TextDecoder()
       let accumulated = ''
@@ -524,6 +529,18 @@ export function Chat({
             }
           }
         }
+      }
+
+      // If we got no content, show error
+      if (!accumulated) {
+        setMessages((prev) => {
+          const updated = [...prev]
+          updated[updated.length - 1] = {
+            role: 'assistant',
+            content: "Sorry, I couldn't process that. Feel free to email me at gabe@valdivia.works instead.",
+          }
+          return updated
+        })
       }
     } catch {
       setMessages((prev) => {

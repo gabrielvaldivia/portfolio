@@ -127,7 +127,7 @@ export default async function HomePage() {
                           quote={item.testimonial}
                           name={item.name}
                           role={item.role}
-                          company={item.company}
+                          company={typeof item.company === 'object' ? item.company?.name : item.company}
                           photo={item.photo}
                           linkedIn={item.linkedIn}
                         />

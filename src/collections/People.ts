@@ -16,7 +16,7 @@ export const People: CollectionConfig = {
     { name: 'photo', type: 'upload', relationTo: 'media' },
     { name: 'linkedIn', type: 'text', label: 'Link' },
     { name: 'role', type: 'text' },
-    { name: 'company', type: 'text' },
+    { name: 'company', type: 'relationship', relationTo: 'clients' },
     {
       name: 'testimonial',
       type: 'textarea',
