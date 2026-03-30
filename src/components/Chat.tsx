@@ -350,6 +350,7 @@ export function Chat({
   const locationRef = useRef('')
   const notifyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hasNotified = useRef(false)
+  const retryRef = useRef(0)
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
 
   useEffect(() => {
@@ -481,6 +482,7 @@ export function Chat({
     if (!text.trim() || isStreaming) return
     userScrolledUp.current = false
     hasNotified.current = false
+    retryRef.current = 0
     if (notifyTimer.current) clearTimeout(notifyTimer.current)
     const userMessage: Message = { role: 'user', content: text.trim() }
     const newMessages = [...messages, userMessage]
@@ -531,26 +533,25 @@ export function Chat({
         }
       }
 
-      // If we got no content, show error
+      // If we got no content, retry once
       if (!accumulated) {
-        setMessages((prev) => {
-          const updated = [...prev]
-          updated[updated.length - 1] = {
-            role: 'assistant',
-            content: "Sorry, I couldn't process that. Feel free to email me at gabe@valdivia.works instead.",
-          }
-          return updated
-        })
+        retryRef.current++
+        if (retryRef.current <= 2) {
+          setMessages((prev) => prev.slice(0, -1))
+          setIsStreaming(false)
+          setTimeout(() => sendMessage(text), 500)
+          return
+        }
       }
     } catch {
-      setMessages((prev) => {
-        const updated = [...prev]
-        updated[updated.length - 1] = {
-          role: 'assistant',
-          content: "Sorry, something went wrong. Feel free to email me at gabe@valdivia.works instead.",
-        }
-        return updated
-      })
+      // On error/timeout, retry once
+      retryRef.current++
+      if (retryRef.current <= 2) {
+        setMessages((prev) => prev.slice(0, -1))
+        setIsStreaming(false)
+        setTimeout(() => sendMessage(text), 500)
+        return
+      }
     }
 
     setIsStreaming(false)
