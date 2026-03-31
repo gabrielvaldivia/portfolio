@@ -14,7 +14,7 @@ export function Testimonial({ quote, name, company, companyLogo, photo, linkedIn
     <div className="flex items-center justify-between gap-3">
       <div>
         {companyLogo?.url ? (
-          <img src={companyLogo.url} alt={companyLogo.alt || company || ''} className="object-contain opacity-40" style={{ filter: 'brightness(0) invert(1)', height: '32px', maxHeight: '32px', width: 'auto', maxWidth: '150px' }} />
+          <img src={companyLogo.url} alt={companyLogo.alt || company || ''} className="object-contain opacity-40" style={{ filter: 'var(--logo-filter)', height: '32px', maxHeight: '32px', width: 'auto', maxWidth: '150px' }} />
         ) : company ? (
           <p className="text-muted text-caption">{company}</p>
         ) : (

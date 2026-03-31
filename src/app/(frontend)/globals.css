@@ -45,6 +45,7 @@
   --color-accent-rgb: 0 31 235;
   --color-inverse-rgb: 255 255 255;
   --color-nav-active-text: #ffffff;
+  --logo-filter: brightness(0);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -61,6 +62,7 @@
     --color-accent-rgb: 0 157 255;
     --color-inverse-rgb: 0 0 0;
     --color-nav-active-text: #000000;
+    --logo-filter: brightness(0) invert(1);
   }
 
   .dark-invert {
