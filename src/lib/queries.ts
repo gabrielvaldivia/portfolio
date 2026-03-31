@@ -49,7 +49,7 @@ export async function getFeaturedTestimonials() {
     collection: 'people',
     where: { featuredTestimonial: { equals: true } },
     limit: 20,
-    depth: 1,
+    depth: 2,
   })
 }
 

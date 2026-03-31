@@ -126,8 +126,8 @@ export default async function HomePage() {
                         <Testimonial
                           quote={item.testimonial}
                           name={item.name}
-                          role={item.role}
                           company={typeof item.company === 'object' ? item.company?.name : item.company}
+                          companyLogo={typeof item.company === 'object' ? item.company?.logo : null}
                           photo={item.photo}
                           linkedIn={item.linkedIn}
                         />
@@ -165,8 +165,8 @@ export default async function HomePage() {
                       <Testimonial
                         quote={item.testimonial}
                         name={item.name}
-                        role={item.role}
-                        company={item.company}
+                        company={typeof item.company === 'object' ? item.company?.name : item.company}
+                        companyLogo={typeof item.company === 'object' ? item.company?.logo : null}
                         photo={item.photo}
                         linkedIn={item.linkedIn}
                       />
