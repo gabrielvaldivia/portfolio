@@ -8,7 +8,7 @@ import { MomentumScroll } from '@/components/MomentumScroll'
 import { FitText } from '@/components/FitText'
 import { SocialIcon } from '@/components/Icons'
 import { Chat } from '@/components/Chat'
-import { getPageBySlug, getClients, getFeaturedTestimonials } from '@/lib/queries'
+import { getClients } from '@/lib/queries'
 import { getPayload } from '@/lib/payload'
 import { buildContext } from '@/lib/buildContext'
 import Image from 'next/image'
@@ -41,11 +41,11 @@ function SectionWithTitle({ title, cols, children, titleRight }: { title?: strin
 }
 
 export default async function HomePage() {
-  const page = await getPageBySlug('home')
   const payload = await getPayload()
+  const pageResult = await payload.find({ collection: 'pages', where: { slug: { equals: 'home' } }, depth: 3, limit: 1 })
+  const page = pageResult.docs[0] || null
   const services = await payload.find({ collection: 'services', sort: 'order', limit: 20, where: { featured: { equals: true } } })
   const { docs: clients } = await getClients()
-  const { docs: testimonials } = await getFeaturedTestimonials()
   const { faqItems } = await buildContext()
   const allProjects = await payload.find({ collection: 'projects', sort: 'order', limit: 100, depth: 0 })
   const projectLinks = allProjects.docs.map((p: any) => ({ title: p.title, slug: p.slug }))
@@ -95,7 +95,7 @@ export default async function HomePage() {
         )
 
       case 'hScroll': {
-        const items = block.source === 'featuredProjects' ? (block.projects || []) : testimonials
+        const items = block.source === 'featuredProjects' ? (block.projects || []) : (block.testimonials || [])
         if (!items.length) return null
         const fw = block.fullWidth
         return (

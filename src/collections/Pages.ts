@@ -85,8 +85,15 @@ const HScrollBlock: Block = {
         condition: (_: any, siblingData: any) => siblingData?.source === 'featuredProjects',
       },
     },
-    { name: 'cardWidth', type: 'number', defaultValue: 480 },
-    { name: 'gap', type: 'number', defaultValue: 40 },
+    {
+      name: 'testimonials',
+      type: 'relationship',
+      relationTo: 'people',
+      hasMany: true,
+      admin: {
+        condition: (_: any, siblingData: any) => siblingData?.source === 'featuredTestimonials',
+      },
+    },
     { name: 'fullWidth', type: 'checkbox', defaultValue: false, admin: { position: 'sidebar' } },
   ],
 }
