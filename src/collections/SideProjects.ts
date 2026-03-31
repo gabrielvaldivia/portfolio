@@ -5,7 +5,7 @@ export const SideProjects: CollectionConfig = {
   slug: 'side-projects',
   admin: {
     pagination: { defaultLimit: 100 },
-    group: 'Work',
+    group: 'Collections',
     useAsTitle: 'title',
     defaultColumns: ['title', 'year', 'order'],
   },

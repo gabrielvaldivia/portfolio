@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 
 export function FitText({ children, className = '', mobileSize = 34, maxSize }: {
   children: React.ReactNode
@@ -10,6 +10,7 @@ export function FitText({ children, className = '', mobileSize = 34, maxSize }: 
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const textRef = useRef<HTMLSpanElement>(null)
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
     const container = containerRef.current
@@ -40,13 +41,14 @@ export function FitText({ children, className = '', mobileSize = 34, maxSize }: 
     }
 
     resize()
+    setReady(true)
     const observer = new ResizeObserver(resize)
     observer.observe(container)
     return () => observer.disconnect()
   }, [children, mobileSize, maxSize])
 
   return (
-    <div ref={containerRef} className={`overflow-visible ${className}`}>
+    <div ref={containerRef} className={`overflow-visible ${className}`} style={{ visibility: ready ? 'visible' : 'hidden' }}>
       <span
         ref={textRef}
         className="block whitespace-normal tablet:whitespace-nowrap"

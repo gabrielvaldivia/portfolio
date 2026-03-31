@@ -67,10 +67,10 @@ function ImageBlockComponent({ image, caption, border, imageBorder, rounded, sha
         }}
       >
         <div
-          className={`relative w-full ${shadow ? '' : 'overflow-hidden'} ${fit === 'contain' ? 'flex items-center justify-center' : ''}`}
+          className={`relative w-full ${shadow ? '' : 'overflow-hidden'} ${rounded ? 'rounded-lg tablet:rounded-xl desktop:rounded-2xl' : ''} ${fit === 'contain' ? 'flex items-center justify-center' : ''}`}
           style={{ aspectRatio, ...(rowHeight ? { ['--row-height' as string]: `${rowHeight}px` } : {}) }}
         >
-          {imageBorder && <div className="absolute inset-0 z-10 ring-1 ring-inset ring-border pointer-events-none" />}
+          {imageBorder && <div className={`absolute inset-0 z-10 ring-1 ring-inset ring-border pointer-events-none ${rounded ? 'rounded-lg tablet:rounded-xl desktop:rounded-2xl' : ''}`} />}
           <Image src={image.url} alt={image.alt || ''} fill className={`${fit === 'contain' ? 'object-contain' : 'object-cover'} ${rounded ? 'rounded-lg tablet:rounded-xl desktop:rounded-2xl' : ''} ${shadow ? 'drop-shadow-md' : ''}`} sizes={columns === '1' ? '16vw' : columns === '2' ? '33vw' : columns === '3' ? '50vw' : columns === '4' ? '66vw' : '100vw'} />
         </div>
         {border && <div className="absolute inset-0 z-10 ring-1 ring-inset pointer-events-none" style={{ '--tw-ring-color': 'rgba(0,0,0,0.1)' } as React.CSSProperties} />}

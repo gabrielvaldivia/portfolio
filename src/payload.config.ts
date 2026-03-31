@@ -17,7 +17,6 @@ import { Pages } from './collections/Pages'
 import { Conversations } from './collections/Conversations'
 
 import { SiteSettings } from './globals/SiteSettings'
-import { Navigation } from './globals/Navigation'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -29,8 +28,8 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Pages, People, Clients, Projects, SideProjects, Services, Conversations, Users, Media],
-  globals: [Navigation, SiteSettings],
+  collections: [Pages, Projects, SideProjects, Clients, People, Services, Conversations, Users, Media],
+  globals: [SiteSettings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || 'default-secret-change-me-in-production',
   typescript: {

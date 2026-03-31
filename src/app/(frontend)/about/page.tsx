@@ -1,4 +1,5 @@
 import { Container } from '@/components/Container'
+import { FitText } from '@/components/FitText'
 import { RichText } from '@/components/RichText'
 import { getPageBySlug, getSideProjects } from '@/lib/queries'
 import type { Metadata } from 'next'
@@ -30,14 +31,15 @@ export default async function AboutPage() {
 
   return (
     <>
-      <section className="px-5 tablet:px-10 pt-6 tablet:pt-10 pb-10">
-        <h3 className="text-content opacity-50">
-          <Link href="/">Gabriel Valdivia</Link>
-        </h3>
-      </section>
 
       <section className="pb-20 tablet:pb-40">
         <Container>
+          <div className="pb-20">
+            <h1 className="text-[34px] tablet:hidden">About</h1>
+            <div className="hidden tablet:block">
+              <FitText className="font-heading" maxSize={120}>About</FitText>
+            </div>
+          </div>
           <div className="flex flex-col gap-20">
             {/* Bio */}
             {page?.bio && (

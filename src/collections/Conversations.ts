@@ -2,10 +2,11 @@ import type { CollectionConfig } from 'payload'
 
 export const Conversations: CollectionConfig = {
   slug: 'conversations',
+  labels: { singular: 'Chat', plural: 'Chats' },
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'location', 'updatedAt'],
-    group: 'Site',
+    group: 'Collections',
   },
   access: {
     read: () => true,

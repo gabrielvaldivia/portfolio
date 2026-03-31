@@ -4,7 +4,7 @@ export const Clients: CollectionConfig = {
   slug: 'clients',
   admin: {
     pagination: { defaultLimit: 100 },
-    group: 'Work',
+    group: 'Collections',
     useAsTitle: 'name',
     defaultColumns: ['name', 'active', 'website'],
   },

@@ -1,9 +1,12 @@
 import './globals.css'
 import type { Metadata } from 'next'
-import { Nav } from '@/components/Nav'
+// import { Nav } from '@/components/Nav'
+import Link from 'next/link'
+import { NavMenu } from '@/components/NavMenu'
 import { Footer } from '@/components/Footer'
 import { OverlayManager } from '@/components/OverlayManager'
-import { getNavigation, getSiteSettings } from '@/lib/queries'
+import { PageTransition } from '@/components/PageTransition'
+import { getSiteSettings } from '@/lib/queries'
 
 export const revalidate = 60
 
@@ -36,19 +39,16 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [navigation, settings] = await Promise.all([getNavigation(), getSiteSettings()])
+  const settings = await getSiteSettings()
 
   const s = settings as any
-
-  const navItems = (navigation?.items || []).map((item: any) => ({
-    label: item.label,
-    url: item.url,
-    newTab: item.newTab,
-  }))
 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .page-transition { opacity: 0; transform: translateY(12px); }
+        ` }} />
         {s?.googleAnalyticsId && (
           <>
             <script async src={`https://www.googletagmanager.com/gtag/js?id=${s.googleAnalyticsId}`} />
@@ -58,9 +58,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="bg-background text-content">
         <OverlayManager overlays={(s?.overlays as any[]) || []} />
-        <Nav items={navItems} />
-        <main>{children}</main>
-        <Footer copyright={(navigation as any)?.copyright} />
+        {/* <Nav items={navItems} /> */}
+        <NavMenu />
+        <section className="px-5 tablet:px-10 pt-6 tablet:pt-10 pb-10">
+          <h3 className="text-content opacity-50">
+            <Link href="/">Gabriel Valdivia</Link>
+          </h3>
+        </section>
+        <PageTransition>{children}</PageTransition>
+        <Footer />
       </body>
     </html>
   )

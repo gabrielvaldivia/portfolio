@@ -69,14 +69,17 @@ export function PeopleGrid({ people }: { people: Person[] }) {
                   {person.name.charAt(0)}
                 </div>
               )}
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 flex items-center gap-1">
                 <h4 className="truncate">{person.name}</h4>
+                {href && (
+                  <svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 17L17 7M17 7H9M17 7V15" /></svg>
+                )}
               </div>
             </div>
           )
 
           return (
-            <div key={person.id} className="py-2 break-inside-avoid">
+            <div key={person.id} className="py-3 break-inside-avoid">
               {href ? (
                 <a href={href} target="_blank" rel="noopener noreferrer" className="hover:opacity-60 transition-opacity">
                   {content}

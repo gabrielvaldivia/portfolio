@@ -3,7 +3,6 @@ import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { getPayload } from '@/lib/payload'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import Link from 'next/link'
 
 export const revalidate = 60
 
@@ -44,11 +43,6 @@ export default async function DynamicPage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
-      <section className="px-5 tablet:px-10 pt-6 tablet:pt-10 pb-10">
-        <h3 className="text-content opacity-50">
-          <Link href="/">Gabriel Valdivia</Link>
-        </h3>
-      </section>
 
       <Container>
         <h1 className="mb-20">{page.title}</h1>

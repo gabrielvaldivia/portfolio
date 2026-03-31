@@ -4,7 +4,7 @@ export const Services: CollectionConfig = {
   slug: 'services',
   admin: {
     pagination: { defaultLimit: 100 },
-    group: 'Work',
+    group: 'Collections',
     useAsTitle: 'title',
   },
   access: {

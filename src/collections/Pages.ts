@@ -222,9 +222,10 @@ export const Pages: CollectionConfig = {
   slug: 'pages',
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'slug', 'type', 'status'],
+    defaultColumns: ['title', 'slug', 'type', 'status', 'order'],
+    defaultSort: 'order',
     pagination: { defaultLimit: 100 },
-    group: 'Site',
+    group: 'Collections',
   },
   access: {
     read: () => true,
@@ -260,6 +261,12 @@ export const Pages: CollectionConfig = {
   },
   fields: [
     {
+      name: 'order',
+      type: 'number',
+      defaultValue: 0,
+      admin: { position: 'sidebar' },
+    },
+    {
       name: 'title',
       type: 'text',
       required: true,
@@ -280,6 +287,7 @@ export const Pages: CollectionConfig = {
         { label: 'Home', value: 'home' },
         { label: 'About', value: 'about' },
         { label: 'Clients', value: 'clients' },
+        { label: 'People', value: 'people' },
         { label: 'Custom', value: 'custom' },
       ],
       admin: { position: 'sidebar' },
@@ -362,6 +370,21 @@ export const Pages: CollectionConfig = {
       type: 'text',
       defaultValue: 'Clients',
       admin: { condition: isType('clients') },
+    },
+
+    // ── People fields ──
+    {
+      name: 'peopleHeading',
+      label: 'Heading',
+      type: 'text',
+      defaultValue: 'People',
+      admin: { condition: isType('people') },
+    },
+    {
+      name: 'peopleDescription',
+      label: 'Description',
+      type: 'textarea',
+      admin: { condition: isType('people') },
     },
 
     // ── Custom page fields ──

@@ -4,7 +4,7 @@ export const People: CollectionConfig = {
   slug: 'people',
   admin: {
     pagination: { defaultLimit: 100 },
-    group: 'Site',
+    group: 'Collections',
     useAsTitle: 'name',
     defaultColumns: ['name', 'role', 'company', 'featuredTestimonial'],
   },
