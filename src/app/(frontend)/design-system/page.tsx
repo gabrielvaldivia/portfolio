@@ -199,9 +199,8 @@ export default function DesignSystemPage() {
         {active === 'Testimonial' && (
           <div className="max-w-[480px]">
             <Testimonial
-              quote="This is an example testimonial showing the card component with a quote, author name, role, and company."
+              quote="This is an example testimonial showing the card component with a quote, author name, and company."
               name="Jane Doe"
-              role="Head of Design"
               company="Acme Inc"
               linkedIn="https://linkedin.com"
             />
