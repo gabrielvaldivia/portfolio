@@ -220,10 +220,10 @@ const SocialLinksBlock: Block = {
 
 export const Pages: CollectionConfig = {
   slug: 'pages',
+  defaultSort: 'order',
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', 'type', 'status', 'order'],
-    defaultSort: 'order',
     pagination: { defaultLimit: 100 },
     group: 'Collections',
   },
