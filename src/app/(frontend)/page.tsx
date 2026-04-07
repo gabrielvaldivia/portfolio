@@ -287,7 +287,7 @@ export default async function HomePage() {
                   className="marquee-track"
                   style={{
                     gap: `${block.gap || 60}px`,
-                    '--marquee-speed': `${block.speed || 60}s`,
+                    '--marquee-speed': `${Math.min(block.speed || 30, 30)}s`,
                   } as React.CSSProperties}
                 >
                   {[...marqueeClients, ...marqueeClients].map((client: any, j: number) => {

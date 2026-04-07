@@ -310,7 +310,7 @@ a {
   gap: 60px;
   width: max-content;
   animation-name: marquee;
-  animation-duration: var(--marquee-speed, 60s);
+  animation-duration: var(--marquee-speed, 30s);
   animation-timing-function: linear;
   animation-iteration-count: infinite;
 }
