@@ -5,6 +5,16 @@ export const Media: CollectionConfig = {
   access: {
     read: () => true,
   },
+  hooks: {
+    beforeChange: [
+      ({ data }) => {
+        if (!data.alt && data.filename) {
+          data.alt = data.filename.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ')
+        }
+        return data
+      },
+    ],
+  },
   admin: {
     pagination: { defaultLimit: 100 },
     group: 'Admin',
@@ -25,7 +35,6 @@ export const Media: CollectionConfig = {
     {
       name: 'alt',
       type: 'text',
-      required: true,
     },
   ],
 }

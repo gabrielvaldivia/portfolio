@@ -1,5 +1,7 @@
 import { Resend } from 'resend'
+import Anthropic from '@anthropic-ai/sdk'
 import { getPayload } from '@/lib/payload'
+import { buildContext } from '@/lib/buildContext'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,6 +12,44 @@ function escapeHtml(s: string) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
+}
+
+async function generateSummary(
+  items: { firstUser: string; location: string; userCount: number }[],
+): Promise<string> {
+  try {
+    const { apiKey, model } = await buildContext()
+    const key = apiKey || process.env.ANTHROPIC_API_KEY
+    if (!key) return ''
+
+    const anthropic = new Anthropic({ apiKey: key })
+    const chatList = items
+      .map(
+        (it, i) =>
+          `${i + 1}. [${it.location || 'unknown location'}] "${it.firstUser.slice(0, 300)}"`,
+      )
+      .join('\n')
+
+    const response = await anthropic.messages.create({
+      model: model || 'claude-haiku-4-5-20251001',
+      max_tokens: 200,
+      messages: [
+        {
+          role: 'user',
+          content: `Below are the opening questions from ${items.length} chats on my portfolio website this past week, along with visitor locations. Write ONE short sentence (max 30 words) summarizing the main topics people asked about and a couple notable locations. Be specific about topics. No bullet points, no markdown, no preamble.\n\n${chatList}`,
+        },
+      ],
+    })
+
+    return response.content
+      .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+      .map((b) => b.text)
+      .join('')
+      .trim()
+  } catch (e) {
+    console.error('Summary generation failed:', e)
+    return ''
+  }
 }
 
 export async function GET(req: Request) {
@@ -61,14 +101,20 @@ export async function GET(req: Request) {
   })
 
   const totalUserMsgs = items.reduce((sum, it) => sum + it.userCount, 0)
+  const summary = await generateSummary(items)
 
   const html = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; color: #111;">
       <h2 style="margin: 0 0 8px;">Weekly chat digest</h2>
-      <p style="color: #666; margin: 0 0 24px;">
+      <p style="color: #666; margin: 0 0 16px;">
         ${conversations.length} conversation${conversations.length === 1 ? '' : 's'} ·
         ${totalUserMsgs} user message${totalUserMsgs === 1 ? '' : 's'} · past 7 days
       </p>
+      ${
+        summary
+          ? `<p style="margin: 0 0 24px; line-height: 1.6;">${escapeHtml(summary)}</p>`
+          : ''
+      }
       ${items
         .map(
           (it) => `
@@ -90,6 +136,7 @@ export async function GET(req: Request) {
   const text = [
     `Weekly chat digest`,
     `${conversations.length} conversations · ${totalUserMsgs} user messages · past 7 days`,
+    ...(summary ? ['', summary] : []),
     '',
     ...items.map(
       (it) =>

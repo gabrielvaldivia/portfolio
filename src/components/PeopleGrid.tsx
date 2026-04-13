@@ -79,7 +79,7 @@ export function PeopleGrid({ people }: { people: Person[] }) {
           )
 
           return (
-            <div key={person.id} className="py-3 break-inside-avoid">
+            <div key={person.id} className="py-4 break-inside-avoid">
               {href ? (
                 <a href={href} target="_blank" rel="noopener noreferrer" className="hover:opacity-60 transition-opacity">
                   {content}
