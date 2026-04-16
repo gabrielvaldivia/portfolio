@@ -10,7 +10,13 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (prevPathname.current === pathname) return
+    const wasChat = prevPathname.current.startsWith('/chat')
+    const isChat = pathname.startsWith('/chat')
     prevPathname.current = pathname
+
+    // Skip the fade/translate when moving between /chat sub-routes
+    // so the segmented control feels like an instant tab swap.
+    if (wasChat && isChat) return
 
     const el = ref.current
     if (!el) return

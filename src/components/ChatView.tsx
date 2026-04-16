@@ -21,9 +21,9 @@ export function ChatView({
         <Link
           href={chatHref}
           scroll={false}
-          className={`h-8 px-4 text-[13px] rounded-full transition-colors cursor-pointer flex items-center ${
+          className={`h-8 px-4 text-[13px] rounded-full transition-colors !cursor-pointer flex items-center ${
             view === 'chat'
-              ? 'bg-background dark:bg-white text-content dark:text-black'
+              ? 'bg-background dark:bg-white !text-black'
               : 'text-muted hover:text-content'
           }`}
         >
@@ -32,9 +32,9 @@ export function ChatView({
         <Link
           href="/chat/map"
           scroll={false}
-          className={`h-8 px-4 text-[13px] rounded-full transition-colors cursor-pointer flex items-center ${
+          className={`h-8 px-4 text-[13px] rounded-full transition-colors !cursor-pointer flex items-center ${
             view === 'map'
-              ? 'bg-background dark:bg-white text-content dark:text-black'
+              ? 'bg-background dark:bg-white !text-black'
               : 'text-muted hover:text-content'
           }`}
         >
