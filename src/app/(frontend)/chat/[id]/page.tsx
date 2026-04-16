@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { Chat } from '@/components/Chat'
 import { ChatView } from '@/components/ChatView'
 import { Container } from '@/components/Container'
 import { getPayload } from '@/lib/payload'
@@ -58,17 +59,20 @@ export default async function ChatByIdPage({ params }: { params: Promise<{ id: s
     <section className="tablet:pb-10">
       <Container>
         <div className="relative bg-background-alt rounded-[20px] tablet:rounded-[30px] h-[calc(100dvh-110px)] tablet:h-[calc(100dvh-145px)] min-h-[500px] overflow-hidden">
-          <ChatView
-            faqItems={faqItems}
-            avatarUrl={aboutImage}
-            avatarUrlDark={aboutImageDark}
-            projects={projectLinks}
-            sideProjects={sideProjectLinks}
-            people={peopleLinks}
-            socialLinks={socialLinks}
-            talks={talkLinks}
-            initialConversationId={isNew ? null : numericId}
-          />
+          <ChatView view="chat" chatHref={isNew ? '/chat/new' : `/chat/${numericId}`}>
+            <Chat
+              faqItems={faqItems}
+              avatarUrl={aboutImage}
+              avatarUrlDark={aboutImageDark}
+              projects={projectLinks}
+              sideProjects={sideProjectLinks}
+              people={peopleLinks}
+              socialLinks={socialLinks}
+              talks={talkLinks}
+              persistentSidebar
+              initialConversationId={isNew ? null : numericId}
+            />
+          </ChatView>
         </div>
       </Container>
     </section>
