@@ -1,8 +1,10 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { geoEqualEarth, geoPath } from 'd3-geo'
-import { feature } from 'topojson-client'
+import { useEffect, useRef, useState } from 'react'
+import mapboxgl from 'mapbox-gl'
+import 'mapbox-gl/dist/mapbox-gl.css'
+
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || ''
 
 type Message = { role: 'user' | 'assistant'; content: string }
 
@@ -13,102 +15,149 @@ type Conversation = {
   latitude?: number | null
   longitude?: number | null
   messages?: Message[]
+  createdAt?: string
+  timezone?: string | null
 }
-
-type Dot = { conv: Conversation; x: number; y: number }
-
-const MAP_W = 960
-const MAP_H = 500
 
 function stripFollowups(text: string) {
   return text.replace(/\{\{FOLLOWUPS:[^}]+\}\}/g, '').trim()
 }
 
+function formatDateTime(d: string | Date, tz?: string | null) {
+  const date = new Date(d)
+  const dateOpts: Intl.DateTimeFormatOptions = {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    ...(tz ? { timeZone: tz } : {}),
+  }
+  const timeOpts: Intl.DateTimeFormatOptions = {
+    hour: 'numeric',
+    minute: '2-digit',
+    ...(tz ? { timeZone: tz } : {}),
+  }
+  const datePart = new Intl.DateTimeFormat('en-US', dateOpts).format(date)
+  const timePart = new Intl.DateTimeFormat('en-US', timeOpts).format(date)
+  return `${datePart} · ${timePart}`
+}
+
+function prefersDark() {
+  if (typeof window === 'undefined') return false
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+}
+
 export function ChatMap() {
-  const [topology, setTopology] = useState<any>(null)
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const mapRef = useRef<mapboxgl.Map | null>(null)
+  const markersRef = useRef<mapboxgl.Marker[]>([])
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [selectedId, setSelectedId] = useState<number | null>(null)
 
+  // Load conversations
   useEffect(() => {
-    fetch('/world-110m.json')
-      .then((r) => r.json())
-      .then(setTopology)
-      .catch(() => {})
     fetch('/api/chat/conversations')
       .then((r) => r.json())
       .then(setConversations)
       .catch(() => {})
   }, [])
 
-  const projection = useMemo(
-    () => geoEqualEarth().scale(170).translate([MAP_W / 2, MAP_H / 2 + 10]),
-    [],
-  )
+  // Init map
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container || mapRef.current) return
+    if (!mapboxgl.accessToken) {
+      console.warn('NEXT_PUBLIC_MAPBOX_TOKEN is not set — map will be blank.')
+      return
+    }
+    const map = new mapboxgl.Map({
+      container,
+      style: prefersDark() ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11',
+      projection: 'mercator',
+      center: [10, 25],
+      zoom: 1.1,
+      attributionControl: false,
+      logoPosition: 'bottom-left',
+    })
+    map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right')
+    map.on('load', () => map.resize())
+    mapRef.current = map
 
-  const countryPaths = useMemo(() => {
-    if (!topology) return null
-    const fc = feature(topology, topology.objects.countries as any) as any
-    const path = geoPath(projection as any)
-    return (fc.features as any[]).map((f, i) => ({ id: i, d: path(f) || '' }))
-  }, [topology, projection])
+    // Force a resize on size changes of the container (tab switches can mount
+    // with stale dimensions; this keeps the canvas aligned to the container).
+    const ro = new ResizeObserver(() => map.resize())
+    ro.observe(container)
 
-  const dots: Dot[] = useMemo(() => {
-    return conversations
-      .map((c) => {
-        if (typeof c.latitude !== 'number' || typeof c.longitude !== 'number') return null
-        const pt = projection([c.longitude, c.latitude])
-        if (!pt) return null
-        return { conv: c, x: pt[0], y: pt[1] }
+    // Follow OS theme changes
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const onThemeChange = (e: MediaQueryListEvent) => {
+      map.setStyle(e.matches ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11')
+    }
+    mq.addEventListener('change', onThemeChange)
+
+    return () => {
+      ro.disconnect()
+      mq.removeEventListener('change', onThemeChange)
+      map.remove()
+      mapRef.current = null
+    }
+  }, [])
+
+  // Plot markers whenever conversations change
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+
+    markersRef.current.forEach((m) => m.remove())
+    markersRef.current = []
+
+    conversations.forEach((c) => {
+      if (typeof c.latitude !== 'number' || typeof c.longitude !== 'number') return
+      // Outer element — Mapbox owns its transform (for lat/lng positioning).
+      // Inner dot handles hover scaling so we never clobber the positioning.
+      const el = document.createElement('div')
+      el.setAttribute('role', 'button')
+      el.setAttribute('tabindex', '0')
+      el.setAttribute('aria-label', c.title)
+      el.style.cssText = 'cursor:pointer;width:14px;height:14px;display:flex;align-items:center;justify-content:center;'
+      const dot = document.createElement('div')
+      dot.style.cssText =
+        'width:10px;height:10px;border-radius:50%;background:var(--color-content);border:2px solid var(--color-background);transition:transform 150ms ease, box-shadow 150ms ease;box-sizing:border-box;'
+      el.appendChild(dot)
+      el.addEventListener('mouseenter', () => {
+        dot.style.transform = 'scale(1.5)'
       })
-      .filter(Boolean) as Dot[]
-  }, [conversations, projection])
+      el.addEventListener('mouseleave', () => {
+        dot.style.transform = ''
+      })
+      el.addEventListener('click', (e) => {
+        e.stopPropagation()
+        setSelectedId(c.id)
+      })
+      const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+        .setLngLat([c.longitude, c.latitude])
+        .addTo(map)
+      markersRef.current.push(marker)
+    })
+  }, [conversations])
 
-  const selected = selectedId !== null ? dots.find((d) => d.conv.id === selectedId)?.conv ?? null : null
+  const selected =
+    selectedId !== null ? conversations.find((c) => c.id === selectedId) || null : null
 
   return (
     <div className="relative w-full h-full overflow-hidden">
-      <svg
-        viewBox={`0 0 ${MAP_W} ${MAP_H}`}
-        preserveAspectRatio="xMidYMid meet"
-        className="w-full h-full block text-content"
-        onClick={() => setSelectedId(null)}
-      >
-        <g className="text-muted opacity-60">
-          {countryPaths?.map((c) => (
-            <path key={c.id} d={c.d} fill="none" stroke="currentColor" strokeWidth={0.4} />
-          ))}
-        </g>
-        <g>
-          {dots.map((d) => {
-            const active = d.conv.id === selectedId
-            return (
-              <g
-                key={d.conv.id}
-                style={{ cursor: 'pointer' }}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setSelectedId(d.conv.id)
-                }}
-              >
-                <circle cx={d.x} cy={d.y} r={active ? 5 : 3.5} fill="currentColor" />
-                {active && (
-                  <circle cx={d.x} cy={d.y} r={10} fill="none" stroke="currentColor" strokeWidth={0.8} opacity={0.6} />
-                )}
-                {/* Hit area */}
-                <circle cx={d.x} cy={d.y} r={14} fill="transparent" />
-              </g>
-            )
-          })}
-        </g>
-      </svg>
+      <div ref={containerRef} className="w-full h-full" />
 
       {selected && (
-        <div className="absolute top-4 right-4 w-[340px] max-w-[calc(100%-32px)] max-h-[calc(100%-32px)] bg-background border border-border rounded-[16px] shadow-lg flex flex-col z-10">
-          <div className="flex items-start justify-between gap-2 p-4 pb-3 border-b border-border">
+        <div className="absolute bottom-2 left-2 right-2 max-h-[calc(50%-8px)] rounded-[12px] tablet:bottom-auto tablet:left-auto tablet:top-4 tablet:right-4 tablet:w-[340px] tablet:max-w-[calc(100%-32px)] tablet:max-h-[calc(100%-32px)] tablet:rounded-[14px] bg-background shadow-lg flex flex-col z-10">
+          <div className="flex items-start justify-between gap-2 p-4 pb-3">
             <div className="min-w-0">
-              <div className="text-body font-medium text-content truncate">{selected.title}</div>
-              {selected.location && (
-                <div className="text-caption text-muted truncate mt-0.5">{selected.location}</div>
+              <div className="text-[15px] font-medium text-content truncate">
+                {selected.location || 'Unknown location'}
+              </div>
+              {selected.createdAt && (
+                <div className="text-[11px] text-muted truncate mt-0.5">
+                  {formatDateTime(selected.createdAt, selected.timezone)}
+                </div>
               )}
             </div>
             <button
@@ -121,7 +170,7 @@ export function ChatMap() {
               </svg>
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
+          <div className="flex-1 overflow-y-auto p-4 pb-6 space-y-3 min-h-0">
             {(selected.messages || []).map((m, i) => {
               const text = stripFollowups(m.content)
               if (!text) return null
@@ -140,12 +189,6 @@ export function ChatMap() {
               )
             })}
           </div>
-          <a
-            href={`/chat/${selected.id}`}
-            className="block text-center px-4 py-3 text-[13px] text-muted hover:text-content border-t border-border transition-colors"
-          >
-            Open chat →
-          </a>
         </div>
       )}
     </div>

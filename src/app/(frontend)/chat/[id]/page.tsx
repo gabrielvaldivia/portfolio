@@ -55,9 +55,9 @@ export default async function ChatByIdPage({ params }: { params: Promise<{ id: s
   ]
 
   return (
-    <section className="pb-10">
+    <section className="tablet:pb-10">
       <Container>
-        <div className="bg-background-alt rounded-[20px] tablet:rounded-[30px] h-[calc(100dvh-180px)] min-h-[500px] overflow-hidden">
+        <div className="relative bg-background-alt rounded-[20px] tablet:rounded-[30px] h-[calc(100dvh-110px)] tablet:h-[calc(100dvh-145px)] min-h-[500px] overflow-hidden">
           <ChatView
             faqItems={faqItems}
             avatarUrl={aboutImage}

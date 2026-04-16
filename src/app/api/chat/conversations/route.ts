@@ -1,14 +1,29 @@
 import { getPayload } from '@/lib/payload'
+// @ts-expect-error — tz-lookup ships no types; the runtime signature is (lat, lng) => string
+import tzlookup from 'tz-lookup'
+
+function lookupTz(lat: unknown, lng: unknown): string | null {
+  if (typeof lat !== 'number' || typeof lng !== 'number') return null
+  try {
+    return tzlookup(lat, lng) as string
+  } catch {
+    return null
+  }
+}
 
 export async function GET() {
   const payload = await getPayload()
   const result = await payload.find({
     collection: 'conversations',
     sort: '-updatedAt',
-    limit: 50,
+    limit: 500,
     depth: 0,
   })
-  return Response.json(result.docs)
+  const docs = (result.docs as any[]).map((d) => ({
+    ...d,
+    timezone: lookupTz(d.latitude, d.longitude),
+  }))
+  return Response.json(docs)
 }
 
 export async function POST(req: Request) {

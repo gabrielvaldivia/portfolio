@@ -8,6 +8,7 @@ const pages = [
   { label: 'Home', url: '/' },
   { label: 'Work', url: '/work' },
   { label: 'About', url: '/about' },
+  { label: 'Chat', url: '/chat' },
   { label: 'Playground', url: '/playground' },
   { label: 'Clients', url: '/clients' },
   { label: 'People', url: '/people' },
