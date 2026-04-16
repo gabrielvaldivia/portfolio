@@ -4,7 +4,7 @@
   "outputDirectory": ".next",
   "crons": [
     {
-      "path": "/chat/digest",
+      "path": "/api/chat/digest",
       "schedule": "0 14 * * 1"
     }
   ]

@@ -307,10 +307,11 @@ function formatDate(date: string | Date) {
   })
 }
 
-function HamburgerIcon() {
+function SidebarToggleIcon() {
   return (
-    <svg width="20" height="14" viewBox="0 0 20 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <path d="M1 2h18M1 10h12" />
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M9 4v16" />
     </svg>
   )
 }
@@ -324,6 +325,8 @@ export function Chat({
   people = [],
   socialLinks = [],
   talks = [],
+  persistentSidebar = false,
+  initialConversationId = null,
 }: {
   faqItems: FAQItem[]
   avatarUrl?: string
@@ -333,6 +336,8 @@ export function Chat({
   people?: PersonLink[]
   socialLinks?: SocialLink[]
   talks?: TalkLink[]
+  persistentSidebar?: boolean
+  initialConversationId?: number | null
 }) {
   const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', content: GREETINGS[0] }])
   const [showLinks, setShowLinks] = useState(false)
@@ -340,10 +345,25 @@ export function Chat({
   const [iconsCollapsed, setIconsCollapsed] = useState(false)
   const [isMultiline, setIsMultiline] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [copied, setCopied] = useState(false)
   const [hasScrolled, setHasScrolled] = useState(false)
   const [conversations, setConversations] = useState<Conversation[]>([])
-  const [conversationId, setConversationId] = useState<number | null>(null)
+  const [conversationId, setConversationIdRaw] = useState<number | null>(initialConversationId)
+
+  const setConversationId = useCallback(
+    (id: number | null) => {
+      setConversationIdRaw(id)
+      if (typeof window === 'undefined') return
+      if (id !== null) sessionStorage.setItem('conversationId', String(id))
+      else sessionStorage.removeItem('conversationId')
+      if (persistentSidebar) {
+        const newPath = id !== null ? `/chat/${id}` : '/chat/new'
+        if (window.location.pathname !== newPath) {
+          window.history.pushState(null, '', newPath)
+        }
+      }
+    },
+    [persistentSidebar],
+  )
   const [animateBubbles, setAnimateBubbles] = useState(true)
   const linksRef = useRef<HTMLDivElement>(null)
   const hasRandomized = useRef(false)
@@ -352,17 +372,23 @@ export function Chat({
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
 
   useEffect(() => {
-    // Check for ?chat= URL param first
+    // Resolve the initial conversation id. On the dedicated /chat page
+    // the URL is authoritative (via initialConversationId). Elsewhere,
+    // fall back to the ?chat= query param or sessionStorage.
     const urlParams = new URLSearchParams(window.location.search)
     const chatParam = urlParams.get('chat')
-    const savedId = chatParam || sessionStorage.getItem('conversationId')
+    const savedId = persistentSidebar
+      ? initialConversationId !== null && initialConversationId !== undefined
+        ? String(initialConversationId)
+        : null
+      : chatParam || sessionStorage.getItem('conversationId')
     if (!hasRandomized.current && !savedId) {
       hasRandomized.current = true
       const random = GREETINGS[Math.floor(Math.random() * GREETINGS.length)]
       setMessages([{ role: 'assistant', content: random }])
     }
     // Fetch location
-    fetch('/chat')
+    fetch('/api/chat')
       .then((r) => r.json())
       .then((data) => {
         if (data.location) locationRef.current = data.location
@@ -377,7 +403,7 @@ export function Chat({
     // Restore conversation from session
     if (savedId) {
       setAnimateBubbles(false)
-      fetch(`/chat/conversations/${savedId}`)
+      fetch(`/api/chat/conversations/${savedId}`)
         .then((r) => r.json())
         .then((doc) => {
           if (doc.messages?.length) {
@@ -389,7 +415,7 @@ export function Chat({
               setConversationId(doc.id)
               setIsStreaming(true)
               setTimeout(() => setAnimateBubbles(true), 100)
-              fetch('/chat', {
+              fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ messages: withoutEmpty }),
@@ -493,7 +519,7 @@ export function Chat({
       const controller = new AbortController()
       const timeout = setTimeout(() => controller.abort(), 30000)
 
-      const res = await fetch('/chat', {
+      const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: newMessages }),
@@ -563,7 +589,7 @@ export function Chat({
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(() => {
       if (conversationId) {
-        fetch(`/chat/conversations/${conversationId}`, {
+        fetch(`/api/chat/conversations/${conversationId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ messages }),
@@ -571,17 +597,14 @@ export function Chat({
       } else {
         const loc = locationRef.current
         const title = formatDate(new Date()) + (loc ? ` · ${loc}` : '')
-        fetch('/chat/conversations', {
+        fetch('/api/chat/conversations', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title, location: loc, messages }),
         })
           .then((r) => r.json())
           .then((doc) => {
-            if (doc.id) {
-              setConversationId(doc.id)
-              sessionStorage.setItem('conversationId', String(doc.id))
-            }
+            if (doc.id) setConversationId(doc.id)
           })
           .catch(() => {})
       }
@@ -589,11 +612,15 @@ export function Chat({
   }, [isStreaming])
 
   function loadConversations() {
-    fetch('/chat/conversations')
+    fetch('/api/chat/conversations')
       .then((r) => r.json())
       .then((docs) => setConversations(docs))
       .catch(() => {})
   }
+
+  useEffect(() => {
+    if (persistentSidebar) loadConversations()
+  }, [persistentSidebar])
 
   function loadConversation(conv: Conversation) {
     setAnimateBubbles(false)
@@ -602,7 +629,6 @@ export function Chat({
     requestAnimationFrame(() => {
       setMessages(conv.messages)
       setConversationId(conv.id)
-      sessionStorage.setItem('conversationId', String(conv.id))
       requestAnimationFrame(() => setAnimateBubbles(true))
     })
   }
@@ -611,7 +637,6 @@ export function Chat({
     const random = GREETINGS[Math.floor(Math.random() * GREETINGS.length)]
     setMessages([{ role: 'assistant', content: random }])
     setConversationId(null)
-    sessionStorage.removeItem('conversationId')
     setSidebarOpen(false)
   }
 
@@ -633,43 +658,67 @@ export function Chat({
     return match[1].split('|').map((q) => q.trim()).filter(Boolean)
   })()
 
-  return (
-    <div className="flex flex-col h-full relative">
-      {/* Hamburger */}
+  const sidebarInner = (
+    <>
+      <div className="pt-1 pb-4 px-3">
+        <span className="text-body font-medium text-content">Conversations</span>
+      </div>
+      <div className="flex-1 overflow-y-auto space-y-1" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 16px, black calc(100% - 16px), transparent)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 16px, black calc(100% - 16px), transparent)' }}>
+        {conversations.map((conv) => (
+          <button
+            key={conv.id}
+            onClick={() => loadConversation(conv)}
+            className={`w-full text-left px-3 py-2.5 rounded-[12px] transition-colors cursor-pointer ${
+              conv.id === conversationId ? 'bg-black/5 dark:bg-white/5' : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.02]'
+            }`}
+          >
+            <div className="text-[13px] text-muted truncate">
+              {conv.title}
+            </div>
+            <div className="text-[16px] text-content truncate mt-0.5">
+              {conv.messages?.find((m: Message) => m.role === 'user')?.content || 'No messages'}
+            </div>
+          </button>
+        ))}
+        {conversations.length === 0 && (
+          <p className="text-caption text-muted px-3 py-2">No conversations yet</p>
+        )}
+      </div>
+    </>
+  )
+
+  const chatBody = (
+    <div className={`flex flex-col h-full relative ${persistentSidebar ? 'flex-1 min-w-0 py-5 tablet:py-8 px-5 tablet:px-8' : ''}`}>
+      {/* Sidebar toggle */}
       <button
-        onClick={() => { setSidebarOpen(true); loadConversations() }}
-        className={`absolute top-1 left-0 z-20 w-10 h-10 flex items-center justify-center rounded-full text-muted hover:text-content transition-all duration-200 cursor-pointer ${hasScrolled ? 'bg-background/60 dark:bg-white/10 backdrop-blur-xl' : ''}`}
+        onClick={() => {
+          setSidebarOpen((v) => !v)
+          if (!persistentSidebar) loadConversations()
+        }}
+        title={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+        aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+        className={`absolute ${persistentSidebar ? 'top-4 left-4' : 'top-1 left-0'} z-20 w-10 h-10 flex items-center justify-center rounded-full text-muted hover:text-content transition-all duration-200 cursor-pointer ${hasScrolled ? 'bg-background/60 dark:bg-white/10 backdrop-blur-xl' : ''}`}
       >
-        <HamburgerIcon />
+        <SidebarToggleIcon />
       </button>
 
-      {/* Share link */}
+      {/* New chat button — only when a conversation is active */}
       {conversationId && (
         <button
-          onClick={() => {
-            const url = `${window.location.origin}/?chat=${conversationId}#contact`
-            navigator.clipboard.writeText(url)
-            setCopied(true)
-            setTimeout(() => setCopied(false), 2000)
-          }}
-          className={`absolute top-1 right-0 z-20 w-10 h-10 flex items-center justify-center rounded-full text-muted hover:text-content transition-all duration-200 cursor-pointer ${hasScrolled ? 'bg-background/60 dark:bg-white/10 backdrop-blur-xl' : ''}`}
+          onClick={startNewConversation}
+          title="New chat"
+          aria-label="New chat"
+          className={`absolute top-4 right-4 z-20 w-10 h-10 flex items-center justify-center rounded-full text-muted hover:text-content transition-all duration-200 cursor-pointer ${hasScrolled ? 'bg-background/60 dark:bg-white/10 backdrop-blur-xl' : ''}`}
         >
-          {copied ? (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 6L9 17l-5-5" />
-            </svg>
-          ) : (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-            </svg>
-          )}
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
         </button>
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar — slide-in overlay (hidden on tablet+ when persistent) */}
       <div
-        className={`absolute -inset-5 tablet:-inset-8 z-30 transition-opacity duration-200 ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        className={`absolute -inset-5 tablet:-inset-8 z-30 transition-opacity duration-200 ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'} ${persistentSidebar ? 'tablet:hidden' : ''}`}
       >
         {/* Overlay */}
         <div className={`absolute inset-0 transition-colors duration-300 ${sidebarOpen ? 'bg-black/20' : ''}`} onClick={() => setSidebarOpen(false)} />
@@ -677,36 +726,7 @@ export function Chat({
         <div
           className={`relative w-[320px] bg-background dark:bg-[#2a2a2a] rounded-[12px] tablet:rounded-[22px] p-4 m-2 flex flex-col h-[calc(100%-16px)] transition-transform duration-300 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
         >
-          <div className="flex items-center justify-between pt-1 pb-4 px-3">
-            <span className="text-body font-medium text-content">Conversations</span>
-            <button
-              onClick={startNewConversation}
-              className="text-[15px] text-muted hover:text-content transition-colors cursor-pointer"
-            >
-              New
-            </button>
-          </div>
-          <div className="flex-1 overflow-y-auto space-y-1" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 16px, black calc(100% - 16px), transparent)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 16px, black calc(100% - 16px), transparent)' }}>
-            {conversations.map((conv) => (
-              <button
-                key={conv.id}
-                onClick={() => loadConversation(conv)}
-                className={`w-full text-left px-3 py-2.5 rounded-[12px] transition-colors cursor-pointer ${
-                  conv.id === conversationId ? 'bg-black/5 dark:bg-white/5' : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.02]'
-                }`}
-              >
-                <div className="text-[13px] text-muted truncate">
-                  {conv.title}
-                </div>
-                <div className="text-[16px] text-content truncate mt-0.5">
-                  {conv.messages?.find((m: Message) => m.role === 'user')?.content || 'No messages'}
-                </div>
-              </button>
-            ))}
-            {conversations.length === 0 && (
-              <p className="text-caption text-muted px-3 py-2">No conversations yet</p>
-            )}
-          </div>
+          {sidebarInner}
         </div>
       </div>
 
@@ -909,4 +929,19 @@ export function Chat({
       </form>
     </div>
   )
+
+  if (persistentSidebar) {
+    return (
+      <div className="flex flex-row h-full overflow-hidden">
+        <aside
+          className={`hidden tablet:flex w-[280px] shrink-0 flex-col bg-background-alt-hover dark:bg-white/[0.06] py-5 tablet:py-8 px-2 transition-[margin-left] duration-300 ease-in-out ${sidebarOpen ? 'ml-0' : '-ml-[280px]'}`}
+        >
+          {sidebarInner}
+        </aside>
+        {chatBody}
+      </div>
+    )
+  }
+
+  return chatBody
 }

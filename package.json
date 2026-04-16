@@ -17,6 +17,7 @@
     "@payloadcms/richtext-lexical": "^3.79.1",
     "@payloadcms/storage-s3": "^3.79.1",
     "@payloadcms/ui": "^3.79.1",
+    "d3-geo": "^3.1.1",
     "dialkit": "^1.1.0",
     "dotenv": "^17.3.1",
     "motion": "^12.38.0",
@@ -26,6 +27,7 @@
     "react-dom": "^19.2.4",
     "resend": "^6.9.4",
     "sharp": "^0.34.5",
+    "topojson-client": "^3.1.0",
     "tsx": "^4.19.0"
   },
   "devDependencies": {
@@ -33,9 +35,11 @@
     "@swc-node/register": "^1.10.0",
     "@swc/core": "^1.15.18",
     "@tailwindcss/postcss": "^4.2.1",
+    "@types/d3-geo": "^3.1.0",
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@types/topojson-client": "^3.1.5",
     "eslint": "^10.0.3",
     "postcss": "^8.5.8",
     "sass": "^1.98.0",

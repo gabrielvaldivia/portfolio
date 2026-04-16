@@ -3,7 +3,6 @@ import type { Metadata } from 'next'
 // import { Nav } from '@/components/Nav'
 import Link from 'next/link'
 import { NavMenu } from '@/components/NavMenu'
-import { Footer } from '@/components/Footer'
 import { OverlayManager } from '@/components/OverlayManager'
 import { PageTransition } from '@/components/PageTransition'
 import { getSiteSettings } from '@/lib/queries'
@@ -66,7 +65,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </h3>
         </section>
         <PageTransition>{children}</PageTransition>
-        <Footer />
       </body>
     </html>
   )

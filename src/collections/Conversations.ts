@@ -16,6 +16,8 @@ export const Conversations: CollectionConfig = {
   fields: [
     { name: 'title', type: 'text', required: true },
     { name: 'location', type: 'text' },
+    { name: 'latitude', type: 'number', admin: { description: 'Latitude in decimal degrees (-90 to 90).' } },
+    { name: 'longitude', type: 'number', admin: { description: 'Longitude in decimal degrees (-180 to 180).' } },
     {
       name: 'messages',
       type: 'json',
