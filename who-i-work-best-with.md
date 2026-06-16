@@ -45,7 +45,10 @@ else looks:
 ## What I can live without (surprisingly)
 
 - **Believing the product will win.** It's secondary to a great team and high
-  craft. I've loved engagements I was skeptical about commercially.
+  craft — I've loved engagements I was skeptical about commercially. It doesn't
+  decide whether I take the work; it decides *how I'm paid*: if I believe the
+  product can win commercially, I'll take equity in the comp. If not, we go all
+  cash.
 - **Everything shipping.** It stings when good work doesn't ship, but it won't
   ruin an otherwise great engagement.
 

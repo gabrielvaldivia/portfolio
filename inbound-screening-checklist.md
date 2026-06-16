@@ -61,13 +61,14 @@ decline even if the gates pass.
 
 ---
 
-## Step 4 — The things NOT to over-weight
+## Step 4 — The things NOT to over-weight (for the yes/no)
 
 Don't let these talk me out of an otherwise great engagement — history says they
-don't actually ruin the work:
+don't actually ruin the work. But one decides how I'm paid:
 
-- **"Will this product win commercially?"** Secondary. I've loved engagements I
-  doubted.
+- **"Will this product win commercially?"** Doesn't gate the engagement, but it
+  sets the **comp structure**: believe it can win → take equity in the comp.
+  Don't → go all cash.
 - **"Will everything I make ship?"** It stings, but it's survivable.
 
 ---
