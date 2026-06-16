@@ -12,9 +12,16 @@ See `who-i-work-best-with.md` for the reasoning behind these.
 
 If any of these is missing, decline. They are non-negotiable.
 
-- [ ] **A mission I believe in.** Do I believe this makes the world a better
-      place and genuinely helps a community of people I think deserves the help?
-      (Hollow, vanity, or harmful missions fail here — stop.)
+- [ ] **A mission I believe in.** All of these must hold:
+      - Does it **genuinely help the people it serves**, with the benefit
+        **direct and visible** to them (not a side effect)?
+      - Is it at least **net positive on a real need**? (Doesn't have to be
+        world-changing.)
+      - Is the community one I want to serve — everyday people, creators &
+        builders, health & wellbeing, or the underserved/marginalized?
+      - **None of the auto-NOs:** extractive/addictive product, ad-driven or
+        data-exploitation business model, harmful industry (tobacco, gambling,
+        predatory finance, surveillance, weapons), or pure vanity/status play.
 - [ ] **Novelty / invention.** Is this a genuinely new product — new paradigm,
       new interaction, new hardware? (If it's a derivative of something that
       already exists, stop here.)

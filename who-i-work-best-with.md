@@ -25,9 +25,20 @@ bureaucracy, and a founding team I can't connect with.
 These are the things whose absence makes me pass, no matter how good everything
 else looks:
 
-1. **A mission I believe in.** I need to believe the work makes the world a
-   better place and genuinely benefits a community of people I think deserves
-   the help. Without that, nothing else matters.
+1. **A mission I believe in.** I need to believe the work genuinely helps the
+   people it serves. Specifically:
+   - **Real, direct benefit.** The good has to reach the people it's for and be
+     visible in their lives — not an incidental side effect.
+   - **Net positive is enough.** It doesn't have to be world-changing. Serving a
+     real need and doing more good than harm clears the bar.
+   - **The community can be broad or specific** — everyday people, creators and
+     builders, people facing health and wellbeing challenges, or the underserved
+     and marginalized. What matters is that they're genuinely better off.
+   - **Automatic no** on extractive or addictive products, ad-driven or
+     data-exploitation business models, harmful industries (tobacco, gambling,
+     predatory finance, surveillance, weapons), and pure vanity/status plays.
+
+   Without this, nothing else matters.
 2. **Novelty / invention.** New paradigms, novel interactions, new hardware. No
    established playbook. If it's a derivative product, I'm out.
 3. **A founding team I can get along with and connect with.** Real chemistry
