@@ -15,11 +15,11 @@ autonomy to define the work. Whimsy and a worthwhile mission make it sing.
 
 I can stomach a shaky market thesis and even some work that never ships. What
 actually drives me away is derivative products, low-craft teams, bureaucracy,
-and no access to the person making the decisions.
+and a founding team I can't connect with.
 
 ---
 
-## My two non-negotiables
+## My three non-negotiables
 
 These are the things whose absence makes me pass, no matter how good everything
 else looks:
@@ -28,16 +28,19 @@ else looks:
    No established playbook. If it's a derivative product, I'm out.
 2. **High craft.** A team and a product with a genuinely high bar. Craft's
    absence stings even when everything else is perfect.
+3. **A founding team I can get along with and connect with.** Real chemistry
+   with the people I'd be working alongside — not just competence, but a genuine
+   human connection. Without it, even great work feels hollow.
 
 ## What makes it sing (strong loves, not dealbreakers)
 
 - **Whimsy and fun** — my most consistent source of joy in the work.
 - **Total autonomy and trust** — room to define the work, not just execute it.
 - **A worthwhile mission** — gen AI for a good cause especially.
-- **A great direct relationship** — and this is the richest factor of all. It's
-  not one thing, it's the whole relationship: working with someone of real
+- **Depth in the relationship** — beyond the baseline connection that's now a
+  non-negotiable, the richest engagements add working with someone of real
   **caliber** I can learn from, with **direct access** (one trusted person, no
-  layers), where there's genuine **warmth** that grows over time.
+  layers), where genuine **warmth** grows over time.
 
 ## What I can live without (surprisingly)
 
@@ -57,6 +60,6 @@ else looks:
 
 ## The pattern, in one line
 
-> Inventive product + high craft + a close, trusting relationship with a founder
-> I respect and come to like. Get those right and I'll do my best work — even if
-> the market thesis is shaky and not everything ships.
+> Inventive product + high craft + a founding team I genuinely connect with.
+> Get those three right and I'll do my best work — even if the market thesis is
+> shaky and not everything ships.

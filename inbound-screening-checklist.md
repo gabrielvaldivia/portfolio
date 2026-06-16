@@ -8,9 +8,9 @@ See `who-i-work-best-with.md` for the reasoning behind these.
 
 ---
 
-## Step 1 — The two hard gates (both must be true)
+## Step 1 — The three hard gates (all must be true)
 
-If either of these is missing, decline. They are non-negotiable.
+If any of these is missing, decline. They are non-negotiable.
 
 - [ ] **Novelty / invention.** Is this a genuinely new product — new paradigm,
       new interaction, new hardware? (If it's a derivative of something that
@@ -18,8 +18,11 @@ If either of these is missing, decline. They are non-negotiable.
 - [ ] **High craft.** Does the team have a real bar for craft, in both the
       product and how they work? (Frugal, growth-at-all-costs, "ship it however"
       cultures fail this gate.)
+- [ ] **Connection with the founding team.** Do I genuinely get along with and
+      connect with the people I'd be working alongside? Is there real chemistry,
+      not just competence? (No connection → decline, however good the product.)
 
-**Both checked → continue. Either unchecked → decline.**
+**All checked → continue. Any unchecked → decline.**
 
 ---
 
@@ -33,7 +36,7 @@ yes." More points = more energy I'll bring.
 | **Whimsy / fun** | sterile | some personality | genuinely playful |
 | **Autonomy & trust** | execute specs | shared ownership | I define the work |
 | **Worthwhile mission** | neutral | nice-to-have good | gen AI / tech for real good |
-| **Direct relationship** | through layers | direct but transactional | direct access to a high-caliber founder I'd want to know |
+| **Relationship depth** | connection only (baseline) | direct access, one trusted person | high-caliber founder I learn from + warmth that grows |
 
 **Amplifier score: ___ / 8**
 
@@ -71,8 +74,9 @@ don't actually ruin the work:
 
 ## The decision
 
-1. **Both gates pass?** If no → decline.
+1. **All three gates pass?** (novelty, craft, connection) If no → decline.
 2. **Amplifier score and drain count?** High amplifiers + 0–1 drains → yes.
    Low amplifiers or 2+ drains → maybe / negotiate / decline.
-3. **Gut check:** Is there one person here I'd be glad to work closely with and
-   come to like? That single factor has carried my favorite engagements.
+3. **Gut check:** Beyond getting along, is there one person here I'd be glad to
+   work closely with and come to like over time? That depth has carried my
+   favorite engagements.
