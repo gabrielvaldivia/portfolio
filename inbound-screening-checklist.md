@@ -15,9 +15,9 @@ If any of these is missing, decline. They are non-negotiable.
 - [ ] **A mission I believe in.** Do I believe this makes the world a better
       place and genuinely helps a community of people I think deserves the help?
       (Hollow, vanity, or harmful missions fail here — stop.)
-- [ ] **High craft.** Does the team have a real bar for craft, in both the
-      product and how they work? (Frugal, growth-at-all-costs, "ship it however"
-      cultures fail this gate.)
+- [ ] **Novelty / invention.** Is this a genuinely new product — new paradigm,
+      new interaction, new hardware? (If it's a derivative of something that
+      already exists, stop here.)
 - [ ] **Connection with the founding team.** Do I genuinely get along with and
       connect with the people I'd be working alongside? Is there real chemistry,
       not just competence? (No connection → decline, however good the product.)
@@ -33,7 +33,7 @@ yes." More points = more energy I'll bring.
 
 | Amplifier | 0 | 1 | 2 |
 |---|---|---|---|
-| **Novelty / invention** | derivative | a fresh take | new paradigm / interaction / hardware |
+| **High craft** | low bar | decent bar | genuinely high bar |
 | **Whimsy / fun** | sterile | some personality | genuinely playful |
 | **Autonomy & trust** | execute specs | shared ownership | I define the work |
 | **Relationship depth** | connection only (baseline) | direct access, one trusted person | high-caliber founder I learn from + warmth that grows |
@@ -54,7 +54,7 @@ decline even if the gates pass.
 
 - [ ] **Big team / bureaucracy / heavy process.**
 - [ ] **No founder or decision-maker access.**
-- [ ] **Low-craft, frugal, growth-over-craft culture.** (overlaps the craft gate)
+- [ ] **Low-craft, frugal, growth-over-craft culture.** (not a gate, but a real drag)
 - [ ] **Time demands out of proportion to a fractional role.**
 
 **Drains checked: ___ / 4**
@@ -75,7 +75,7 @@ don't actually ruin the work. But one decides how I'm paid:
 
 ## The decision
 
-1. **All three gates pass?** (mission, craft, connection) If no → decline.
+1. **All three gates pass?** (mission, novelty, connection) If no → decline.
 2. **Amplifier score and drain count?** High amplifiers + 0–1 drains → yes.
    Low amplifiers or 2+ drains → maybe / negotiate / decline.
 3. **Gut check:** Beyond getting along, is there one person here I'd be glad to

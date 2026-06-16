@@ -8,13 +8,14 @@ loved, what I tolerated, and what drove me away.
 
 ## The short version
 
-I'm at my best on **products with a mission I believe in** — work that makes the
-world better and genuinely helps a community of people I think deserves it —
-built by a **high-craft team I connect with**, with the autonomy to define the
-work. Novelty, whimsy, and a frontier feel make it sing.
+I'm at my best on **inventive products with a mission I believe in** — work that
+makes the world better and genuinely helps a community of people I think
+deserves it, with novelty at its core — built by a **team I connect with**, with
+the autonomy to define the work. High craft, whimsy, and a frontier feel make it
+sing.
 
 I can stomach a shaky market thesis and even some work that never ships. What
-actually drives me away is a hollow or harmful mission, low-craft teams,
+actually drives me away is a hollow or harmful mission, derivative products,
 bureaucracy, and a founding team I can't connect with.
 
 ---
@@ -27,16 +28,16 @@ else looks:
 1. **A mission I believe in.** I need to believe the work makes the world a
    better place and genuinely benefits a community of people I think deserves
    the help. Without that, nothing else matters.
-2. **High craft.** A team and a product with a genuinely high bar. Craft's
-   absence stings even when everything else is perfect.
+2. **Novelty / invention.** New paradigms, novel interactions, new hardware. No
+   established playbook. If it's a derivative product, I'm out.
 3. **A founding team I can get along with and connect with.** Real chemistry
    with the people I'd be working alongside — not just competence, but a genuine
    human connection. Without it, even great work feels hollow.
 
 ## What makes it sing (strong loves, not dealbreakers)
 
-- **Novelty / invention** — new paradigms, novel interactions, new hardware. No
-  established playbook. A nice-to-have that energizes me, not a requirement.
+- **High craft** — a team and product with a genuinely high bar. Its absence
+  stings, but it won't make me walk.
 - **Whimsy and fun** — a consistent source of joy in the work.
 - **Total autonomy and trust** — room to define the work, not just execute it.
 - **Depth in the relationship** — beyond the baseline connection that's now a
@@ -65,6 +66,6 @@ else looks:
 
 ## The pattern, in one line
 
-> A mission I believe in + high craft + a founding team I genuinely connect with.
-> Get those three right and I'll do my best work — even if the market thesis is
-> shaky and not everything ships.
+> A mission I believe in + an inventive product + a founding team I genuinely
+> connect with. Get those three right and I'll do my best work — even if the
+> market thesis is shaky and not everything ships.
