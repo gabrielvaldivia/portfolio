@@ -8,10 +8,10 @@ loved, what I tolerated, and what drove me away.
 
 ## The short version
 
-I'm at my best on **inventive products that directly and genuinely help the
-people they serve** — never extracting from them — built by a **team I connect
-with**, with the autonomy to define the work. High craft, whimsy, and a frontier
-feel make it sing.
+I'm at my best on **inventive products that give people more power over their own
+lives** — real capability and control, never extraction — built by a **team I
+connect with**, with the autonomy to define the work. High craft, whimsy, and a
+frontier feel make it sing.
 
 I can stomach a shaky market thesis and even some work that never ships. What
 actually drives me away is a hollow or harmful mission, derivative products,
