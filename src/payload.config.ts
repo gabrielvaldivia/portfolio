@@ -40,6 +40,7 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URI || '',
     },
     push: false,
+    migrationDir: path.resolve(dirname, 'migrations'),
   }),
   sharp,
   plugins: [
