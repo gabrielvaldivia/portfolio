@@ -9,10 +9,13 @@ loved, what I tolerated, and what drove me away.
 ## The short version
 
 I'm at my best on **inventive products with a mission I believe in** — work that
-makes the world better and genuinely helps a community of people I think
-deserves it, with novelty at its core — built by a **team I connect with**, with
-the autonomy to define the work. High craft, whimsy, and a frontier feel make it
-sing.
+genuinely and directly helps the people it serves, whether that's everyday
+people, creators and builders, people facing health and wellbeing challenges, or
+the underserved and marginalized. The benefit has to be real and visible in
+their lives, and the way the product makes money can't work against them — no
+addictive design, ad-driven attention grabs, or data exploitation. Built by a
+**team I connect with**, with the autonomy to define the work. High craft,
+whimsy, and a frontier feel make it sing.
 
 I can stomach a shaky market thesis and even some work that never ships. What
 actually drives me away is a hollow or harmful mission, derivative products,
