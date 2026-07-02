@@ -58,6 +58,9 @@ function ImageBlockComponent({ image, caption, border, imageBorder, rounded, sha
   const isWrap = !rows || rows === 'wrap'
   const rowCount = isWrap ? 0 : parseInt(rows, 10)
   const rowHeight = rowCount > 0 ? ROW_HEIGHT * rowCount + ROW_GAP * (rowCount - 1) : null
+  const roundedClass = rounded ? 'rounded-lg tablet:rounded-xl desktop:rounded-2xl' : ''
+  const objectFit = fit === 'contain' ? 'object-contain' : 'object-cover'
+
   return (
     <div>
       <div
@@ -67,13 +70,15 @@ function ImageBlockComponent({ image, caption, border, imageBorder, rounded, sha
         }}
       >
         <div
-          className={`relative w-full ${shadow ? '' : 'overflow-hidden'} ${rounded ? 'rounded-lg tablet:rounded-xl desktop:rounded-2xl' : ''} ${fit === 'contain' ? 'flex items-center justify-center' : ''}`}
+          className={`relative w-full ${shadow ? 'drop-shadow-md' : ''} ${roundedClass}`}
           style={{ aspectRatio, ...(rowHeight ? { ['--row-height' as string]: `${rowHeight}px` } : {}) }}
         >
-          {imageBorder && <div className={`absolute inset-0 z-10 ring-1 ring-inset ring-border pointer-events-none ${rounded ? 'rounded-lg tablet:rounded-xl desktop:rounded-2xl' : ''}`} />}
-          <Image src={image.url} alt={image.alt || ''} fill className={`${fit === 'contain' ? 'object-contain' : 'object-cover'} ${rounded ? 'rounded-lg tablet:rounded-xl desktop:rounded-2xl' : ''} ${shadow ? 'drop-shadow-md' : ''}`} sizes={columns === '1' ? '16vw' : columns === '2' ? '33vw' : columns === '3' ? '50vw' : columns === '4' ? '66vw' : '100vw'} />
+          <div className={`absolute inset-0 ${roundedClass} ${rounded || imageBorder ? 'overflow-hidden' : ''}`}>
+            <Image src={image.url} alt={image.alt || ''} fill className={objectFit} sizes={columns === '1' ? '16vw' : columns === '2' ? '33vw' : columns === '3' ? '50vw' : columns === '4' ? '66vw' : '100vw'} />
+            {imageBorder && <div className={`absolute inset-0 z-10 pointer-events-none border border-border ${roundedClass}`} />}
+          </div>
         </div>
-        {border && <div className="absolute inset-0 z-10 ring-1 ring-inset pointer-events-none" style={{ '--tw-ring-color': 'rgba(0,0,0,0.1)' } as React.CSSProperties} />}
+        {border && <div className="absolute inset-0 z-10 ring-1 ring-inset ring-black/10 dark:ring-white/10 pointer-events-none" />}
       </div>
       {caption && <p className="text-muted text-caption" style={{ marginTop: 10 }}>{caption}</p>}
     </div>
@@ -162,18 +167,28 @@ function iPhone15Block({ id: blockId, video, image, rows, showNotch }: { id?: st
       ` }} />
       <div className="w-full h-full flex items-center justify-center">
         <div id={id} className="relative overflow-hidden">
-        <div className="absolute z-0 overflow-hidden" style={{ top: '2.1%', bottom: '2.0%', left: '4.9%', right: '4.9%', borderRadius: '5%' }}>
-          {isVideo ? (
-            <LazyVideo src={src} className="w-full h-full object-cover" />
-          ) : (
-            <img src={src} alt={image?.alt || ''} className="w-full h-full object-cover" loading="lazy" />
-          )}
-        </div>
-        <img
-          src={showNotch ? IPHONE15_NOTCH_FRAME_URL : IPHONE15_FRAME_URL}
-          alt=""
-          className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" loading="lazy"
-        />
+          <div
+            className="absolute z-0 overflow-hidden bg-black"
+            style={{
+              top: '2.1%',
+              bottom: '2.0%',
+              left: '4.9%',
+              right: '4.9%',
+              borderRadius: '10% / 5%',
+              boxShadow: '0 0 0 6px #000',
+            }}
+          >
+            {isVideo ? (
+              <LazyVideo src={src} className="w-full h-full object-cover" />
+            ) : (
+              <img src={src} alt={image?.alt || ''} className="w-full h-full object-cover" loading="lazy" />
+            )}
+          </div>
+          <img
+            src={showNotch ? IPHONE15_NOTCH_FRAME_URL : IPHONE15_FRAME_URL}
+            alt=""
+            className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" loading="lazy"
+          />
         </div>
       </div>
     </>
@@ -368,6 +383,8 @@ const rowSpan: Record<string, string> = {
   '6': 'desktop:row-span-6',
 }
 
+const framedBlockTypes = ['dc1', 'iphone15', 'iphone13mini', 'iphone5', 'iphone6', 'iphonex']
+
 export function RenderBlocks({ blocks }: { blocks?: any[] }) {
   if (!blocks?.length) return null
 
@@ -378,12 +395,18 @@ export function RenderBlocks({ blocks }: { blocks?: any[] }) {
         if (!Component) return null
         const cols = block.columns || '6'
         const rows = block.rows || '1'
+        const isFramedBlock = framedBlockTypes.includes(block.blockType)
+        const isIPhone15Block = block.blockType === 'iphone15'
+        const hasModuleBackground = isFramedBlock || block.blockType === 'image'
+        const moduleBackgroundClass = hasModuleBackground
+          ? `bg-background-alt ${isIPhone15Block ? 'rounded-[24px] tablet:rounded-[36px] desktop:rounded-[48px] overflow-hidden' : ''}`
+          : ''
         return (
           <div
             key={block.id || i}
-            className={`${colSpan[cols] || 'desktop:col-span-6'} ${rows !== '1' ? (rowSpan[rows] || '') : ''} ${['dc1', 'iphone15', 'iphone13mini', 'iphone5', 'iphone6', 'iphonex'].includes(block.blockType) ? 'bg-background-alt p-5 tablet:p-8 desktop:p-10' : ''}`}
+            className={`${colSpan[cols] || 'desktop:col-span-6'} ${rows !== '1' ? (rowSpan[rows] || '') : ''} ${moduleBackgroundClass} ${isFramedBlock ? 'p-5 tablet:p-8 desktop:p-10' : ''}`}
           >
-            <div className={['dc1', 'iphone15', 'iphone13mini', 'iphone5', 'iphone6', 'iphonex'].includes(block.blockType) ? 'h-full flex items-center justify-center' : ''}>
+            <div className={isFramedBlock ? 'h-full flex items-center justify-center' : ''}>
               <Component {...block} />
             </div>
           </div>

@@ -5,9 +5,9 @@
 // Usage: node --env-file=.env scripts/backfill-chat-coords.mjs
 import pg from 'pg'
 
-const uri = process.env.DATABASE_URI
+const uri = process.env.DATABASE_URI || process.env.DATABASE_URL
 if (!uri) {
-  console.error('DATABASE_URI not set.')
+  console.error('DATABASE_URI or DATABASE_URL not set.')
   process.exit(1)
 }
 

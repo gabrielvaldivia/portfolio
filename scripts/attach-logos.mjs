@@ -24,7 +24,11 @@ const logoMap = {
   'Daylight': 'Daylight.svg',
 }
 
-const DATABASE_URI = 'postgresql://neondb_owner:npg_BoiK91LeaMNY@ep-long-math-an29pfmf-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require'
+const DATABASE_URI = process.env.DATABASE_URI || process.env.DATABASE_URL
+if (!DATABASE_URI) {
+  console.error('DATABASE_URI or DATABASE_URL not set. Run with: node --env-file=.env scripts/attach-logos.mjs')
+  process.exit(1)
+}
 
 async function main() {
   const client = new Client({ connectionString: DATABASE_URI })

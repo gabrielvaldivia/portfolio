@@ -225,6 +225,79 @@ const SocialLinksBlock: Block = {
   ],
 }
 
+const aboutMediaFields: Field[] = [
+  { name: 'title', type: 'text', required: true },
+  { name: 'event', type: 'text', required: true },
+  { name: 'year', type: 'text' },
+  { name: 'duration', type: 'text' },
+  { name: 'url', type: 'text' },
+  { name: 'thumbnail', type: 'upload', relationTo: 'media' },
+]
+
+const aboutPatentFields: Field[] = [
+  { name: 'patentId', type: 'text', required: true },
+  { name: 'title', type: 'text', required: true },
+  { name: 'url', type: 'text' },
+]
+
+const AboutBioSectionBlock: Block = {
+  slug: 'aboutBioSection',
+  labels: { singular: 'Bio', plural: 'Bio Sections' },
+  fields: [
+    { name: 'title', type: 'text', defaultValue: 'Bio' },
+    { name: 'bio', type: 'richText' },
+  ],
+}
+
+const AboutTalksSectionBlock: Block = {
+  slug: 'aboutTalksSection',
+  labels: { singular: 'Talks', plural: 'Talks Sections' },
+  fields: [
+    { name: 'title', type: 'text', defaultValue: 'Talks' },
+    {
+      name: 'talks',
+      type: 'array',
+      fields: aboutMediaFields,
+    },
+  ],
+}
+
+const AboutInterviewsSectionBlock: Block = {
+  slug: 'aboutInterviewsSection',
+  labels: { singular: 'Interviews', plural: 'Interviews Sections' },
+  fields: [
+    { name: 'title', type: 'text', defaultValue: 'Interviews' },
+    {
+      name: 'interviews',
+      type: 'array',
+      fields: aboutMediaFields,
+    },
+  ],
+}
+
+const AboutPatentsSectionBlock: Block = {
+  slug: 'aboutPatentsSection',
+  labels: { singular: 'Patents', plural: 'Patents Sections' },
+  fields: [
+    { name: 'title', type: 'text', defaultValue: 'Patents' },
+    {
+      name: 'patents',
+      type: 'array',
+      fields: aboutPatentFields,
+    },
+  ],
+}
+
+const AboutPlaygroundSectionBlock: Block = {
+  slug: 'aboutPlaygroundSection',
+  labels: { singular: 'Playground', plural: 'Playground Sections' },
+  fields: [
+    { name: 'title', type: 'text', defaultValue: 'Playground' },
+    { name: 'itemLimit', type: 'number', defaultValue: 5 },
+    { name: 'linkText', type: 'text', defaultValue: 'View all' },
+  ],
+}
+
 export const Pages: CollectionConfig = {
   slug: 'pages',
   defaultSort: 'order',
@@ -325,18 +398,29 @@ export const Pages: CollectionConfig = {
     {
       name: 'bio',
       type: 'richText',
-      admin: { condition: isType('about') },
+      admin: { condition: () => false },
+    },
+    {
+      name: 'aboutSections',
+      label: 'Content',
+      type: 'blocks',
+      admin: {
+        condition: isType('about'),
+        initCollapsed: true,
+        description: 'Each block is a whole section. Drag blocks to control the About page order.',
+      },
+      blocks: [AboutBioSectionBlock, AboutTalksSectionBlock, AboutInterviewsSectionBlock, AboutPatentsSectionBlock, AboutPlaygroundSectionBlock],
     },
     {
       name: 'bioImage',
       type: 'upload',
       relationTo: 'media',
-      admin: { condition: isType('about') },
+      admin: { condition: () => false },
     },
     {
       name: 'talks',
       type: 'array',
-      admin: { condition: isType('about') },
+      admin: { condition: () => false },
       fields: [
         { name: 'title', type: 'text', required: true },
         { name: 'event', type: 'text', required: true },
@@ -349,7 +433,7 @@ export const Pages: CollectionConfig = {
     {
       name: 'interviews',
       type: 'array',
-      admin: { condition: isType('about') },
+      admin: { condition: () => false },
       fields: [
         { name: 'title', type: 'text', required: true },
         { name: 'event', type: 'text', required: true },
@@ -362,7 +446,7 @@ export const Pages: CollectionConfig = {
     {
       name: 'patents',
       type: 'array',
-      admin: { condition: isType('about') },
+      admin: { condition: () => false },
       fields: [
         { name: 'patentId', type: 'text', required: true },
         { name: 'title', type: 'text', required: true },

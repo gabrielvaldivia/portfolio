@@ -1,0 +1,13 @@
+node_modules
+.next
+.env
+.env.local
+.env*.local
+*.tsbuildinfo
+next-env.d.ts
+src/payload-types.ts
+/media/
+.DS_Store
+.vercel
+
+public/build-anything/build-anything-walkthrough.mp4

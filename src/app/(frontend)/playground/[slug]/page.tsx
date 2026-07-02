@@ -32,6 +32,7 @@ export default async function SideProjectPage({ params }: { params: Promise<{ sl
   const { slug } = await params
   const project = await getSideProjectBySlug(slug) as any
   if (!project) notFound()
+  const contentBlocks = project.content as any[]
 
   return (
     <>
@@ -99,7 +100,7 @@ export default async function SideProjectPage({ params }: { params: Promise<{ sl
               )}
             </div>
 
-            <RenderBlocks blocks={project.content as any[]} />
+            <RenderBlocks blocks={contentBlocks} />
           </div>
         </Container>
 

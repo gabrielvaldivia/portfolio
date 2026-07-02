@@ -20,8 +20,43 @@ import { SiteSettings } from './globals/SiteSettings'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
+const rawDatabaseURI = process.env.DATABASE_URI || process.env.DATABASE_URL || ''
+const databaseURI = (() => {
+  if (!rawDatabaseURI) return rawDatabaseURI
+  try {
+    const url = new URL(rawDatabaseURI)
+    if (process.env.DATABASE_POOLER_PORT) {
+      url.port = process.env.DATABASE_POOLER_PORT
+    } else if (url.hostname.includes('pooler.supabase.com') && url.port === '5432') {
+      url.port = '6543'
+    }
+    return url.toString()
+  } catch {
+    return rawDatabaseURI
+  }
+})()
+const databasePoolMax = Number(process.env.DATABASE_POOL_MAX || 3)
+const serverURL = (
+  process.env.NEXT_PUBLIC_SERVER_URL ||
+  process.env.PAYLOAD_PUBLIC_SERVER_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '')
+).replace(/\/+$/, '')
+const r2Bucket = process.env.R2_BUCKET || ''
+const r2Endpoint = process.env.R2_ENDPOINT || ''
+const r2AccessKeyId = process.env.R2_ACCESS_KEY_ID || ''
+const r2SecretAccessKey = process.env.R2_SECRET_ACCESS_KEY || ''
+const r2PublicURL = (process.env.R2_PUBLIC_URL || '').replace(/\/+$/, '')
+const hasR2Storage = Boolean(r2Bucket && r2Endpoint && r2AccessKeyId && r2SecretAccessKey && r2PublicURL)
+
+const joinURLParts = (...parts: Array<string | undefined>) =>
+  parts
+    .filter((part): part is string => Boolean(part))
+    .map((part, index) => (index === 0 ? part.replace(/\/+$/, '') : part.replace(/^\/+|\/+$/g, '')))
+    .filter(Boolean)
+    .join('/')
 
 export default buildConfig({
+  serverURL,
   admin: {
     user: Users.slug,
     importMap: {
@@ -37,36 +72,35 @@ export default buildConfig({
   },
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URI || '',
+      connectionString: databaseURI,
+      max: databasePoolMax,
     },
     push: false,
     migrationDir: path.resolve(dirname, 'migrations'),
   }),
   sharp,
   plugins: [
-    s3Storage({
-      collections: {
-        media: {
-          disablePayloadAccessControl: true,
-          generateFileURL: ({ filename, prefix }) => {
-            if (process.env.R2_PUBLIC_URL) {
-              const parts = [process.env.R2_PUBLIC_URL, prefix, filename].filter(Boolean)
-              return parts.join('/')
-            }
-            // Fallback to local static files when R2 public URL is not configured
-            return `/media/${filename}`
-          },
-        },
-      },
-      bucket: process.env.R2_BUCKET || '',
-      config: {
-        endpoint: process.env.R2_ENDPOINT || '',
-        credentials: {
-          accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
-          secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
-        },
-        region: 'auto',
-      },
-    }),
+    ...(hasR2Storage
+      ? [
+          s3Storage({
+            clientUploads: true,
+            collections: {
+              media: {
+                disablePayloadAccessControl: true,
+                generateFileURL: ({ filename, prefix }) => joinURLParts(r2PublicURL, prefix, filename),
+              },
+            },
+            bucket: r2Bucket,
+            config: {
+              endpoint: r2Endpoint,
+              credentials: {
+                accessKeyId: r2AccessKeyId,
+                secretAccessKey: r2SecretAccessKey,
+              },
+              region: 'auto',
+            },
+          }),
+        ]
+      : []),
   ],
 })

@@ -91,26 +91,28 @@ echo "Done (featured: $P1, $P2, $P3, $P4)"
 
 echo "=== Creating Side Projects ==="
 for sp in \
-  '{"title":"Recall","slug":"recall","description":"A daily reflection app to fill any gaps","order":1}' \
-  '{"title":"Life OS","slug":"life-os","description":"A second brain out of markdown files","order":2}' \
-  '{"title":"Sumi","slug":"sumi","description":"The fastest way to commit your thoughts","order":3}' \
-  '{"title":"Slackdone","slug":"slackdone","description":"A single Kanban across Slack workspaces","order":4}' \
-  '{"title":"Venn","slug":"venn","description":"Group recommendations for Youtube videos","order":5}' \
-  '{"title":"Falkor","slug":"falkor","description":"Collaborative storytelling with AI","order":6}' \
-  '{"title":"Katamari","slug":"katamari","description":"Social photo grid","order":7}' \
-  '{"title":"Senso","slug":"senso","description":"News through an ancient lens","order":8}' \
-  '{"title":"Promptly","slug":"promptly","description":"Auto-scrolling teleprompter","order":9}' \
-  '{"title":"Big Year","slug":"big-year","description":"A calendar for all-day events","order":10}' \
-  '{"title":"Skunk","slug":"skunk","description":"Social leaderboard for board games","order":11}' \
-  '{"title":"Liveblog","slug":"liveblog","description":"Time-based notes","order":12}' \
-  '{"title":"Flicktionary","slug":"flicktionary","description":"Guess the movie poster","order":13}' \
-  '{"title":"Letterfall","slug":"letterfall","description":"Create words from falling letters","order":14}' \
-  '{"title":"Rolodex","slug":"rolodex","description":"Email-based personal CMS","order":15}' \
-  '{"title":"Projector","slug":"projector","description":"Budgeting tool for fractional design","order":16}' \
-  '{"title":"Almanac","slug":"almanac","description":"A countdown for important events","order":17}' \
-  '{"title":"Makeshift","slug":"makeshift","description":"A co-working space for designers","order":18}' \
-  '{"title":"Vectors","slug":"vectors","description":"Exploring how identity informs creative work","order":19}' \
-  '{"title":"Talk Turkey","slug":"talk-turkey","description":"Candid interviews via chat","order":20}'; do
+  '{"title":"Loupe","slug":"loupe","description":"A camera-first watch identifier for iPhone","year":"2026","order":1}' \
+  '{"title":"Patina","slug":"patina","description":"A private AI sidekick for everything on your plate","year":"2026","order":2,"links":[{"label":"Visit website","url":"https://patina.md"}]}' \
+  '{"title":"Recall","slug":"recall","description":"A daily reflection app to fill any gaps","order":3}' \
+  '{"title":"Sumi","slug":"sumi","description":"The fastest way to commit your thoughts","order":4}' \
+  '{"title":"Life OS","slug":"life-os","description":"A second brain out of markdown files","order":5}' \
+  '{"title":"Slackdone","slug":"slackdone","description":"A single Kanban across Slack workspaces","order":6}' \
+  '{"title":"Venn","slug":"venn","description":"Group recommendations for Youtube videos","order":7}' \
+  '{"title":"Falkor","slug":"falkor","description":"Collaborative storytelling with AI","order":8}' \
+  '{"title":"Katamari","slug":"katamari","description":"Social photo grid","order":9}' \
+  '{"title":"Senso","slug":"senso","description":"News through an ancient lens","order":10}' \
+  '{"title":"Promptly","slug":"promptly","description":"Auto-scrolling teleprompter","order":11}' \
+  '{"title":"Big Year","slug":"big-year","description":"A calendar for all-day events","order":12}' \
+  '{"title":"Skunk","slug":"skunk","description":"Social leaderboard for board games","order":13}' \
+  '{"title":"Liveblog","slug":"liveblog","description":"Time-based notes","order":14}' \
+  '{"title":"Flicktionary","slug":"flicktionary","description":"Guess the movie poster","order":15}' \
+  '{"title":"Letterfall","slug":"letterfall","description":"Create words from falling letters","order":16}' \
+  '{"title":"Rolodex","slug":"rolodex","description":"Email-based personal CMS","order":17}' \
+  '{"title":"Projector","slug":"projector","description":"Budgeting tool for fractional design","order":18}' \
+  '{"title":"Almanac","slug":"almanac","description":"A countdown for important events","order":19}' \
+  '{"title":"Makeshift","slug":"makeshift","description":"A co-working space for designers","order":20}' \
+  '{"title":"Vectors","slug":"vectors","description":"Exploring how identity informs creative work","order":21}' \
+  '{"title":"Talk Turkey","slug":"talk-turkey","description":"Candid interviews via chat","order":22}'; do
   post "side-projects" "$sp" > /dev/null
 done
 echo "Done"
