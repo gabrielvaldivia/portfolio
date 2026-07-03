@@ -9,5 +9,6 @@ src/payload-types.ts
 /media/
 .DS_Store
 .vercel
+.neon
 
 public/build-anything/build-anything-walkthrough.mp4

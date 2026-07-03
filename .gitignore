@@ -9,3 +9,5 @@ src/payload-types.ts
 .DS_Store
 .vercel
 .env*.local
+.env*
+.neon

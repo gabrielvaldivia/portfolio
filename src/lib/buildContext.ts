@@ -28,7 +28,7 @@ export type FAQItem = { question: string; answer: string; showAsPill?: boolean }
 
 type CachedContext = { systemPrompt: string; faqItems: FAQItem[]; apiKey: string; model: string; gabosApiUrl: string }
 let contextCache: { data: CachedContext; timestamp: number } | null = null
-const CACHE_TTL = 120_000 // 2 minutes
+const CACHE_TTL = 900_000 // 15 minutes
 
 export async function buildContext(): Promise<CachedContext> {
   if (contextCache && Date.now() - contextCache.timestamp < CACHE_TTL) {
@@ -39,15 +39,15 @@ export async function buildContext(): Promise<CachedContext> {
 
   const [homePage, aboutPage, projectsResult, clientsResult, testimonialsResult, allPeopleResult, servicesResult, sideProjectsResult, annotatedConversations] =
     await Promise.all([
-      payload.find({ collection: 'pages', where: { slug: { equals: 'home' } }, depth: 2, limit: 1 }),
-      payload.find({ collection: 'pages', where: { slug: { equals: 'about' } }, depth: 2, limit: 1 }),
-      payload.find({ collection: 'projects', sort: 'order', limit: 100, depth: 2 }),
+      payload.find({ collection: 'pages', where: { slug: { equals: 'home' } }, depth: 0, limit: 1 }),
+      payload.find({ collection: 'pages', where: { slug: { equals: 'about' } }, depth: 0, limit: 1 }),
+      payload.find({ collection: 'projects', sort: 'order', limit: 100, depth: 1 }),
       payload.find({ collection: 'clients', limit: 100, depth: 1 }),
       payload.find({ collection: 'people', where: { featuredTestimonial: { equals: true } }, limit: 20, depth: 1 }),
-      payload.find({ collection: 'people', limit: 100, depth: 2 }),
+      payload.find({ collection: 'people', limit: 100, depth: 1 }),
       payload.find({ collection: 'services', sort: 'order', limit: 20 }),
-      payload.find({ collection: 'side-projects', sort: 'order', limit: 100, depth: 2 }),
-      payload.find({ collection: 'conversations', where: { notes: { not_equals: '' } }, limit: 50, depth: 0 }),
+      payload.find({ collection: 'side-projects', sort: 'order', limit: 100, depth: 1 }),
+      payload.find({ collection: 'conversations', where: { notes: { not_equals: '' } }, limit: 50, depth: 0, overrideAccess: true }),
     ])
 
   const home = homePage.docs[0] as any

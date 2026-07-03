@@ -18,12 +18,26 @@ export async function GET() {
     sort: '-updatedAt',
     limit: 500,
     depth: 0,
+    overrideAccess: true,
+    select: {
+      id: true,
+      title: true,
+      location: true,
+      latitude: true,
+      longitude: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   })
   const docs = (result.docs as any[]).map((d) => ({
     ...d,
     timezone: lookupTz(d.latitude, d.longitude),
   }))
-  return Response.json(docs)
+  return Response.json(docs, {
+    headers: {
+      'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600',
+    },
+  })
 }
 
 export async function POST(req: Request) {
@@ -41,6 +55,7 @@ export async function POST(req: Request) {
   const payload = await getPayload()
   const doc = await payload.create({
     collection: 'conversations',
+    overrideAccess: true,
     data: {
       title,
       location: location || '',
@@ -50,5 +65,5 @@ export async function POST(req: Request) {
     },
   })
 
-  return Response.json(doc)
+  return Response.json({ id: doc.id })
 }

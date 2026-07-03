@@ -52,6 +52,7 @@ export function ChatMap() {
   const markersRef = useRef<mapboxgl.Marker[]>([])
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
 
   // Load conversations
   useEffect(() => {
@@ -140,8 +141,29 @@ export function ChatMap() {
     })
   }, [conversations])
 
-  const selected =
-    selectedId !== null ? conversations.find((c) => c.id === selectedId) || null : null
+  useEffect(() => {
+    if (selectedId === null) {
+      setSelectedConversation(null)
+      return
+    }
+
+    const summary = conversations.find((c) => c.id === selectedId) || null
+    setSelectedConversation(summary)
+
+    fetch(`/api/chat/conversations/${selectedId}`)
+      .then((r) => r.json())
+      .then((doc) => {
+        if (doc?.id === selectedId) {
+          setSelectedConversation((current) => {
+            const fallback = current || summary
+            return fallback ? { ...fallback, ...doc } : doc
+          })
+        }
+      })
+      .catch(() => {})
+  }, [selectedId, conversations])
+
+  const selected = selectedConversation
 
   return (
     <div className="relative w-full h-full overflow-hidden">

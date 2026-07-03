@@ -58,8 +58,10 @@ export async function GET(req: Request) {
   const authHeader = req.headers.get('authorization')
   const urlSecret = new URL(req.url).searchParams.get('secret')
   const expected = process.env.CRON_SECRET
+  if (!expected) {
+    return Response.json({ error: 'CRON_SECRET is not configured' }, { status: 503 })
+  }
   const authed =
-    !expected ||
     authHeader === `Bearer ${expected}` ||
     urlSecret === expected
   if (!authed) {
@@ -75,6 +77,7 @@ export async function GET(req: Request) {
     sort: '-createdAt',
     limit: 500,
     depth: 0,
+    overrideAccess: true,
   })
 
   const conversations = result.docs as any[]

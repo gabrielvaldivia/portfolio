@@ -8,7 +8,7 @@ import { OverlayManager } from '@/components/OverlayManager'
 import { PageTransition } from '@/components/PageTransition'
 import { getSiteSettings } from '@/lib/queries'
 
-export const revalidate = 60
+export const revalidate = 3600
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings() as any

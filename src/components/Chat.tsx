@@ -245,7 +245,7 @@ type Conversation = {
   id: number
   title: string
   location?: string
-  messages: Message[]
+  messages?: Message[]
   updatedAt: string
 }
 
@@ -298,6 +298,13 @@ const GREETINGS = [
   "Hi! What's on your mind?",
   "Hey there! How can I help?",
 ]
+
+function pickSuggestions(items: FAQItem[]) {
+  return [...items]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 4)
+    .map((item) => item.question)
+}
 
 function formatDate(date: string | Date) {
   return new Date(date).toLocaleDateString('en-US', {
@@ -387,12 +394,12 @@ export function Chat({
       const random = GREETINGS[Math.floor(Math.random() * GREETINGS.length)]
       setMessages([{ role: 'assistant', content: random }])
     }
-    // Fetch location
+    setSuggestions(pickSuggestions(faqItems))
+    // Fetch location without rebuilding the CMS-backed chat context.
     fetch('/api/chat')
       .then((r) => r.json())
       .then((data) => {
         if (data.location) locationRef.current = data.location
-        if (data.suggestions?.length) setSuggestions(data.suggestions)
       })
       .catch(() => {})
     // Fetch blog index for URL correction
@@ -625,12 +632,19 @@ export function Chat({
   function loadConversation(conv: Conversation) {
     setAnimateBubbles(false)
     setSidebarOpen(false)
-    // Delay setting messages until after animation flag is committed
-    requestAnimationFrame(() => {
-      setMessages(conv.messages)
-      setConversationId(conv.id)
-      requestAnimationFrame(() => setAnimateBubbles(true))
-    })
+    fetch(`/api/chat/conversations/${conv.id}`)
+      .then((r) => r.json())
+      .then((doc) => {
+        const nextMessages = Array.isArray(doc.messages) ? doc.messages : []
+        requestAnimationFrame(() => {
+          setMessages(nextMessages.length ? nextMessages : [{ role: 'assistant', content: GREETINGS[0] }])
+          setConversationId(doc.id || conv.id)
+          requestAnimationFrame(() => setAnimateBubbles(true))
+        })
+      })
+      .catch(() => {
+        requestAnimationFrame(() => setAnimateBubbles(true))
+      })
   }
 
   function startNewConversation() {
@@ -676,7 +690,7 @@ export function Chat({
               {conv.title}
             </div>
             <div className="text-[16px] text-content truncate mt-0.5">
-              {conv.messages?.find((m: Message) => m.role === 'user')?.content || 'No messages'}
+              {conv.location || 'Open conversation'}
             </div>
           </button>
         ))}

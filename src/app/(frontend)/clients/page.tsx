@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: 'Companies I have worked with',
 }
 
-export const revalidate = 60
+export const revalidate = 3600
 
 export default async function ClientsPage() {
   const payload = await getPayload()

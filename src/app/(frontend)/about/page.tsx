@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   description: 'Designer and creative technologist',
 }
 
-export const revalidate = 60
+export const revalidate = 3600
 
 export default async function AboutPage() {
   const page = await getPageBySlug('about')

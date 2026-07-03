@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: 'People I have worked with',
 }
 
-export const revalidate = 300
+export const revalidate = 3600
 
 export default async function PeoplePage() {
   const payload = await getPayload()
