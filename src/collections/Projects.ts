@@ -285,53 +285,10 @@ export const Projects: CollectionConfig = {
     pagination: { defaultLimit: 100 },
     group: 'Collections',
     useAsTitle: 'title',
-    defaultColumns: ['title', 'year', 'featured', 'hide', 'order'],
+    defaultColumns: ['title', 'year', 'hide', 'order'],
   },
   access: {
     read: () => true,
-  },
-  hooks: {
-    afterChange: [
-      async ({ doc, previousDoc, req }) => {
-        if (doc.featured === previousDoc?.featured) return doc
-        try {
-          const homePage = await req.payload.find({
-            collection: 'pages',
-            where: { slug: { equals: 'home' } },
-            limit: 1,
-            depth: 0,
-          })
-          const page = homePage.docs[0]
-          if (!page) return doc
-          const sections = (page as any).sections || []
-          let changed = false
-          for (const section of sections) {
-            if (section.blockType === 'hScroll' && section.source === 'featuredProjects') {
-              const projectIds: number[] = (section.projects || []).map((p: any) => typeof p === 'object' ? p.id : p)
-              if (doc.featured && !projectIds.includes(doc.id)) {
-                projectIds.push(doc.id)
-                section.projects = projectIds
-                changed = true
-              } else if (!doc.featured && projectIds.includes(doc.id)) {
-                section.projects = projectIds.filter((id: number) => id !== doc.id)
-                changed = true
-              }
-            }
-          }
-          if (changed) {
-            await req.payload.update({
-              collection: 'pages',
-              id: page.id,
-              data: { sections },
-              depth: 0,
-            })
-          }
-        } catch (e) {
-          // Silent fail — don't block project save
-        }
-        return doc
-      },
-    ],
   },
   fields: [
     // ── Sidebar ──
@@ -352,12 +309,6 @@ export const Projects: CollectionConfig = {
       name: 'client',
       type: 'relationship',
       relationTo: 'clients',
-      admin: { position: 'sidebar' },
-    },
-    {
-      name: 'featured',
-      type: 'checkbox',
-      defaultValue: false,
       admin: { position: 'sidebar' },
     },
     {

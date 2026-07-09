@@ -68,10 +68,10 @@ done
 echo "Done"
 
 echo "=== Creating Projects ==="
-P1=$(post "projects" '{"title":"Dex","slug":"dex","subtitle":"The language learning camera","order":1,"featured":true}' | python3 -c "import sys,json; print(json.load(sys.stdin)['doc']['id'])")
-P2=$(post "projects" '{"title":"Daylight","slug":"daylight","subtitle":"A more caring computer","order":2,"featured":true}' | python3 -c "import sys,json; print(json.load(sys.stdin)['doc']['id'])")
-P3=$(post "projects" '{"title":"Workmate","slug":"workmate","subtitle":"Your AI Executive Assistant","order":3,"featured":true}' | python3 -c "import sys,json; print(json.load(sys.stdin)['doc']['id'])")
-P4=$(post "projects" '{"title":"Slingshot AI","slug":"slingshot","subtitle":"Personalized AI counselor","order":4,"featured":true}' | python3 -c "import sys,json; print(json.load(sys.stdin)['doc']['id'])")
+P1=$(post "projects" '{"title":"Dex","slug":"dex","subtitle":"The language learning camera","order":1}' | python3 -c "import sys,json; print(json.load(sys.stdin)['doc']['id'])")
+P2=$(post "projects" '{"title":"Daylight","slug":"daylight","subtitle":"A more caring computer","order":2}' | python3 -c "import sys,json; print(json.load(sys.stdin)['doc']['id'])")
+P3=$(post "projects" '{"title":"Workmate","slug":"workmate","subtitle":"Your AI Executive Assistant","order":3}' | python3 -c "import sys,json; print(json.load(sys.stdin)['doc']['id'])")
+P4=$(post "projects" '{"title":"Slingshot AI","slug":"slingshot","subtitle":"Personalized AI counselor","order":4}' | python3 -c "import sys,json; print(json.load(sys.stdin)['doc']['id'])")
 for p in \
   '{"title":"Supper","slug":"supper","subtitle":"Business intelligence AI platform","order":5}' \
   '{"title":"Grandstand","slug":"grandstand","subtitle":"Sport fans communities","order":6}' \
@@ -87,7 +87,7 @@ for p in \
   '{"title":"1099Policy","slug":"1099policy","subtitle":"Fractional insurance for contractors","order":16}'; do
   post "projects" "$p" > /dev/null
 done
-echo "Done (featured: $P1, $P2, $P3, $P4)"
+echo "Done (home projects: $P1, $P2, $P3, $P4)"
 
 echo "=== Creating Side Projects ==="
 for sp in \

@@ -1,20 +1,14 @@
 import { getPayload } from './payload'
 
 type GetProjectsOptions = {
-  featured?: boolean
   includeHidden?: boolean
 }
 
-export async function getProjects(options: GetProjectsOptions | boolean = {}) {
+export async function getProjects(options: GetProjectsOptions = {}) {
   const payload = await getPayload()
-  const resolvedOptions = typeof options === 'boolean' ? { featured: options } : options
   const filters = []
 
-  if (resolvedOptions.featured) {
-    filters.push({ featured: { equals: true } })
-  }
-
-  if (!resolvedOptions.includeHidden) {
+  if (!options.includeHidden) {
     filters.push({ hide: { not_equals: true } })
   }
 

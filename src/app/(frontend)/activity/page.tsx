@@ -14,16 +14,38 @@ export const metadata: Metadata = {
 }
 
 const relativeFormatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
+const activityTimeZone = 'America/New_York'
 const absoluteFormatter = new Intl.DateTimeFormat('en', {
   month: 'short',
   day: 'numeric',
   year: 'numeric',
+  timeZone: activityTimeZone,
 })
+const activityCalendarFormatter = new Intl.DateTimeFormat('en-US', {
+  day: 'numeric',
+  month: 'numeric',
+  timeZone: activityTimeZone,
+  weekday: 'short',
+  year: 'numeric',
+})
+
+const dayInMilliseconds = 24 * 60 * 60 * 1000
+const weekdayIndexes: Record<string, number> = {
+  Sun: 0,
+  Mon: 1,
+  Tue: 2,
+  Wed: 3,
+  Thu: 4,
+  Fri: 5,
+  Sat: 6,
+}
 
 type ActivityDisplayItem = ModuleLikeActivityItem & {
   count: number
   mergeKey: string
 }
+
+type ActivityCalendarDate = NonNullable<ReturnType<typeof getActivityCalendarDate>>
 
 function formatActivityTime(value: string) {
   const date = new Date(value)
@@ -42,29 +64,50 @@ function formatActivityTime(value: string) {
   return absoluteFormatter.format(date)
 }
 
-function startOfDay(date: Date) {
-  const start = new Date(date)
-  start.setHours(0, 0, 0, 0)
-  return start
+function getActivityCalendarDate(date: Date) {
+  const parts = activityCalendarFormatter.formatToParts(date)
+  const year = Number(parts.find((part) => part.type === 'year')?.value)
+  const month = Number(parts.find((part) => part.type === 'month')?.value)
+  const day = Number(parts.find((part) => part.type === 'day')?.value)
+  const weekday = parts.find((part) => part.type === 'weekday')?.value
+  const weekdayIndex = weekday ? weekdayIndexes[weekday] : undefined
+
+  if (!year || !month || !day || weekdayIndex === undefined) return null
+
+  const dayOrdinal = Math.floor(Date.UTC(year, month - 1, day) / dayInMilliseconds)
+
+  return {
+    day,
+    dayOrdinal,
+    month,
+    weekStartOrdinal: dayOrdinal - weekdayIndex,
+    year,
+  }
 }
 
-function startOfWeek(date: Date) {
-  const start = startOfDay(date)
-  start.setDate(start.getDate() - start.getDay())
-  return start
+function isSameActivityDay(first: ActivityCalendarDate, second: ActivityCalendarDate) {
+  return first.dayOrdinal === second.dayOrdinal
 }
 
-function startOfMonth(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), 1)
+function isSameActivityWeek(first: ActivityCalendarDate, second: ActivityCalendarDate) {
+  return first.weekStartOrdinal === second.weekStartOrdinal
+}
+
+function isSameActivityMonth(first: ActivityCalendarDate, second: ActivityCalendarDate) {
+  return first.year === second.year && first.month === second.month
 }
 
 function getActivitySectionTitle(value: string, now: Date) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return 'Earlier'
 
-  if (date >= startOfDay(now)) return 'Today'
-  if (date >= startOfWeek(now)) return 'This Week'
-  if (date >= startOfMonth(now)) return 'This Month'
+  const activityDate = getActivityCalendarDate(date)
+  const currentDate = getActivityCalendarDate(now)
+  if (!activityDate || !currentDate) return 'Earlier'
+
+  if (isSameActivityDay(activityDate, currentDate)) return 'Today'
+  if (isSameActivityWeek(activityDate, currentDate)) return 'This Week'
+  if (isSameActivityMonth(activityDate, currentDate)) return 'This Month'
 
   return 'Earlier'
 }

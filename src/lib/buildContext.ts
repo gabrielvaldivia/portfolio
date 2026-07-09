@@ -66,6 +66,18 @@ export async function buildContext(): Promise<CachedContext> {
   let gabosApiUrl = ''
   let systemPromptExtra = ''
   const sections = (home?.sections || []) as any[]
+  const featuredProjectIds = [
+    ...new Set(
+      sections
+        .filter((section) => section.blockType === 'hScroll' && section.source === 'featuredProjects')
+        .flatMap((section) => section.projects || [])
+        .map((project) => String(typeof project === 'object' ? project.id : project))
+        .filter(Boolean),
+    ),
+  ]
+  const projectsById = new Map(projects.map((project) => [String(project.id), project]))
+  const featuredProjects = featuredProjectIds.map((id) => projectsById.get(id)).filter(Boolean)
+
   for (const section of sections) {
     if (section.blockType === 'accordion') {
       apiKey = section.apiKey || ''
@@ -131,8 +143,7 @@ ${approachItems.length ? `## My Design Process / Approach\nWhen asked about my d
 ## Featured Projects
 IMPORTANT: Use the year field to determine if a project is current or past. Today is ${new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}. If a year range ends before 2026 or has no end date implying it ended, it's a PAST project. Only say "currently working on" if the year range includes 2026.
 
-${projects
-  .filter((p) => p.featured)
+${featuredProjects
   .map((p) => {
     const client = typeof p.client === 'object' ? p.client?.name : ''
     const projectServices = (p.services || []).map((s: any) => (typeof s === 'object' ? s.title : '')).filter(Boolean)

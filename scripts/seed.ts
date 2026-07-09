@@ -109,11 +109,12 @@ async function seed() {
 
   // --- Projects ---
   console.log('Creating projects...')
+  const homeProjectSlugs = new Set(['dex', 'daylight', 'workmate', 'slingshot'])
   const projectData = [
-    { title: 'Dex', slug: 'dex', subtitle: 'The language learning camera', order: 1, featured: true },
-    { title: 'Daylight', slug: 'daylight', subtitle: 'A more caring computer', order: 2, featured: true },
-    { title: 'Workmate', slug: 'workmate', subtitle: 'Your AI Executive Assistant', order: 3, featured: true },
-    { title: 'Slingshot AI', slug: 'slingshot', subtitle: 'Personalized AI counselor', order: 4, featured: true },
+    { title: 'Dex', slug: 'dex', subtitle: 'The language learning camera', order: 1 },
+    { title: 'Daylight', slug: 'daylight', subtitle: 'A more caring computer', order: 2 },
+    { title: 'Workmate', slug: 'workmate', subtitle: 'Your AI Executive Assistant', order: 3 },
+    { title: 'Slingshot AI', slug: 'slingshot', subtitle: 'Personalized AI counselor', order: 4 },
     { title: 'Supper', slug: 'supper', subtitle: 'Business intelligence AI platform', order: 5 },
     { title: 'Grandstand', slug: 'grandstand', subtitle: 'Sport fans communities', order: 6 },
     { title: 'Patreon 2.0', slug: 'patreon', subtitle: 'Connecting creators with superfans', order: 7 },
@@ -228,7 +229,7 @@ async function seed() {
   })
 
   const featuredProjectIds = projects
-    .filter((p) => projectData.find((d) => d.slug === (p as any).slug)?.featured)
+    .filter((p) => homeProjectSlugs.has((p as any).slug))
     .map((p) => p.id)
 
   await payload.updateGlobal({

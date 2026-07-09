@@ -2,70 +2,80 @@
 
 import { useEffect, useMemo, useRef } from 'react'
 
-const FIRST_FRAME_TIME = 0.001
+const MIN_FRAME_TIME = 0.001
+const MIDDLE_FRAME_START_RATIO = 0.25
+const MIDDLE_FRAME_END_RATIO = 0.75
 
-function getFirstFrameSrc(src: string) {
+function getVideoSrc(src: string) {
   const trimmed = src.trim()
   if (!trimmed) return ''
 
   const hashIndex = trimmed.indexOf('#')
-  const baseSrc = hashIndex >= 0 ? trimmed.slice(0, hashIndex) : trimmed
 
-  return `${baseSrc}#t=${FIRST_FRAME_TIME}`
+  return hashIndex >= 0 ? trimmed.slice(0, hashIndex) : trimmed
+}
+
+function getRandomMiddleFrameTime(duration: number) {
+  if (!Number.isFinite(duration) || duration <= MIN_FRAME_TIME) return MIN_FRAME_TIME
+
+  const start = duration * MIDDLE_FRAME_START_RATIO
+  const end = duration * MIDDLE_FRAME_END_RATIO
+  const randomTime = start + Math.random() * (end - start)
+  const latestSafeTime = Math.max(duration - MIN_FRAME_TIME, MIN_FRAME_TIME)
+
+  return Math.min(Math.max(randomTime, MIN_FRAME_TIME), latestSafeTime)
 }
 
 export function ActivityVideoThumbnail({ src, className = '' }: { src: string; className?: string }) {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const firstFrameSrc = useMemo(() => getFirstFrameSrc(src), [src])
+  const videoSrc = useMemo(() => getVideoSrc(src), [src])
 
   useEffect(() => {
     const video = videoRef.current
-    if (!video || !firstFrameSrc) return
+    if (!video || !videoSrc) return
 
     let cancelled = false
     let started = false
+    let targetTime: number | null = null
     let observer: IntersectionObserver | null = null
 
-    const seekToFirstFrame = () => {
+    const seekToRandomMiddleFrame = () => {
       if (cancelled) return
 
       video.pause()
 
-      const duration = video.duration
-      const targetTime = Number.isFinite(duration) && duration > 0
-        ? Math.min(FIRST_FRAME_TIME, Math.max(duration - FIRST_FRAME_TIME, 0))
-        : FIRST_FRAME_TIME
+      targetTime ??= getRandomMiddleFrameTime(video.duration)
 
       try {
         if (Math.abs(video.currentTime - targetTime) > 0.0001) {
           video.currentTime = targetTime
         }
       } catch {
-        // Some browsers reject tiny seeks before enough video data is available.
+        // Some browsers reject seeks before enough video data is available.
       }
     }
 
-    const loadFirstFrame = () => {
+    const loadRandomMiddleFrame = () => {
       if (cancelled || started) return
 
       started = true
-      video.src = firstFrameSrc
+      video.src = videoSrc
       video.load()
 
       if (video.readyState >= 1) {
-        seekToFirstFrame()
+        seekToRandomMiddleFrame()
       }
     }
 
-    video.addEventListener('loadedmetadata', seekToFirstFrame)
-    video.addEventListener('loadeddata', seekToFirstFrame)
-    video.addEventListener('canplay', seekToFirstFrame)
+    video.addEventListener('loadedmetadata', seekToRandomMiddleFrame)
+    video.addEventListener('loadeddata', seekToRandomMiddleFrame)
+    video.addEventListener('canplay', seekToRandomMiddleFrame)
 
     if ('IntersectionObserver' in window) {
       observer = new IntersectionObserver(
         ([entry]) => {
           if (entry.isIntersecting) {
-            loadFirstFrame()
+            loadRandomMiddleFrame()
             observer?.disconnect()
           }
         },
@@ -73,17 +83,17 @@ export function ActivityVideoThumbnail({ src, className = '' }: { src: string; c
       )
       observer.observe(video)
     } else {
-      loadFirstFrame()
+      loadRandomMiddleFrame()
     }
 
     return () => {
       cancelled = true
       observer?.disconnect()
-      video.removeEventListener('loadedmetadata', seekToFirstFrame)
-      video.removeEventListener('loadeddata', seekToFirstFrame)
-      video.removeEventListener('canplay', seekToFirstFrame)
+      video.removeEventListener('loadedmetadata', seekToRandomMiddleFrame)
+      video.removeEventListener('loadeddata', seekToRandomMiddleFrame)
+      video.removeEventListener('canplay', seekToRandomMiddleFrame)
     }
-  }, [firstFrameSrc])
+  }, [videoSrc])
 
   return (
     <video

@@ -393,9 +393,9 @@ async function upsertProject(db, clientId, mediaIds) {
 
   const inserted = await db.query(
     `insert into projects
-      (title, slug, subtitle, description, client_id, featured_image_id, "order", year, meta_title, meta_description, meta_image_id, featured, created_at, updated_at)
+      (title, slug, subtitle, description, client_id, featured_image_id, "order", year, meta_title, meta_description, meta_image_id, created_at, updated_at)
      values
-      ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, false, now(), now())
+      ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, now(), now())
      returning id`,
     values,
   )
