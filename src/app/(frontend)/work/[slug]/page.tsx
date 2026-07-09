@@ -13,7 +13,7 @@ export const revalidate = 60
 
 export async function generateStaticParams() {
   try {
-    const { docs } = await getProjects()
+    const { docs } = await getProjects({ includeHidden: true })
     return docs.map((project: any) => ({ slug: project.slug }))
   } catch {
     return []
@@ -120,7 +120,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
 
 
             {/* Content blocks */}
-            <RenderBlocks blocks={project.content as any[]} />
+            <RenderBlocks blocks={project.content as any[]} likeNamespace={`project:${slug}`} />
           </div>
         </Container>
 

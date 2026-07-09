@@ -132,6 +132,63 @@ const patches = [
     find: 'pe&&(ee.success(`Successfully saved ${pe} files`),Z(!0),typeof O=="function"&&O(ge,Te)),Te?ee.error(`Failed to save ${Te} files`):L(B),D({type:"REPLACE",state:{activeIndex:re.reduce((je,{formID:Re},We)=>Re===K?We:je,0),forms:re,totalErrorCount:re.reduce((je,{errorCount:Re})=>je+Re,0)}}),re.length===0&&(V(void 0),z(void 0))',
     replace: 'pe&&(ee.success(`Successfully saved ${pe} files`),Z(!0)),Te?ee.error(`Failed to save ${Te} files`):L(B),D({type:"REPLACE",state:{activeIndex:re.reduce((je,{formID:Re},We)=>Re===K?We:je,0),forms:re,totalErrorCount:re.reduce((je,{errorCount:Re})=>je+Re,0)}}),re.length===0&&(V(void 0),z(void 0)),pe&&typeof O=="function"&&(()=>{try{O(ge,Te)}catch(je){console.error("Payload bulk upload success callback failed",je)}})()',
   },
+  {
+    file: 'node_modules/@payloadcms/storage-s3/dist/client/S3ClientUploadHandler.js',
+    find: `        // upload the file directly to S3 using the signed URL
+        await fetch(url, {
+            body: file,
+            headers: {
+                'Content-Length': file.size.toString(),
+                'Content-Type': file.type
+            },
+            method: 'PUT'
+        });
+        // return the docPrefix so the client can update the field value accordingly`,
+    replace: `        // upload the file directly to S3 using the signed URL
+        const uploadResponse = await fetch(url, {
+            body: file,
+            headers: {
+                'Content-Type': file.type
+            },
+            method: 'PUT'
+        });
+        if (!uploadResponse.ok) {
+            throw new Error(\`Failed to upload file to storage: \${uploadResponse.status} \${uploadResponse.statusText}\`);
+        }
+        // return the docPrefix so the client can update the field value accordingly`,
+  },
+  {
+    file: 'node_modules/@payloadcms/storage-s3/dist/generateSignedURL.js',
+    find: `        const signableHeaders = new Set();
+        if (filesizeLimit) {
+            if (filesize > filesizeLimit) {
+                throw new APIError(\`Exceeded file size limit. Limit: \${bytesToMB(filesizeLimit).toFixed(2)}MB, got: \${bytesToMB(filesize).toFixed(2)}MB\`, 400);
+            }
+            // Still force S3 to validate
+            signableHeaders.add('content-length');
+        }
+        const url = await getSignedUrl(getStorageClient(), new AWS.PutObjectCommand({
+            ACL: acl,
+            Bucket: bucket,
+            ContentLength: filesizeLimit ? Math.min(filesize, filesizeLimit) : undefined,
+            ContentType: mimeType,
+            Key: fileKey
+        }), {
+            expiresIn: 600,
+            signableHeaders
+        });`,
+    replace: `        if (filesizeLimit && filesize > filesizeLimit) {
+            throw new APIError(\`Exceeded file size limit. Limit: \${bytesToMB(filesizeLimit).toFixed(2)}MB, got: \${bytesToMB(filesize).toFixed(2)}MB\`, 400);
+        }
+        const url = await getSignedUrl(getStorageClient(), new AWS.PutObjectCommand({
+            ACL: acl,
+            Bucket: bucket,
+            ContentType: mimeType,
+            Key: fileKey
+        }), {
+            expiresIn: 600
+        });`,
+  },
 ]
 
 let applied = 0

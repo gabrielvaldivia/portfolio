@@ -285,7 +285,7 @@ export const Projects: CollectionConfig = {
     pagination: { defaultLimit: 100 },
     group: 'Collections',
     useAsTitle: 'title',
-    defaultColumns: ['title', 'year', 'featured', 'order'],
+    defaultColumns: ['title', 'year', 'featured', 'hide', 'order'],
   },
   access: {
     read: () => true,
@@ -359,6 +359,15 @@ export const Projects: CollectionConfig = {
       type: 'checkbox',
       defaultValue: false,
       admin: { position: 'sidebar' },
+    },
+    {
+      name: 'hide',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        description: 'Hide this project from the work page.',
+      },
     },
     {
       name: 'featuredImage',

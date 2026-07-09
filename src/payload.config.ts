@@ -36,9 +36,12 @@ const databaseURI = (() => {
   }
 })()
 const databasePoolMax = Number(process.env.DATABASE_POOL_MAX || 3)
+const canonicalProductionURL = 'https://www.gabrielvaldivia.com'
 const serverURL = (
   process.env.NEXT_PUBLIC_SERVER_URL ||
   process.env.PAYLOAD_PUBLIC_SERVER_URL ||
+  (process.env.VERCEL_ENV === 'production' ? canonicalProductionURL : '') ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : '') ||
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '')
 ).replace(/\/+$/, '')
 const r2Bucket = process.env.R2_BUCKET || ''
@@ -47,6 +50,34 @@ const r2AccessKeyId = process.env.R2_ACCESS_KEY_ID || ''
 const r2SecretAccessKey = process.env.R2_SECRET_ACCESS_KEY || ''
 const r2PublicURL = (process.env.R2_PUBLIC_URL || '').replace(/\/+$/, '')
 const hasR2Storage = Boolean(r2Bucket && r2Endpoint && r2AccessKeyId && r2SecretAccessKey && r2PublicURL)
+
+const normalizeOrigin = (value?: string) => {
+  if (!value) return undefined
+  try {
+    return new URL(value).origin
+  } catch {
+    return undefined
+  }
+}
+
+const payloadAllowedOrigins = Array.from(
+  new Set(
+    [
+      normalizeOrigin(serverURL),
+      normalizeOrigin(process.env.NEXT_PUBLIC_SERVER_URL),
+      normalizeOrigin(process.env.PAYLOAD_PUBLIC_SERVER_URL),
+      normalizeOrigin(process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined),
+      normalizeOrigin(
+        process.env.VERCEL_PROJECT_PRODUCTION_URL
+          ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+          : undefined,
+      ),
+      normalizeOrigin(process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : undefined),
+      'https://gabrielvaldivia.com',
+      canonicalProductionURL,
+    ].filter((origin): origin is string => Boolean(origin)),
+  ),
+)
 
 const joinURLParts = (...parts: Array<string | undefined>) =>
   parts
@@ -67,6 +98,11 @@ export default buildConfig({
   globals: [SiteSettings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || 'default-secret-change-me-in-production',
+  cors: {
+    headers: ['Content-Length'],
+    origins: payloadAllowedOrigins,
+  },
+  csrf: payloadAllowedOrigins,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },

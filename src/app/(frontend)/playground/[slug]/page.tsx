@@ -100,7 +100,7 @@ export default async function SideProjectPage({ params }: { params: Promise<{ sl
               )}
             </div>
 
-            <RenderBlocks blocks={contentBlocks} />
+            <RenderBlocks blocks={contentBlocks} likeNamespace={`side-project:${slug}`} />
           </div>
         </Container>
 

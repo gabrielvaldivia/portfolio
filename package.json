@@ -11,6 +11,7 @@
     "migrate:status": "payload migrate:status",
     "postinstall": "node scripts/patch-payload-bulk-upload.mjs",
     "sync:build-anything": "node scripts/sync-build-anything-cms.mjs",
+    "sync:fieldtone": "node scripts/sync-fieldtone-cms.mjs",
     "generate:types": "payload generate:types",
     "generate:importmap": "payload generate:importmap"
   },

@@ -1,12 +1,28 @@
 import { getPayload } from './payload'
 
-export async function getProjects(featured?: boolean) {
+type GetProjectsOptions = {
+  featured?: boolean
+  includeHidden?: boolean
+}
+
+export async function getProjects(options: GetProjectsOptions | boolean = {}) {
   const payload = await getPayload()
+  const resolvedOptions = typeof options === 'boolean' ? { featured: options } : options
+  const filters = []
+
+  if (resolvedOptions.featured) {
+    filters.push({ featured: { equals: true } })
+  }
+
+  if (!resolvedOptions.includeHidden) {
+    filters.push({ hide: { not_equals: true } })
+  }
+
   return payload.find({
     collection: 'projects',
     sort: 'order',
     limit: 100,
-    where: featured ? { featured: { equals: true } } : {},
+    where: filters.length > 1 ? { and: filters } : filters[0] || {},
     depth: 2,
   })
 }

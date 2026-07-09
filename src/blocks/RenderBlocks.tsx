@@ -2,6 +2,9 @@ import Image from 'next/image'
 import { RichText } from '@/components/RichText'
 import { VideoPlayer } from '@/components/VideoPlayer'
 import { LazyVideo } from '@/components/LazyVideo'
+import { ModuleLikeButton } from '@/components/ModuleLikeButton'
+import { cn } from '@/lib/cn'
+import { getModuleLikeAnchorId, getModuleLikeTargetId, isLikeableModuleBlock } from '@/lib/moduleLikes'
 
 function TextBlock({ title, content, columns }: { title?: string; content: any; columns?: string }) {
   if (!content) return null
@@ -45,7 +48,19 @@ const paddingClasses: Record<string, string> = {
 const ROW_HEIGHT = 200
 const ROW_GAP = 40 // matches desktop gap-10
 
-function ImageBlockComponent({ image, caption, border, imageBorder, rounded, shadow, columns, rows, height, maxHeight, fit, bgColor, padding, _fillHeight }: { image: any; caption?: string; border?: boolean; imageBorder?: boolean; rounded?: boolean; shadow?: boolean; columns?: string; rows?: string; height?: number; maxHeight?: number; fit?: string; bgColor?: string; padding?: string | number; _fillHeight?: boolean }) {
+function ModuleLikeOverlay({ targetId }: { targetId: string }) {
+  return (
+    <div className="pointer-events-none absolute bottom-3 left-3 z-20 opacity-100 transition-opacity duration-150 desktop:opacity-0 desktop:group-hover/module:opacity-100 desktop:group-focus-within/module:opacity-100">
+      <ModuleLikeButton targetId={targetId} />
+    </div>
+  )
+}
+
+function isChecked(value: unknown) {
+  return value === true || value === 'true' || value === 1
+}
+
+function ImageBlockComponent({ image, caption, border, imageBorder, rounded, shadow, columns, rows, height, maxHeight, fit, bgColor, padding, _fillHeight, _likeTargetId }: { image: any; caption?: string; border?: boolean; imageBorder?: boolean; rounded?: boolean; shadow?: boolean; columns?: string; rows?: string; height?: number; maxHeight?: number; fit?: string; bgColor?: string; padding?: string | number; _fillHeight?: boolean; _likeTargetId?: string | null }) {
   // Legacy: height/maxHeight still supported for old data but no longer in admin
   if (!image?.url) return null
   const aspectRatio = image.width && image.height ? image.width / image.height : 16 / 9
@@ -79,13 +94,14 @@ function ImageBlockComponent({ image, caption, border, imageBorder, rounded, sha
           </div>
         </div>
         {border && <div className="absolute inset-0 z-10 ring-1 ring-inset ring-black/10 dark:ring-white/10 pointer-events-none" />}
+        {_likeTargetId && <ModuleLikeOverlay targetId={_likeTargetId} />}
       </div>
       {caption && <p className="text-muted text-caption" style={{ marginTop: 10 }}>{caption}</p>}
     </div>
   )
 }
 
-function VideoBlockComponent({ video, url, caption, rows, columns, fit, bgColor, padding, border, loop = true, muted = true, controls = false }: any) {
+function VideoBlockComponent({ video, url, caption, rows, columns, fit, bgColor, padding, border, loop = true, muted = true, controls = false, _likeTargetId }: any) {
   const src = video?.url || url
   if (!src) return null
   const isWrap = !rows || rows === 'wrap'
@@ -101,10 +117,11 @@ function VideoBlockComponent({ video, url, caption, rows, columns, fit, bgColor,
   return (
     <div>
       <div
-        className={`${bg} overflow-hidden ${border ? 'border border-border' : ''} ${hasPadding ? padClass : ''}`}
+        className={cn(bg, 'relative overflow-hidden', border ? 'border border-border' : '', hasPadding ? padClass : '')}
         style={{ ...(rowHeight ? { ['--row-height' as string]: `${rowHeight}px` } : {}), ...(customBg ? { backgroundColor: customBg } : {}) }}
       >
         <VideoPlayer src={src} loop={loop} muted={muted} controls={controls} className={`w-full h-full ${objectFit}`} />
+        {_likeTargetId && <ModuleLikeOverlay targetId={_likeTargetId} />}
       </div>
       {caption && <p className="text-muted text-caption" style={{ marginTop: 10 }}>{caption}</p>}
     </div>
@@ -147,13 +164,14 @@ function DC1Block({ id: blockId, video, rows }: { id?: string; video: any; rows?
   )
 }
 
-function iPhone15Block({ id: blockId, video, image, rows, showNotch }: { id?: string; video: any; image?: any; rows?: string; showNotch?: boolean }) {
+function iPhone15Block({ id: blockId, video, image, rows, showNotch }: { id?: string; video: any; image?: any; rows?: string; showNotch?: boolean | string | number }) {
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url
   const rowCount = parseInt(rows || '1', 10)
   const rowHeight = ROW_HEIGHT * rowCount + ROW_GAP * (rowCount - 1)
   const id = `iphone15-${blockId || 'x'}`
+  const frameUrl = isChecked(showNotch) ? IPHONE15_NOTCH_FRAME_URL : IPHONE15_FRAME_URL
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
@@ -185,7 +203,7 @@ function iPhone15Block({ id: blockId, video, image, rows, showNotch }: { id?: st
             )}
           </div>
           <img
-            src={showNotch ? IPHONE15_NOTCH_FRAME_URL : IPHONE15_FRAME_URL}
+            src={frameUrl}
             alt=""
             className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" loading="lazy"
           />
@@ -384,8 +402,9 @@ const rowSpan: Record<string, string> = {
 }
 
 const framedBlockTypes = ['dc1', 'iphone15', 'iphone13mini', 'iphone5', 'iphone6', 'iphonex']
+const internalLikeButtonBlockTypes = ['image', 'video', 'fullWidthImage', 'fullWidthVideo']
 
-export function RenderBlocks({ blocks }: { blocks?: any[] }) {
+export function RenderBlocks({ blocks, likeNamespace }: { blocks?: any[]; likeNamespace?: string }) {
   if (!blocks?.length) return null
 
   return (
@@ -396,19 +415,31 @@ export function RenderBlocks({ blocks }: { blocks?: any[] }) {
         const cols = block.columns || '6'
         const rows = block.rows || '1'
         const isFramedBlock = framedBlockTypes.includes(block.blockType)
-        const isIPhone15Block = block.blockType === 'iphone15'
-        const hasModuleBackground = isFramedBlock || block.blockType === 'image'
+        const hasModuleBackground = isFramedBlock
         const moduleBackgroundClass = hasModuleBackground
-          ? `bg-background-alt ${isIPhone15Block ? 'rounded-[24px] tablet:rounded-[36px] desktop:rounded-[48px] overflow-hidden' : ''}`
+          ? 'bg-background-alt'
           : ''
+        const likeTargetId = likeNamespace && isLikeableModuleBlock(block.blockType)
+          ? getModuleLikeTargetId(likeNamespace, block, i)
+          : null
+        const rendersOwnLikeButton = internalLikeButtonBlockTypes.includes(block.blockType)
+
         return (
           <div
             key={block.id || i}
-            className={`${colSpan[cols] || 'desktop:col-span-6'} ${rows !== '1' ? (rowSpan[rows] || '') : ''} ${moduleBackgroundClass} ${isFramedBlock ? 'p-5 tablet:p-8 desktop:p-10' : ''}`}
+            id={likeTargetId ? getModuleLikeAnchorId(likeTargetId) : undefined}
+            className={cn(
+              colSpan[cols] || 'desktop:col-span-6',
+              rows !== '1' ? (rowSpan[rows] || '') : '',
+              moduleBackgroundClass,
+              isFramedBlock ? 'p-5 tablet:p-8 desktop:p-10' : '',
+              likeTargetId ? 'group/module relative' : '',
+            )}
           >
             <div className={isFramedBlock ? 'h-full flex items-center justify-center' : ''}>
-              <Component {...block} />
+              <Component {...block} _likeTargetId={rendersOwnLikeButton ? likeTargetId : null} />
             </div>
+            {likeTargetId && !rendersOwnLikeButton && <ModuleLikeOverlay targetId={likeTargetId} />}
           </div>
         )
       })}
