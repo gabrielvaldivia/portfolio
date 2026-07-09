@@ -72,6 +72,7 @@ function getActivitySectionTitle(value: string, now: Date) {
 function getActivityMergeKey(item: ModuleLikeActivityItem) {
   return [
     item.targetId,
+    item.amount,
     item.location,
     item.city,
     item.region,
@@ -118,17 +119,19 @@ function groupActivityItems(items: ActivityDisplayItem[]) {
   return groups.filter((group) => group.items.length > 0)
 }
 
-function getLikePhrase(noun: string) {
-  return noun === 'image' ? `liked an ${noun}` : `liked a ${noun}`
+function getLikePhrase(noun: string, isSuperlike: boolean) {
+  const verb = isSuperlike ? 'superliked' : 'liked'
+  return noun === 'image' ? `${verb} an ${noun}` : `${verb} a ${noun}`
 }
 
 function getActivitySentenceParts(item: ActivityDisplayItem) {
   const location = item.location ? ` from ${item.location}` : ''
   const source = item.target.sourceTitle
   const repetitions = item.count > 1 ? ` ${item.count} times` : ''
+  const isSuperlike = item.amount > 1
 
   return {
-    action: getLikePhrase(item.target.noun),
+    action: getLikePhrase(item.target.noun, isSuperlike),
     location,
     repetitions,
     source,

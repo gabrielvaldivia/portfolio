@@ -5,6 +5,7 @@ import {
   getModuleLikeAnchorId,
   getModuleLikeTargetId,
   isLikeableModuleBlock,
+  SUPER_MODULE_LIKE_AMOUNT,
   parseModuleLikeTargetId,
 } from '@/lib/moduleLikes'
 
@@ -13,6 +14,7 @@ type ModuleLikeDb = Awaited<ReturnType<typeof getPayload>>['db']['drizzle']
 type ModuleLikeActivityRow = {
   id: number | string
   target_id: string
+  amount: number | string | null
   location: string | null
   city: string | null
   region: string | null
@@ -61,6 +63,7 @@ type ActivityTarget = {
 export type ModuleLikeActivityItem = {
   id: string
   targetId: string
+  amount: number
   createdAt: string
   location: string
   city: string
@@ -114,6 +117,7 @@ export function ensureModuleLikesTables(db: ModuleLikeDb) {
         "id" serial PRIMARY KEY,
         "target_id" varchar NOT NULL,
         "visitor_hash" varchar NOT NULL,
+        "amount" integer NOT NULL DEFAULT 1,
         "location" varchar,
         "city" varchar,
         "region" varchar,
@@ -126,6 +130,22 @@ export function ensureModuleLikesTables(db: ModuleLikeDb) {
 
       CREATE INDEX IF NOT EXISTS "module_like_events_target_idx"
         ON "module_like_events" ("target_id");
+
+      ALTER TABLE "module_like_events"
+        ADD COLUMN IF NOT EXISTS "amount" integer NOT NULL DEFAULT 1;
+
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1
+          FROM pg_constraint
+          WHERE conname = 'module_like_events_amount_range'
+        ) THEN
+          ALTER TABLE "module_like_events"
+            ADD CONSTRAINT "module_like_events_amount_range"
+            CHECK ("amount" >= 1 AND "amount" <= 5);
+        END IF;
+      END $$;
     `).then(() => undefined).catch((error) => {
       ensureModuleLikesTablesPromise = null
       throw error
@@ -485,7 +505,7 @@ export async function getModuleLikeActivity(limit = 100): Promise<ModuleLikeActi
   await ensureModuleLikesTables(db)
 
   const result = await db.execute(sql`
-    SELECT "id", "target_id", "location", "city", "region", "country", "created_at"
+    SELECT "id", "target_id", "amount", "location", "city", "region", "country", "created_at"
     FROM "module_like_events"
     ORDER BY "created_at" DESC, "id" DESC
     LIMIT ${limit}
@@ -505,6 +525,7 @@ export async function getModuleLikeActivity(limit = 100): Promise<ModuleLikeActi
     return [{
       id: String(row.id),
       targetId: row.target_id,
+      amount: Math.min(Math.max(Math.trunc(Number(row.amount) || 1), 1), SUPER_MODULE_LIKE_AMOUNT),
       createdAt: Number.isNaN(createdAt.getTime()) ? new Date().toISOString() : createdAt.toISOString(),
       location,
       city: cleanLocationPart(row.city || ''),

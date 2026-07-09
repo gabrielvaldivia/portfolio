@@ -177,8 +177,8 @@ export async function POST(req: NextRequest) {
         WHERE "module_likes"."like_count" < ${MAX_MODULE_LIKES_PER_VISITOR}
         RETURNING "target_id"
       )
-      INSERT INTO "module_like_events" ("target_id", "visitor_hash", "location", "city", "region", "country", "created_at")
-      SELECT ${id}, ${visitorHash}, ${likeLocation.location}, ${likeLocation.city}, ${likeLocation.region}, ${likeLocation.country}, now()
+      INSERT INTO "module_like_events" ("target_id", "visitor_hash", "amount", "location", "city", "region", "country", "created_at")
+      SELECT ${id}, ${visitorHash}, ${amount}, ${likeLocation.location}, ${likeLocation.city}, ${likeLocation.region}, ${likeLocation.country}, now()
       FROM "accepted_like"
     `)
 
