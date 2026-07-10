@@ -14,7 +14,7 @@ export function Avatar({ name, photo, linkedIn }: Props) {
     <div className="relative group">
       <div className="relative w-[30px] h-[30px] rounded-full overflow-hidden bg-background-alt shrink-0 flex items-center justify-center">
         {photo?.url ? (
-          <Image src={photo.url} alt={photo.alt || name} width={30} height={30} className="w-full h-full object-cover" />
+          <Image src={photo.url} alt={photo.alt || name} fill sizes="30px" className="object-cover" />
         ) : (
           <span className="text-muted text-[10px] font-medium">{initials}</span>
         )}
