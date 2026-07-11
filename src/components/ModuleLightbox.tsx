@@ -201,12 +201,10 @@ export function ModuleLightboxProvider({
       dragY.set(0)
       if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
       closeTimeoutRef.current = null
-      flushSync(() => {
-        setIsClosing(false)
-        setDirection(0)
-        setTransitionMode('zoom')
-        setIndex(nextIndex)
-      })
+      setIsClosing(false)
+      setDirection(0)
+      setTransitionMode('zoom')
+      setIndex(nextIndex)
     }
   }, [dragX, dragY, slideIndexById])
 
@@ -660,11 +658,12 @@ export function ModuleLightboxTrigger({
       ? registerMeasuredAspectRatio()
       : undefined
 
-    if (openFrameRef.current !== null) cancelAnimationFrame(openFrameRef.current)
-    openFrameRef.current = requestAnimationFrame(() => {
+    if (openFrameRef.current !== null) {
+      cancelAnimationFrame(openFrameRef.current)
       openFrameRef.current = null
-      context.openSlide(slideId, sourceAspectRatio)
-    })
+    }
+
+    context.openSlide(slideId, sourceAspectRatio)
   }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
