@@ -201,10 +201,12 @@ export function ModuleLightboxProvider({
       dragY.set(0)
       if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
       closeTimeoutRef.current = null
-      setIsClosing(false)
-      setDirection(0)
-      setTransitionMode('zoom')
-      setIndex(nextIndex)
+      flushSync(() => {
+        setIsClosing(false)
+        setDirection(0)
+        setTransitionMode('zoom')
+        setIndex(nextIndex)
+      })
     }
   }, [dragX, dragY, slideIndexById])
 
