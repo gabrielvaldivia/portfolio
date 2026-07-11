@@ -59,6 +59,7 @@ const SWIPE_TRANSITION: Transition = {
 }
 
 const ZOOM_DURATION_MS = 560
+const BACKDROP_FADE_DELAY_SECONDS = 0.1
 
 const ZOOM_ENTRY_TIMING: KeyframeAnimationOptions = {
   duration: ZOOM_DURATION_MS,
@@ -212,6 +213,7 @@ function ModuleLightboxSlideView({
   activeSlideIsFramed,
   activeSlideUsesMeasuredAspect,
   activeSlideTransition,
+  onSourceReady,
   ownsDrag,
   swipeOffset,
   dragX,
@@ -233,6 +235,7 @@ function ModuleLightboxSlideView({
   activeSlideIsFramed: boolean
   activeSlideUsesMeasuredAspect: boolean
   activeSlideTransition: Transition
+  onSourceReady: (id: string) => void
   ownsDrag: boolean
   swipeOffset: number
   dragX: ReturnType<typeof useMotionValue<number>>
@@ -273,6 +276,7 @@ function ModuleLightboxSlideView({
 
     if (transitionMode !== 'zoom' || prefersReducedMotion || !entrySourceRect) {
       element.style.transform = ''
+      if (transitionMode === 'zoom') flushSync(() => onSourceReady(slide.id))
       element.style.visibility = 'visible'
       setReady(true)
       return
@@ -297,6 +301,7 @@ function ModuleLightboxSlideView({
       const finalTransform = 'translate3d(0px, 0px, 0px) scale(1, 1)'
 
       element.style.transform = initialTransform
+      flushSync(() => onSourceReady(slide.id))
       element.style.visibility = 'visible'
       setReady(true)
 
@@ -337,7 +342,7 @@ function ModuleLightboxSlideView({
       }
       animation?.cancel()
     }
-  }, [entrySourceRect, prefersReducedMotion, slide.id, transitionMode])
+  }, [entrySourceRect, onSourceReady, prefersReducedMotion, slide.id, transitionMode])
 
   useLayoutEffect(() => {
     const slotElement = slotRef.current
@@ -485,6 +490,7 @@ export function ModuleLightboxOverlay({
   initialSourceRect,
   getSourceRect,
   getSourceAspectRatio,
+  onSourceReady,
   onClosing,
   onReturnCancelled,
   onClosed,
@@ -808,7 +814,7 @@ export function ModuleLightboxOverlay({
         className="pointer-events-none absolute inset-0"
         initial={{ opacity: 0 }}
         animate={{ opacity: open ? 1 : 0 }}
-        transition={FADE_TRANSITION}
+        transition={open ? { ...FADE_TRANSITION, delay: BACKDROP_FADE_DELAY_SECONDS } : FADE_TRANSITION}
         style={{ willChange: 'opacity' }}
       >
         <motion.div className="absolute inset-0 bg-white dark:bg-black" style={{ opacity: backdropOpacity }} />
@@ -889,6 +895,7 @@ export function ModuleLightboxOverlay({
               activeSlideIsFramed={renderedSlideIsFramed}
               activeSlideUsesMeasuredAspect={renderedSlideUsesMeasuredAspect}
               activeSlideTransition={activeSlideTransition}
+              onSourceReady={onSourceReady}
               ownsDrag={renderedSlide.id === dragOwnerId}
               swipeOffset={swipeOffset}
               dragX={dragX}

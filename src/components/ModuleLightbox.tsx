@@ -36,6 +36,7 @@ export type ModuleLightboxOverlayProps = {
   initialSourceRect?: LightboxRect
   getSourceRect: (id: string) => LightboxRect | undefined
   getSourceAspectRatio: (id: string) => number | undefined
+  onSourceReady: (id: string) => void
   onClosing: (id: string) => void
   onReturnCancelled: (id: string) => void
   onClosed: () => void
@@ -152,7 +153,6 @@ export function ModuleLightboxProvider({
 
     preloadModuleLightboxOverlay()
     openKeyRef.current += 1
-    setHiddenSlideId(id)
     setOpenState({
       key: openKeyRef.current,
       index: nextIndex,
@@ -166,6 +166,10 @@ export function ModuleLightboxProvider({
   }, [])
 
   const handleClosing = useCallback((id: string) => {
+    setHiddenSlideId(id)
+  }, [])
+
+  const handleSourceReady = useCallback((id: string) => {
     setHiddenSlideId(id)
   }, [])
 
@@ -191,6 +195,7 @@ export function ModuleLightboxProvider({
           initialSourceRect={openState.sourceRect}
           getSourceRect={getSourceRect}
           getSourceAspectRatio={getSourceAspectRatio}
+          onSourceReady={handleSourceReady}
           onClosing={handleClosing}
           onReturnCancelled={handleReturnCancelled}
           onClosed={handleClosed}
