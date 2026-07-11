@@ -9,9 +9,11 @@ type ModuleRenderMode = 'page' | 'lightbox'
 
 type ModuleRenderProps = {
   _active?: boolean
+  _containedInLightbox?: boolean
   _lightboxAspectRatio?: number
   _likeTargetId?: string | null
   _mode?: ModuleRenderMode
+  _sourceContentWidth?: number
 }
 
 const bgColorMap: Record<string, string> = {
@@ -219,7 +221,9 @@ export function BrowserBlockComponent({
   imageBorder,
   shadow,
   _likeTargetId,
+  _containedInLightbox,
   _mode = 'page',
+  _sourceContentWidth,
 }: {
   image: any
   address?: string
@@ -237,26 +241,42 @@ export function BrowserBlockComponent({
   const aspectRatio = image.width && image.height ? image.width / image.height : 16 / 9
   const objectFit = fit === 'contain' ? 'object-contain' : 'object-cover'
   const isLightbox = _mode === 'lightbox'
+  const isContainedLightbox = isLightbox && _containedInLightbox
+  const scaledLength = (pixels: number) => isContainedLightbox && _sourceContentWidth
+    ? `${(pixels / _sourceContentWidth) * 100}cqw`
+    : undefined
+  const scaledToolbarPadding = isContainedLightbox && _sourceContentWidth
+    ? `${scaledLength(8)} ${scaledLength(16)}`
+    : undefined
 
   return (
-    <div className={cn('w-full', isLightbox ? 'mx-auto' : '')} style={isLightbox ? { width: getConstrainedWidth(aspectRatio) } : undefined}>
-      <div className={cn('relative w-full', isLightbox ? 'bg-background-alt p-5 tablet:p-8 desktop:p-10' : '')}>
+    <div className={cn('w-full', isLightbox ? 'mx-auto' : '')} style={isLightbox && !isContainedLightbox ? { width: getConstrainedWidth(aspectRatio) } : undefined}>
+      <div className={cn('relative w-full', isLightbox && !isContainedLightbox ? 'bg-background-alt p-5 tablet:p-8 desktop:p-10' : '')}>
         <div
           className={cn(
             'flex w-full flex-col overflow-hidden rounded-2xl border border-border bg-elevated shadow-md',
             shadow ? 'shadow-lg' : '',
           )}
+          style={{ borderRadius: scaledLength(16), borderWidth: scaledLength(1) }}
         >
-          <div className="flex min-h-10 shrink-0 items-center gap-2 border-b border-border bg-gray-200 px-3 py-2 tablet:min-h-12 tablet:gap-3 tablet:px-4">
-            <div className="flex w-14 shrink-0 items-center gap-2 tablet:w-16" aria-hidden="true">
-              <span className="size-3 rounded-full bg-red-400 tablet:size-3.5" />
-              <span className="size-3 rounded-full bg-yellow-400 tablet:size-3.5" />
-              <span className="size-3 rounded-full bg-green-400 tablet:size-3.5" />
+          <div
+            className="flex min-h-10 shrink-0 items-center gap-2 border-b border-border bg-gray-200 px-3 py-2 tablet:min-h-12 tablet:gap-3 tablet:px-4"
+            style={{
+              minHeight: scaledLength(48),
+              gap: scaledLength(12),
+              padding: scaledToolbarPadding,
+              borderBottomWidth: scaledLength(1),
+            }}
+          >
+            <div className="flex w-14 shrink-0 items-center gap-2 tablet:w-16" style={{ width: scaledLength(64), gap: scaledLength(8) }} aria-hidden="true">
+              <span className="size-3 rounded-full bg-red-400 tablet:size-3.5" style={{ width: scaledLength(14), height: scaledLength(14) }} />
+              <span className="size-3 rounded-full bg-yellow-400 tablet:size-3.5" style={{ width: scaledLength(14), height: scaledLength(14) }} />
+              <span className="size-3 rounded-full bg-green-400 tablet:size-3.5" style={{ width: scaledLength(14), height: scaledLength(14) }} />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="mx-auto h-6 max-w-sm rounded-full bg-white tablet:h-7" aria-hidden="true" />
+              <div className="mx-auto h-6 max-w-sm rounded-full bg-white tablet:h-7" style={{ height: scaledLength(28), maxWidth: scaledLength(384) }} aria-hidden="true" />
             </div>
-            <div className="w-14 shrink-0 tablet:w-16" aria-hidden="true" />
+            <div className="w-14 shrink-0 tablet:w-16" style={{ width: scaledLength(64) }} aria-hidden="true" />
           </div>
           <div className="relative bg-background" style={{ aspectRatio }}>
             <Image src={image.url} alt={image.alt || ''} fill className={objectFit} sizes={isLightbox ? '100vw' : columns === '1' ? '16vw' : columns === '2' ? '33vw' : columns === '3' ? '50vw' : columns === '4' ? '66vw' : '100vw'} />
@@ -287,9 +307,15 @@ function lightboxFrameSizeStyle(aspectRatio: number) {
   return `width: min(calc(100dvw - ${horizontalMargin}px), calc(${widthFromViewportHeight}dvh - ${widthMarginOffset}px)); height: auto; max-width: 100%;`
 }
 
-function framedHeightStyle(isLightbox: boolean, rowHeight: number, aspectRatio: number) {
+function framedLightboxSizeStyle(aspectRatio: number, contained: boolean) {
+  return contained
+    ? `width: min(100%, calc(100cqh * ${aspectRatio})); height: auto; max-width: 100%; max-height: 100%;`
+    : lightboxFrameSizeStyle(aspectRatio)
+}
+
+function framedHeightStyle(isLightbox: boolean, rowHeight: number, aspectRatio: number, contained = false) {
   return isLightbox
-    ? lightboxFrameSizeStyle(aspectRatio)
+    ? framedLightboxSizeStyle(aspectRatio, contained)
     : `height: ${rowHeight}px; width: auto;`
 }
 
@@ -313,20 +339,21 @@ function FramedVideoOrImage({
   return <img src={src} alt={alt || ''} className="w-full h-full object-cover" loading="lazy" />
 }
 
-export function DC1Block({ id: blockId, video, rows, _active, _mode = 'page' }: { id?: string; video: any; rows?: string } & ModuleRenderProps) {
+export function DC1Block({ id: blockId, video, rows, _active, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; rows?: string } & ModuleRenderProps) {
   const src = video?.url
   if (!src) return null
   const rowCount = parseInt(rows || '1', 10)
   const rowHeight = ROW_HEIGHT * rowCount + ROW_GAP * (rowCount - 1)
   const id = `dc1-${blockId || 'x'}${_mode === 'lightbox' ? '-lightbox' : ''}`
   const isLightbox = _mode === 'lightbox'
+  const isContainedLightbox = isLightbox && Boolean(_containedInLightbox)
   const aspectRatio = 718 / 960
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
-        #${id} { aspect-ratio: 718 / 960; ${isLightbox ? lightboxFrameSizeStyle(aspectRatio) : 'width: 100%;'} }
+        #${id} { aspect-ratio: 718 / 960; ${isLightbox ? framedLightboxSizeStyle(aspectRatio, isContainedLightbox) : 'width: 100%;'} }
         @media (min-width: 1280px) {
-          #${id} { aspect-ratio: 718 / 960; ${framedHeightStyle(isLightbox, rowHeight, aspectRatio)} }
+          #${id} { aspect-ratio: 718 / 960; ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
       ` }} />
       <div id={id} className="relative mx-auto overflow-hidden">
@@ -343,7 +370,7 @@ export function DC1Block({ id: blockId, video, rows, _active, _mode = 'page' }: 
   )
 }
 
-export function iPhone15Block({ id: blockId, video, image, rows, showNotch, _active, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string; showNotch?: boolean | string | number } & ModuleRenderProps) {
+export function iPhone15Block({ id: blockId, video, image, rows, showNotch, _active, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string; showNotch?: boolean | string | number } & ModuleRenderProps) {
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url
@@ -352,16 +379,17 @@ export function iPhone15Block({ id: blockId, video, image, rows, showNotch, _act
   const id = `iphone15-${blockId || 'x'}${_mode === 'lightbox' ? '-lightbox' : ''}`
   const frameUrl = isChecked(showNotch) ? IPHONE15_NOTCH_FRAME_URL : IPHONE15_FRAME_URL
   const isLightbox = _mode === 'lightbox'
+  const isContainedLightbox = isLightbox && Boolean(_containedInLightbox)
   const aspectRatio = 2005 / 4096
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
-        #${id} { aspect-ratio: 2005 / 4096; max-width: 100%; ${isLightbox ? lightboxFrameSizeStyle(aspectRatio) : 'height: 480px;'} }
+        #${id} { aspect-ratio: 2005 / 4096; max-width: 100%; ${isLightbox ? framedLightboxSizeStyle(aspectRatio, isContainedLightbox) : 'height: 480px;'} }
         @media (min-width: 810px) {
-          #${id} { ${isLightbox ? lightboxFrameSizeStyle(aspectRatio) : 'height: 600px;'} }
+          #${id} { ${isLightbox ? framedLightboxSizeStyle(aspectRatio, isContainedLightbox) : 'height: 600px;'} }
         }
         @media (min-width: 1280px) {
-          #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio)} }
+          #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
       ` }} />
       <div className="flex h-full max-w-full items-center justify-center">
@@ -390,7 +418,7 @@ export function iPhone15Block({ id: blockId, video, image, rows, showNotch, _act
   )
 }
 
-export function iPhone13MiniBlock({ id: blockId, video, image, rows, _active, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
+export function iPhone13MiniBlock({ id: blockId, video, image, rows, _active, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url
@@ -398,16 +426,17 @@ export function iPhone13MiniBlock({ id: blockId, video, image, rows, _active, _m
   const rowHeight = ROW_HEIGHT * rowCount + ROW_GAP * (rowCount - 1)
   const id = `iphone13mini-${blockId || 'x'}${_mode === 'lightbox' ? '-lightbox' : ''}`
   const isLightbox = _mode === 'lightbox'
+  const isContainedLightbox = isLightbox && Boolean(_containedInLightbox)
   const aspectRatio = 553 / 1024
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
-        #${id} { aspect-ratio: 553 / 1024; max-width: 100%; ${isLightbox ? lightboxFrameSizeStyle(aspectRatio) : 'height: 480px;'} }
+        #${id} { aspect-ratio: 553 / 1024; max-width: 100%; ${isLightbox ? framedLightboxSizeStyle(aspectRatio, isContainedLightbox) : 'height: 480px;'} }
         @media (min-width: 810px) {
-          #${id} { ${isLightbox ? lightboxFrameSizeStyle(aspectRatio) : 'height: 600px;'} }
+          #${id} { ${isLightbox ? framedLightboxSizeStyle(aspectRatio, isContainedLightbox) : 'height: 600px;'} }
         }
         @media (min-width: 1280px) {
-          #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio)} }
+          #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
       ` }} />
       <div className="flex h-full max-w-full items-center justify-center">
@@ -426,7 +455,7 @@ export function iPhone13MiniBlock({ id: blockId, video, image, rows, _active, _m
   )
 }
 
-export function iPhone5Block({ id: blockId, video, image, rows, _active, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
+export function iPhone5Block({ id: blockId, video, image, rows, _active, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url
@@ -434,16 +463,17 @@ export function iPhone5Block({ id: blockId, video, image, rows, _active, _mode =
   const rowHeight = ROW_HEIGHT * rowCount + ROW_GAP * (rowCount - 1)
   const id = `iphone5-${blockId || 'x'}${_mode === 'lightbox' ? '-lightbox' : ''}`
   const isLightbox = _mode === 'lightbox'
+  const isContainedLightbox = isLightbox && Boolean(_containedInLightbox)
   const aspectRatio = 762 / 1597
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
-        #${id} { aspect-ratio: 762 / 1597; max-width: 100%; ${isLightbox ? lightboxFrameSizeStyle(aspectRatio) : 'height: 480px;'} }
+        #${id} { aspect-ratio: 762 / 1597; max-width: 100%; ${isLightbox ? framedLightboxSizeStyle(aspectRatio, isContainedLightbox) : 'height: 480px;'} }
         @media (min-width: 810px) {
-          #${id} { ${isLightbox ? lightboxFrameSizeStyle(aspectRatio) : 'height: 600px;'} }
+          #${id} { ${isLightbox ? framedLightboxSizeStyle(aspectRatio, isContainedLightbox) : 'height: 600px;'} }
         }
         @media (min-width: 1280px) {
-          #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio)} }
+          #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
       ` }} />
       <div className="flex h-full max-w-full items-center justify-center">
@@ -458,7 +488,7 @@ export function iPhone5Block({ id: blockId, video, image, rows, _active, _mode =
   )
 }
 
-export function iPhone6Block({ id: blockId, video, image, rows, _active, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
+export function iPhone6Block({ id: blockId, video, image, rows, _active, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url
@@ -466,16 +496,17 @@ export function iPhone6Block({ id: blockId, video, image, rows, _active, _mode =
   const rowHeight = ROW_HEIGHT * rowCount + ROW_GAP * (rowCount - 1)
   const id = `iphone6-${blockId || 'x'}${_mode === 'lightbox' ? '-lightbox' : ''}`
   const isLightbox = _mode === 'lightbox'
+  const isContainedLightbox = isLightbox && Boolean(_containedInLightbox)
   const aspectRatio = 990 / 1934
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
-        #${id} { aspect-ratio: 990 / 1934; max-width: 100%; ${isLightbox ? lightboxFrameSizeStyle(aspectRatio) : 'height: 480px;'} }
+        #${id} { aspect-ratio: 990 / 1934; max-width: 100%; ${isLightbox ? framedLightboxSizeStyle(aspectRatio, isContainedLightbox) : 'height: 480px;'} }
         @media (min-width: 810px) {
-          #${id} { ${isLightbox ? lightboxFrameSizeStyle(aspectRatio) : 'height: 600px;'} }
+          #${id} { ${isLightbox ? framedLightboxSizeStyle(aspectRatio, isContainedLightbox) : 'height: 600px;'} }
         }
         @media (min-width: 1280px) {
-          #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio)} }
+          #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
       ` }} />
       <div className="flex h-full max-w-full items-center justify-center">
@@ -490,7 +521,7 @@ export function iPhone6Block({ id: blockId, video, image, rows, _active, _mode =
   )
 }
 
-export function iPhoneXBlock({ id: blockId, video, image, rows, _active, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
+export function iPhoneXBlock({ id: blockId, video, image, rows, _active, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url
@@ -498,16 +529,17 @@ export function iPhoneXBlock({ id: blockId, video, image, rows, _active, _mode =
   const rowHeight = ROW_HEIGHT * rowCount + ROW_GAP * (rowCount - 1)
   const id = `iphonex-${blockId || 'x'}${_mode === 'lightbox' ? '-lightbox' : ''}`
   const isLightbox = _mode === 'lightbox'
+  const isContainedLightbox = isLightbox && Boolean(_containedInLightbox)
   const aspectRatio = 1405 / 2796
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
-        #${id} { aspect-ratio: 1405 / 2796; max-width: 100%; ${isLightbox ? lightboxFrameSizeStyle(aspectRatio) : 'height: 480px;'} }
+        #${id} { aspect-ratio: 1405 / 2796; max-width: 100%; ${isLightbox ? framedLightboxSizeStyle(aspectRatio, isContainedLightbox) : 'height: 480px;'} }
         @media (min-width: 810px) {
-          #${id} { ${isLightbox ? lightboxFrameSizeStyle(aspectRatio) : 'height: 600px;'} }
+          #${id} { ${isLightbox ? framedLightboxSizeStyle(aspectRatio, isContainedLightbox) : 'height: 600px;'} }
         }
         @media (min-width: 1280px) {
-          #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio)} }
+          #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
       ` }} />
       <div className="flex h-full max-w-full items-center justify-center">

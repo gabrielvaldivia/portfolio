@@ -94,7 +94,7 @@ function getModuleLabel(block: any, fallback: string) {
 }
 
 function shouldPreserveAspectDuringZoom(blockType?: string) {
-  return [
+  return framedBlockTypes.includes(blockType || '') || [
     'image',
     'fullWidthImage',
     'deviceMockup',
@@ -213,6 +213,7 @@ export function RenderBlocks({ blocks, likeNamespace }: { blocks?: any[]; likeNa
           <div
             key={block.id || i}
             id={likeTargetId ? getModuleLikeAnchorId(likeTargetId) : undefined}
+            data-lightbox-source-container={isFramedBlock ? '' : undefined}
             className={cn(
               colSpan[cols] || 'desktop:col-span-6',
               rows !== '1' ? (rowSpan[rows] || '') : '',
@@ -229,6 +230,8 @@ export function RenderBlocks({ blocks, likeNamespace }: { blocks?: any[]; likeNa
                     slideId={slideId}
                     label={slideLabel}
                     className="mx-auto flex h-full w-fit max-w-full items-center justify-center"
+                    preserveAspectDuringZoom
+                    sourceContainer
                   >
                     {content}
                   </ModuleLightboxTrigger>
@@ -240,6 +243,7 @@ export function RenderBlocks({ blocks, likeNamespace }: { blocks?: any[]; likeNa
                   className={isFramedBlock ? 'h-full' : ''}
                   fallbackAspectRatio={getVideoAspectRatio(block)}
                   preserveAspectDuringZoom={shouldPreserveAspectDuringZoom(block.blockType)}
+                  sourceContainer={isFramedBlock}
                 >
                   <div className={isFramedBlock ? 'h-full flex items-center justify-center' : ''}>
                     {content}

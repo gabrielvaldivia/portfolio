@@ -36,10 +36,13 @@ export type ModuleLightboxOverlayProps = {
   initialSourceRect?: LightboxRect
   getSourceRect: (id: string) => LightboxRect | undefined
   getSourceAspectRatio: (id: string) => number | undefined
+  onClosing: (id: string) => void
+  onReturnCancelled: (id: string) => void
   onClosed: () => void
 }
 
 type ModuleLightboxContextValue = {
+  hiddenSlideId: string | null
   openSlide: (id: string, sourceAspectRatio?: number, sourceRect?: LightboxRect) => void
   registerSlideAspectRatio: (id: string, sourceAspectRatio: number) => void
   registerSlideElement: (id: string, element: HTMLElement | null) => void
@@ -93,6 +96,7 @@ export function ModuleLightboxProvider({
   children: ReactNode
 }) {
   const [openState, setOpenState] = useState<OpenLightboxState | null>(null)
+  const [hiddenSlideId, setHiddenSlideId] = useState<string | null>(null)
   const openKeyRef = useRef(0)
   const sourceAspectRatiosRef = useRef(new Map<string, number>())
   const sourceElementsRef = useRef(new Map<string, HTMLElement>())
@@ -148,6 +152,7 @@ export function ModuleLightboxProvider({
 
     preloadModuleLightboxOverlay()
     openKeyRef.current += 1
+    setHiddenSlideId(id)
     setOpenState({
       key: openKeyRef.current,
       index: nextIndex,
@@ -156,14 +161,24 @@ export function ModuleLightboxProvider({
   }, [getSourceRect, slideIndexById])
 
   const handleClosed = useCallback(() => {
+    setHiddenSlideId(null)
     setOpenState(null)
   }, [])
 
+  const handleClosing = useCallback((id: string) => {
+    setHiddenSlideId(id)
+  }, [])
+
+  const handleReturnCancelled = useCallback((id: string) => {
+    setHiddenSlideId(id)
+  }, [])
+
   const contextValue = useMemo(() => ({
+    hiddenSlideId,
     openSlide,
     registerSlideAspectRatio,
     registerSlideElement,
-  }), [openSlide, registerSlideAspectRatio, registerSlideElement])
+  }), [hiddenSlideId, openSlide, registerSlideAspectRatio, registerSlideElement])
 
   return (
     <ModuleLightboxContext.Provider value={contextValue}>
@@ -176,6 +191,8 @@ export function ModuleLightboxProvider({
           initialSourceRect={openState.sourceRect}
           getSourceRect={getSourceRect}
           getSourceAspectRatio={getSourceAspectRatio}
+          onClosing={handleClosing}
+          onReturnCancelled={handleReturnCancelled}
           onClosed={handleClosed}
         />
       )}
@@ -194,6 +211,7 @@ export function ModuleLightboxTrigger({
   className,
   fallbackAspectRatio,
   preserveAspectDuringZoom = false,
+  sourceContainer = false,
   children,
 }: {
   slideId: string
@@ -201,11 +219,18 @@ export function ModuleLightboxTrigger({
   className?: string
   fallbackAspectRatio?: number
   preserveAspectDuringZoom?: boolean
+  sourceContainer?: boolean
   children: ReactNode
 }) {
   const context = useContext(ModuleLightboxContext)
   const triggerRef = useRef<HTMLDivElement>(null)
   const openFrameRef = useRef<number | null>(null)
+  const getSourceElement = useCallback(() => {
+    const trigger = triggerRef.current
+    if (!trigger || !sourceContainer) return trigger
+
+    return trigger.closest<HTMLElement>('[data-lightbox-source-container]') || trigger
+  }, [sourceContainer])
 
   useLayoutEffect(() => {
     return () => {
@@ -214,22 +239,24 @@ export function ModuleLightboxTrigger({
   }, [])
 
   useLayoutEffect(() => {
-    if (!context || !triggerRef.current) return
+    const sourceElement = getSourceElement()
+    if (!context || !sourceElement) return
 
-    context.registerSlideElement(slideId, triggerRef.current)
+    context.registerSlideElement(slideId, sourceElement)
     return () => context.registerSlideElement(slideId, null)
-  }, [context, slideId])
+  }, [context, getSourceElement, slideId])
 
   const measureAspectRatio = useCallback(() => {
     const trigger = triggerRef.current
+    const sourceElement = getSourceElement()
     const fallback = isValidAspectRatio(fallbackAspectRatio) ? fallbackAspectRatio : undefined
     const videoAspectRatio = getVideoElementAspectRatio(trigger)
-    const stableFallback = fallback || videoAspectRatio
+    const stableFallback = sourceContainer ? undefined : fallback || videoAspectRatio
     const hasFixedModuleHeight = Boolean(trigger?.querySelector('[style*="--row-height"]'))
 
     if (stableFallback && !hasFixedModuleHeight) return stableFallback
 
-    const rect = trigger?.getBoundingClientRect()
+    const rect = sourceElement?.getBoundingClientRect()
     if (!rect || rect.width <= 0 || rect.height <= 0) return undefined
 
     const measuredAspectRatio = rect.width / rect.height
@@ -245,7 +272,7 @@ export function ModuleLightboxTrigger({
     }
 
     return measuredAspectRatio
-  }, [fallbackAspectRatio])
+  }, [fallbackAspectRatio, getSourceElement, sourceContainer])
 
   const registerMeasuredAspectRatio = useCallback(() => {
     if (!preserveAspectDuringZoom || !context) return undefined
@@ -259,7 +286,8 @@ export function ModuleLightboxTrigger({
   }, [context, measureAspectRatio, preserveAspectDuringZoom, slideId])
 
   useLayoutEffect(() => {
-    if (!context || !preserveAspectDuringZoom || !triggerRef.current) return
+    const sourceElement = getSourceElement()
+    if (!context || !preserveAspectDuringZoom || !sourceElement) return
 
     registerMeasuredAspectRatio()
 
@@ -269,10 +297,26 @@ export function ModuleLightboxTrigger({
     }
 
     const observer = new ResizeObserver(registerMeasuredAspectRatio)
-    observer.observe(triggerRef.current)
+    observer.observe(sourceElement)
 
     return () => observer.disconnect()
-  }, [context, preserveAspectDuringZoom, registerMeasuredAspectRatio])
+  }, [context, getSourceElement, preserveAspectDuringZoom, registerMeasuredAspectRatio])
+
+  const hiddenAsLightboxSource = context?.hiddenSlideId === slideId
+
+  useLayoutEffect(() => {
+    if (!sourceContainer || !hiddenAsLightboxSource) return
+
+    const sourceElement = getSourceElement()
+    if (!sourceElement) return
+
+    const previousVisibility = sourceElement.style.visibility
+    sourceElement.style.visibility = 'hidden'
+
+    return () => {
+      sourceElement.style.visibility = previousVisibility
+    }
+  }, [getSourceElement, hiddenAsLightboxSource, sourceContainer])
 
   if (!context) return <>{children}</>
 
@@ -283,7 +327,7 @@ export function ModuleLightboxTrigger({
       const sourceAspectRatio = preserveAspectDuringZoom
         ? registerMeasuredAspectRatio()
         : undefined
-      const sourceRect = getElementRect(triggerRef.current)
+      const sourceRect = getElementRect(getSourceElement())
 
       openFrameRef.current = null
       context.openSlide(slideId, sourceAspectRatio, sourceRect)
@@ -303,8 +347,10 @@ export function ModuleLightboxTrigger({
       role="button"
       tabIndex={0}
       aria-label={label}
+      aria-hidden={hiddenAsLightboxSource || undefined}
       className={cn(
         'relative block w-full cursor-zoom-in touch-manipulation outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-content/50 focus-visible:ring-offset-4 focus-visible:ring-offset-background',
+        hiddenAsLightboxSource ? 'invisible' : '',
         className,
       )}
       onPointerEnter={preloadModuleLightboxOverlay}
