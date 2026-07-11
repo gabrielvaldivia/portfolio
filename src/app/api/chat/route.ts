@@ -186,14 +186,9 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const { faqItems } = await buildContext()
   const city = req.headers.get('x-vercel-ip-city') || ''
   const country = req.headers.get('x-vercel-ip-country') || ''
   const location = city ? `${decodeURIComponent(city)}${country ? `, ${country}` : ''}` : ''
 
-  // Shuffle and pick 4 random questions
-  const shuffled = [...faqItems].sort(() => Math.random() - 0.5).slice(0, 4)
-  const suggestions = shuffled.map((f) => f.question)
-
-  return Response.json({ faqItems, location, suggestions })
+  return Response.json({ location })
 }

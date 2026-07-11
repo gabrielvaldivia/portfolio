@@ -1,6 +1,5 @@
 import './globals.css'
 import type { Metadata } from 'next'
-// import { Nav } from '@/components/Nav'
 import Link from 'next/link'
 import { NavMenu } from '@/components/NavMenu'
 import { Footer } from '@/components/Footer'
@@ -58,7 +57,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="bg-background text-content">
         <OverlayManager overlays={(s?.overlays as any[]) || []} />
-        {/* <Nav items={navItems} /> */}
         <NavMenu />
         <section className="px-5 tablet:px-10 pt-6 tablet:pt-10 pb-10">
           <h3 className="text-content opacity-50">

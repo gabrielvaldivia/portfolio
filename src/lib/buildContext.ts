@@ -30,6 +30,18 @@ type CachedContext = { systemPrompt: string; faqItems: FAQItem[]; apiKey: string
 let contextCache: { data: CachedContext; timestamp: number } | null = null
 const CACHE_TTL = 120_000 // 2 minutes
 
+export function getFAQItemsFromSections(sections: any[] = []): FAQItem[] {
+  return sections.flatMap((section) => {
+    if (section.blockType !== 'accordion') return []
+
+    return (section.items || []).map((item: any) => ({
+      question: item.question,
+      answer: typeof item.answer === 'string' ? item.answer : extractText(item.answer),
+      showAsPill: item.showAsPill !== false,
+    }))
+  })
+}
+
 export async function buildContext(): Promise<CachedContext> {
   if (contextCache && Date.now() - contextCache.timestamp < CACHE_TTL) {
     return contextCache.data
@@ -58,14 +70,14 @@ export async function buildContext(): Promise<CachedContext> {
   const services = servicesResult.docs as any[]
   const sideProjects = sideProjectsResult.docs as any[]
   const allPeople = allPeopleResult.docs as any[]
+  const sections = (home?.sections || []) as any[]
 
   // Extract FAQ items and config from home sections
-  const faqItems: FAQItem[] = []
+  const faqItems = getFAQItemsFromSections(sections)
   let apiKey = ''
   let model = ''
   let gabosApiUrl = ''
   let systemPromptExtra = ''
-  const sections = (home?.sections || []) as any[]
   const featuredProjectIds = [
     ...new Set(
       sections
@@ -84,13 +96,6 @@ export async function buildContext(): Promise<CachedContext> {
       model = section.model || ''
       gabosApiUrl = section.gabosApiUrl || ''
       systemPromptExtra = section.systemPromptExtra || ''
-      for (const item of section.items || []) {
-        faqItems.push({
-          question: item.question,
-          answer: typeof item.answer === 'string' ? item.answer : extractText(item.answer),
-          showAsPill: item.showAsPill !== false,
-        })
-      }
     }
   }
 

@@ -1,32 +1,17 @@
 'use client'
 
-import {
-  AnimatePresence,
-  animate,
-  motion,
-  useAnimationControls,
-  useMotionValue,
-  useReducedMotion,
-  useTransform,
-  type Transition,
-} from 'motion/react'
+import dynamic from 'next/dynamic'
 import {
   createContext,
   useCallback,
-  useEffect,
   useContext,
   useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type KeyboardEvent,
-  type MouseEvent as ReactMouseEvent,
-  type PointerEvent,
   type ReactNode,
 } from 'react'
-import { createPortal, flushSync } from 'react-dom'
-import { mediaBlockComponents, phoneFrameBlockTypes } from '@/blocks/MediaBlockComponents'
-import { ModuleLikeButton } from '@/components/ModuleLikeButton'
 import { cn } from '@/lib/cn'
 
 export type ModuleLightboxSlide = {
@@ -38,67 +23,43 @@ export type ModuleLightboxSlide = {
   preserveAspectDuringZoom?: boolean
 }
 
-type ModuleLightboxContextValue = {
-  openSlide: (id: string, sourceAspectRatio?: number, sourceRect?: LightboxRect) => void
-  registerSlideAspectRatio: (id: string, sourceAspectRatio: number) => void
-  registerSlideElement: (id: string, element: HTMLElement | null) => void
-}
-
-const ModuleLightboxContext = createContext<ModuleLightboxContextValue | null>(null)
-
-type DragState = {
-  pointerId: number
-  startX: number
-  startY: number
-  lastX: number
-  lastY: number
-  lastTime: number
-  velocityX: number
-  velocityY: number
-  captured: boolean
-}
-
-type TransitionMode = 'zoom' | 'swipe' | 'dismiss'
-
-type CloseOptions = {
-  preserveDrag?: boolean
-}
-
-type LightboxRect = {
+export type LightboxRect = {
   top: number
   left: number
   width: number
   height: number
 }
 
-const ZOOM_TRANSITION: Transition = {
-  type: 'spring',
-  stiffness: 420,
-  damping: 38,
-  mass: 0.85,
+export type ModuleLightboxOverlayProps = {
+  slides: ModuleLightboxSlide[]
+  initialIndex: number
+  initialSourceRect?: LightboxRect
+  getSourceRect: (id: string) => LightboxRect | undefined
+  getSourceAspectRatio: (id: string) => number | undefined
+  onClosed: () => void
 }
 
-const FADE_TRANSITION: Transition = {
-  duration: 0.18,
-  ease: [0.2, 0, 0, 1],
+type ModuleLightboxContextValue = {
+  openSlide: (id: string, sourceAspectRatio?: number, sourceRect?: LightboxRect) => void
+  registerSlideAspectRatio: (id: string, sourceAspectRatio: number) => void
+  registerSlideElement: (id: string, element: HTMLElement | null) => void
 }
 
-const SWIPE_TRANSITION: Transition = {
-  type: 'spring',
-  stiffness: 360,
-  damping: 42,
-  mass: 0.9,
+type OpenLightboxState = {
+  key: number
+  index: number
+  sourceRect?: LightboxRect
 }
 
-function wrapIndex(index: number, total: number) {
-  return ((index % total) + total) % total
-}
+const DynamicModuleLightboxOverlay = dynamic(
+  () => import('./ModuleLightboxOverlay').then((mod) => mod.ModuleLightboxOverlay),
+  { ssr: false },
+)
 
-function rubberBandDismissOffset(offset: number) {
-  if (offset <= 0) return 0
-  if (offset <= 260) return offset
+const ModuleLightboxContext = createContext<ModuleLightboxContextValue | null>(null)
 
-  return 260 + (offset - 260) * 0.35
+export function preloadModuleLightboxOverlay() {
+  void import('./ModuleLightboxOverlay')
 }
 
 function isValidAspectRatio(value: number | undefined): value is number {
@@ -124,173 +85,6 @@ function getElementRect(element: HTMLElement | null): LightboxRect | undefined {
   }
 }
 
-function getFlipTransform(sourceRect: LightboxRect, targetRect: LightboxRect) {
-  return {
-    x: sourceRect.left - targetRect.left,
-    y: sourceRect.top - targetRect.top,
-    scaleX: sourceRect.width / targetRect.width,
-    scaleY: sourceRect.height / targetRect.height,
-  }
-}
-
-function ModuleSlide({
-  slide,
-  active,
-  sourceAspectRatio,
-}: {
-  slide: ModuleLightboxSlide
-  active: boolean
-  sourceAspectRatio?: number
-}) {
-  const Component = mediaBlockComponents[slide.block?.blockType]
-
-  if (!Component) return null
-
-  return (
-    <Component
-      {...slide.block}
-      _active={active}
-      _lightboxAspectRatio={sourceAspectRatio}
-      _likeTargetId={null}
-      _mode="lightbox"
-    />
-  )
-}
-
-function ModuleLightboxSlideView({
-  slide,
-  direction,
-  transitionMode,
-  prefersReducedMotion,
-  sourceRect,
-  sourceAspectRatio,
-  activeSlideIsPhoneFrame,
-  activeSlideUsesMeasuredAspect,
-  activeSlideTransition,
-  dragX,
-  dragY,
-  dragScale,
-  handlePointerDown,
-  handlePointerMove,
-  handlePointerEnd,
-  handleMouseDown,
-}: {
-  slide: ModuleLightboxSlide
-  direction: number
-  transitionMode: TransitionMode
-  prefersReducedMotion: boolean | null
-  sourceRect?: LightboxRect
-  sourceAspectRatio?: number
-  activeSlideIsPhoneFrame: boolean
-  activeSlideUsesMeasuredAspect: boolean
-  activeSlideTransition: Transition
-  dragX: ReturnType<typeof useMotionValue<number>>
-  dragY: ReturnType<typeof useMotionValue<number>>
-  dragScale: ReturnType<typeof useTransform<number, number>>
-  handlePointerDown: (event: PointerEvent<HTMLDivElement>) => void
-  handlePointerMove: (event: PointerEvent<HTMLDivElement>) => void
-  handlePointerEnd: (event: PointerEvent<HTMLDivElement>) => void
-  handleMouseDown: (event: ReactMouseEvent<HTMLDivElement>) => void
-}) {
-  const zoomRef = useRef<HTMLDivElement>(null)
-  const controls = useAnimationControls()
-  const [targetRect, setTargetRect] = useState<LightboxRect | null>(null)
-  const [ready, setReady] = useState(transitionMode !== 'zoom' || prefersReducedMotion || !sourceRect)
-
-  useLayoutEffect(() => {
-    const element = zoomRef.current
-    const nextTargetRect = getElementRect(element)
-
-    if (!nextTargetRect) {
-      setReady(true)
-      return
-    }
-
-    setTargetRect(nextTargetRect)
-
-    if (transitionMode !== 'zoom' || prefersReducedMotion || !sourceRect) {
-      controls.set({ x: 0, y: 0, scaleX: 1, scaleY: 1 })
-      setReady(true)
-      return
-    }
-
-    const initialTransform = getFlipTransform(sourceRect, nextTargetRect)
-    controls.set(initialTransform)
-    setReady(true)
-    void controls.start({
-      x: 0,
-      y: 0,
-      scaleX: 1,
-      scaleY: 1,
-      transition: ZOOM_TRANSITION,
-    })
-  }, [controls, prefersReducedMotion, slide.id, sourceRect, transitionMode])
-
-  const exitTransform = transitionMode === 'zoom' && sourceRect && targetRect && !prefersReducedMotion
-    ? {
-      ...getFlipTransform(sourceRect, targetRect),
-      opacity: 1,
-      transition: ZOOM_TRANSITION,
-    }
-    : transitionMode === 'dismiss' && !prefersReducedMotion
-      ? { y: 220, scale: 0.86, opacity: 0 }
-      : transitionMode === 'swipe' && !prefersReducedMotion
-        ? { x: direction > 0 ? '-100vw' : '100vw', opacity: 1 }
-        : { opacity: 1 }
-
-  return (
-    <motion.div
-      ref={zoomRef}
-      key={slide.id}
-      className={cn(
-        activeSlideIsPhoneFrame
-          ? 'w-fit max-w-[calc(100dvw-32px)]'
-          : activeSlideUsesMeasuredAspect
-            ? 'w-[calc(100dvw-32px)] max-w-[1440px]'
-            : 'w-full max-w-[min(1440px,100%)]',
-      )}
-      initial={
-        transitionMode === 'swipe' && !prefersReducedMotion
-          ? { x: direction > 0 ? '100vw' : '-100vw', opacity: 1 }
-          : false
-      }
-      animate={
-        transitionMode === 'zoom'
-          ? controls
-          : { x: 0, opacity: 1 }
-      }
-      exit={exitTransform}
-      transition={activeSlideTransition}
-      style={{
-        transformOrigin: 'top left',
-        visibility: ready ? 'visible' : 'hidden',
-        willChange: 'transform',
-      }}
-    >
-      <motion.div
-        custom={direction}
-        className="cursor-grab touch-none active:cursor-grabbing"
-        style={{
-          ...(transitionMode === 'swipe' ? {} : { x: dragX }),
-          y: dragY,
-          scale: dragScale,
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-        }}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerEnd}
-        onPointerCancel={handlePointerEnd}
-        onMouseDown={handleMouseDown}
-        onDragStartCapture={(event) => event.preventDefault()}
-        onClick={(event) => event.stopPropagation()}
-      >
-        <ModuleSlide slide={slide} active sourceAspectRatio={sourceAspectRatio} />
-      </motion.div>
-    </motion.div>
-  )
-}
-
 export function ModuleLightboxProvider({
   slides,
   children,
@@ -298,47 +92,11 @@ export function ModuleLightboxProvider({
   slides: ModuleLightboxSlide[]
   children: ReactNode
 }) {
-  const [index, setIndex] = useState(-1)
-  const [direction, setDirection] = useState(0)
-  const [transitionMode, setTransitionMode] = useState<TransitionMode>('zoom')
-  const [mounted, setMounted] = useState(false)
-  const [isClosing, setIsClosing] = useState(false)
-  const prefersReducedMotion = useReducedMotion()
-  const dragX = useMotionValue(0)
-  const dragY = useMotionValue(0)
-  const dragState = useRef<DragState | null>(null)
-  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [openState, setOpenState] = useState<OpenLightboxState | null>(null)
+  const openKeyRef = useRef(0)
   const sourceAspectRatiosRef = useRef(new Map<string, number>())
   const sourceElementsRef = useRef(new Map<string, HTMLElement>())
   const sourceRectsRef = useRef(new Map<string, LightboxRect>())
-  const [zoomSourceRect, setZoomSourceRect] = useState<LightboxRect | undefined>(undefined)
-  const dragScale = useTransform(dragY, [0, 240], [1, 0.88])
-  const backdropOpacity = useTransform(dragY, [0, 260], [1, 0.36])
-  const open = index >= 0
-  const activeSlide = open ? slides[index] : null
-  const lightboxMounted = open || isClosing
-  const activeSlideIsPhoneFrame = activeSlide
-    ? phoneFrameBlockTypes.includes(activeSlide.block?.blockType)
-    : false
-  const activeSlideUsesMeasuredAspect = Boolean(activeSlide?.preserveAspectDuringZoom)
-  const activeSlideSourceAspectRatio = activeSlide
-    ? sourceAspectRatiosRef.current.get(activeSlide.id)
-    : undefined
-  const activeSlideTransition = prefersReducedMotion
-    ? FADE_TRANSITION
-    : transitionMode === 'swipe'
-      ? SWIPE_TRANSITION
-      : ZOOM_TRANSITION
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  useEffect(() => {
-    return () => {
-      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
-    }
-  }, [])
 
   const slideIndexById = useMemo(() => {
     const map = new Map<string, number>()
@@ -373,31 +131,33 @@ export function ModuleLightboxProvider({
     return sourceRectsRef.current.get(id)
   }, [])
 
+  const getSourceAspectRatio = useCallback((id: string) => {
+    return sourceAspectRatiosRef.current.get(id)
+  }, [])
+
   const openSlide = useCallback((id: string, sourceAspectRatio?: number, sourceRect?: LightboxRect) => {
     const nextIndex = slideIndexById.get(id)
-    if (typeof nextIndex === 'number') {
-      if (isValidAspectRatio(sourceAspectRatio)) {
-        sourceAspectRatiosRef.current.set(id, sourceAspectRatio)
-      }
+    if (typeof nextIndex !== 'number') return
 
-      const nextSourceRect = sourceRect || getSourceRect(id)
-      if (nextSourceRect) {
-        sourceRectsRef.current.set(id, nextSourceRect)
-        setZoomSourceRect(nextSourceRect)
-      } else {
-        setZoomSourceRect(undefined)
-      }
-
-      dragX.set(0)
-      dragY.set(0)
-      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
-      closeTimeoutRef.current = null
-      setIsClosing(false)
-      setDirection(0)
-      setTransitionMode('zoom')
-      setIndex(nextIndex)
+    if (isValidAspectRatio(sourceAspectRatio)) {
+      sourceAspectRatiosRef.current.set(id, sourceAspectRatio)
     }
-  }, [dragX, dragY, getSourceRect, slideIndexById])
+
+    const nextSourceRect = sourceRect || getSourceRect(id)
+    if (nextSourceRect) sourceRectsRef.current.set(id, nextSourceRect)
+
+    preloadModuleLightboxOverlay()
+    openKeyRef.current += 1
+    setOpenState({
+      key: openKeyRef.current,
+      index: nextIndex,
+      sourceRect: nextSourceRect,
+    })
+  }, [getSourceRect, slideIndexById])
+
+  const handleClosed = useCallback(() => {
+    setOpenState(null)
+  }, [])
 
   const contextValue = useMemo(() => ({
     openSlide,
@@ -405,333 +165,20 @@ export function ModuleLightboxProvider({
     registerSlideElement,
   }), [openSlide, registerSlideAspectRatio, registerSlideElement])
 
-  const resetDrag = useCallback(() => {
-    animate(dragX, 0, ZOOM_TRANSITION)
-    animate(dragY, 0, ZOOM_TRANSITION)
-  }, [dragX, dragY])
-
-  const close = useCallback((mode: TransitionMode = 'zoom', options: CloseOptions = {}) => {
-    if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
-    dragState.current = null
-
-    if (mode === 'zoom' && activeSlide) {
-      setZoomSourceRect(getSourceRect(activeSlide.id))
-    }
-
-    if (!options.preserveDrag) {
-      dragX.set(0)
-      dragY.set(0)
-    }
-
-    flushSync(() => {
-      setTransitionMode(mode)
-    })
-
-    setIsClosing(true)
-    setIndex(-1)
-
-    closeTimeoutRef.current = setTimeout(() => {
-      setIsClosing(false)
-      dragX.set(0)
-      dragY.set(0)
-      closeTimeoutRef.current = null
-      setZoomSourceRect(undefined)
-    }, prefersReducedMotion ? 220 : 560)
-  }, [activeSlide, dragX, dragY, getSourceRect, prefersReducedMotion])
-
-  const navigate = useCallback((increment: number) => {
-    if (slides.length <= 1 || index < 0) {
-      resetDrag()
-      return
-    }
-
-    dragX.set(0)
-    dragY.set(0)
-    setZoomSourceRect(undefined)
-
-    flushSync(() => {
-      setDirection(increment)
-      setTransitionMode('swipe')
-    })
-
-    setIndex((currentIndex) => wrapIndex(currentIndex + increment, slides.length))
-  }, [dragX, dragY, index, resetDrag, slides.length])
-
-  const completeDrag = useCallback((offsetX: number, offsetY: number, velocityX: number) => {
-    const absX = Math.abs(offsetX)
-    const absY = Math.abs(offsetY)
-    const horizontalIntent = absX > absY
-
-    if (offsetY > 120 && absY > absX * 0.85) {
-      close('zoom', { preserveDrag: true })
-      return
-    }
-
-    if (horizontalIntent && slides.length > 1 && (absX > 90 || Math.abs(velocityX) > 620)) {
-      navigate(offsetX < 0 ? 1 : -1)
-      return
-    }
-
-    resetDrag()
-  }, [close, navigate, resetDrag, slides.length])
-
-  const handlePointerDown = useCallback((event: PointerEvent<HTMLDivElement>) => {
-    const target = event.target
-    if (target instanceof HTMLElement && target.closest('button,a,input,textarea,select,summary')) return
-
-    event.currentTarget.setPointerCapture(event.pointerId)
-    dragState.current = {
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      lastX: event.clientX,
-      lastY: event.clientY,
-      lastTime: performance.now(),
-      velocityX: 0,
-      velocityY: 0,
-      captured: true,
-    }
-  }, [])
-
-  const handlePointerMove = useCallback((event: PointerEvent<HTMLDivElement>) => {
-    const state = dragState.current
-    if (!state || state.pointerId !== event.pointerId) return
-
-    const now = performance.now()
-    const offsetX = event.clientX - state.startX
-    const rawOffsetY = event.clientY - state.startY
-    const offsetY = Math.max(0, rawOffsetY)
-    const elapsed = Math.max(1, now - state.lastTime)
-    const movedEnough = Math.hypot(offsetX, rawOffsetY) > 4
-
-    if (!movedEnough) return
-
-    event.preventDefault()
-    state.velocityX = ((event.clientX - state.lastX) / elapsed) * 1000
-    state.velocityY = ((event.clientY - state.lastY) / elapsed) * 1000
-    state.lastX = event.clientX
-    state.lastY = event.clientY
-    state.lastTime = now
-
-    dragX.set(offsetX)
-    dragY.set(rubberBandDismissOffset(offsetY))
-  }, [dragX, dragY])
-
-  const handlePointerEnd = useCallback((event: PointerEvent<HTMLDivElement>) => {
-    const state = dragState.current
-    if (!state || state.pointerId !== event.pointerId) return
-
-    const offsetX = event.clientX - state.startX
-    const offsetY = Math.max(0, event.clientY - state.startY)
-
-    if (state.captured && event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId)
-    }
-
-    dragState.current = null
-
-    if (!state.captured) return
-    completeDrag(offsetX, offsetY, state.velocityX)
-  }, [completeDrag])
-
-  const handleMouseDown = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
-    if (dragState.current || event.button !== 0) return
-
-    const target = event.target
-    if (target instanceof HTMLElement && target.closest('button,a,input,textarea,select,summary')) return
-    if (!(target instanceof HTMLElement && target.closest('video'))) event.preventDefault()
-
-    const state: DragState = {
-      pointerId: -1,
-      startX: event.clientX,
-      startY: event.clientY,
-      lastX: event.clientX,
-      lastY: event.clientY,
-      lastTime: performance.now(),
-      velocityX: 0,
-      velocityY: 0,
-      captured: true,
-    }
-
-    dragState.current = state
-
-    const handleWindowMouseMove = (mouseEvent: globalThis.MouseEvent) => {
-      const currentState = dragState.current
-      if (!currentState || currentState !== state) return
-
-      const now = performance.now()
-      const offsetX = mouseEvent.clientX - currentState.startX
-      const rawOffsetY = mouseEvent.clientY - currentState.startY
-      const offsetY = Math.max(0, rawOffsetY)
-      const elapsed = Math.max(1, now - currentState.lastTime)
-
-      if (Math.hypot(offsetX, rawOffsetY) <= 4) return
-
-      mouseEvent.preventDefault()
-      currentState.velocityX = ((mouseEvent.clientX - currentState.lastX) / elapsed) * 1000
-      currentState.velocityY = ((mouseEvent.clientY - currentState.lastY) / elapsed) * 1000
-      currentState.lastX = mouseEvent.clientX
-      currentState.lastY = mouseEvent.clientY
-      currentState.lastTime = now
-
-      dragX.set(offsetX)
-      dragY.set(rubberBandDismissOffset(offsetY))
-    }
-
-    const handleWindowMouseUp = (mouseEvent: globalThis.MouseEvent) => {
-      window.removeEventListener('mousemove', handleWindowMouseMove)
-      window.removeEventListener('mouseup', handleWindowMouseUp)
-
-      const currentState = dragState.current
-      if (!currentState || currentState !== state) return
-
-      dragState.current = null
-      completeDrag(
-        mouseEvent.clientX - currentState.startX,
-        Math.max(0, mouseEvent.clientY - currentState.startY),
-        currentState.velocityX,
-      )
-    }
-
-    window.addEventListener('mousemove', handleWindowMouseMove)
-    window.addEventListener('mouseup', handleWindowMouseUp)
-  }, [completeDrag, dragX, dragY])
-
-  useEffect(() => {
-    if (!lightboxMounted) return
-
-    const originalOverflow = document.documentElement.style.overflow
-    document.documentElement.style.overflow = 'hidden'
-
-    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault()
-        if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
-        close()
-      }
-      if (event.key === 'ArrowLeft') navigate(-1)
-      if (event.key === 'ArrowRight') navigate(1)
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-
-    return () => {
-      document.documentElement.style.overflow = originalOverflow
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [close, lightboxMounted, navigate])
-
-  const lightbox = lightboxMounted ? (
-    <div
-      className={cn(
-        'fixed inset-0 z-[100] overflow-hidden text-black dark:text-white',
-        open ? '' : 'pointer-events-none',
-      )}
-      onClick={() => {
-        if (open) close()
-      }}
-    >
-      <motion.div
-        className="pointer-events-none absolute inset-0"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: open ? 1 : 0 }}
-        transition={FADE_TRANSITION}
-        style={{ willChange: 'opacity' }}
-      >
-        <motion.div className="absolute inset-0 bg-white dark:bg-black" style={{ opacity: backdropOpacity }} />
-      </motion.div>
-
-      {activeSlide && (
-        <>
-          <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-end p-3 tablet:p-5">
-            <button
-              type="button"
-              aria-label="Close lightbox"
-              className="pointer-events-auto flex size-10 items-center justify-center rounded-full bg-floating backdrop-blur-[40px] transition-colors hover:bg-hover"
-              onClick={(event) => {
-                event.stopPropagation()
-                close()
-              }}
-            >
-              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <path d="M6 6l12 12M18 6L6 18" />
-              </svg>
-            </button>
-          </div>
-
-          {slides.length > 1 && (
-            <>
-              <button
-                type="button"
-                aria-label="Previous module"
-                className="absolute left-3 top-1/2 z-20 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full bg-floating backdrop-blur-[40px] transition-colors hover:bg-hover tablet:flex"
-                onClick={(event) => {
-                  event.stopPropagation()
-                  navigate(-1)
-                }}
-              >
-                <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M15 18l-6-6 6-6" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                aria-label="Next module"
-                className="absolute right-3 top-1/2 z-20 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full bg-floating backdrop-blur-[40px] transition-colors hover:bg-hover tablet:flex"
-                onClick={(event) => {
-                  event.stopPropagation()
-                  navigate(1)
-                }}
-              >
-                <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
-              </button>
-            </>
-          )}
-
-          {activeSlide.likeTargetId && (
-            <div className="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center px-4 tablet:bottom-6">
-              <div className="pointer-events-auto rounded-full bg-black/10 p-1 text-black backdrop-blur-xl dark:bg-white/10 dark:text-white">
-                <ModuleLikeButton targetId={activeSlide.likeTargetId} />
-              </div>
-            </div>
-          )}
-        </>
-      )}
-
-      <div className="absolute inset-0 flex items-center justify-center px-4 py-14 tablet:px-12 tablet:py-16 desktop:px-20">
-        <AnimatePresence custom={direction} initial={false} mode="popLayout">
-          {activeSlide && (
-            <ModuleLightboxSlideView
-              key={activeSlide.id}
-              slide={activeSlide}
-              direction={direction}
-              transitionMode={transitionMode}
-              prefersReducedMotion={prefersReducedMotion}
-              sourceRect={zoomSourceRect}
-              sourceAspectRatio={activeSlideSourceAspectRatio}
-              activeSlideIsPhoneFrame={activeSlideIsPhoneFrame}
-              activeSlideUsesMeasuredAspect={activeSlideUsesMeasuredAspect}
-              activeSlideTransition={activeSlideTransition}
-              dragX={dragX}
-              dragY={dragY}
-              dragScale={dragScale}
-              handlePointerDown={handlePointerDown}
-              handlePointerMove={handlePointerMove}
-              handlePointerEnd={handlePointerEnd}
-              handleMouseDown={handleMouseDown}
-            />
-          )}
-        </AnimatePresence>
-      </div>
-    </div>
-  ) : null
-
   return (
     <ModuleLightboxContext.Provider value={contextValue}>
       {children}
-      {mounted ? createPortal(lightbox, document.body) : null}
+      {openState && (
+        <DynamicModuleLightboxOverlay
+          key={openState.key}
+          slides={slides}
+          initialIndex={openState.index}
+          initialSourceRect={openState.sourceRect}
+          getSourceRect={getSourceRect}
+          getSourceAspectRatio={getSourceAspectRatio}
+          onClosed={handleClosed}
+        />
+      )}
     </ModuleLightboxContext.Provider>
   )
 }
@@ -760,7 +207,7 @@ export function ModuleLightboxTrigger({
   const triggerRef = useRef<HTMLDivElement>(null)
   const openFrameRef = useRef<number | null>(null)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     return () => {
       if (openFrameRef.current !== null) cancelAnimationFrame(openFrameRef.current)
     }
@@ -830,13 +277,14 @@ export function ModuleLightboxTrigger({
   if (!context) return <>{children}</>
 
   const open = () => {
-    const sourceAspectRatio = preserveAspectDuringZoom
-      ? registerMeasuredAspectRatio()
-      : undefined
-    const sourceRect = getElementRect(triggerRef.current)
-
+    preloadModuleLightboxOverlay()
     if (openFrameRef.current !== null) cancelAnimationFrame(openFrameRef.current)
     openFrameRef.current = requestAnimationFrame(() => {
+      const sourceAspectRatio = preserveAspectDuringZoom
+        ? registerMeasuredAspectRatio()
+        : undefined
+      const sourceRect = getElementRect(triggerRef.current)
+
       openFrameRef.current = null
       context.openSlide(slideId, sourceAspectRatio, sourceRect)
     })
@@ -850,9 +298,8 @@ export function ModuleLightboxTrigger({
   }
 
   return (
-    <motion.div
+    <div
       ref={triggerRef}
-      transition={ZOOM_TRANSITION}
       role="button"
       tabIndex={0}
       aria-label={label}
@@ -860,6 +307,8 @@ export function ModuleLightboxTrigger({
         'relative block w-full cursor-zoom-in touch-manipulation outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-content/50 focus-visible:ring-offset-4 focus-visible:ring-offset-background',
         className,
       )}
+      onPointerEnter={preloadModuleLightboxOverlay}
+      onFocus={preloadModuleLightboxOverlay}
       onClickCapture={(event) => {
         if (!shouldIgnoreClick(event.target)) {
           event.preventDefault()
@@ -869,6 +318,6 @@ export function ModuleLightboxTrigger({
       onKeyDown={handleKeyDown}
     >
       {children}
-    </motion.div>
+    </div>
   )
 }

@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import { LazyVideo } from '@/components/LazyVideo'
 import { LightboxVideo } from '@/components/LightboxVideo'
-import { ModuleLikeButton } from '@/components/ModuleLikeButton'
+import { LazyModuleLikeButton } from '@/components/LazyModuleLikeButton'
 import { VideoPlayer } from '@/components/VideoPlayer'
 import { cn } from '@/lib/cn'
 
@@ -37,7 +37,7 @@ const VIDEO_LIGHTBOX_VERTICAL_OFFSET = 72
 export function ModuleLikeOverlay({ targetId }: { targetId: string }) {
   return (
     <div className="pointer-events-none absolute bottom-3 left-3 z-20 opacity-100 transition-opacity duration-150 desktop:opacity-0 desktop:group-hover/module:opacity-100 desktop:group-focus-within/module:opacity-100">
-      <ModuleLikeButton targetId={targetId} />
+      <LazyModuleLikeButton targetId={targetId} />
     </div>
   )
 }
@@ -64,6 +64,12 @@ function getSurfaceBackground(bgColor?: string) {
   }
 }
 
+function getValidAspectRatio(value: unknown) {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0
+    ? value
+    : undefined
+}
+
 export function ImageBlockComponent({
   image,
   caption,
@@ -76,6 +82,7 @@ export function ImageBlockComponent({
   fit,
   bgColor,
   padding,
+  _lightboxAspectRatio,
   _likeTargetId,
   _mode = 'page',
 }: {
@@ -94,7 +101,11 @@ export function ImageBlockComponent({
   padding?: string | number
 } & ModuleRenderProps) {
   if (!image?.url) return null
-  const aspectRatio = image.width && image.height ? image.width / image.height : 16 / 9
+  const imageAspectRatio = image.width && image.height ? image.width / image.height : 16 / 9
+  const isLightbox = _mode === 'lightbox'
+  const aspectRatio = isLightbox
+    ? getValidAspectRatio(_lightboxAspectRatio) || imageAspectRatio
+    : imageAspectRatio
   const { bg, customBg } = getSurfaceBackground(bgColor)
   const padStr = String(padding || '0')
   const padClass = paddingClasses[padStr] || ''
@@ -102,7 +113,6 @@ export function ImageBlockComponent({
   const rowHeight = getRowHeight(rows)
   const roundedClass = rounded ? 'rounded-lg tablet:rounded-xl desktop:rounded-2xl' : ''
   const objectFit = fit === 'contain' ? 'object-contain' : 'object-cover'
-  const isLightbox = _mode === 'lightbox'
 
   return (
     <div className={cn(isLightbox ? 'mx-auto w-full' : '')} style={isLightbox ? { width: getConstrainedWidth(aspectRatio) } : undefined}>

@@ -4,7 +4,7 @@ import { Chat } from '@/components/Chat'
 import { ChatView } from '@/components/ChatView'
 import { Container } from '@/components/Container'
 import { getPayload } from '@/lib/payload'
-import { buildContext } from '@/lib/buildContext'
+import { getFAQItemsFromSections } from '@/lib/buildContext'
 
 export const metadata: Metadata = {
   title: 'Chat — Gabriel Valdivia',
@@ -20,7 +20,6 @@ export default async function ChatByIdPage({ params }: { params: Promise<{ id: s
   if (!isNew && (!Number.isFinite(numericId) || numericId! <= 0)) notFound()
 
   const payload = await getPayload()
-  const { faqItems } = await buildContext()
 
   const [homePageResult, aboutPageResult, allProjects, allPeople, allSideProjects] = await Promise.all([
     payload.find({ collection: 'pages', where: { slug: { equals: 'home' } }, depth: 2, limit: 1 }),
@@ -33,6 +32,7 @@ export default async function ChatByIdPage({ params }: { params: Promise<{ id: s
   const home = homePageResult.docs[0] as any
   const aboutData = aboutPageResult.docs[0] as any
   const sections = (home?.sections || []) as any[]
+  const faqItems = getFAQItemsFromSections(sections)
   const aboutSection = sections.find((s: any) => s.blockType === 'aboutSection')
   const aboutImage = aboutSection?.image?.url || ''
   const aboutImageDark = aboutSection?.imageDark?.url || ''

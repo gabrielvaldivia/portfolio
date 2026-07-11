@@ -1,9 +1,17 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { BirthdayBalloons } from './BirthdayBalloons'
-import { FloatingPill } from './FloatingPill'
-import { OverlayEffects } from './OverlayEffects'
+import dynamic from 'next/dynamic'
+
+const BirthdayBalloons = dynamic(() => import('./BirthdayBalloons').then((mod) => mod.BirthdayBalloons), {
+  ssr: false,
+})
+const FloatingPill = dynamic(() => import('./FloatingPill').then((mod) => mod.FloatingPill), {
+  ssr: false,
+})
+const OverlayEffects = dynamic(() => import('./OverlayEffects').then((mod) => mod.OverlayEffects), {
+  ssr: false,
+})
 
 type OverlaySchedule = {
   effect: string

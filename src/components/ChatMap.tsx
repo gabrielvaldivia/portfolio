@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import mapboxgl from 'mapbox-gl'
+import type { Map, Marker } from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || ''
+type MapboxGL = (typeof import('mapbox-gl'))['default']
 
 type Message = { role: 'user' | 'assistant'; content: string }
 
@@ -48,10 +48,12 @@ function prefersDark() {
 
 export function ChatMap() {
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const mapRef = useRef<mapboxgl.Map | null>(null)
-  const markersRef = useRef<mapboxgl.Marker[]>([])
+  const mapboxRef = useRef<MapboxGL | null>(null)
+  const mapRef = useRef<Map | null>(null)
+  const markersRef = useRef<Marker[]>([])
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [mapReady, setMapReady] = useState(false)
 
   // Load conversations
   useEffect(() => {
@@ -65,47 +67,71 @@ export function ChatMap() {
   useEffect(() => {
     const container = containerRef.current
     if (!container || mapRef.current) return
-    if (!mapboxgl.accessToken) {
-      console.warn('NEXT_PUBLIC_MAPBOX_TOKEN is not set — map will be blank.')
-      return
-    }
-    const map = new mapboxgl.Map({
-      container,
-      style: prefersDark() ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11',
-      projection: 'mercator',
-      center: [10, 25],
-      zoom: 1.1,
-      attributionControl: false,
-      logoPosition: 'bottom-left',
-    })
-    map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right')
-    map.on('load', () => map.resize())
-    mapRef.current = map
+    const containerEl = container
+    let disposed = false
+    let cleanup: (() => void) | null = null
 
-    // Force a resize on size changes of the container (tab switches can mount
-    // with stale dimensions; this keeps the canvas aligned to the container).
-    const ro = new ResizeObserver(() => map.resize())
-    ro.observe(container)
+    async function initMap() {
+      const mapbox = (await import('mapbox-gl')).default
+      if (disposed) return
 
-    // Follow OS theme changes
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    const onThemeChange = (e: MediaQueryListEvent) => {
-      map.setStyle(e.matches ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11')
+      mapbox.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || ''
+      mapboxRef.current = mapbox
+
+      if (!mapbox.accessToken) {
+        console.warn('NEXT_PUBLIC_MAPBOX_TOKEN is not set — map will be blank.')
+        return
+      }
+
+      const map = new mapbox.Map({
+        container: containerEl,
+        style: prefersDark() ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11',
+        projection: 'mercator',
+        center: [10, 25],
+        zoom: 1.1,
+        attributionControl: false,
+        logoPosition: 'bottom-left',
+      })
+      map.addControl(new mapbox.AttributionControl({ compact: true }), 'bottom-right')
+      map.on('load', () => map.resize())
+      mapRef.current = map
+      setMapReady(true)
+
+      // Force a resize on size changes of the container (tab switches can mount
+      // with stale dimensions; this keeps the canvas aligned to the container).
+      const ro = new ResizeObserver(() => map.resize())
+      ro.observe(containerEl)
+
+      // Follow OS theme changes
+      const mq = window.matchMedia('(prefers-color-scheme: dark)')
+      const onThemeChange = (e: MediaQueryListEvent) => {
+        map.setStyle(e.matches ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11')
+      }
+      mq.addEventListener('change', onThemeChange)
+
+      cleanup = () => {
+        ro.disconnect()
+        mq.removeEventListener('change', onThemeChange)
+        map.remove()
+        mapRef.current = null
+        mapboxRef.current = null
+      }
     }
-    mq.addEventListener('change', onThemeChange)
+
+    initMap().catch(() => {})
 
     return () => {
-      ro.disconnect()
-      mq.removeEventListener('change', onThemeChange)
-      map.remove()
-      mapRef.current = null
+      disposed = true
+      cleanup?.()
+      setMapReady(false)
     }
   }, [])
 
   // Plot markers whenever conversations change
   useEffect(() => {
     const map = mapRef.current
-    if (!map) return
+    const mapbox = mapboxRef.current
+    if (!map || !mapbox) return
 
     markersRef.current.forEach((m) => m.remove())
     markersRef.current = []
@@ -133,12 +159,12 @@ export function ChatMap() {
         e.stopPropagation()
         setSelectedId(c.id)
       })
-      const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+      const marker = new mapbox.Marker({ element: el, anchor: 'center' })
         .setLngLat([c.longitude, c.latitude])
         .addTo(map)
       markersRef.current.push(marker)
     })
-  }, [conversations])
+  }, [conversations, mapReady])
 
   const selected =
     selectedId !== null ? conversations.find((c) => c.id === selectedId) || null : null

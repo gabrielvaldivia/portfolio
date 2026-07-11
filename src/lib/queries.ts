@@ -74,11 +74,6 @@ export async function getPageBySlug(slug: string) {
   return result.docs[0] || null
 }
 
-export async function getNavigation() {
-  const payload = await getPayload()
-  return payload.findGlobal({ slug: 'navigation' })
-}
-
 export async function getSiteSettings() {
   const payload = await getPayload()
   return payload.findGlobal({ slug: 'site-settings' })

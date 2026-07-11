@@ -17,6 +17,7 @@ const CLICK_SUPPRESSION_MS = 700
 const HEART_ICON_SIZE = 18
 const SUPER_HEART_SIZE = 64
 const SUPER_LIKE_COUNT_STEP_MS = 70
+const MAX_MODULE_LIKE_BATCH_IDS = 80
 const SUPER_LIKE_CHARGE_DURATION_SECONDS =
   (SUPER_LIKE_HOLD_MS - SUPER_LIKE_CHARGE_DELAY_MS) / 1000
 const SUPER_HEART_SHAKE_X = [
@@ -37,6 +38,56 @@ const emptyLikeData: ModuleLikeData = {
   userLikes: 0,
   hasLiked: false,
   canLike: true,
+}
+
+type PendingLikeLoad = {
+  resolve: (data: ModuleLikeData) => void
+  reject: (error: Error) => void
+}
+
+const pendingLikeLoads = new Map<string, PendingLikeLoad[]>()
+let pendingLikeLoadTimer: ReturnType<typeof setTimeout> | null = null
+
+function requestModuleLikeData(targetId: string) {
+  return new Promise<ModuleLikeData>((resolve, reject) => {
+    const existing = pendingLikeLoads.get(targetId) || []
+    existing.push({ resolve, reject })
+    pendingLikeLoads.set(targetId, existing)
+
+    if (pendingLikeLoadTimer) return
+    pendingLikeLoadTimer = setTimeout(flushModuleLikeLoads, 12)
+  })
+}
+
+async function flushModuleLikeLoads() {
+  const batch = new Map(pendingLikeLoads)
+  pendingLikeLoads.clear()
+  pendingLikeLoadTimer = null
+
+  const ids = Array.from(batch.keys())
+  if (!ids.length) return
+
+  try {
+    const chunks = Array.from(
+      { length: Math.ceil(ids.length / MAX_MODULE_LIKE_BATCH_IDS) },
+      (_, index) => ids.slice(index * MAX_MODULE_LIKE_BATCH_IDS, (index + 1) * MAX_MODULE_LIKE_BATCH_IDS),
+    )
+    const payloads = await Promise.all(
+      chunks.map(async (chunk) => {
+        const res = await fetch(`/api/module-likes?ids=${encodeURIComponent(chunk.join(','))}`)
+        if (!res.ok) throw new Error('Unable to load likes')
+        return res.json() as Promise<Record<string, ModuleLikeData>>
+      }),
+    )
+    const payload = Object.assign({}, ...payloads) as Record<string, ModuleLikeData>
+    ids.forEach((id) => {
+      const data = payload[id] || emptyLikeData
+      batch.get(id)?.forEach(({ resolve }) => resolve(data))
+    })
+  } catch (caught) {
+    const error = caught instanceof Error ? caught : new Error('Unable to load likes')
+    batch.forEach((loads) => loads.forEach(({ reject }) => reject(error)))
+  }
 }
 
 type Particle = {
@@ -178,32 +229,28 @@ export function ModuleLikeButton({ targetId, initialCount = 0 }: { targetId: str
   const chargeGainRef = useRef<GainNode | null>(null)
 
   useEffect(() => {
-    const controller = new AbortController()
+    let isActive = true
 
     async function loadLikes() {
       setIsLoading(true)
       try {
-        const res = await fetch(`/api/module-likes?ids=${encodeURIComponent(targetId)}`, {
-          signal: controller.signal,
-        })
-        if (!res.ok) throw new Error('Unable to load likes')
-        const payload: Record<string, ModuleLikeData> = await res.json()
-        const loadedData = payload[targetId] || emptyLikeData
+        const loadedData = await requestModuleLikeData(targetId)
+        if (!isActive) return
         setData(loadedData)
         setDisplayCount(loadedData.count)
         setError('')
       } catch (caught) {
-        if (caught instanceof Error && caught.name === 'AbortError') return
+        if (!isActive) return
         setError('Unable to load')
       } finally {
-        setIsLoading(false)
+        if (isActive) setIsLoading(false)
       }
     }
 
     loadLikes()
 
     return () => {
-      controller.abort()
+      isActive = false
       if (particleTimeout.current) clearTimeout(particleTimeout.current)
       if (limitTimeout.current) clearTimeout(limitTimeout.current)
       if (superLikeTimeout.current) clearTimeout(superLikeTimeout.current)

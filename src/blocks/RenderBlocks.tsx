@@ -94,7 +94,13 @@ function getModuleLabel(block: any, fallback: string) {
 }
 
 function shouldPreserveAspectDuringZoom(blockType?: string) {
-  return blockType === 'video' || blockType === 'fullWidthVideo'
+  return [
+    'image',
+    'fullWidthImage',
+    'deviceMockup',
+    'video',
+    'fullWidthVideo',
+  ].includes(blockType || '')
 }
 
 function getVideoAspectRatio(block: any) {
@@ -127,6 +133,7 @@ function getImageGridSlide(block: any, blockIndex: number, item: any, itemIndex:
     block: imageBlock,
     label: item.image?.alt ? `Open ${item.image.alt} fullscreen` : `Open image ${itemIndex + 1} fullscreen`,
     likeTargetId: likeNamespace ? getModuleLikeTargetId(likeNamespace, imageBlock, itemIndex) : null,
+    preserveAspectDuringZoom: true,
   }
 }
 
@@ -164,7 +171,7 @@ function renderImageGridWithLightbox(block: any, blockIndex: number, likeNamespa
         if (!item?.image?.url) return null
         const slide = getImageGridSlide(block, blockIndex, item, itemIndex, likeNamespace)
         return (
-          <ModuleLightboxTrigger key={slide.id} slideId={slide.id} label={slide.label}>
+          <ModuleLightboxTrigger key={slide.id} slideId={slide.id} label={slide.label} preserveAspectDuringZoom>
             <ImageBlockComponent image={item.image} border={item.border} />
           </ModuleLightboxTrigger>
         )

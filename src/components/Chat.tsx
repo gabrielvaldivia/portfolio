@@ -11,6 +11,7 @@ type Message = {
 type FAQItem = {
   question: string
   answer: string
+  showAsPill?: boolean
 }
 
 type ProjectLink = {
@@ -307,6 +308,14 @@ function formatDate(date: string | Date) {
   })
 }
 
+function getSuggestedQuestions(faqItems: FAQItem[]) {
+  return faqItems
+    .filter((item) => item.showAsPill !== false)
+    .map((item) => item.question)
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 4)
+}
+
 function SidebarToggleIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -370,6 +379,8 @@ export function Chat({
   const locationRef = useRef('')
   const retryRef = useRef(0)
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
+  const blogIndexRequested = useRef(false)
+  const [suggestions] = useState<string[]>(() => getSuggestedQuestions(faqItems))
 
   useEffect(() => {
     // Resolve the initial conversation id. On the dedicated /chat page
@@ -387,18 +398,12 @@ export function Chat({
       const random = GREETINGS[Math.floor(Math.random() * GREETINGS.length)]
       setMessages([{ role: 'assistant', content: random }])
     }
-    // Fetch location
+    // Fetch location for saved conversation titles.
     fetch('/api/chat')
       .then((r) => r.json())
       .then((data) => {
         if (data.location) locationRef.current = data.location
-        if (data.suggestions?.length) setSuggestions(data.suggestions)
       })
-      .catch(() => {})
-    // Fetch blog index for URL correction
-    fetch('https://gabos.vercel.app/api/search?q=')
-      .then((r) => r.json())
-      .then((posts) => setBlogPosts(posts))
       .catch(() => {})
     // Restore conversation from session
     if (savedId) {
@@ -452,6 +457,20 @@ export function Chat({
         .catch(() => setAnimateBubbles(true))
     }
   }, [])
+
+  useEffect(() => {
+    if (blogIndexRequested.current || blogPosts.length) return
+    const hasAssistantLink = messages.some(
+      (message) => message.role === 'assistant' && /\[[^\]]+\]\(https?:\/\/[^)]+\)/.test(message.content),
+    )
+    if (!hasAssistantLink) return
+
+    blogIndexRequested.current = true
+    fetch('https://gabos.vercel.app/api/search?q=')
+      .then((r) => r.json())
+      .then((posts) => setBlogPosts(posts))
+      .catch(() => {})
+  }, [blogPosts.length, messages])
 
   useEffect(() => {
     if (!showLinks) return
@@ -646,7 +665,6 @@ export function Chat({
   }
 
   const showSuggestions = messages.length === 1 && messages[0].role === 'assistant'
-  const [suggestions, setSuggestions] = useState<string[]>([])
 
   // Extract follow-up questions from the last assistant message
   const followUps: string[] = (() => {

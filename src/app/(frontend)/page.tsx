@@ -10,7 +10,7 @@ import { SocialIcon } from '@/components/Icons'
 import { Chat } from '@/components/Chat'
 import { getClients } from '@/lib/queries'
 import { getPayload } from '@/lib/payload'
-import { buildContext } from '@/lib/buildContext'
+import { getFAQItemsFromSections } from '@/lib/buildContext'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -44,9 +44,10 @@ export default async function HomePage() {
   const payload = await getPayload()
   const pageResult = await payload.find({ collection: 'pages', where: { slug: { equals: 'home' } }, depth: 3, limit: 1 })
   const page = pageResult.docs[0] || null
+  const sections = (page?.sections || []) as any[]
+  const faqItems = getFAQItemsFromSections(sections)
   const services = await payload.find({ collection: 'services', sort: 'order', limit: 20, where: { featured: { equals: true } } })
   const { docs: clients } = await getClients()
-  const { faqItems } = await buildContext()
   const allProjects = await payload.find({ collection: 'projects', sort: 'order', limit: 100, depth: 0 })
   const projectLinks = allProjects.docs.map((p: any) => ({ title: p.title, slug: p.slug }))
   const allPeople = await payload.find({ collection: 'people', limit: 100, depth: 0 })
@@ -60,7 +61,6 @@ export default async function HomePage() {
     ...((aboutData?.interviews || []) as any[]).filter((t: any) => t.url).map((t: any) => ({ title: t.title, url: t.url })),
   ]
 
-  const sections = (page?.sections || []) as any[]
   const aboutSection = sections.find((s: any) => s.blockType === 'aboutSection')
   const aboutImage = aboutSection?.image?.url || ''
   const aboutImageDark = aboutSection?.imageDark?.url || ''

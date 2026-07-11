@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { ActivityVideoThumbnail } from '@/components/ActivityVideoThumbnail'
 import { ActivityViewSwitcher, type ActivityView } from '@/components/ActivityViewSwitcher'
 import { Container } from '@/components/Container'
-import { ModuleLikeButton } from '@/components/ModuleLikeButton'
+import { LazyModuleLikeButton } from '@/components/LazyModuleLikeButton'
 import { cn } from '@/lib/cn'
 import {
   getModuleLikeActivity,
@@ -509,7 +509,7 @@ function FeedItem({ item, rank }: { item: ModuleLikeFeedItem; rank: number }) {
     <div className="group/feed relative">
       {media}
       <div className="absolute bottom-3 left-3 z-20 opacity-100 transition-opacity duration-150 desktop:pointer-events-none desktop:opacity-0 desktop:group-hover/feed:pointer-events-auto desktop:group-hover/feed:opacity-100 desktop:group-focus-within/feed:pointer-events-auto desktop:group-focus-within/feed:opacity-100">
-        <ModuleLikeButton targetId={item.targetId} initialCount={item.likeCount} />
+        <LazyModuleLikeButton targetId={item.targetId} initialCount={item.likeCount} />
       </div>
     </div>
   )
