@@ -216,7 +216,7 @@ export function ModuleLightboxProvider({
       isPreparingZoomRef.current = !prefersReducedMotion
       prepareZoomTimeoutRef.current = setTimeout(() => {
         revealPreparedZoom()
-      }, 180)
+      }, 300)
       setIsClosing(false)
       setDirection(0)
       setTransitionMode('zoom')
