@@ -508,6 +508,7 @@ export function ModuleLightboxProvider({
             <motion.div
               key={activeSlide.id}
               layoutId={transitionMode === 'zoom' && !prefersReducedMotion ? getLayoutId(activeSlide.id) : undefined}
+              layoutCrossfade={false}
               layout
               custom={direction}
               className={cn(
@@ -675,6 +676,7 @@ export function ModuleLightboxTrigger({
     <motion.div
       ref={triggerRef}
       layoutId={getLayoutId(slideId)}
+      layoutCrossfade={false}
       layout
       transition={ZOOM_TRANSITION}
       role="button"
