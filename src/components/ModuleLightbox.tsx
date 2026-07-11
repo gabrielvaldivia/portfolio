@@ -2,9 +2,9 @@
 
 import {
   AnimatePresence,
-  LayoutGroup,
   animate,
   motion,
+  useAnimationControls,
   useMotionValue,
   useReducedMotion,
   useTransform,
@@ -39,8 +39,9 @@ export type ModuleLightboxSlide = {
 }
 
 type ModuleLightboxContextValue = {
-  openSlide: (id: string, sourceAspectRatio?: number) => void
+  openSlide: (id: string, sourceAspectRatio?: number, sourceRect?: LightboxRect) => void
   registerSlideAspectRatio: (id: string, sourceAspectRatio: number) => void
+  registerSlideElement: (id: string, element: HTMLElement | null) => void
 }
 
 const ModuleLightboxContext = createContext<ModuleLightboxContextValue | null>(null)
@@ -63,6 +64,13 @@ type CloseOptions = {
   preserveDrag?: boolean
 }
 
+type LightboxRect = {
+  top: number
+  left: number
+  width: number
+  height: number
+}
+
 const ZOOM_TRANSITION: Transition = {
   type: 'spring',
   stiffness: 420,
@@ -80,10 +88,6 @@ const SWIPE_TRANSITION: Transition = {
   stiffness: 360,
   damping: 42,
   mass: 0.9,
-}
-
-function getLayoutId(slideId: string) {
-  return `module-lightbox-${slideId}`
 }
 
 function wrapIndex(index: number, total: number) {
@@ -106,6 +110,27 @@ function getVideoElementAspectRatio(root: HTMLElement | null) {
   if (!video || video.videoWidth <= 0 || video.videoHeight <= 0) return undefined
 
   return video.videoWidth / video.videoHeight
+}
+
+function getElementRect(element: HTMLElement | null): LightboxRect | undefined {
+  const rect = element?.getBoundingClientRect()
+  if (!rect || rect.width <= 0 || rect.height <= 0) return undefined
+
+  return {
+    top: rect.top,
+    left: rect.left,
+    width: rect.width,
+    height: rect.height,
+  }
+}
+
+function getFlipTransform(sourceRect: LightboxRect, targetRect: LightboxRect) {
+  return {
+    x: sourceRect.left - targetRect.left,
+    y: sourceRect.top - targetRect.top,
+    scaleX: sourceRect.width / targetRect.width,
+    scaleY: sourceRect.height / targetRect.height,
+  }
 }
 
 function ModuleSlide({
@@ -132,6 +157,140 @@ function ModuleSlide({
   )
 }
 
+function ModuleLightboxSlideView({
+  slide,
+  direction,
+  transitionMode,
+  prefersReducedMotion,
+  sourceRect,
+  sourceAspectRatio,
+  activeSlideIsPhoneFrame,
+  activeSlideUsesMeasuredAspect,
+  activeSlideTransition,
+  dragX,
+  dragY,
+  dragScale,
+  handlePointerDown,
+  handlePointerMove,
+  handlePointerEnd,
+  handleMouseDown,
+}: {
+  slide: ModuleLightboxSlide
+  direction: number
+  transitionMode: TransitionMode
+  prefersReducedMotion: boolean | null
+  sourceRect?: LightboxRect
+  sourceAspectRatio?: number
+  activeSlideIsPhoneFrame: boolean
+  activeSlideUsesMeasuredAspect: boolean
+  activeSlideTransition: Transition
+  dragX: ReturnType<typeof useMotionValue<number>>
+  dragY: ReturnType<typeof useMotionValue<number>>
+  dragScale: ReturnType<typeof useTransform<number, number>>
+  handlePointerDown: (event: PointerEvent<HTMLDivElement>) => void
+  handlePointerMove: (event: PointerEvent<HTMLDivElement>) => void
+  handlePointerEnd: (event: PointerEvent<HTMLDivElement>) => void
+  handleMouseDown: (event: ReactMouseEvent<HTMLDivElement>) => void
+}) {
+  const zoomRef = useRef<HTMLDivElement>(null)
+  const controls = useAnimationControls()
+  const [targetRect, setTargetRect] = useState<LightboxRect | null>(null)
+  const [ready, setReady] = useState(transitionMode !== 'zoom' || prefersReducedMotion || !sourceRect)
+
+  useLayoutEffect(() => {
+    const element = zoomRef.current
+    const nextTargetRect = getElementRect(element)
+
+    if (!nextTargetRect) {
+      setReady(true)
+      return
+    }
+
+    setTargetRect(nextTargetRect)
+
+    if (transitionMode !== 'zoom' || prefersReducedMotion || !sourceRect) {
+      controls.set({ x: 0, y: 0, scaleX: 1, scaleY: 1 })
+      setReady(true)
+      return
+    }
+
+    const initialTransform = getFlipTransform(sourceRect, nextTargetRect)
+    controls.set(initialTransform)
+    setReady(true)
+    void controls.start({
+      x: 0,
+      y: 0,
+      scaleX: 1,
+      scaleY: 1,
+      transition: ZOOM_TRANSITION,
+    })
+  }, [controls, prefersReducedMotion, slide.id, sourceRect, transitionMode])
+
+  const exitTransform = transitionMode === 'zoom' && sourceRect && targetRect && !prefersReducedMotion
+    ? {
+      ...getFlipTransform(sourceRect, targetRect),
+      opacity: 1,
+      transition: ZOOM_TRANSITION,
+    }
+    : transitionMode === 'dismiss' && !prefersReducedMotion
+      ? { y: 220, scale: 0.86, opacity: 0 }
+      : transitionMode === 'swipe' && !prefersReducedMotion
+        ? { x: direction > 0 ? '-100vw' : '100vw', opacity: 1 }
+        : { opacity: 1 }
+
+  return (
+    <motion.div
+      ref={zoomRef}
+      key={slide.id}
+      className={cn(
+        activeSlideIsPhoneFrame
+          ? 'w-fit max-w-[calc(100dvw-32px)]'
+          : activeSlideUsesMeasuredAspect
+            ? 'w-[calc(100dvw-32px)] max-w-[1440px]'
+            : 'w-full max-w-[min(1440px,100%)]',
+      )}
+      initial={
+        transitionMode === 'swipe' && !prefersReducedMotion
+          ? { x: direction > 0 ? '100vw' : '-100vw', opacity: 1 }
+          : false
+      }
+      animate={
+        transitionMode === 'zoom'
+          ? controls
+          : { x: 0, opacity: 1 }
+      }
+      exit={exitTransform}
+      transition={activeSlideTransition}
+      style={{
+        transformOrigin: 'top left',
+        visibility: ready ? 'visible' : 'hidden',
+        willChange: 'transform',
+      }}
+    >
+      <motion.div
+        custom={direction}
+        className="cursor-grab touch-none active:cursor-grabbing"
+        style={{
+          ...(transitionMode === 'swipe' ? {} : { x: dragX }),
+          y: dragY,
+          scale: dragScale,
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+        }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerEnd}
+        onPointerCancel={handlePointerEnd}
+        onMouseDown={handleMouseDown}
+        onDragStartCapture={(event) => event.preventDefault()}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <ModuleSlide slide={slide} active sourceAspectRatio={sourceAspectRatio} />
+      </motion.div>
+    </motion.div>
+  )
+}
+
 export function ModuleLightboxProvider({
   slides,
   children,
@@ -150,6 +309,9 @@ export function ModuleLightboxProvider({
   const dragState = useRef<DragState | null>(null)
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const sourceAspectRatiosRef = useRef(new Map<string, number>())
+  const sourceElementsRef = useRef(new Map<string, HTMLElement>())
+  const sourceRectsRef = useRef(new Map<string, LightboxRect>())
+  const [zoomSourceRect, setZoomSourceRect] = useState<LightboxRect | undefined>(undefined)
   const dragScale = useTransform(dragY, [0, 240], [1, 0.88])
   const backdropOpacity = useTransform(dragY, [0, 260], [1, 0.36])
   const open = index >= 0
@@ -190,11 +352,40 @@ export function ModuleLightboxProvider({
     }
   }, [])
 
-  const openSlide = useCallback((id: string, sourceAspectRatio?: number) => {
+  const registerSlideElement = useCallback((id: string, element: HTMLElement | null) => {
+    if (element) {
+      sourceElementsRef.current.set(id, element)
+      const rect = getElementRect(element)
+      if (rect) sourceRectsRef.current.set(id, rect)
+      return
+    }
+
+    sourceElementsRef.current.delete(id)
+  }, [])
+
+  const getSourceRect = useCallback((id: string) => {
+    const rect = getElementRect(sourceElementsRef.current.get(id) ?? null)
+    if (rect) {
+      sourceRectsRef.current.set(id, rect)
+      return rect
+    }
+
+    return sourceRectsRef.current.get(id)
+  }, [])
+
+  const openSlide = useCallback((id: string, sourceAspectRatio?: number, sourceRect?: LightboxRect) => {
     const nextIndex = slideIndexById.get(id)
     if (typeof nextIndex === 'number') {
       if (isValidAspectRatio(sourceAspectRatio)) {
         sourceAspectRatiosRef.current.set(id, sourceAspectRatio)
+      }
+
+      const nextSourceRect = sourceRect || getSourceRect(id)
+      if (nextSourceRect) {
+        sourceRectsRef.current.set(id, nextSourceRect)
+        setZoomSourceRect(nextSourceRect)
+      } else {
+        setZoomSourceRect(undefined)
       }
 
       dragX.set(0)
@@ -206,12 +397,13 @@ export function ModuleLightboxProvider({
       setTransitionMode('zoom')
       setIndex(nextIndex)
     }
-  }, [dragX, dragY, slideIndexById])
+  }, [dragX, dragY, getSourceRect, slideIndexById])
 
   const contextValue = useMemo(() => ({
     openSlide,
     registerSlideAspectRatio,
-  }), [openSlide, registerSlideAspectRatio])
+    registerSlideElement,
+  }), [openSlide, registerSlideAspectRatio, registerSlideElement])
 
   const resetDrag = useCallback(() => {
     animate(dragX, 0, ZOOM_TRANSITION)
@@ -221,6 +413,10 @@ export function ModuleLightboxProvider({
   const close = useCallback((mode: TransitionMode = 'zoom', options: CloseOptions = {}) => {
     if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
     dragState.current = null
+
+    if (mode === 'zoom' && activeSlide) {
+      setZoomSourceRect(getSourceRect(activeSlide.id))
+    }
 
     if (!options.preserveDrag) {
       dragX.set(0)
@@ -239,8 +435,9 @@ export function ModuleLightboxProvider({
       dragX.set(0)
       dragY.set(0)
       closeTimeoutRef.current = null
+      setZoomSourceRect(undefined)
     }, prefersReducedMotion ? 220 : 560)
-  }, [dragX, dragY, prefersReducedMotion])
+  }, [activeSlide, dragX, dragY, getSourceRect, prefersReducedMotion])
 
   const navigate = useCallback((increment: number) => {
     if (slides.length <= 1 || index < 0) {
@@ -250,6 +447,7 @@ export function ModuleLightboxProvider({
 
     dragX.set(0)
     dragY.set(0)
+    setZoomSourceRect(undefined)
 
     flushSync(() => {
       setDirection(increment)
@@ -505,52 +703,25 @@ export function ModuleLightboxProvider({
       <div className="absolute inset-0 flex items-center justify-center px-4 py-14 tablet:px-12 tablet:py-16 desktop:px-20">
         <AnimatePresence custom={direction} initial={false} mode="popLayout">
           {activeSlide && (
-            <motion.div
+            <ModuleLightboxSlideView
               key={activeSlide.id}
-              layoutId={transitionMode === 'zoom' && !prefersReducedMotion ? getLayoutId(activeSlide.id) : undefined}
-              layoutCrossfade={false}
-              layout
-              custom={direction}
-              className={cn(
-                'cursor-grab touch-none active:cursor-grabbing',
-                activeSlideIsPhoneFrame
-                  ? 'w-fit max-w-[calc(100dvw-32px)]'
-                  : activeSlideUsesMeasuredAspect
-                    ? 'w-[calc(100dvw-32px)] max-w-[1440px]'
-                    : 'w-full max-w-[min(1440px,100%)]',
-              )}
-              style={{
-                ...(transitionMode === 'swipe' ? {} : { x: dragX }),
-                y: dragY,
-                scale: dragScale,
-                willChange: 'transform',
-                userSelect: 'none',
-                WebkitUserSelect: 'none',
-              }}
-              initial={
-                transitionMode === 'swipe' && !prefersReducedMotion
-                  ? { x: direction > 0 ? '100vw' : '-100vw', opacity: 1 }
-                  : { opacity: 1 }
-              }
-              animate={{ x: 0, opacity: 1 }}
-              exit={
-                transitionMode === 'dismiss' && !prefersReducedMotion
-                  ? { y: 220, scale: 0.86, opacity: 0 }
-                  : transitionMode === 'swipe' && !prefersReducedMotion
-                    ? { x: direction > 0 ? '-100vw' : '100vw', opacity: 1 }
-                    : { opacity: 1 }
-              }
-              transition={activeSlideTransition}
-              onPointerDown={handlePointerDown}
-              onPointerMove={handlePointerMove}
-              onPointerUp={handlePointerEnd}
-              onPointerCancel={handlePointerEnd}
-              onMouseDown={handleMouseDown}
-              onDragStartCapture={(event) => event.preventDefault()}
-              onClick={(event) => event.stopPropagation()}
-            >
-              <ModuleSlide slide={activeSlide} active sourceAspectRatio={activeSlideSourceAspectRatio} />
-            </motion.div>
+              slide={activeSlide}
+              direction={direction}
+              transitionMode={transitionMode}
+              prefersReducedMotion={prefersReducedMotion}
+              sourceRect={zoomSourceRect}
+              sourceAspectRatio={activeSlideSourceAspectRatio}
+              activeSlideIsPhoneFrame={activeSlideIsPhoneFrame}
+              activeSlideUsesMeasuredAspect={activeSlideUsesMeasuredAspect}
+              activeSlideTransition={activeSlideTransition}
+              dragX={dragX}
+              dragY={dragY}
+              dragScale={dragScale}
+              handlePointerDown={handlePointerDown}
+              handlePointerMove={handlePointerMove}
+              handlePointerEnd={handlePointerEnd}
+              handleMouseDown={handleMouseDown}
+            />
           )}
         </AnimatePresence>
       </div>
@@ -558,12 +729,10 @@ export function ModuleLightboxProvider({
   ) : null
 
   return (
-    <LayoutGroup id="module-lightbox">
-      <ModuleLightboxContext.Provider value={contextValue}>
-        {children}
-        {mounted ? createPortal(lightbox, document.body) : null}
-      </ModuleLightboxContext.Provider>
-    </LayoutGroup>
+    <ModuleLightboxContext.Provider value={contextValue}>
+      {children}
+      {mounted ? createPortal(lightbox, document.body) : null}
+    </ModuleLightboxContext.Provider>
   )
 }
 
@@ -596,6 +765,13 @@ export function ModuleLightboxTrigger({
       if (openFrameRef.current !== null) cancelAnimationFrame(openFrameRef.current)
     }
   }, [])
+
+  useLayoutEffect(() => {
+    if (!context || !triggerRef.current) return
+
+    context.registerSlideElement(slideId, triggerRef.current)
+    return () => context.registerSlideElement(slideId, null)
+  }, [context, slideId])
 
   const measureAspectRatio = useCallback(() => {
     const trigger = triggerRef.current
@@ -657,11 +833,12 @@ export function ModuleLightboxTrigger({
     const sourceAspectRatio = preserveAspectDuringZoom
       ? registerMeasuredAspectRatio()
       : undefined
+    const sourceRect = getElementRect(triggerRef.current)
 
     if (openFrameRef.current !== null) cancelAnimationFrame(openFrameRef.current)
     openFrameRef.current = requestAnimationFrame(() => {
       openFrameRef.current = null
-      context.openSlide(slideId, sourceAspectRatio)
+      context.openSlide(slideId, sourceAspectRatio, sourceRect)
     })
   }
 
@@ -675,9 +852,6 @@ export function ModuleLightboxTrigger({
   return (
     <motion.div
       ref={triggerRef}
-      layoutId={getLayoutId(slideId)}
-      layoutCrossfade={false}
-      layout
       transition={ZOOM_TRANSITION}
       role="button"
       tabIndex={0}
