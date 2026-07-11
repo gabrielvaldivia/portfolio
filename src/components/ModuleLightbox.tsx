@@ -149,9 +149,6 @@ export function ModuleLightboxProvider({
   const dragY = useMotionValue(0)
   const dragState = useRef<DragState | null>(null)
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const prepareZoomTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const isPreparingZoomRef = useRef(false)
-  const slideElementRef = useRef<HTMLDivElement | null>(null)
   const sourceAspectRatiosRef = useRef(new Map<string, number>())
   const dragScale = useTransform(dragY, [0, 240], [1, 0.88])
   const backdropOpacity = useTransform(dragY, [0, 260], [1, 0.36])
@@ -178,7 +175,6 @@ export function ModuleLightboxProvider({
   useEffect(() => {
     return () => {
       if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
-      if (prepareZoomTimeoutRef.current) clearTimeout(prepareZoomTimeoutRef.current)
     }
   }, [])
 
@@ -194,13 +190,6 @@ export function ModuleLightboxProvider({
     }
   }, [])
 
-  const revealPreparedZoom = useCallback(() => {
-    if (prepareZoomTimeoutRef.current) clearTimeout(prepareZoomTimeoutRef.current)
-    prepareZoomTimeoutRef.current = null
-    isPreparingZoomRef.current = false
-    if (slideElementRef.current) slideElementRef.current.style.visibility = 'visible'
-  }, [])
-
   const openSlide = useCallback((id: string, sourceAspectRatio?: number) => {
     const nextIndex = slideIndexById.get(id)
     if (typeof nextIndex === 'number') {
@@ -212,17 +201,12 @@ export function ModuleLightboxProvider({
       dragY.set(0)
       if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
       closeTimeoutRef.current = null
-      if (prepareZoomTimeoutRef.current) clearTimeout(prepareZoomTimeoutRef.current)
-      isPreparingZoomRef.current = !prefersReducedMotion
-      prepareZoomTimeoutRef.current = setTimeout(() => {
-        revealPreparedZoom()
-      }, 300)
       setIsClosing(false)
       setDirection(0)
       setTransitionMode('zoom')
       setIndex(nextIndex)
     }
-  }, [dragX, dragY, prefersReducedMotion, revealPreparedZoom, slideIndexById])
+  }, [dragX, dragY, slideIndexById])
 
   const contextValue = useMemo(() => ({
     openSlide,
@@ -242,7 +226,6 @@ export function ModuleLightboxProvider({
       dragX.set(0)
       dragY.set(0)
     }
-    revealPreparedZoom()
 
     flushSync(() => {
       setTransitionMode(mode)
@@ -267,7 +250,6 @@ export function ModuleLightboxProvider({
 
     dragX.set(0)
     dragY.set(0)
-    revealPreparedZoom()
 
     flushSync(() => {
       setDirection(increment)
@@ -524,7 +506,6 @@ export function ModuleLightboxProvider({
         <AnimatePresence custom={direction} initial={false} mode="popLayout">
           {activeSlide && (
             <motion.div
-              ref={slideElementRef}
               key={activeSlide.id}
               layoutId={transitionMode === 'zoom' && !prefersReducedMotion ? getLayoutId(activeSlide.id) : undefined}
               layoutCrossfade={false}
@@ -542,7 +523,6 @@ export function ModuleLightboxProvider({
                 ...(transitionMode === 'swipe' ? {} : { x: dragX }),
                 y: dragY,
                 scale: dragScale,
-                visibility: isPreparingZoomRef.current && transitionMode === 'zoom' ? 'hidden' : 'visible',
                 willChange: 'transform',
                 userSelect: 'none',
                 WebkitUserSelect: 'none',
@@ -566,7 +546,6 @@ export function ModuleLightboxProvider({
               onPointerUp={handlePointerEnd}
               onPointerCancel={handlePointerEnd}
               onMouseDown={handleMouseDown}
-              onLayoutAnimationStart={revealPreparedZoom}
               onDragStartCapture={(event) => event.preventDefault()}
               onClick={(event) => event.stopPropagation()}
             >
