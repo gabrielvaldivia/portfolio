@@ -1,6 +1,7 @@
 import { sql } from '@payloadcms/db-postgres'
 import { isIP } from 'net'
-import { getPayload } from '@/lib/payload'
+import { cache } from 'react'
+import { getPayload, isPayloadUnavailable } from '@/lib/payload'
 import {
   getModuleLikeAnchorId,
   getModuleLikeTargetId,
@@ -20,6 +21,12 @@ type ModuleLikeActivityRow = {
   region: string | null
   country: string | null
   created_at: string | Date
+}
+
+type ModuleLikeFeedRow = {
+  target_id: string
+  like_count: number | string
+  updated_at: string | Date | null
 }
 
 type MediaValue = {
@@ -56,6 +63,11 @@ type ActivityTarget = {
     alt: string
     width?: number | null
     height?: number | null
+    fit?: 'cover' | 'contain'
+    padding?: string
+    backgroundColor?: string
+    imageBorder?: boolean
+    rounded?: boolean
     frame?: ActivityThumbnailFrame
   } | null
 }
@@ -72,6 +84,14 @@ export type ModuleLikeActivityItem = {
   target: ActivityTarget
 }
 
+export type ModuleLikeFeedItem = {
+  id: string
+  targetId: string
+  likeCount: number
+  updatedAt: string
+  target: ActivityTarget
+}
+
 let ensureModuleLikesTablesPromise: Promise<void> | null = null
 const GEO_LOOKUP_TIMEOUT_MS = 900
 const countryDisplayNames = typeof Intl.DisplayNames === 'function'
@@ -85,6 +105,14 @@ const IPHONE13MINI_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.
 const IPHONE5_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/iphone5.png'
 const IPHONE6_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/iphone6-frame.png'
 const IPHONEX_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/iphonex.png'
+
+const feedPaddingScale: Record<string, string> = {
+  '10': '2%',
+  '20': '3.5%',
+  '40': '5.5%',
+  '60': '7.5%',
+  '80': '9.5%',
+}
 
 export function readRows<T>(result: unknown): T[] {
   if (Array.isArray(result)) return result as T[]
@@ -353,7 +381,12 @@ export async function getModuleLikeRequestLocation(headers: Headers) {
 }
 
 function getPreferredImage(media: MediaValue) {
-  const sized = media.sizes?.thumbnail || media.sizes?.small || media.sizes?.medium
+  const sized =
+    media.sizes?.xlarge ||
+    media.sizes?.large ||
+    media.sizes?.medium ||
+    media.sizes?.small ||
+    media.sizes?.thumbnail
 
   return {
     url: sized?.url || media.url || '',
@@ -366,6 +399,37 @@ function normalizeMedia(value: unknown): MediaValue | null {
   if (!value || typeof value !== 'object') return null
   const media = value as MediaValue
   return media.url ? media : null
+}
+
+function getFirstImageGridMedia(block: any) {
+  if (!Array.isArray(block?.images)) return null
+
+  for (const item of block.images) {
+    const media = normalizeMedia(item?.image)
+    if (media) return media
+  }
+
+  return null
+}
+
+function getFeedPadding(block: any) {
+  const value = String(block?.padding || '0')
+  return feedPaddingScale[value]
+}
+
+function getFeedBackgroundColor(block: any) {
+  const value = typeof block?.bgColor === 'string' ? block.bgColor.trim() : ''
+
+  if (!value || value === 'alt' || value === 'custom') return undefined
+  if (value === 'background') return 'rgb(var(--color-background-rgb))'
+  if (value === 'elevated') return 'rgb(var(--color-elevated-rgb))'
+  if (value === 'none') return 'transparent'
+
+  return value
+}
+
+function getBlockFit(block: any): 'cover' | 'contain' {
+  return block?.fit === 'contain' ? 'contain' : 'cover'
 }
 
 function isChecked(value: unknown) {
@@ -441,10 +505,17 @@ function getBlockThumbnailFrame(block: any): ActivityThumbnailFrame | undefined 
 }
 
 function getBlockThumbnail(block: any) {
-  const image = normalizeMedia(block?.image)
+  const image = normalizeMedia(block?.image) || getFirstImageGridMedia(block)
   const video = normalizeMedia(block?.video)
   const caption = typeof block?.caption === 'string' ? block.caption : ''
   const frame = getBlockThumbnailFrame(block)
+  const presentation = {
+    fit: getBlockFit(block),
+    padding: getFeedPadding(block),
+    backgroundColor: getFeedBackgroundColor(block),
+    imageBorder: isChecked(block?.imageBorder),
+    rounded: isChecked(block?.rounded),
+  }
 
   if (image) {
     const preferred = getPreferredImage(image)
@@ -455,6 +526,7 @@ function getBlockThumbnail(block: any) {
       alt: image.alt || caption || '',
       width: preferred.width,
       height: preferred.height,
+      ...presentation,
       frame,
     }
   }
@@ -466,6 +538,7 @@ function getBlockThumbnail(block: any) {
       alt: video.alt || caption || '',
       width: video.width,
       height: video.height,
+      ...presentation,
       frame,
     }
   }
@@ -474,8 +547,9 @@ function getBlockThumbnail(block: any) {
 }
 
 function getBlockNoun(blockType: string) {
+  if (blockType === 'browser') return 'browser'
   if (blockType === 'video' || blockType === 'fullWidthVideo') return 'video'
-  if (blockType === 'image' || blockType === 'fullWidthImage') return 'post'
+  if (blockType === 'image' || blockType === 'fullWidthImage') return 'image'
   if (blockType.startsWith('iphone') || blockType === 'dc1' || blockType === 'deviceMockup') return 'prototype'
   return 'module'
 }
@@ -508,8 +582,9 @@ function indexDocumentTargets(index: Map<string, ActivityTarget>, doc: any, sour
   })
 }
 
-async function getActivityTargetIndex() {
+const getActivityTargetIndex = cache(async function getActivityTargetIndex() {
   const payload = await getPayload()
+  if (isPayloadUnavailable(payload)) throw new Error('Activity target data is temporarily unavailable')
   const [projects, sideProjects] = await Promise.all([
     payload.find({ collection: 'projects', limit: 200, depth: 3 }),
     payload.find({ collection: 'side-projects', limit: 200, depth: 3 }),
@@ -520,7 +595,7 @@ async function getActivityTargetIndex() {
   sideProjects.docs.forEach((project: any) => indexDocumentTargets(index, project, 'side-project'))
 
   return index
-}
+})
 
 function getFallbackTarget(targetId: string): ActivityTarget {
   const parsed = parseModuleLikeTargetId(targetId)
@@ -549,6 +624,7 @@ function getResolvedActivityTarget(index: Map<string, ActivityTarget>, targetId:
 
 export async function getModuleLikeActivity(limit = 100): Promise<ModuleLikeActivityItem[]> {
   const payload = await getPayload()
+  if (isPayloadUnavailable(payload)) throw new Error('Activity data is temporarily unavailable')
   const db = payload.db.drizzle
 
   await ensureModuleLikesTables(db)
@@ -580,6 +656,47 @@ export async function getModuleLikeActivity(limit = 100): Promise<ModuleLikeActi
       city: cleanLocationPart(row.city || ''),
       region: cleanRegionPart(row.region || ''),
       country: cleanRegionPart(row.country || ''),
+      target,
+    }]
+  })
+}
+
+export async function getModuleLikeFeed(limit = 100): Promise<ModuleLikeFeedItem[]> {
+  const payload = await getPayload()
+  if (isPayloadUnavailable(payload)) throw new Error('Activity feed data is temporarily unavailable')
+  const db = payload.db.drizzle
+
+  await ensureModuleLikesTables(db)
+
+  const result = await db.execute(sql`
+    SELECT
+      "target_id",
+      COALESCE(SUM("like_count"), 0)::int AS "like_count",
+      MAX("updated_at") AS "updated_at"
+    FROM "module_likes"
+    GROUP BY "target_id"
+    HAVING COALESCE(SUM("like_count"), 0) > 0
+    ORDER BY "like_count" DESC, "updated_at" DESC, "target_id" ASC
+    LIMIT ${limit}
+  `)
+
+  const rows = readRows<ModuleLikeFeedRow>(result)
+  const targetIndex = await getActivityTargetIndex()
+
+  return rows.flatMap((row) => {
+    const target = getResolvedActivityTarget(targetIndex, row.target_id)
+    if (!target || !target.thumbnail) return []
+
+    const likeCount = Math.max(0, Math.trunc(Number(row.like_count) || 0))
+    if (likeCount < 1) return []
+
+    const updatedAt = row.updated_at instanceof Date ? row.updated_at : new Date(row.updated_at || Date.now())
+
+    return [{
+      id: row.target_id,
+      targetId: row.target_id,
+      likeCount,
+      updatedAt: Number.isNaN(updatedAt.getTime()) ? new Date().toISOString() : updatedAt.toISOString(),
       target,
     }]
   })

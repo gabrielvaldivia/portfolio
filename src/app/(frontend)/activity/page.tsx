@@ -1,16 +1,22 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ActivityVideoThumbnail } from '@/components/ActivityVideoThumbnail'
+import { ActivityViewSwitcher, type ActivityView } from '@/components/ActivityViewSwitcher'
 import { Container } from '@/components/Container'
-import { FitText } from '@/components/FitText'
+import { ModuleLikeButton } from '@/components/ModuleLikeButton'
 import { cn } from '@/lib/cn'
-import { getModuleLikeActivity, type ModuleLikeActivityItem } from '@/lib/moduleLikeActivity'
+import {
+  getModuleLikeActivity,
+  getModuleLikeFeed,
+  type ModuleLikeActivityItem,
+  type ModuleLikeFeedItem,
+} from '@/lib/moduleLikeActivity'
 
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Activity - Gabriel Valdivia',
-  description: 'Recent likes on Gabriel Valdivia portfolio projects and media.',
+  description: 'Recent and most-liked modules on Gabriel Valdivia portfolio projects and media.',
 }
 
 const relativeFormatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
@@ -45,7 +51,19 @@ type ActivityDisplayItem = ModuleLikeActivityItem & {
   mergeKey: string
 }
 
+type ActivityPageSearchParams = {
+  view?: string | string[]
+}
+type ActivityThumbnailValue = NonNullable<ModuleLikeActivityItem['target']['thumbnail']>
 type ActivityCalendarDate = NonNullable<ReturnType<typeof getActivityCalendarDate>>
+
+function getSearchParamValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value
+}
+
+function getActivityView(searchParams: ActivityPageSearchParams): ActivityView {
+  return getSearchParamValue(searchParams.view) === 'feed' ? 'feed' : 'activity'
+}
 
 function formatActivityTime(value: string) {
   const date = new Date(value)
@@ -205,26 +223,55 @@ function ActivitySentence({ item }: { item: ActivityDisplayItem }) {
   )
 }
 
-function getThumbnailBackgroundImage(url: string) {
-  return `url(${JSON.stringify(url)})`
+function getThumbnailContainerStyle(thumbnail: ActivityThumbnailValue) {
+  return {
+    ...(thumbnail.backgroundColor ? { backgroundColor: thumbnail.backgroundColor } : {}),
+    ...(thumbnail.padding ? { padding: thumbnail.padding } : {}),
+  }
+}
+
+function getThumbnailMediaClassName(className: string, thumbnail: ActivityThumbnailValue, preserveFit = true) {
+  return preserveFit && thumbnail.fit === 'contain'
+    ? className.replace(/\bobject-cover\b/g, 'object-contain')
+    : className
+}
+
+function shouldPreserveThumbnailFit(thumbnail: ActivityThumbnailValue, forceMediaCover: boolean) {
+  return !forceMediaCover || Boolean(thumbnail.padding)
 }
 
 function ActivityFramedThumbnail({
   thumbnail,
   className,
+  mediaClassName = 'block !h-full w-full object-cover object-center',
+  playVideoOnHover = false,
+  paddingMode = 'compact',
 }: {
-  thumbnail: NonNullable<ActivityDisplayItem['target']['thumbnail']>
+  thumbnail: ActivityThumbnailValue
   className: string
+  mediaClassName?: string
+  playVideoOnHover?: boolean
+  paddingMode?: 'compact' | 'feed'
 }) {
   const frame = thumbnail.frame
   if (!frame) return null
-
-  const mediaClassName = 'block h-full w-full object-cover'
+  const resolvedMediaClassName = getThumbnailMediaClassName(mediaClassName, thumbnail)
+  const isDC1Frame = frame.id === 'dc1'
+  const paddingClassName = paddingMode === 'feed'
+    ? isDC1Frame ? 'px-1.5 py-5 tablet:py-1.5' : 'p-1.5'
+    : cn('px-1 tablet:px-1.5', isDC1Frame ? 'py-2 tablet:py-3' : 'py-1 tablet:py-1.5')
 
   return (
-    <div className={cn(className, 'flex items-center justify-center p-1 tablet:p-1.5')} aria-hidden="true">
+    <div
+      className={cn(
+        className,
+        'flex items-center justify-center',
+        paddingClassName,
+      )}
+      aria-hidden="true"
+    >
       <div
-        className="relative h-full max-h-full overflow-hidden"
+        className="relative h-full max-h-full max-w-full overflow-hidden"
         style={{ aspectRatio: frame.aspectRatio }}
       >
         <div
@@ -234,14 +281,15 @@ function ActivityFramedThumbnail({
           {thumbnail.type === 'video' ? (
             <ActivityVideoThumbnail
               src={thumbnail.url}
-              className={mediaClassName}
+              className={resolvedMediaClassName}
+              playOnHover={playVideoOnHover}
             />
           ) : (
             <img
               src={thumbnail.url}
               alt=""
               loading="lazy"
-              className={mediaClassName}
+              className={resolvedMediaClassName}
             />
           )}
         </div>
@@ -249,43 +297,145 @@ function ActivityFramedThumbnail({
           src={frame.url}
           alt=""
           loading="lazy"
-          className="absolute inset-0 z-10 block h-full w-full object-contain pointer-events-none"
+          className="absolute inset-0 z-10 block !h-full w-full object-contain pointer-events-none"
         />
       </div>
     </div>
   )
 }
 
-function ActivityThumbnail({ item }: { item: ActivityDisplayItem }) {
-  const thumbnail = item.target.thumbnail
-  const className = 'size-16 tablet:size-20 shrink-0 overflow-hidden rounded-md border border-border bg-background-alt'
-
+function ActivityMediaThumbnail({
+  thumbnail,
+  className,
+  mediaClassName = 'block !h-full w-full object-cover object-center',
+  playVideoOnHover = false,
+  framedPaddingMode = 'compact',
+  forceMediaCover = false,
+}: {
+  thumbnail: ActivityThumbnailValue | null
+  className: string
+  mediaClassName?: string
+  playVideoOnHover?: boolean
+  framedPaddingMode?: 'compact' | 'feed'
+  forceMediaCover?: boolean
+}) {
   if (thumbnail?.frame) {
-    return <ActivityFramedThumbnail thumbnail={thumbnail} className={className} />
-  }
-
-  if (thumbnail?.type === 'image') {
     return (
-      <div
-        className={cn(className, 'bg-cover bg-center')}
-        style={{ backgroundImage: getThumbnailBackgroundImage(thumbnail.url) }}
-        aria-hidden="true"
+      <ActivityFramedThumbnail
+        thumbnail={thumbnail}
+        className={className}
+        mediaClassName={mediaClassName}
+        playVideoOnHover={playVideoOnHover}
+        paddingMode={framedPaddingMode}
       />
     )
   }
 
-  if (thumbnail?.type === 'video') {
+  if (thumbnail?.type === 'image') {
+    const resolvedMediaClassName = getThumbnailMediaClassName(
+      mediaClassName,
+      thumbnail,
+      shouldPreserveThumbnailFit(thumbnail, forceMediaCover),
+    )
+    const containerStyle = getThumbnailContainerStyle(thumbnail)
+    const imageClassName = cn(
+      'relative h-full w-full',
+      thumbnail.rounded || thumbnail.imageBorder ? 'overflow-hidden rounded-md' : '',
+    )
+    const border = thumbnail.imageBorder ? (
+      <div className="pointer-events-none absolute inset-0 border border-border" />
+    ) : null
+
+    if (thumbnail.padding) {
+      return (
+        <div
+          className={className}
+          style={containerStyle}
+          aria-hidden="true"
+        >
+          <div className={imageClassName}>
+            <img
+              src={thumbnail.url}
+              alt=""
+              loading="lazy"
+              className={resolvedMediaClassName}
+            />
+            {border}
+          </div>
+        </div>
+      )
+    }
+
     return (
-      <div className={className}>
-        <ActivityVideoThumbnail
+      <div
+        className={cn(className, 'relative')}
+        style={containerStyle}
+        aria-hidden="true"
+      >
+        <img
           src={thumbnail.url}
-          className="block h-full w-full object-cover"
+          alt=""
+          loading="lazy"
+          className={resolvedMediaClassName}
         />
+        {border}
+      </div>
+    )
+  }
+
+  if (thumbnail?.type === 'video') {
+    const resolvedMediaClassName = getThumbnailMediaClassName(
+      mediaClassName,
+      thumbnail,
+      shouldPreserveThumbnailFit(thumbnail, forceMediaCover),
+    )
+    const media = (
+      <ActivityVideoThumbnail
+        src={thumbnail.url}
+        className={resolvedMediaClassName}
+        playOnHover={playVideoOnHover}
+      />
+    )
+
+    if (thumbnail.padding) {
+      return (
+        <div
+          className={className}
+          style={getThumbnailContainerStyle(thumbnail)}
+        >
+          <div
+            className={cn(
+              'h-full w-full overflow-hidden',
+              thumbnail.rounded || thumbnail.imageBorder ? 'rounded-md' : '',
+              thumbnail.imageBorder ? 'border border-border' : '',
+            )}
+          >
+            {media}
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div
+        className={className}
+        style={getThumbnailContainerStyle(thumbnail)}
+      >
+        {media}
       </div>
     )
   }
 
   return <div className={cn(className, 'border-dashed')} aria-hidden="true" />
+}
+
+function ActivityThumbnail({ item }: { item: ActivityDisplayItem }) {
+  return (
+    <ActivityMediaThumbnail
+      thumbnail={item.target.thumbnail}
+      className="size-16 tablet:size-20 shrink-0 overflow-hidden rounded-md border border-border bg-background-alt"
+    />
+  )
 }
 
 function ActivityText({ item }: { item: ActivityDisplayItem }) {
@@ -324,42 +474,118 @@ function ActivityRow({ item, isFirst = false }: { item: ActivityDisplayItem; isF
   )
 }
 
-export default async function ActivityPage() {
-  const rawItems = await getModuleLikeActivity(100)
+function getLikeCountLabel(count: number) {
+  return `${count} ${count === 1 ? 'like' : 'likes'}`
+}
+
+function getFeedItemLabel(item: ModuleLikeFeedItem, rank: number) {
+  return `#${rank}. ${item.target.label}. ${getLikeCountLabel(item.likeCount)}`
+}
+
+function FeedItem({ item, rank }: { item: ModuleLikeFeedItem; rank: number }) {
+  const thumbnail = (
+    <ActivityMediaThumbnail
+      thumbnail={item.target.thumbnail}
+      className="aspect-[4/3] w-full overflow-hidden rounded-md border border-border bg-background-alt"
+      framedPaddingMode="feed"
+      forceMediaCover
+      playVideoOnHover
+    />
+  )
+
+  const media = item.target.href === '#' ? (
+    thumbnail
+  ) : (
+    <Link
+      href={item.target.href}
+      className="block transition-opacity duration-150 tablet:hover:opacity-60"
+      aria-label={getFeedItemLabel(item, rank)}
+    >
+      {thumbnail}
+    </Link>
+  )
+
+  return (
+    <div className="group/feed relative">
+      {media}
+      <div className="absolute bottom-3 left-3 z-20 opacity-100 transition-opacity duration-150 desktop:pointer-events-none desktop:opacity-0 desktop:group-hover/feed:pointer-events-auto desktop:group-hover/feed:opacity-100 desktop:group-focus-within/feed:pointer-events-auto desktop:group-focus-within/feed:opacity-100">
+        <ModuleLikeButton targetId={item.targetId} initialCount={item.likeCount} />
+      </div>
+    </div>
+  )
+}
+
+function FeedGrid({ items }: { items: ModuleLikeFeedItem[] }) {
+  return (
+    <div className="grid grid-cols-1 gap-x-5 gap-y-5 tablet:grid-cols-2 tablet:gap-y-10 desktop:grid-cols-3">
+      {items.map((item, index) => (
+        <FeedItem key={item.id} item={item} rank={index + 1} />
+      ))}
+    </div>
+  )
+}
+
+function EmptyState({ view, unavailable = false }: { view: ActivityView; unavailable?: boolean }) {
+  const message = unavailable
+    ? view === 'feed' ? 'Feed is temporarily unavailable.' : 'Activity is temporarily unavailable.'
+    : view === 'feed' ? 'No liked images yet.' : 'No likes yet.'
+
+  return (
+    <div className="border-t border-border py-6">
+      <p className="text-body text-muted text-pretty">{message}</p>
+      <Link href="/work" className="mt-4 inline-flex text-body transition-opacity duration-150 hover:opacity-60">
+        Browse work
+      </Link>
+    </div>
+  )
+}
+
+export default async function ActivityPage({
+  searchParams,
+}: {
+  searchParams?: Promise<ActivityPageSearchParams>
+}) {
+  const resolvedSearchParams = searchParams ? await searchParams : {}
+  const view = getActivityView(resolvedSearchParams)
+  const { rawItems, feedItems, unavailable } = await Promise.all([
+    getModuleLikeActivity(100),
+    getModuleLikeFeed(100),
+  ])
+    .then(([rawItems, feedItems]) => ({ rawItems, feedItems, unavailable: false }))
+    .catch((error) => {
+      console.error('Activity data unavailable.', error)
+      return { rawItems: [], feedItems: [], unavailable: true }
+    })
   const items = mergeConsecutiveActivityItems(rawItems)
   const groups = groupActivityItems(items)
 
   return (
     <section className="pb-20">
       <Container>
-        <div className="pb-20">
-          <h1 className="text-balance text-[34px] tablet:hidden">Activity</h1>
-          <div className="hidden tablet:block">
-            <FitText className="font-heading" maxSize={120}>Activity</FitText>
-          </div>
-        </div>
-
-        {rawItems.length > 0 ? (
-          <div className="space-y-10">
-            {groups.map((group) => (
-              <section key={group.title}>
-                <h3 className="mb-2 text-muted">{group.title}</h3>
-                <div>
-                  {group.items.map((item, index) => (
-                    <ActivityRow key={item.id} item={item} isFirst={index === 0} />
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-        ) : (
-          <div className="border-t border-border py-6">
-            <p className="text-body text-muted text-pretty">No likes yet.</p>
-            <Link href="/work" className="mt-4 inline-flex text-body transition-opacity duration-150 hover:opacity-60">
-              Browse work
-            </Link>
-          </div>
-        )}
+        <ActivityViewSwitcher
+          initialView={view}
+          activity={rawItems.length > 0 ? (
+            <div className="space-y-10">
+              {groups.map((group) => (
+                <section key={group.title}>
+                  <h4 className="mb-2 text-muted">{group.title}</h4>
+                  <div>
+                    {group.items.map((item, index) => (
+                      <ActivityRow key={item.id} item={item} isFirst={index === 0} />
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          ) : (
+            <EmptyState view="activity" unavailable={unavailable} />
+          )}
+          feed={feedItems.length > 0 ? (
+            <FeedGrid items={feedItems} />
+          ) : (
+            <EmptyState view="feed" unavailable={unavailable} />
+          )}
+        />
       </Container>
     </section>
   )

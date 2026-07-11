@@ -70,6 +70,29 @@ export default async function HomePage() {
     url: l.url,
   }))
 
+  if (!sections.length) {
+    return (
+      <>
+        <Container>
+          <section className="pt-0 tablet:pt-[60px] desktop:pt-20">
+            <h1 className="text-balance text-[42px] tablet:text-[72px] desktop:text-[104px]">
+              Gabriel Valdivia
+            </h1>
+            <p className="mt-5 max-w-2xl text-body-large text-muted text-pretty">
+              Fractional design partner for early-stage teams.
+            </p>
+            <div className="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-body">
+              <Link href="/work" className="transition-opacity duration-150 hover:opacity-60">Work</Link>
+              <Link href="/about" className="transition-opacity duration-150 hover:opacity-60">About</Link>
+              <Link href="/chat" className="transition-opacity duration-150 hover:opacity-60">Chat</Link>
+            </div>
+          </section>
+        </Container>
+        <div className="h-20 tablet:h-28 desktop:h-[200px]" />
+      </>
+    )
+  }
+
   function renderSection(block: any, i: number) {
     const cols = block.columns || '6'
 

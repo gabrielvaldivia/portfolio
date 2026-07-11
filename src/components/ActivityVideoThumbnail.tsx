@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 
 const MIN_FRAME_TIME = 0.001
 const MIDDLE_FRAME_START_RATIO = 0.25
@@ -26,41 +26,85 @@ function getRandomMiddleFrameTime(duration: number) {
   return Math.min(Math.max(randomTime, MIN_FRAME_TIME), latestSafeTime)
 }
 
-export function ActivityVideoThumbnail({ src, className = '' }: { src: string; className?: string }) {
+export function ActivityVideoThumbnail({
+  src,
+  className = '',
+  playOnHover = false,
+}: {
+  src: string
+  className?: string
+  playOnHover?: boolean
+}) {
   const videoRef = useRef<HTMLVideoElement>(null)
+  const hasLoadedVideoRef = useRef(false)
+  const isHoveringRef = useRef(false)
+  const targetTimeRef = useRef<number | null>(null)
   const videoSrc = useMemo(() => getVideoSrc(src), [src])
+
+  const loadVideo = useCallback(() => {
+    const video = videoRef.current
+    if (!video || !videoSrc) return
+
+    if (hasLoadedVideoRef.current) return
+
+    hasLoadedVideoRef.current = true
+    video.src = videoSrc
+    video.load()
+  }, [videoSrc])
+
+  const seekToRandomMiddleFrame = useCallback(() => {
+    const video = videoRef.current
+    if (!video || (playOnHover && isHoveringRef.current)) return
+
+    video.pause()
+
+    targetTimeRef.current ??= getRandomMiddleFrameTime(video.duration)
+
+    try {
+      if (Math.abs(video.currentTime - targetTimeRef.current) > 0.0001) {
+        video.currentTime = targetTimeRef.current
+      }
+    } catch {
+      // Some browsers reject seeks before enough video data is available.
+    }
+  }, [playOnHover])
+
+  function handlePointerEnter() {
+    if (!playOnHover) return
+
+    const video = videoRef.current
+    if (!video) return
+
+    isHoveringRef.current = true
+    loadVideo()
+
+    void video.play().catch(() => {
+      // Muted hover playback can still be rejected by browser policy.
+    })
+  }
+
+  function handlePointerLeave() {
+    if (!playOnHover) return
+
+    isHoveringRef.current = false
+    seekToRandomMiddleFrame()
+  }
 
   useEffect(() => {
     const video = videoRef.current
     if (!video || !videoSrc) return
 
     let cancelled = false
-    let started = false
-    let targetTime: number | null = null
     let observer: IntersectionObserver | null = null
 
-    const seekToRandomMiddleFrame = () => {
-      if (cancelled) return
-
-      video.pause()
-
-      targetTime ??= getRandomMiddleFrameTime(video.duration)
-
-      try {
-        if (Math.abs(video.currentTime - targetTime) > 0.0001) {
-          video.currentTime = targetTime
-        }
-      } catch {
-        // Some browsers reject seeks before enough video data is available.
-      }
-    }
+    hasLoadedVideoRef.current = false
+    isHoveringRef.current = false
+    targetTimeRef.current = null
 
     const loadRandomMiddleFrame = () => {
-      if (cancelled || started) return
+      if (cancelled) return
 
-      started = true
-      video.src = videoSrc
-      video.load()
+      loadVideo()
 
       if (video.readyState >= 1) {
         seekToRandomMiddleFrame()
@@ -93,7 +137,7 @@ export function ActivityVideoThumbnail({ src, className = '' }: { src: string; c
       video.removeEventListener('loadeddata', seekToRandomMiddleFrame)
       video.removeEventListener('canplay', seekToRandomMiddleFrame)
     }
-  }, [videoSrc])
+  }, [loadVideo, seekToRandomMiddleFrame, videoSrc])
 
   return (
     <video
@@ -103,6 +147,8 @@ export function ActivityVideoThumbnail({ src, className = '' }: { src: string; c
       preload="metadata"
       disablePictureInPicture
       className={className}
+      onPointerEnter={handlePointerEnter}
+      onPointerLeave={handlePointerLeave}
       aria-hidden="true"
       tabIndex={-1}
     />

@@ -210,6 +210,52 @@ const VideoBlock: Block = {
   ],
 }
 
+const BrowserBlock: Block = {
+  slug: 'browser',
+  labels: { singular: 'Browser', plural: 'Browsers' },
+  imageURL: '/block-icons/Browser.svg',
+  fields: [
+    imageLayoutFields,
+    { name: 'image', type: 'upload', relationTo: 'media', required: true },
+    { name: 'address', type: 'text', defaultValue: 'gabrielvaldivia.com' },
+    { name: 'caption', type: 'text' },
+    {
+      type: 'row' as const,
+      fields: [
+        {
+          name: 'fit',
+          type: 'select' as const,
+          defaultValue: 'cover',
+          options: [
+            { label: 'Fill', value: 'cover' },
+            { label: 'Fit', value: 'contain' },
+          ],
+        },
+        {
+          name: 'padding',
+          type: 'select' as const,
+          options: [
+            { label: 'None', value: '0' },
+            { label: 'XS (10px)', value: '10' },
+            { label: 'S (20px)', value: '20' },
+            { label: 'M (40px)', value: '40' },
+            { label: 'L (60px)', value: '60' },
+            { label: 'XL (80px)', value: '80' },
+          ],
+        },
+        { name: 'bgColor', type: 'text' as const, defaultValue: 'alt' },
+      ],
+    },
+    {
+      type: 'row' as const,
+      fields: [
+        { name: 'imageBorder', type: 'checkbox' as const, defaultValue: false, label: 'Image Border' },
+        { name: 'shadow', type: 'checkbox' as const, defaultValue: false },
+      ],
+    },
+  ],
+}
+
 
 const DC1Block: Block = {
   slug: 'dc1',
@@ -277,7 +323,7 @@ const iPhoneXBlock: Block = {
   ],
 }
 
-export const contentBlocks = [DC1Block, ImageBlock, iPhone5Block, iPhone6Block, iPhoneXBlock, iPhone13MiniBlock, iPhone15Block, TextBlock, VideoBlock]
+export const contentBlocks = [BrowserBlock, DC1Block, ImageBlock, iPhone5Block, iPhone6Block, iPhoneXBlock, iPhone13MiniBlock, iPhone15Block, TextBlock, VideoBlock]
 
 export const Projects: CollectionConfig = {
   slug: 'projects',

@@ -142,10 +142,14 @@ function AnimatedCount({ value }: { value: number }) {
   )
 }
 
-export function ModuleLikeButton({ targetId }: { targetId: string }) {
+export function ModuleLikeButton({ targetId, initialCount = 0 }: { targetId: string; initialCount?: number }) {
+  const initialLikeData = {
+    ...emptyLikeData,
+    count: initialCount,
+  }
   const prefersReducedMotion = useReducedMotion()
-  const [data, setData] = useState<ModuleLikeData>(emptyLikeData)
-  const [displayCount, setDisplayCount] = useState(emptyLikeData.count)
+  const [data, setData] = useState<ModuleLikeData>(initialLikeData)
+  const [displayCount, setDisplayCount] = useState(initialLikeData.count)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isPressing, setIsPressing] = useState(false)
@@ -686,7 +690,7 @@ export function ModuleLikeButton({ targetId }: { targetId: string }) {
         disabled={isLoading}
         aria-label={`Like this module. Hold for a super like worth ${SUPER_MODULE_LIKE_AMOUNT} likes. ${data.count} total likes. You have liked it ${data.userLikes} times.`}
         className={cn(
-          'inline-flex h-8 touch-manipulation select-none items-center gap-1.5 rounded-full border border-border bg-elevated px-2.5 text-caption font-medium text-muted shadow-sm outline-none transition-colors duration-150',
+          'inline-flex h-8 touch-manipulation select-none items-center gap-1.5 rounded-full bg-elevated px-2.5 text-caption font-medium text-muted shadow-sm outline outline-1 outline-offset-0 outline-gray-400/40 transition-colors duration-150',
           'hover:text-content focus-visible:ring-2 focus-visible:ring-content/30 disabled:cursor-default disabled:opacity-70',
           isHeartActive && 'text-red-500 hover:text-red-600',
         )}
