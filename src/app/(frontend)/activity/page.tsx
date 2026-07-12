@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import { ActivityVideoThumbnail } from '@/components/ActivityVideoThumbnail'
 import { ActivityViewSwitcher, type ActivityView } from '@/components/ActivityViewSwitcher'
@@ -260,6 +261,9 @@ function ActivityFramedThumbnail({
   const paddingClassName = paddingMode === 'feed'
     ? isDC1Frame ? 'px-1.5 py-5 tablet:py-1.5' : 'p-1.5'
     : cn('px-1 tablet:px-1.5', isDC1Frame ? 'py-2 tablet:py-3' : 'py-1 tablet:py-1.5')
+  const imageSizes = paddingMode === 'feed'
+    ? '(max-width: 810px) 100vw, (max-width: 1280px) 50vw, 33vw'
+    : '80px'
 
   return (
     <div
@@ -285,19 +289,23 @@ function ActivityFramedThumbnail({
               playOnHover={playVideoOnHover}
             />
           ) : (
-            <img
+            <Image
               src={thumbnail.url}
               alt=""
-              loading="lazy"
+              fill
+              sizes={imageSizes}
+              quality={90}
               className={resolvedMediaClassName}
             />
           )}
         </div>
-        <img
+        <Image
           src={frame.url}
           alt=""
-          loading="lazy"
-          className="absolute inset-0 z-10 block !h-full w-full object-contain pointer-events-none"
+          fill
+          sizes={imageSizes}
+          quality={90}
+          className="z-10 object-contain pointer-events-none"
         />
       </div>
     </div>
@@ -345,6 +353,9 @@ function ActivityMediaThumbnail({
     const border = thumbnail.imageBorder ? (
       <div className="pointer-events-none absolute inset-0 border border-border" />
     ) : null
+    const imageSizes = framedPaddingMode === 'feed'
+      ? '(max-width: 810px) 100vw, (max-width: 1280px) 50vw, 33vw'
+      : '80px'
 
     if (thumbnail.padding) {
       return (
@@ -354,10 +365,12 @@ function ActivityMediaThumbnail({
           aria-hidden="true"
         >
           <div className={imageClassName}>
-            <img
+            <Image
               src={thumbnail.url}
               alt=""
-              loading="lazy"
+              fill
+              sizes={imageSizes}
+              quality={90}
               className={resolvedMediaClassName}
             />
             {border}
@@ -372,10 +385,12 @@ function ActivityMediaThumbnail({
         style={containerStyle}
         aria-hidden="true"
       >
-        <img
+        <Image
           src={thumbnail.url}
           alt=""
-          loading="lazy"
+          fill
+          sizes={imageSizes}
+          quality={90}
           className={resolvedMediaClassName}
         />
         {border}
@@ -547,45 +562,54 @@ export default async function ActivityPage({
 }) {
   const resolvedSearchParams = searchParams ? await searchParams : {}
   const view = getActivityView(resolvedSearchParams)
-  const { rawItems, feedItems, unavailable } = await Promise.all([
-    getModuleLikeActivity(100),
-    getModuleLikeFeed(100),
-  ])
-    .then(([rawItems, feedItems]) => ({ rawItems, feedItems, unavailable: false }))
-    .catch((error) => {
-      console.error('Activity data unavailable.', error)
-      return { rawItems: [], feedItems: [], unavailable: true }
-    })
+  let rawItems: ModuleLikeActivityItem[] = []
+  let feedItems: ModuleLikeFeedItem[] = []
+  let unavailable = false
+
+  try {
+    if (view === 'feed') {
+      feedItems = await getModuleLikeFeed(100)
+    } else {
+      rawItems = await getModuleLikeActivity(100)
+    }
+  } catch (error) {
+    console.error('Activity data unavailable.', error)
+    unavailable = true
+  }
+
   const items = mergeConsecutiveActivityItems(rawItems)
   const groups = groupActivityItems(items)
+  const content = view === 'activity'
+    ? rawItems.length > 0 ? (
+        <div className="space-y-10">
+          {groups.map((group) => (
+            <section key={group.title}>
+              <h4 className="mb-2 text-muted">{group.title}</h4>
+              <div>
+                {group.items.map((item, index) => (
+                  <ActivityRow key={item.id} item={item} isFirst={index === 0} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <EmptyState view="activity" unavailable={unavailable} />
+      )
+    : feedItems.length > 0 ? (
+        <FeedGrid items={feedItems} />
+      ) : (
+        <EmptyState view="feed" unavailable={unavailable} />
+      )
 
   return (
     <section className="pb-20">
       <Container>
         <ActivityViewSwitcher
-          initialView={view}
-          activity={rawItems.length > 0 ? (
-            <div className="space-y-10">
-              {groups.map((group) => (
-                <section key={group.title}>
-                  <h4 className="mb-2 text-muted">{group.title}</h4>
-                  <div>
-                    {group.items.map((item, index) => (
-                      <ActivityRow key={item.id} item={item} isFirst={index === 0} />
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </div>
-          ) : (
-            <EmptyState view="activity" unavailable={unavailable} />
-          )}
-          feed={feedItems.length > 0 ? (
-            <FeedGrid items={feedItems} />
-          ) : (
-            <EmptyState view="feed" unavailable={unavailable} />
-          )}
-        />
+          view={view}
+        >
+          {content}
+        </ActivityViewSwitcher>
       </Container>
     </section>
   )
