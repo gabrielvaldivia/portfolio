@@ -17,6 +17,7 @@ import { Pages } from './collections/Pages'
 import { Conversations } from './collections/Conversations'
 
 import { SiteSettings } from './globals/SiteSettings'
+import { getPayloadSecret } from './lib/payloadSecret'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -97,7 +98,7 @@ export default buildConfig({
   collections: [Pages, Projects, SideProjects, Clients, People, Services, Conversations, Users, Media],
   globals: [SiteSettings],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET || 'default-secret-change-me-in-production',
+  secret: getPayloadSecret(),
   cors: {
     headers: ['Content-Length'],
     origins: payloadAllowedOrigins,

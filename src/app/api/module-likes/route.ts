@@ -7,6 +7,7 @@ import {
   readRows,
 } from '@/lib/moduleLikeActivity'
 import { getPayload } from '@/lib/payload'
+import { getPayloadSecret } from '@/lib/payloadSecret'
 import {
   MAX_MODULE_LIKES_PER_VISITOR,
   SUPER_MODULE_LIKE_AMOUNT,
@@ -57,7 +58,7 @@ function getVisitor(req: NextRequest): Visitor {
 }
 
 function getVisitorHash(visitorId: string) {
-  const secret = process.env.PAYLOAD_SECRET || 'module-likes'
+  const secret = getPayloadSecret()
   return createHash('sha256').update(`${secret}:${visitorId}`).digest('hex')
 }
 
