@@ -392,7 +392,7 @@ export function iPhone15Block({ id: blockId, video, image, rows, showNotch, _act
           #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
       ` }} />
-      <div className="flex h-full max-w-full items-center justify-center">
+      <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
           <div
             className="absolute z-0 overflow-hidden bg-black"
@@ -439,7 +439,7 @@ export function iPhone13MiniBlock({ id: blockId, video, image, rows, _active, _c
           #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
       ` }} />
-      <div className="flex h-full max-w-full items-center justify-center">
+      <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
           <div className="absolute z-0 overflow-hidden" style={{ top: '7.3%', bottom: '7.2%', left: '13.5%', right: '13.5%', borderRadius: '5%' }}>
             <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} active={_active} mode={_mode} />
@@ -476,7 +476,7 @@ export function iPhone5Block({ id: blockId, video, image, rows, _active, _contai
           #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
       ` }} />
-      <div className="flex h-full max-w-full items-center justify-center">
+      <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
           <div className="absolute z-0 overflow-hidden" style={{ top: '14.3%', bottom: '13.7%', left: '8.2%', right: '6.9%' }}>
             <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} active={_active} mode={_mode} />
@@ -509,7 +509,7 @@ export function iPhone6Block({ id: blockId, video, image, rows, _active, _contai
           #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
       ` }} />
-      <div className="flex h-full max-w-full items-center justify-center">
+      <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
           <div className="absolute z-0 overflow-hidden" style={{ top: '15.4%', bottom: '15.6%', left: '12.2%', right: '11.7%' }}>
             <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} active={_active} mode={_mode} />
@@ -542,7 +542,7 @@ export function iPhoneXBlock({ id: blockId, video, image, rows, _active, _contai
           #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
       ` }} />
-      <div className="flex h-full max-w-full items-center justify-center">
+      <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
           <div className="absolute z-0 overflow-hidden" style={{ top: '6.2%', bottom: '6.5%', left: '10.1%', right: '9.7%', borderRadius: '5%' }}>
             <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} active={_active} mode={_mode} />

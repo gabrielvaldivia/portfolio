@@ -229,7 +229,7 @@ export function RenderBlocks({ blocks, likeNamespace }: { blocks?: any[]; likeNa
                   <ModuleLightboxTrigger
                     slideId={slideId}
                     label={slideLabel}
-                    className="mx-auto flex h-full w-fit max-w-full items-center justify-center"
+                    className="mx-auto flex h-full max-w-full items-center justify-center"
                     preserveAspectDuringZoom
                     sourceContainer
                   >
