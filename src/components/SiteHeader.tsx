@@ -36,7 +36,7 @@ export function SiteHeader() {
             <SidebarIcon />
           </button>
 
-          <nav aria-label="Chat view" className="pointer-events-auto absolute left-1/2 top-4 tablet:top-10 z-30 flex h-10 -translate-x-1/2 items-center rounded-full bg-background-alt-hover p-1">
+          <nav aria-label="Chat view" className="pointer-events-auto absolute left-1/2 top-4 tablet:top-10 z-30 flex h-10 -translate-x-1/2 items-center rounded-full bg-floating p-1 backdrop-blur-xl">
             <Link
               href={chatHref}
               scroll={false}
