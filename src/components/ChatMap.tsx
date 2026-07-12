@@ -56,6 +56,9 @@ export function ChatMap() {
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [mapReady, setMapReady] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => setMounted(true), [])
 
   useEffect(() => {
     const desktop = window.matchMedia('(min-width: 1280px)')
@@ -245,7 +248,7 @@ export function ChatMap() {
 
   return (
     <div className="flex size-full overflow-hidden">
-      {typeof document !== 'undefined' && createPortal(
+      {mounted && createPortal(
         <div className={`fixed inset-0 z-50 tablet:hidden ${sidebarOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
           <button
             type="button"

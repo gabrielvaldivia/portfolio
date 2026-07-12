@@ -349,6 +349,9 @@ export function Chat({
   const [hasScrolled, setHasScrolled] = useState(false)
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [conversationId, setConversationIdRaw] = useState<number | null>(initialConversationId)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => setMounted(true), [])
 
   useEffect(() => {
     if (!persistentSidebar) return
@@ -972,7 +975,7 @@ export function Chat({
   if (persistentSidebar) {
     return (
       <div className="flex flex-row h-full overflow-hidden">
-        {typeof document !== 'undefined' && createPortal(
+        {mounted && createPortal(
           <div className={`fixed inset-0 z-50 tablet:hidden ${sidebarOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
             <button
               type="button"
