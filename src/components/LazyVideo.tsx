@@ -12,7 +12,6 @@ export function LazyVideo({ src, className = '' }: { src: string; className?: st
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          if (!video.src) video.src = src
           video.play().catch(() => {})
         } else {
           video.pause()
@@ -28,10 +27,12 @@ export function LazyVideo({ src, className = '' }: { src: string; className?: st
   return (
     <video
       ref={videoRef}
+      src={src}
+      autoPlay
       loop
       muted
       playsInline
-      preload="none"
+      preload="metadata"
       className={`block ${className}`}
     />
   )

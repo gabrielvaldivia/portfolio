@@ -309,7 +309,7 @@ function lightboxFrameSizeStyle(aspectRatio: number) {
 
 function framedLightboxSizeStyle(aspectRatio: number, contained: boolean) {
   return contained
-    ? `width: min(100%, calc(100cqh * ${aspectRatio})); height: auto; max-width: 100%; max-height: 100%;`
+    ? 'height: 100%; width: auto; max-width: 100%; max-height: 100%;'
     : lightboxFrameSizeStyle(aspectRatio)
 }
 
