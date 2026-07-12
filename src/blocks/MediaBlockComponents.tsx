@@ -323,13 +323,11 @@ function FramedVideoOrImage({
   src,
   isVideo,
   alt,
-  active,
   mode,
 }: {
   src: string
   isVideo?: boolean
   alt?: string
-  active?: boolean
   mode: ModuleRenderMode
 }) {
   if (isVideo) {
@@ -361,7 +359,7 @@ function DeviceFrameImage({ src }: { src: string }) {
   )
 }
 
-export function DC1Block({ id: blockId, video, rows, _active, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; rows?: string } & ModuleRenderProps) {
+export function DC1Block({ id: blockId, video, rows, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; rows?: string } & ModuleRenderProps) {
   const src = video?.url
   if (!src) return null
   const rowCount = parseInt(rows || '1', 10)
@@ -380,7 +378,7 @@ export function DC1Block({ id: blockId, video, rows, _active, _containedInLightb
       ` }} />
       <div id={id} className="relative mx-auto overflow-hidden">
         <div className="absolute inset-[6%] z-0">
-          <FramedVideoOrImage src={src} isVideo active={_active} mode={_mode} />
+          <FramedVideoOrImage src={src} isVideo mode={_mode} />
         </div>
         <DeviceFrameImage src={DC1_FRAME_URL} />
       </div>
@@ -388,7 +386,7 @@ export function DC1Block({ id: blockId, video, rows, _active, _containedInLightb
   )
 }
 
-export function iPhone15Block({ id: blockId, video, image, rows, showNotch, _active, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string; showNotch?: boolean | string | number } & ModuleRenderProps) {
+export function iPhone15Block({ id: blockId, video, image, rows, showNotch, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string; showNotch?: boolean | string | number } & ModuleRenderProps) {
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url
@@ -423,7 +421,7 @@ export function iPhone15Block({ id: blockId, video, image, rows, showNotch, _act
               boxShadow: '0 0 0 6px #000',
             }}
           >
-            <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} active={_active} mode={_mode} />
+            <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} mode={_mode} />
           </div>
           <DeviceFrameImage src={frameUrl} />
         </div>
@@ -432,7 +430,7 @@ export function iPhone15Block({ id: blockId, video, image, rows, showNotch, _act
   )
 }
 
-export function iPhone13MiniBlock({ id: blockId, video, image, rows, _active, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
+export function iPhone13MiniBlock({ id: blockId, video, image, rows, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url
@@ -456,7 +454,7 @@ export function iPhone13MiniBlock({ id: blockId, video, image, rows, _active, _c
       <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
           <div className="absolute z-0 overflow-hidden" style={{ top: '7.3%', bottom: '7.2%', left: '13.5%', right: '13.5%', borderRadius: '5%' }}>
-            <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} active={_active} mode={_mode} />
+            <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} mode={_mode} />
           </div>
           <DeviceFrameImage src={IPHONE13MINI_FRAME_URL} />
         </div>
@@ -465,7 +463,7 @@ export function iPhone13MiniBlock({ id: blockId, video, image, rows, _active, _c
   )
 }
 
-export function iPhone5Block({ id: blockId, video, image, rows, _active, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
+export function iPhone5Block({ id: blockId, video, image, rows, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url
@@ -489,7 +487,7 @@ export function iPhone5Block({ id: blockId, video, image, rows, _active, _contai
       <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
           <div className="absolute z-0 overflow-hidden" style={{ top: '14.3%', bottom: '13.7%', left: '8.2%', right: '6.9%' }}>
-            <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} active={_active} mode={_mode} />
+            <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} mode={_mode} />
           </div>
           <DeviceFrameImage src={IPHONE5_FRAME_URL} />
         </div>
@@ -498,7 +496,7 @@ export function iPhone5Block({ id: blockId, video, image, rows, _active, _contai
   )
 }
 
-export function iPhone6Block({ id: blockId, video, image, rows, _active, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
+export function iPhone6Block({ id: blockId, video, image, rows, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url
@@ -522,7 +520,7 @@ export function iPhone6Block({ id: blockId, video, image, rows, _active, _contai
       <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
           <div className="absolute z-0 overflow-hidden" style={{ top: '15.4%', bottom: '15.6%', left: '12.2%', right: '11.7%' }}>
-            <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} active={_active} mode={_mode} />
+            <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} mode={_mode} />
           </div>
           <DeviceFrameImage src={IPHONE6_FRAME_URL} />
         </div>
@@ -531,7 +529,7 @@ export function iPhone6Block({ id: blockId, video, image, rows, _active, _contai
   )
 }
 
-export function iPhoneXBlock({ id: blockId, video, image, rows, _active, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
+export function iPhoneXBlock({ id: blockId, video, image, rows, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url
@@ -555,7 +553,7 @@ export function iPhoneXBlock({ id: blockId, video, image, rows, _active, _contai
       <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
           <div className="absolute z-0 overflow-hidden" style={{ top: '6.2%', bottom: '6.5%', left: '10.1%', right: '9.7%', borderRadius: '5%' }}>
-            <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} active={_active} mode={_mode} />
+            <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} mode={_mode} />
           </div>
           <DeviceFrameImage src={IPHONEX_FRAME_URL} />
         </div>

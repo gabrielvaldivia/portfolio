@@ -1,9 +1,7 @@
-import { Container } from '@/components/Container'
 import { ProjectCard } from '@/components/ProjectCard'
 import { FitText } from '@/components/FitText'
 import { getProjects } from '@/lib/queries'
 import type { Metadata } from 'next'
-import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Work — Gabriel Valdivia',

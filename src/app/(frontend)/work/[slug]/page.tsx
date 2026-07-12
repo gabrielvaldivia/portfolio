@@ -6,7 +6,6 @@ import { RichText } from '@/components/RichText'
 import { getProjectBySlug, getProjectSlugs } from '@/lib/queries'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import { FitText } from '@/components/FitText'
 
 export const revalidate = 60
@@ -60,8 +59,6 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
 
   const team = (project.team || []) as any[]
   const services = (project.services || []) as any[]
-  const featuredImage = project.featuredImage as any
-
   return (
     <>
 

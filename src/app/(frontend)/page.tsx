@@ -4,7 +4,6 @@ import { Testimonial } from '@/components/Testimonial'
 import { RichText } from '@/components/RichText'
 import { ServicePill } from '@/components/ServicePill'
 import { HScrollContainer } from '@/components/HScrollContainer'
-import { MomentumScroll } from '@/components/MomentumScroll'
 import { FitText } from '@/components/FitText'
 import { SocialIcon } from '@/components/Icons'
 import { Chat } from '@/components/Chat'
@@ -153,7 +152,6 @@ export default async function HomePage() {
                           slug={item.slug}
                           subtitle={item.subtitle}
                           featuredImage={item.featuredImage}
-                          year={item.year}
                           priority={idx === 0}
                         />
                       ) : (
@@ -193,7 +191,6 @@ export default async function HomePage() {
                         slug={item.slug}
                         subtitle={item.subtitle}
                         featuredImage={item.featuredImage}
-                        year={item.year}
                       />
                     ) : (
                       <Testimonial

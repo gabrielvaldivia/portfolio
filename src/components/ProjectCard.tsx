@@ -6,13 +6,12 @@ type Props = {
   slug: string
   subtitle?: string
   featuredImage?: { url: string; alt: string; width: number; height: number }
-  year?: string
   href?: string
   icon?: React.ReactNode
   priority?: boolean
 }
 
-export function ProjectCard({ title, slug, subtitle, featuredImage, year, href, icon, priority }: Props) {
+export function ProjectCard({ title, slug, subtitle, featuredImage, href, icon, priority }: Props) {
   return (
     <Link href={href || `/work/${slug}`} className="group block tablet:p-2">
       <div className="rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] overflow-hidden bg-background-alt group-hover:bg-alt-hover transition-colors flex flex-col">

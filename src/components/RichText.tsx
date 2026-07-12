@@ -7,7 +7,6 @@ function resolveUrl(fields: any): string {
   if (fields.doc) {
     const doc = fields.doc
     const slug = doc.value?.slug || doc.slug
-    const type = doc.value?.type || doc.type
     const collection = fields.relationTo
 
     // Projects

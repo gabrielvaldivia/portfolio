@@ -1,37 +1,5 @@
 import type { Block, CollectionConfig } from 'payload'
 
-const layoutFields = {
-  type: 'row' as const,
-  fields: [
-    {
-      name: 'columns',
-      type: 'select' as const,
-      defaultValue: '6',
-      options: [
-        { label: '1 Col', value: '1' },
-        { label: '2 Col', value: '2' },
-        { label: '3 Col', value: '3' },
-        { label: '4 Col', value: '4' },
-        { label: '5 Col', value: '5' },
-        { label: '6 Col', value: '6' },
-      ],
-    },
-    {
-      name: 'rows',
-      type: 'select' as const,
-      defaultValue: '1',
-      options: [
-        { label: '1 Row', value: '1' },
-        { label: '2 Row', value: '2' },
-        { label: '3 Row', value: '3' },
-        { label: '4 Row', value: '4' },
-        { label: '5 Row', value: '5' },
-        { label: '6 Row', value: '6' },
-      ],
-    },
-  ],
-}
-
 // ── Content Blocks ──
 
 const textLayoutFields = {
