@@ -14,31 +14,17 @@ export const revalidate = 60
 
 export default async function ClientsPage() {
   const payload = await getPayload()
-  const page = await getPageBySlug('clients')
+  const [page, clientsResult] = await Promise.all([
+    getPageBySlug('clients'),
+    payload.find({
+      collection: 'clients',
+      sort: 'name',
+      limit: 100,
+      depth: 1,
+    }),
+  ])
   const heading = (page as any)?.clientsHeading || page?.title || 'Clients'
-  const { docs: clients } = await payload.find({
-    collection: 'clients',
-    sort: 'name',
-    limit: 100,
-    depth: 1,
-  })
-
-  // Get all projects with client relationship
-  const { docs: projects } = await payload.find({
-    collection: 'projects',
-    limit: 100,
-    depth: 0,
-  })
-
-  // Group projects by client ID
-  const projectsByClient: Record<number, typeof projects> = {}
-  for (const project of projects) {
-    const clientId = project.client as number
-    if (clientId) {
-      if (!projectsByClient[clientId]) projectsByClient[clientId] = []
-      projectsByClient[clientId].push(project)
-    }
-  }
+  const clients = clientsResult.docs
 
   // Group clients by first letter
   const grouped: Record<string, typeof clients> = {}

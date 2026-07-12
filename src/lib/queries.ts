@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { getPayload } from './payload'
 
 type GetProjectsOptions = {
@@ -21,7 +22,7 @@ export async function getProjects(options: GetProjectsOptions = {}) {
   })
 }
 
-export async function getProjectBySlug(slug: string) {
+export const getProjectBySlug = cache(async function getProjectBySlug(slug: string) {
   const payload = await getPayload()
   const result = await payload.find({
     collection: 'projects',
@@ -30,7 +31,18 @@ export async function getProjectBySlug(slug: string) {
     limit: 1,
   })
   return result.docs[0] || null
-}
+})
+
+export const getProjectSlugs = cache(async function getProjectSlugs() {
+  const payload = await getPayload()
+  const result = await payload.find({
+    collection: 'projects',
+    limit: 100,
+    depth: 0,
+    select: { slug: true },
+  })
+  return result.docs.flatMap((project) => project.slug ? [project.slug] : [])
+})
 
 export async function getClients() {
   const payload = await getPayload()
@@ -42,7 +54,7 @@ export async function getSideProjects() {
   return payload.find({ collection: 'side-projects', sort: 'order', limit: 100, depth: 2 })
 }
 
-export async function getSideProjectBySlug(slug: string) {
+export const getSideProjectBySlug = cache(async function getSideProjectBySlug(slug: string) {
   const payload = await getPayload()
   const result = await payload.find({
     collection: 'side-projects',
@@ -51,7 +63,18 @@ export async function getSideProjectBySlug(slug: string) {
     limit: 1,
   })
   return result.docs[0] || null
-}
+})
+
+export const getSideProjectSlugs = cache(async function getSideProjectSlugs() {
+  const payload = await getPayload()
+  const result = await payload.find({
+    collection: 'side-projects',
+    limit: 100,
+    depth: 0,
+    select: { slug: true },
+  })
+  return result.docs.flatMap((project) => project.slug ? [project.slug] : [])
+})
 
 export async function getFeaturedTestimonials() {
   const payload = await getPayload()
@@ -63,7 +86,7 @@ export async function getFeaturedTestimonials() {
   })
 }
 
-export async function getPageBySlug(slug: string) {
+export const getPageBySlug = cache(async function getPageBySlug(slug: string) {
   const payload = await getPayload()
   const result = await payload.find({
     collection: 'pages',
@@ -72,9 +95,23 @@ export async function getPageBySlug(slug: string) {
     limit: 1,
   })
   return result.docs[0] || null
-}
+})
 
-export async function getSiteSettings() {
+export const getPublishedPageBySlug = cache(async function getPublishedPageBySlug(slug: string) {
+  const payload = await getPayload()
+  const result = await payload.find({
+    collection: 'pages',
+    where: {
+      slug: { equals: slug },
+      status: { equals: 'published' },
+    },
+    limit: 1,
+    depth: 2,
+  })
+  return result.docs[0] || null
+})
+
+export const getSiteSettings = cache(async function getSiteSettings() {
   const payload = await getPayload()
   return payload.findGlobal({ slug: 'site-settings' })
-}
+})

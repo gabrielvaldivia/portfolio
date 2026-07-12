@@ -1,7 +1,7 @@
 import { Container } from '@/components/Container'
 import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { RichText } from '@/components/RichText'
-import { getSideProjectBySlug, getSideProjects } from '@/lib/queries'
+import { getSideProjectBySlug, getSideProjectSlugs } from '@/lib/queries'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { FitText } from '@/components/FitText'
@@ -10,8 +10,8 @@ export const revalidate = 60
 
 export async function generateStaticParams() {
   try {
-    const { docs } = await getSideProjects()
-    return docs.filter((p: any) => p.slug).map((p: any) => ({ slug: p.slug }))
+    const slugs = await getSideProjectSlugs()
+    return slugs.map((slug) => ({ slug }))
   } catch {
     return []
   }

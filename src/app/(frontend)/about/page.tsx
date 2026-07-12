@@ -35,9 +35,10 @@ export const metadata: Metadata = {
 export const revalidate = 60
 
 export default async function AboutPage() {
-  const page = await getPageBySlug('about')
-
-  const sideProjectsResult = await getSideProjects()
+  const [page, sideProjectsResult] = await Promise.all([
+    getPageBySlug('about'),
+    getSideProjects(),
+  ])
   const sideProjects = sideProjectsResult.docs as any[]
   const aboutSections = (page?.aboutSections as any[]) || []
 

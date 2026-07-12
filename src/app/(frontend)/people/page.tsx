@@ -14,16 +14,19 @@ export const revalidate = 300
 
 export default async function PeoplePage() {
   const payload = await getPayload()
-  const page = await getPageBySlug('people')
+  const [page, peopleResult] = await Promise.all([
+    getPageBySlug('people'),
+    payload.find({
+      collection: 'people',
+      sort: 'name',
+      limit: 200,
+      depth: 1,
+      select: { name: true, role: true, linkedIn: true, photo: true, company: true },
+    }),
+  ])
   const heading = (page as any)?.peopleHeading || page?.title || 'People'
   const description = (page as any)?.peopleDescription || ''
-
-  const { docs: people } = await payload.find({
-    collection: 'people',
-    sort: 'name',
-    limit: 200,
-    depth: 2,
-  })
+  const people = peopleResult.docs
 
   const serialized = people.map((p: any) => ({
     id: p.id,

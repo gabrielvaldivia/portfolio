@@ -473,8 +473,8 @@ const getActivityTargetIndex = cache(async function getActivityTargetIndex() {
   const payload = await getPayload()
   if (isPayloadUnavailable(payload)) throw new Error('Activity target data is temporarily unavailable')
   const [projects, sideProjects] = await Promise.all([
-    payload.find({ collection: 'projects', limit: 200, depth: 3 }),
-    payload.find({ collection: 'side-projects', limit: 200, depth: 3 }),
+    payload.find({ collection: 'projects', limit: 200, depth: 1, select: { title: true, slug: true, content: true } }),
+    payload.find({ collection: 'side-projects', limit: 200, depth: 1, select: { title: true, slug: true, content: true } }),
   ])
   const index = new Map<string, ActivityTarget>()
 

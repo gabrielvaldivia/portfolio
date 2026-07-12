@@ -3,7 +3,7 @@ import { Avatar } from '@/components/Avatar'
 import { ServicePill } from '@/components/ServicePill'
 import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { RichText } from '@/components/RichText'
-import { getProjectBySlug, getProjects } from '@/lib/queries'
+import { getProjectBySlug, getProjectSlugs } from '@/lib/queries'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import Image from 'next/image'
@@ -13,8 +13,8 @@ export const revalidate = 60
 
 export async function generateStaticParams() {
   try {
-    const { docs } = await getProjects({ includeHidden: true })
-    return docs.map((project: any) => ({ slug: project.slug }))
+    const slugs = await getProjectSlugs()
+    return slugs.map((slug) => ({ slug }))
   } catch {
     return []
   }

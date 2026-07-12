@@ -42,19 +42,30 @@ function SectionWithTitle({ title, cols, children, titleRight }: { title?: strin
 
 export default async function HomePage() {
   const payload = await getPayload()
-  const pageResult = await payload.find({ collection: 'pages', where: { slug: { equals: 'home' } }, depth: 3, limit: 1 })
+  const [
+    pageResult,
+    services,
+    clientsResult,
+    allProjects,
+    allPeople,
+    allSideProjects,
+    aboutPage,
+  ] = await Promise.all([
+    payload.find({ collection: 'pages', where: { slug: { equals: 'home' } }, depth: 3, limit: 1 }),
+    payload.find({ collection: 'services', sort: 'order', limit: 20, where: { featured: { equals: true } }, select: { title: true } }),
+    getClients(),
+    payload.find({ collection: 'projects', sort: 'order', limit: 100, depth: 0, select: { title: true, slug: true } }),
+    payload.find({ collection: 'people', limit: 100, depth: 0, select: { name: true, linkedIn: true } }),
+    payload.find({ collection: 'side-projects', sort: 'order', limit: 100, depth: 0, select: { title: true, slug: true } }),
+    payload.find({ collection: 'pages', where: { slug: { equals: 'about' } }, depth: 0, limit: 1, select: { talks: true, interviews: true } }),
+  ])
   const page = pageResult.docs[0] || null
   const sections = (page?.sections || []) as any[]
   const faqItems = getFAQItemsFromSections(sections)
-  const services = await payload.find({ collection: 'services', sort: 'order', limit: 20, where: { featured: { equals: true } } })
-  const { docs: clients } = await getClients()
-  const allProjects = await payload.find({ collection: 'projects', sort: 'order', limit: 100, depth: 0 })
+  const clients = clientsResult.docs
   const projectLinks = allProjects.docs.map((p: any) => ({ title: p.title, slug: p.slug }))
-  const allPeople = await payload.find({ collection: 'people', limit: 100, depth: 0 })
   const peopleLinks = allPeople.docs.filter((p: any) => p.linkedIn).map((p: any) => ({ name: p.name, linkedin: p.linkedIn }))
-  const allSideProjects = await payload.find({ collection: 'side-projects', sort: 'order', limit: 100, depth: 0 })
   const sideProjectLinks = allSideProjects.docs.filter((p: any) => p.slug).map((p: any) => ({ title: p.title, slug: p.slug }))
-  const aboutPage = await payload.find({ collection: 'pages', where: { slug: { equals: 'about' } }, depth: 0, limit: 1 })
   const aboutData = aboutPage.docs[0] as any
   const talkLinks = [
     ...((aboutData?.talks || []) as any[]).filter((t: any) => t.url).map((t: any) => ({ title: t.title, url: t.url })),
