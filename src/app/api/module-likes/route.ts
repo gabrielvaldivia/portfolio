@@ -2,7 +2,6 @@ import { createHash, randomUUID } from 'crypto'
 import { sql } from '@payloadcms/db-postgres'
 import { NextRequest, NextResponse } from 'next/server'
 import {
-  ensureModuleLikesTables,
   getModuleLikeRequestLocation,
   readRows,
 } from '@/lib/moduleLikeActivity'
@@ -99,8 +98,6 @@ async function getLikeData(ids: string[], visitorHash: string) {
   const db = payload.db.drizzle
   const idFragments = ids.map((id) => sql`${id}`)
 
-  await ensureModuleLikesTables(db)
-
   const result = await db.execute(sql`
     SELECT
       "target_id",
@@ -164,8 +161,6 @@ export async function POST(req: NextRequest) {
     const payload = await getPayload()
     const db = payload.db.drizzle
     const likeLocation = await getModuleLikeRequestLocation(req.headers)
-
-    await ensureModuleLikesTables(db)
 
     await db.execute(sql`
       WITH "accepted_like" AS (

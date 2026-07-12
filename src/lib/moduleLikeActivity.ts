@@ -10,8 +10,6 @@ import {
   parseModuleLikeTargetId,
 } from '@/lib/moduleLikes'
 
-type ModuleLikeDb = Awaited<ReturnType<typeof getPayload>>['db']['drizzle']
-
 type ModuleLikeActivityRow = {
   id: number | string
   target_id: string
@@ -92,7 +90,6 @@ export type ModuleLikeFeedItem = {
   target: ActivityTarget
 }
 
-let ensureModuleLikesTablesPromise: Promise<void> | null = null
 const GEO_LOOKUP_TIMEOUT_MS = 900
 const countryDisplayNames = typeof Intl.DisplayNames === 'function'
   ? new Intl.DisplayNames(['en'], { type: 'region' })
@@ -120,116 +117,6 @@ export function readRows<T>(result: unknown): T[] {
     return (result as { rows: T[] }).rows
   }
   return []
-}
-
-export function ensureModuleLikesTables(db: ModuleLikeDb) {
-  if (!ensureModuleLikesTablesPromise) {
-    ensureModuleLikesTablesPromise = db.execute(sql`
-      CREATE TABLE IF NOT EXISTS "module_likes" (
-        "id" serial PRIMARY KEY,
-        "target_id" varchar NOT NULL,
-        "visitor_hash" varchar NOT NULL,
-        "like_count" integer NOT NULL DEFAULT 0,
-        "created_at" timestamp(3) with time zone NOT NULL DEFAULT now(),
-        "updated_at" timestamp(3) with time zone NOT NULL DEFAULT now(),
-        CONSTRAINT "module_likes_count_range" CHECK ("like_count" >= 0 AND "like_count" <= 50)
-      );
-
-      CREATE UNIQUE INDEX IF NOT EXISTS "module_likes_target_visitor_idx"
-        ON "module_likes" ("target_id", "visitor_hash");
-
-      CREATE INDEX IF NOT EXISTS "module_likes_target_idx"
-        ON "module_likes" ("target_id");
-
-      CREATE TABLE IF NOT EXISTS "module_like_events" (
-        "id" serial PRIMARY KEY,
-        "target_id" varchar NOT NULL,
-        "visitor_hash" varchar NOT NULL,
-        "amount" integer NOT NULL DEFAULT 1,
-        "location" varchar,
-        "city" varchar,
-        "region" varchar,
-        "country" varchar,
-        "created_at" timestamp(3) with time zone NOT NULL DEFAULT now()
-      );
-
-      CREATE INDEX IF NOT EXISTS "module_like_events_created_at_idx"
-        ON "module_like_events" ("created_at" DESC);
-
-      CREATE INDEX IF NOT EXISTS "module_like_events_target_idx"
-        ON "module_like_events" ("target_id");
-
-      ALTER TABLE "module_like_events"
-        ADD COLUMN IF NOT EXISTS "amount" integer NOT NULL DEFAULT 1;
-
-      DO $$
-      BEGIN
-        IF NOT EXISTS (
-          SELECT 1
-          FROM pg_constraint
-          WHERE conname = 'module_like_events_amount_range'
-        ) THEN
-          ALTER TABLE "module_like_events"
-            ADD CONSTRAINT "module_like_events_amount_range"
-            CHECK ("amount" >= 1 AND "amount" <= 5);
-        END IF;
-      END $$;
-
-      WITH "event_totals" AS (
-        SELECT
-          "module_likes"."target_id",
-          "module_likes"."visitor_hash",
-          "module_likes"."like_count"::int AS "like_count",
-          COALESCE(SUM("module_like_events"."amount"), 0)::int AS "event_amount_total",
-          COUNT(*) FILTER (WHERE "module_like_events"."amount" = 1)::int AS "one_amount_events"
-        FROM "module_likes"
-        JOIN "module_like_events"
-          ON "module_like_events"."target_id" = "module_likes"."target_id"
-          AND "module_like_events"."visitor_hash" = "module_likes"."visitor_hash"
-        GROUP BY
-          "module_likes"."target_id",
-          "module_likes"."visitor_hash",
-          "module_likes"."like_count"
-      ),
-      "inferred_superlikes" AS (
-        SELECT
-          "target_id",
-          "visitor_hash",
-          (("like_count" - "event_amount_total") / 4)::int AS "superlike_count"
-        FROM "event_totals"
-        WHERE
-          "like_count" > "event_amount_total"
-          AND ("like_count" - "event_amount_total") % 4 = 0
-          AND (("like_count" - "event_amount_total") / 4) >= 1
-          AND (("like_count" - "event_amount_total") / 4) <= "one_amount_events"
-      ),
-      "ranked_events" AS (
-        SELECT
-          "module_like_events"."id",
-          "inferred_superlikes"."superlike_count",
-          ROW_NUMBER() OVER (
-            PARTITION BY "module_like_events"."target_id", "module_like_events"."visitor_hash"
-            ORDER BY "module_like_events"."created_at" ASC, "module_like_events"."id" ASC
-          ) AS "rank"
-        FROM "module_like_events"
-        JOIN "inferred_superlikes"
-          ON "inferred_superlikes"."target_id" = "module_like_events"."target_id"
-          AND "inferred_superlikes"."visitor_hash" = "module_like_events"."visitor_hash"
-        WHERE "module_like_events"."amount" = 1
-      )
-      UPDATE "module_like_events"
-      SET "amount" = 5
-      FROM "ranked_events"
-      WHERE
-        "module_like_events"."id" = "ranked_events"."id"
-        AND "ranked_events"."rank" <= "ranked_events"."superlike_count";
-    `).then(() => undefined).catch((error) => {
-      ensureModuleLikesTablesPromise = null
-      throw error
-    })
-  }
-
-  return ensureModuleLikesTablesPromise
 }
 
 function decodeLocationHeader(value: string | null) {
@@ -627,8 +514,6 @@ export async function getModuleLikeActivity(limit = 100): Promise<ModuleLikeActi
   if (isPayloadUnavailable(payload)) throw new Error('Activity data is temporarily unavailable')
   const db = payload.db.drizzle
 
-  await ensureModuleLikesTables(db)
-
   const result = await db.execute(sql`
     SELECT "id", "target_id", "amount", "location", "city", "region", "country", "created_at"
     FROM "module_like_events"
@@ -665,8 +550,6 @@ export async function getModuleLikeFeed(limit = 100): Promise<ModuleLikeFeedItem
   const payload = await getPayload()
   if (isPayloadUnavailable(payload)) throw new Error('Activity feed data is temporarily unavailable')
   const db = payload.db.drizzle
-
-  await ensureModuleLikesTables(db)
 
   const result = await db.execute(sql`
     SELECT
