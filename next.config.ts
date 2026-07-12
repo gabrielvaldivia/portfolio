@@ -3,8 +3,7 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   images: {
-    loader: 'custom',
-    loaderFile: './src/lib/imageLoader.ts',
+    qualities: [75, 90],
     remotePatterns: [
       {
         protocol: 'https',

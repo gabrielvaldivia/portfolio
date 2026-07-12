@@ -223,6 +223,7 @@ export default async function HomePage() {
                       fill
                       className={`object-cover ${block.imageDark ? 'light-only' : ''}`}
                       sizes="(max-width: 1280px) 100vw, 33vw"
+                      quality={90}
                     />
                     {block.imageDark && (
                       <Image
@@ -231,6 +232,7 @@ export default async function HomePage() {
                         fill
                         className="object-cover dark-only"
                         sizes="(max-width: 1280px) 100vw, 33vw"
+                        quality={90}
                       />
                     )}
                   </div>

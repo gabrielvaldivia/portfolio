@@ -129,7 +129,7 @@ export function ImageBlockComponent({
           style={{ aspectRatio, ...(rowHeight && !isLightbox ? { ['--row-height' as string]: `${rowHeight}px` } : {}) }}
         >
           <div className={`absolute inset-0 ${roundedClass} ${rounded || imageBorder ? 'overflow-hidden' : ''}`}>
-            <Image src={image.url} alt={image.alt || ''} fill className={objectFit} sizes={isLightbox ? '100vw' : columns === '1' ? '16vw' : columns === '2' ? '33vw' : columns === '3' ? '50vw' : columns === '4' ? '66vw' : '100vw'} />
+            <Image src={image.url} alt={image.alt || ''} fill className={objectFit} sizes={isLightbox ? '100vw' : columns === '1' ? '16vw' : columns === '2' ? '33vw' : columns === '3' ? '50vw' : columns === '4' ? '66vw' : '100vw'} quality={90} />
             {imageBorder && <div className={`absolute inset-0 z-10 pointer-events-none border border-border ${roundedClass}`} />}
           </div>
         </div>
@@ -279,7 +279,7 @@ export function BrowserBlockComponent({
             <div className="w-14 shrink-0 tablet:w-16" style={{ width: scaledLength(64) }} aria-hidden="true" />
           </div>
           <div className="relative bg-background" style={{ aspectRatio }}>
-            <Image src={image.url} alt={image.alt || ''} fill className={objectFit} sizes={isLightbox ? '100vw' : columns === '1' ? '16vw' : columns === '2' ? '33vw' : columns === '3' ? '50vw' : columns === '4' ? '66vw' : '100vw'} />
+            <Image src={image.url} alt={image.alt || ''} fill className={objectFit} sizes={isLightbox ? '100vw' : columns === '1' ? '16vw' : columns === '2' ? '33vw' : columns === '3' ? '50vw' : columns === '4' ? '66vw' : '100vw'} quality={90} />
             {imageBorder && <div className="pointer-events-none absolute inset-0 z-10 border border-border" />}
           </div>
         </div>
@@ -336,7 +336,29 @@ function FramedVideoOrImage({
     return <LazyVideo src={src} className="w-full h-full object-cover" />
   }
 
-  return <img src={src} alt={alt || ''} className="w-full h-full object-cover" loading="lazy" />
+  return (
+    <Image
+      src={src}
+      alt={alt || ''}
+      fill
+      className="object-cover"
+      sizes={mode === 'lightbox' ? '100vw' : '(max-width: 810px) 100vw, 720px'}
+      quality={90}
+    />
+  )
+}
+
+function DeviceFrameImage({ src }: { src: string }) {
+  return (
+    <Image
+      src={src}
+      alt=""
+      fill
+      sizes="(max-width: 810px) 100vw, 720px"
+      quality={90}
+      className="object-contain pointer-events-none z-10"
+    />
+  )
 }
 
 export function DC1Block({ id: blockId, video, rows, _active, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; rows?: string } & ModuleRenderProps) {
@@ -360,11 +382,7 @@ export function DC1Block({ id: blockId, video, rows, _active, _containedInLightb
         <div className="absolute inset-[6%] z-0">
           <FramedVideoOrImage src={src} isVideo active={_active} mode={_mode} />
         </div>
-        <img
-          src={DC1_FRAME_URL}
-          alt=""
-          className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" loading="lazy"
-        />
+        <DeviceFrameImage src={DC1_FRAME_URL} />
       </div>
     </>
   )
@@ -407,11 +425,7 @@ export function iPhone15Block({ id: blockId, video, image, rows, showNotch, _act
           >
             <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} active={_active} mode={_mode} />
           </div>
-          <img
-            src={frameUrl}
-            alt=""
-            className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" loading="lazy"
-          />
+          <DeviceFrameImage src={frameUrl} />
         </div>
       </div>
     </>
@@ -444,11 +458,7 @@ export function iPhone13MiniBlock({ id: blockId, video, image, rows, _active, _c
           <div className="absolute z-0 overflow-hidden" style={{ top: '7.3%', bottom: '7.2%', left: '13.5%', right: '13.5%', borderRadius: '5%' }}>
             <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} active={_active} mode={_mode} />
           </div>
-          <img
-            src={IPHONE13MINI_FRAME_URL}
-            alt=""
-            className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" loading="lazy"
-          />
+          <DeviceFrameImage src={IPHONE13MINI_FRAME_URL} />
         </div>
       </div>
     </>
@@ -481,7 +491,7 @@ export function iPhone5Block({ id: blockId, video, image, rows, _active, _contai
           <div className="absolute z-0 overflow-hidden" style={{ top: '14.3%', bottom: '13.7%', left: '8.2%', right: '6.9%' }}>
             <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} active={_active} mode={_mode} />
           </div>
-          <img src={IPHONE5_FRAME_URL} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" loading="lazy" />
+          <DeviceFrameImage src={IPHONE5_FRAME_URL} />
         </div>
       </div>
     </>
@@ -514,7 +524,7 @@ export function iPhone6Block({ id: blockId, video, image, rows, _active, _contai
           <div className="absolute z-0 overflow-hidden" style={{ top: '15.4%', bottom: '15.6%', left: '12.2%', right: '11.7%' }}>
             <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} active={_active} mode={_mode} />
           </div>
-          <img src={IPHONE6_FRAME_URL} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" loading="lazy" />
+          <DeviceFrameImage src={IPHONE6_FRAME_URL} />
         </div>
       </div>
     </>
@@ -547,7 +557,7 @@ export function iPhoneXBlock({ id: blockId, video, image, rows, _active, _contai
           <div className="absolute z-0 overflow-hidden" style={{ top: '6.2%', bottom: '6.5%', left: '10.1%', right: '9.7%', borderRadius: '5%' }}>
             <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} active={_active} mode={_mode} />
           </div>
-          <img src={IPHONEX_FRAME_URL} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" loading="lazy" />
+          <DeviceFrameImage src={IPHONEX_FRAME_URL} />
         </div>
       </div>
     </>
