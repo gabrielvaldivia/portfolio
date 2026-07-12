@@ -171,6 +171,18 @@ body.birthday-donation-visible .birthday-nav {
 }
 
 @media (min-width: 810px) {
+  body.chat-desktop-sidebar-open .chat-sidebar-toggle {
+    transform: translateX(280px);
+  }
+
+  .map-conversation-panel {
+    inset: 96px 16px auto auto;
+    width: 340px;
+    max-width: calc(100% - 32px);
+    max-height: calc(100% - 112px);
+    border-radius: 14px;
+  }
+
   body {
     font-size: 18px;
   }

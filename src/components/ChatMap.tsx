@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { Map, Marker } from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
@@ -54,6 +55,37 @@ export function ChatMap() {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [mapReady, setMapReady] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  useEffect(() => {
+    const desktop = window.matchMedia('(min-width: 1280px)')
+    setSidebarOpen(desktop.matches)
+
+    const handleBreakpointChange = (event: MediaQueryListEvent) => setSidebarOpen(event.matches)
+    const handleToggle = () => setSidebarOpen((open) => !open)
+    desktop.addEventListener('change', handleBreakpointChange)
+    window.addEventListener('chat:toggle-sidebar', handleToggle)
+    return () => {
+      desktop.removeEventListener('change', handleBreakpointChange)
+      window.removeEventListener('chat:toggle-sidebar', handleToggle)
+    }
+  }, [])
+
+  useEffect(() => {
+    const mobile = window.matchMedia('(max-width: 809px)')
+    const desktopSidebar = window.matchMedia('(min-width: 810px)')
+    document.body.classList.toggle('chat-mobile-sidebar-open', sidebarOpen && mobile.matches)
+    document.body.classList.toggle('chat-desktop-sidebar-open', sidebarOpen && desktopSidebar.matches)
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSidebarOpen(false)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.body.classList.remove('chat-mobile-sidebar-open', 'chat-desktop-sidebar-open')
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [sidebarOpen])
 
   // Load conversations
   useEffect(() => {
@@ -169,12 +201,81 @@ export function ChatMap() {
   const selected =
     selectedId !== null ? conversations.find((c) => c.id === selectedId) || null : null
 
-  return (
-    <div className="relative w-full h-full overflow-hidden">
-      <div ref={containerRef} className="w-full h-full" />
+  function selectConversation(conversation: Conversation) {
+    setSelectedId(conversation.id)
+    if (window.matchMedia('(max-width: 809px)').matches) setSidebarOpen(false)
+    if (typeof conversation.longitude === 'number' && typeof conversation.latitude === 'number') {
+      mapRef.current?.flyTo({
+        center: [conversation.longitude, conversation.latitude],
+        zoom: Math.max(mapRef.current.getZoom(), 5),
+        essential: true,
+      })
+    }
+  }
 
-      {selected && (
-        <div className="absolute bottom-2 left-2 right-2 max-h-[calc(50%-8px)] rounded-[12px] tablet:bottom-auto tablet:left-auto tablet:top-4 tablet:right-4 tablet:w-[340px] tablet:max-w-[calc(100%-32px)] tablet:max-h-[calc(100%-32px)] tablet:rounded-[14px] bg-background shadow-lg flex flex-col z-10">
+  const sidebarInner = (
+    <>
+      <div className="px-3 pb-4 pt-1">
+        <span className="text-body font-medium text-content">Conversations</span>
+      </div>
+      <div className="flex-1 space-y-1 overflow-y-auto">
+        {conversations.map((conversation) => (
+          <button
+            key={conversation.id}
+            type="button"
+            onClick={() => selectConversation(conversation)}
+            className={`w-full rounded-[12px] px-3 py-2.5 text-left transition-colors cursor-pointer ${
+              conversation.id === selectedId
+                ? 'bg-black/5 dark:bg-white/5'
+                : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.02]'
+            }`}
+          >
+            <div className="truncate text-[13px] text-muted">{conversation.title}</div>
+            <div className="mt-0.5 truncate text-[16px] text-content">
+              {conversation.messages?.find((message) => message.role === 'user')?.content || 'No messages'}
+            </div>
+          </button>
+        ))}
+        {conversations.length === 0 && (
+          <p className="px-3 py-2 text-caption text-muted">No conversations yet</p>
+        )}
+      </div>
+    </>
+  )
+
+  return (
+    <div className="flex size-full overflow-hidden">
+      {typeof document !== 'undefined' && createPortal(
+        <div className={`fixed inset-0 z-50 tablet:hidden ${sidebarOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+          <button
+            type="button"
+            aria-label="Close conversation sidebar"
+            onClick={() => setSidebarOpen(false)}
+            className={`fixed inset-0 bg-black/20 transition-[opacity,translate] duration-200 ease-out ${sidebarOpen ? 'translate-x-[var(--chat-drawer-width)] opacity-100' : 'translate-x-0 opacity-0'}`}
+          />
+          <aside
+            aria-label="Conversation history"
+            className={`fixed inset-y-0 left-0 z-10 flex flex-col bg-background px-2 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] transition-transform duration-200 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+            style={{ width: 'var(--chat-drawer-width)' }}
+          >
+            {sidebarInner}
+          </aside>
+        </div>,
+        document.body,
+      )}
+
+      <aside
+        aria-label="Conversation history"
+        className={`hidden w-[280px] shrink-0 flex-col bg-background-alt-hover px-2 py-8 transition-[margin-left] duration-200 ease-out tablet:flex ${sidebarOpen ? 'ml-0' : '-ml-[280px]'}`}
+      >
+        {sidebarInner}
+      </aside>
+
+      <div className="relative min-w-0 flex-1 overflow-hidden">
+        <div ref={containerRef} className="size-full" />
+
+        {selected && (
+        <div className="map-conversation-panel absolute bottom-2 left-2 right-2 z-10 flex max-h-[calc(50%-8px)] flex-col rounded-[12px] bg-background shadow-lg">
           <div className="flex items-start justify-between gap-2 p-4 pb-3">
             <div className="min-w-0">
               <div className="text-[15px] font-medium text-content truncate">
@@ -216,7 +317,8 @@ export function ChatMap() {
             })}
           </div>
         </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

@@ -22,21 +22,19 @@ export function SiteHeader() {
   return (
     <header className={cn(
       'h-[94px] tablet:h-[114px] px-4 tablet:px-10',
-      isMap ? 'absolute inset-x-0 top-0 z-30 pointer-events-none' : 'relative',
+      isChat ? 'absolute inset-x-0 top-0 z-30 pointer-events-none' : 'relative',
     )}>
       {isChat ? (
         <>
-          {!isMap && (
-            <button
-              type="button"
-              onClick={() => window.dispatchEvent(new CustomEvent('chat:toggle-sidebar'))}
-              aria-label="Toggle conversation sidebar"
-              title="Toggle conversation sidebar"
-              className="absolute left-4 top-4 tablet:left-10 tablet:top-10 z-30 flex size-10 items-center justify-center rounded-full bg-floating text-muted backdrop-blur-[40px] transition-colors hover:bg-hover hover:text-content cursor-pointer"
-            >
-              <SidebarIcon />
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent('chat:toggle-sidebar'))}
+            aria-label="Toggle conversation sidebar"
+            title="Toggle conversation sidebar"
+            className="chat-sidebar-toggle pointer-events-auto absolute left-4 top-4 tablet:left-10 tablet:top-10 z-30 flex size-10 items-center justify-center rounded-full bg-floating text-muted backdrop-blur-[40px] transition-[color,background-color,transform] duration-200 hover:bg-hover hover:text-content cursor-pointer"
+          >
+            <SidebarIcon />
+          </button>
 
           <nav aria-label="Chat view" className="pointer-events-auto absolute left-1/2 top-4 tablet:top-10 z-30 flex h-10 -translate-x-1/2 items-center rounded-full bg-background-alt-hover p-1">
             <Link

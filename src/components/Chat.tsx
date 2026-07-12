@@ -386,6 +386,25 @@ export function Chat({
     }
   }, [persistentSidebar, sidebarOpen])
 
+  useEffect(() => {
+    if (!persistentSidebar) return
+
+    const sidebarLayout = window.matchMedia('(min-width: 810px)')
+    const syncDesktopSidebarClass = () => {
+      document.body.classList.toggle(
+        'chat-desktop-sidebar-open',
+        sidebarOpen && sidebarLayout.matches,
+      )
+    }
+
+    syncDesktopSidebarClass()
+    sidebarLayout.addEventListener('change', syncDesktopSidebarClass)
+    return () => {
+      document.body.classList.remove('chat-desktop-sidebar-open')
+      sidebarLayout.removeEventListener('change', syncDesktopSidebarClass)
+    }
+  }, [persistentSidebar, sidebarOpen])
+
   const setConversationId = useCallback(
     (id: number | null) => {
       setConversationIdRaw(id)
@@ -734,7 +753,7 @@ export function Chat({
   )
 
   const chatBody = (
-    <div className={`flex flex-col h-full relative ${persistentSidebar ? 'flex-1 min-w-0 px-5 tablet:px-8 pb-5 tablet:pb-8' : ''}`}>
+    <div className={`flex flex-col h-full relative ${persistentSidebar ? 'flex-1 min-w-0 px-5 tablet:px-8 pb-5 tablet:pb-8 pt-[94px] tablet:pt-[114px]' : ''}`}>
 
       {/* New chat button — only on the dedicated /chat page, when a conversation is active */}
       {persistentSidebar && conversationId && (
@@ -742,7 +761,7 @@ export function Chat({
           onClick={startNewConversation}
           title="New chat"
           aria-label="New chat"
-          className={`absolute ${persistentSidebar ? 'top-0 right-4' : 'top-1 right-0'} z-20 w-10 h-10 flex items-center justify-center rounded-full text-muted hover:text-content transition-all duration-200 cursor-pointer ${hasScrolled ? 'bg-background/60 dark:bg-white/10 backdrop-blur-xl' : ''}`}
+          className={`absolute ${persistentSidebar ? 'top-[94px] tablet:top-[114px] right-4' : 'top-1 right-0'} z-20 w-10 h-10 flex items-center justify-center rounded-full text-muted hover:text-content transition-all duration-200 cursor-pointer ${hasScrolled ? 'bg-background/60 dark:bg-white/10 backdrop-blur-xl' : ''}`}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <path d="M12 5v14M5 12h14" />
@@ -959,8 +978,7 @@ export function Chat({
               type="button"
               aria-label="Close conversation sidebar"
               onClick={() => setSidebarOpen(false)}
-              className={`fixed inset-y-0 right-0 bg-black/20 transition-opacity duration-200 ${sidebarOpen ? 'opacity-100' : 'opacity-0'}`}
-              style={{ left: 'var(--chat-drawer-width)' }}
+              className={`fixed inset-0 bg-black/20 transition-[opacity,translate] duration-200 ease-out ${sidebarOpen ? 'translate-x-[var(--chat-drawer-width)] opacity-100' : 'translate-x-0 opacity-0'}`}
             />
             <aside
               aria-label="Conversation history"

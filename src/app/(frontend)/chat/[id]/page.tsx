@@ -56,7 +56,7 @@ export default async function ChatByIdPage({ params }: { params: Promise<{ id: s
 
   return (
     <section>
-        <div className="relative h-[calc(100dvh-94px)] tablet:h-[calc(100dvh-114px)] min-h-[500px] overflow-hidden">
+        <div className="relative h-dvh min-h-[500px] overflow-hidden">
           <ChatView view="chat" chatHref={isNew ? '/chat/new' : `/chat/${numericId}`}>
             <Chat
               faqItems={faqItems}
