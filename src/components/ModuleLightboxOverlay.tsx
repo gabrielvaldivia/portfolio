@@ -39,6 +39,8 @@ type DragState = {
   intent: 'horizontal' | 'vertical' | null
 }
 
+type DragIntent = NonNullable<DragState['intent']>
+
 type TransitionMode = 'zoom' | 'swipe' | 'dismiss'
 
 const ZOOM_TRANSITION: Transition = {
@@ -610,17 +612,25 @@ export function ModuleLightboxOverlay({
     animate(dragY, 0, SWIPE_TRANSITION)
   }, [activeSlide?.id, dragOwnerId, dragX, dragY, index, onClosing, resetDrag, slides])
 
-  const completeDrag = useCallback((offsetX: number, offsetY: number, velocityX: number) => {
+  const completeDrag = useCallback((
+    intent: DragIntent | null,
+    offsetX: number,
+    offsetY: number,
+    velocityX: number,
+  ) => {
     const absX = Math.abs(offsetX)
-    const absY = Math.abs(offsetY)
-    const horizontalIntent = absX > absY
 
-    if (offsetY > 120 && absY > absX * 0.85) {
-      close('zoom')
+    if (intent === 'vertical') {
+      if (offsetY > 120) {
+        close('zoom')
+        return
+      }
+
+      resetDrag()
       return
     }
 
-    if (horizontalIntent && slides.length > 1 && (absX > 90 || Math.abs(velocityX) > 620)) {
+    if (intent === 'horizontal' && slides.length > 1 && (absX > 90 || Math.abs(velocityX) > 620)) {
       navigate(offsetX < 0 ? 1 : -1)
       return
     }
@@ -679,8 +689,13 @@ export function ModuleLightboxOverlay({
       }
     }
 
-    dragX.set(offsetX)
-    dragY.set(rubberBandDismissOffset(offsetY))
+    if (state.intent === 'horizontal') {
+      dragX.set(offsetX)
+      dragY.set(0)
+    } else if (state.intent === 'vertical') {
+      dragX.set(0)
+      dragY.set(rubberBandDismissOffset(offsetY))
+    }
   }, [activeSlide, dragX, dragY, onClosing])
 
   const handlePointerEnd = useCallback((event: PointerEvent<HTMLDivElement>) => {
@@ -697,7 +712,7 @@ export function ModuleLightboxOverlay({
     dragState.current = null
 
     if (!state.captured) return
-    completeDrag(offsetX, offsetY, state.velocityX)
+    completeDrag(state.intent, offsetX, offsetY, state.velocityX)
   }, [completeDrag])
 
   const handleMouseDown = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
@@ -753,8 +768,13 @@ export function ModuleLightboxOverlay({
         }
       }
 
-      dragX.set(offsetX)
-      dragY.set(rubberBandDismissOffset(offsetY))
+      if (currentState.intent === 'horizontal') {
+        dragX.set(offsetX)
+        dragY.set(0)
+      } else if (currentState.intent === 'vertical') {
+        dragX.set(0)
+        dragY.set(rubberBandDismissOffset(offsetY))
+      }
     }
 
     const handleWindowMouseUp = (mouseEvent: globalThis.MouseEvent) => {
@@ -766,6 +786,7 @@ export function ModuleLightboxOverlay({
 
       dragState.current = null
       completeDrag(
+        currentState.intent,
         mouseEvent.clientX - currentState.startX,
         Math.max(0, mouseEvent.clientY - currentState.startY),
         currentState.velocityX,
