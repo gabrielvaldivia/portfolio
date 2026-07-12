@@ -1,7 +1,7 @@
 import './globals.css'
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { NavMenu } from '@/components/NavMenu'
+import { SiteHeader } from '@/components/SiteHeader'
 import { Footer } from '@/components/Footer'
 import { OverlayManager } from '@/components/OverlayManager'
 import { PageTransition } from '@/components/PageTransition'
@@ -58,11 +58,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="bg-background text-content">
         <OverlayManager overlays={(s?.overlays as any[]) || []} />
         <NavMenu />
-        <section className="px-5 tablet:px-10 pt-6 tablet:pt-10 pb-10">
-          <h3 className="text-content opacity-50">
-            <Link href="/">Gabriel Valdivia</Link>
-          </h3>
-        </section>
+        <SiteHeader />
         <PageTransition>{children}</PageTransition>
         <Footer />
       </body>

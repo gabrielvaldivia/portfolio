@@ -25,6 +25,7 @@ export function NavMenu() {
         <div className="relative">
           <button
             onClick={() => setOpen(!open)}
+            aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
             className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-[40px] transition-colors cursor-pointer ${
               open ? 'bg-content' : 'bg-floating hover:bg-hover'
             }`}
@@ -76,10 +77,11 @@ export function NavMenu() {
       </nav>
 
       {/* Mobile — top right */}
-      <nav className="fixed top-0 right-0 z-[61] tablet:hidden p-4">
+      <nav className="mobile-site-nav fixed top-0 right-0 z-[61] tablet:hidden p-4">
         <div className="relative">
           <button
             onClick={() => setOpen(!open)}
+            aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
             className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-[40px] transition-colors cursor-pointer ${
               open ? 'bg-content' : 'bg-floating hover:bg-hover'
             }`}

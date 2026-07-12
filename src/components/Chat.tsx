@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { SocialIcon } from './Icons'
 
 type Message = {
@@ -316,15 +317,6 @@ function getSuggestedQuestions(faqItems: FAQItem[]) {
     .slice(0, 4)
 }
 
-function SidebarToggleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="16" rx="2" />
-      <path d="M9 4v16" />
-    </svg>
-  )
-}
-
 export function Chat({
   faqItems,
   avatarUrl,
@@ -357,6 +349,42 @@ export function Chat({
   const [hasScrolled, setHasScrolled] = useState(false)
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [conversationId, setConversationIdRaw] = useState<number | null>(initialConversationId)
+
+  useEffect(() => {
+    if (!persistentSidebar) return
+
+    const desktop = window.matchMedia('(min-width: 1280px)')
+    setSidebarOpen(desktop.matches)
+
+    const handleBreakpointChange = (event: MediaQueryListEvent) => setSidebarOpen(event.matches)
+    const handleToggle = () => setSidebarOpen((open) => !open)
+    desktop.addEventListener('change', handleBreakpointChange)
+    window.addEventListener('chat:toggle-sidebar', handleToggle)
+    return () => {
+      desktop.removeEventListener('change', handleBreakpointChange)
+      window.removeEventListener('chat:toggle-sidebar', handleToggle)
+    }
+  }, [persistentSidebar])
+
+  useEffect(() => {
+    if (!persistentSidebar || !sidebarOpen) {
+      document.body.classList.remove('chat-mobile-sidebar-open')
+      return
+    }
+
+    const mobile = window.matchMedia('(max-width: 809px)')
+    if (!mobile.matches) return
+
+    document.body.classList.add('chat-mobile-sidebar-open')
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSidebarOpen(false)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.body.classList.remove('chat-mobile-sidebar-open')
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [persistentSidebar, sidebarOpen])
 
   const setConversationId = useCallback(
     (id: number | null) => {
@@ -706,18 +734,7 @@ export function Chat({
   )
 
   const chatBody = (
-    <div className={`flex flex-col h-full relative ${persistentSidebar ? 'flex-1 min-w-0 py-5 tablet:py-8 px-5 tablet:px-8' : ''}`}>
-      {/* Sidebar toggle — only on the dedicated /chat page */}
-      {persistentSidebar && (
-        <button
-          onClick={() => setSidebarOpen((v) => !v)}
-          title={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
-          aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
-          className={`absolute top-4 left-4 z-20 w-10 h-10 flex items-center justify-center rounded-full text-muted hover:text-content transition-all duration-200 cursor-pointer ${hasScrolled ? 'bg-background/60 dark:bg-white/10 backdrop-blur-xl' : ''}`}
-        >
-          <SidebarToggleIcon />
-        </button>
-      )}
+    <div className={`flex flex-col h-full relative ${persistentSidebar ? 'flex-1 min-w-0 px-5 tablet:px-8 pb-5 tablet:pb-8' : ''}`}>
 
       {/* New chat button — only on the dedicated /chat page, when a conversation is active */}
       {persistentSidebar && conversationId && (
@@ -725,27 +742,13 @@ export function Chat({
           onClick={startNewConversation}
           title="New chat"
           aria-label="New chat"
-          className={`absolute ${persistentSidebar ? 'top-4 right-4' : 'top-1 right-0'} z-20 w-10 h-10 flex items-center justify-center rounded-full text-muted hover:text-content transition-all duration-200 cursor-pointer ${hasScrolled ? 'bg-background/60 dark:bg-white/10 backdrop-blur-xl' : ''}`}
+          className={`absolute ${persistentSidebar ? 'top-0 right-4' : 'top-1 right-0'} z-20 w-10 h-10 flex items-center justify-center rounded-full text-muted hover:text-content transition-all duration-200 cursor-pointer ${hasScrolled ? 'bg-background/60 dark:bg-white/10 backdrop-blur-xl' : ''}`}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <path d="M12 5v14M5 12h14" />
           </svg>
         </button>
       )}
-
-      {/* Sidebar — slide-in overlay (hidden on tablet+ when persistent) */}
-      <div
-        className={`absolute -inset-5 tablet:-inset-8 z-30 transition-opacity duration-200 ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'} ${persistentSidebar ? 'tablet:hidden' : ''}`}
-      >
-        {/* Overlay */}
-        <div className={`absolute inset-0 transition-colors duration-300 ${sidebarOpen ? 'bg-black/20' : ''}`} onClick={() => setSidebarOpen(false)} />
-        {/* Sidebar */}
-        <div
-          className={`relative w-[320px] bg-background dark:bg-[#2a2a2a] rounded-[12px] tablet:rounded-[22px] p-4 m-2 flex flex-col h-[calc(100%-16px)] transition-transform duration-300 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
-        >
-          {sidebarInner}
-        </div>
-      </div>
 
       {/* Mobile avatar header — hidden on the dedicated /chat page */}
       {avatarUrl && !persistentSidebar && (
@@ -758,8 +761,8 @@ export function Chat({
       )}
 
       {/* Messages */}
-      <div ref={scrollRef} onScroll={handleScroll} className={`flex-1 overflow-y-auto px-1 py-4 ${persistentSidebar ? 'pt-16 tablet:pt-16' : ''} scrollbar-hide ${hasScrolled ? 'chat-scroll-mask' : ''}`}>
-        <div className="flex flex-col">
+      <div ref={scrollRef} onScroll={handleScroll} className={`flex-1 overflow-y-auto px-1 py-4 scrollbar-hide ${hasScrolled ? 'chat-scroll-mask' : ''}`}>
+        <div className="mx-auto flex w-full max-w-[800px] flex-col">
           {messages.map((msg, i) => {
             const prevRole = i > 0 ? messages[i - 1].role : null
             const sameAsPrev = prevRole === msg.role
@@ -807,7 +810,7 @@ export function Chat({
 
       {/* Suggested pills */}
       {showSuggestions && suggestions.length > 0 && (
-        <div className="px-1 pb-3 flex flex-col items-start gap-2">
+        <div className="mx-auto flex w-full max-w-[800px] flex-col items-start gap-2 px-1 pb-3">
           {suggestions.map((q, i) => (
             <button
               key={i}
@@ -822,7 +825,7 @@ export function Chat({
 
       {/* Follow-up pills */}
       {!showSuggestions && followUps.length > 0 && (
-        <ScrollMask className="px-1 pb-1 tablet:pb-3" extraStyle={{ animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
+        <ScrollMask className="mx-auto w-full max-w-[800px] px-1 pb-1 tablet:pb-3" extraStyle={{ animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
           <div className="flex gap-2 w-max">
             {followUps.map((q, i) => (
               <button
@@ -838,7 +841,7 @@ export function Chat({
       )}
 
       {/* Input */}
-      <form onSubmit={handleSubmit} className="flex items-end gap-3 pt-2">
+      <form onSubmit={handleSubmit} className="mx-auto flex w-full max-w-[800px] items-end gap-3 pt-2">
         {socialLinks.length > 0 && (
           <div ref={linksRef} className="relative shrink-0 flex items-end">
             <div className={`flex items-end transition-all duration-300 ease-in-out ${iconsCollapsed ? 'overflow-hidden' : 'gap-2'}`}
@@ -950,6 +953,25 @@ export function Chat({
   if (persistentSidebar) {
     return (
       <div className="flex flex-row h-full overflow-hidden">
+        {typeof document !== 'undefined' && createPortal(
+          <div className={`fixed inset-0 z-50 tablet:hidden ${sidebarOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+            <button
+              type="button"
+              aria-label="Close conversation sidebar"
+              onClick={() => setSidebarOpen(false)}
+              className={`fixed inset-y-0 right-0 bg-black/20 transition-opacity duration-200 ${sidebarOpen ? 'opacity-100' : 'opacity-0'}`}
+              style={{ left: 'var(--chat-drawer-width)' }}
+            />
+            <aside
+              aria-label="Conversation history"
+              className={`fixed inset-y-0 left-0 z-10 flex flex-col bg-background px-2 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] transition-transform duration-200 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+              style={{ width: 'var(--chat-drawer-width)' }}
+            >
+              {sidebarInner}
+            </aside>
+          </div>,
+          document.body,
+        )}
         <aside
           className={`hidden tablet:flex w-[280px] shrink-0 flex-col bg-background-alt-hover dark:bg-white/[0.06] py-5 tablet:py-8 px-2 transition-[margin-left] duration-300 ease-in-out ${sidebarOpen ? 'ml-0' : '-ml-[280px]'}`}
         >

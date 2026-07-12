@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { Chat } from '@/components/Chat'
 import { ChatView } from '@/components/ChatView'
-import { Container } from '@/components/Container'
 import { getPayload } from '@/lib/payload'
 import { getFAQItemsFromSections } from '@/lib/buildContext'
 
@@ -56,9 +55,8 @@ export default async function ChatByIdPage({ params }: { params: Promise<{ id: s
   ]
 
   return (
-    <section className="tablet:pb-10">
-      <Container>
-        <div className="relative bg-background-alt rounded-[20px] tablet:rounded-[30px] h-[calc(100dvh-110px)] tablet:h-[calc(100dvh-145px)] min-h-[500px] overflow-hidden">
+    <section>
+        <div className="relative h-[calc(100dvh-94px)] tablet:h-[calc(100dvh-114px)] min-h-[500px] overflow-hidden">
           <ChatView view="chat" chatHref={isNew ? '/chat/new' : `/chat/${numericId}`}>
             <Chat
               faqItems={faqItems}
@@ -74,7 +72,6 @@ export default async function ChatByIdPage({ params }: { params: Promise<{ id: s
             />
           </ChatView>
         </div>
-      </Container>
     </section>
   )
 }

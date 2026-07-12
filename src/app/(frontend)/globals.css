@@ -122,6 +122,41 @@ body {
   letter-spacing: -0.01em;
 }
 
+@media (max-width: 809px) {
+  body {
+    --chat-drawer-width: min(82vw, 320px);
+    overflow-x: clip;
+  }
+
+  body > header,
+  body > main > section,
+  .mobile-site-nav {
+    transition: transform 200ms ease-out;
+  }
+
+  body.chat-mobile-sidebar-open {
+    overflow: hidden;
+  }
+
+  body.chat-mobile-sidebar-open > header,
+  body.chat-mobile-sidebar-open > main > section,
+  body.chat-mobile-sidebar-open .mobile-site-nav {
+    transform: translateX(var(--chat-drawer-width));
+  }
+
+  body.chat-mobile-sidebar-open .mobile-site-nav {
+    z-index: 30;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body > header,
+  body > main > section,
+  .mobile-site-nav {
+    transition-duration: 0ms;
+  }
+}
+
 body.birthday-donation-visible .birthday-nav {
   bottom: 4rem;
 }
