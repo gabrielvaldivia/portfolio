@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, type ComponentType } from 'react'
+import { useCallback, useEffect, useRef, useState, type ComponentType } from 'react'
 import { cn } from '@/lib/cn'
 
 type ModuleLikeButtonProps = {
@@ -53,22 +53,59 @@ export function ModuleLikeButtonShell({ initialCount = 0 }: { initialCount?: num
 
 export function LazyModuleLikeButton(props: ModuleLikeButtonProps) {
   const [LoadedButton, setLoadedButton] = useState<ComponentType<ModuleLikeButtonProps> | null>(null)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const loadingRef = useRef(false)
+  const mountedRef = useRef(true)
+
+  const loadButton = useCallback(() => {
+    if (LoadedButton || loadingRef.current) return
+    loadingRef.current = true
+
+    void import('./ModuleLikeButton')
+      .then((mod) => {
+        if (mountedRef.current) setLoadedButton(() => mod.ModuleLikeButton)
+      })
+      .catch(() => {
+        loadingRef.current = false
+      })
+  }, [LoadedButton])
 
   useEffect(() => {
-    let isActive = true
+    mountedRef.current = true
+    const root = rootRef.current
 
-    void import('./ModuleLikeButton').then((mod) => {
-      if (isActive) setLoadedButton(() => mod.ModuleLikeButton)
+    if (!root || typeof IntersectionObserver === 'undefined') {
+      loadButton()
+      return () => {
+        mountedRef.current = false
+      }
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return
+      observer.disconnect()
+      loadButton()
+    }, {
+      rootMargin: '1000px 0px',
     })
+    observer.observe(root)
 
     return () => {
-      isActive = false
+      mountedRef.current = false
+      observer.disconnect()
     }
-  }, [])
+  }, [loadButton])
 
-  if (!LoadedButton) {
-    return <ModuleLikeButtonShell initialCount={props.initialCount} />
-  }
-
-  return <LoadedButton {...props} />
+  return (
+    <div
+      ref={rootRef}
+      onFocusCapture={loadButton}
+      onPointerEnter={loadButton}
+      onPointerDownCapture={loadButton}
+    >
+      {LoadedButton
+        ? <LoadedButton {...props} />
+        : <ModuleLikeButtonShell initialCount={props.initialCount} />}
+    </div>
+  )
 }
