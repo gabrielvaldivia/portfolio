@@ -277,9 +277,9 @@ function ModuleSlide({
     const surfaceStyle = displayAspectRatio
       ? {
         aspectRatio: displayAspectRatio,
-        width: `min(100dvw, calc(100dvh * ${displayAspectRatio}))`,
+        width: `min(calc(100dvw - 48px), calc((100dvh - 96px) * ${displayAspectRatio}))`,
       }
-      : { width: '100dvw', height: '100dvh' }
+      : { width: 'calc(100dvw - 48px)', height: 'calc(100dvh - 96px)' }
 
     return (
       <div

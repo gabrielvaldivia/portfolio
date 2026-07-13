@@ -54,10 +54,7 @@ function getConstrainedWidth(aspectRatio: number, verticalOffset = 132) {
 
 function phoneOverlaySizeStyle(id: string) {
   return `
-        [data-lightbox-surface-state="overlay"] #${id} { height: 82%; width: auto; max-height: 100%; max-width: 100%; }
-        @media (min-width: 810px) {
-          [data-lightbox-surface-state="overlay"] #${id} { height: 100%; }
-        }
+        [data-lightbox-surface-state="overlay"] #${id} { height: 100%; width: auto; max-height: 100%; max-width: 100%; }
       `
 }
 
