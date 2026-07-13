@@ -58,6 +58,12 @@
   display: none;
 }
 
+@media (max-width: 809px) {
+  [data-lightbox-surface-state='overlay']:has([id^='iphone']) {
+    background-color: transparent;
+  }
+}
+
 @theme {
   --font-heading: 'Inter Display', 'Inter', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;

@@ -307,7 +307,7 @@ function ModuleSlide({
     return (
       <div
         className={cn(
-          'bg-background-alt',
+          slide.block?.blockType === 'dc1' ? 'bg-background-alt' : 'tablet:bg-background-alt',
           scaledPaddingStyle
             ? 'px-[var(--frame-pad-mobile)] py-[var(--frame-pad-y-mobile)] tablet:px-[var(--frame-pad-tablet)] tablet:py-[var(--frame-pad-y-tablet)] desktop:px-[var(--frame-pad-desktop)] desktop:py-[var(--frame-pad-y-desktop)]'
             : 'p-5 tablet:p-8 desktop:p-10',

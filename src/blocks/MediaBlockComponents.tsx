@@ -52,6 +52,15 @@ function getConstrainedWidth(aspectRatio: number, verticalOffset = 132) {
   return `min(100%, calc((100dvh - ${verticalOffset}px) * ${aspectRatio}))`
 }
 
+function phoneOverlaySizeStyle(id: string) {
+  return `
+        [data-lightbox-surface-state="overlay"] #${id} { height: 82%; width: auto; max-height: 100%; max-width: 100%; }
+        @media (min-width: 810px) {
+          [data-lightbox-surface-state="overlay"] #${id} { height: 100%; }
+        }
+      `
+}
+
 function getRowHeight(rows?: string) {
   const isWrap = !rows || rows === 'wrap'
   const rowCount = isWrap ? 0 : parseInt(rows, 10)
@@ -410,7 +419,7 @@ export function iPhone15Block({ id: blockId, video, image, rows, showNotch, _con
         @media (min-width: 1280px) {
           #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
-        [data-lightbox-surface-state="overlay"] #${id} { height: 100%; width: auto; max-height: 100%; max-width: 100%; }
+        ${phoneOverlaySizeStyle(id)}
       ` }} />
       <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
@@ -454,7 +463,7 @@ export function iPhone13MiniBlock({ id: blockId, video, image, rows, _containedI
         @media (min-width: 1280px) {
           #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
-        [data-lightbox-surface-state="overlay"] #${id} { height: 100%; width: auto; max-height: 100%; max-width: 100%; }
+        ${phoneOverlaySizeStyle(id)}
       ` }} />
       <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
@@ -488,7 +497,7 @@ export function iPhone5Block({ id: blockId, video, image, rows, _containedInLigh
         @media (min-width: 1280px) {
           #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
-        [data-lightbox-surface-state="overlay"] #${id} { height: 100%; width: auto; max-height: 100%; max-width: 100%; }
+        ${phoneOverlaySizeStyle(id)}
       ` }} />
       <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
@@ -522,7 +531,7 @@ export function iPhone6Block({ id: blockId, video, image, rows, _containedInLigh
         @media (min-width: 1280px) {
           #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
-        [data-lightbox-surface-state="overlay"] #${id} { height: 100%; width: auto; max-height: 100%; max-width: 100%; }
+        ${phoneOverlaySizeStyle(id)}
       ` }} />
       <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
@@ -556,7 +565,7 @@ export function iPhoneXBlock({ id: blockId, video, image, rows, _containedInLigh
         @media (min-width: 1280px) {
           #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
-        [data-lightbox-surface-state="overlay"] #${id} { height: 100%; width: auto; max-height: 100%; max-width: 100%; }
+        ${phoneOverlaySizeStyle(id)}
       ` }} />
       <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
