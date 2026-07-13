@@ -55,6 +55,7 @@ type ActivityTarget = {
   sourceTitle: string
   label: string
   noun: string
+  block?: any
   thumbnail: {
     type: 'image' | 'video'
     url: string
@@ -453,6 +454,7 @@ function indexDocumentTargets(index: Map<string, ActivityTarget>, doc: any, sour
       sourceTitle,
       label: getTargetLabel(sourceTitle, block),
       noun: getBlockNoun(block?.blockType || 'module'),
+      block,
       thumbnail: getBlockThumbnail(block),
     })
   })

@@ -5,6 +5,11 @@ import { ActivityVideoThumbnail } from '@/components/ActivityVideoThumbnail'
 import { ActivityViewSwitcher, type ActivityView } from '@/components/ActivityViewSwitcher'
 import { Container } from '@/components/Container'
 import { LazyModuleLikeButton } from '@/components/LazyModuleLikeButton'
+import { ModuleLightboxProvider, ModuleLightboxTrigger, type ModuleLightboxSlide } from '@/components/ModuleLightbox'
+import {
+  framedBlockTypes,
+  lightboxableBlockTypes,
+} from '@/blocks/MediaBlockComponents'
 import { cn } from '@/lib/cn'
 import {
   getModuleLikeActivity,
@@ -497,6 +502,41 @@ function getFeedItemLabel(item: ModuleLikeFeedItem, rank: number) {
   return `#${rank}. ${item.target.label}. ${getLikeCountLabel(item.likeCount)}`
 }
 
+function getFeedSlideId(item: ModuleLikeFeedItem) {
+  return `activity-feed:${item.targetId}`
+}
+
+function shouldPreserveAspectDuringZoom(blockType?: string) {
+  return framedBlockTypes.includes(blockType || '') || [
+    'image',
+    'fullWidthImage',
+    'deviceMockup',
+    'video',
+    'fullWidthVideo',
+  ].includes(blockType || '')
+}
+
+function getFeedLightboxSlides(items: ModuleLikeFeedItem[]): ModuleLightboxSlide[] {
+  const slidesById = new Map<string, ModuleLightboxSlide>()
+
+  items.forEach((item) => {
+    const block = item.target.block
+    if (!block || !lightboxableBlockTypes.includes(block.blockType)) return
+
+    slidesById.set(getFeedSlideId(item), {
+      id: getFeedSlideId(item),
+      type: 'module',
+      block,
+      label: `Open ${item.target.label} fullscreen`,
+      likeTargetId: item.targetId,
+      preserveAspectDuringZoom: shouldPreserveAspectDuringZoom(block.blockType),
+      movableSurface: false,
+    })
+  })
+
+  return Array.from(slidesById.values())
+}
+
 function FeedItem({ item, rank }: { item: ModuleLikeFeedItem; rank: number }) {
   const thumbnail = (
     <ActivityMediaThumbnail
@@ -507,8 +547,18 @@ function FeedItem({ item, rank }: { item: ModuleLikeFeedItem; rank: number }) {
       playVideoOnHover
     />
   )
+  const canOpenLightbox = Boolean(item.target.block && lightboxableBlockTypes.includes(item.target.block.blockType))
 
-  const media = item.target.href === '#' ? (
+  const media = canOpenLightbox ? (
+    <ModuleLightboxTrigger
+      slideId={getFeedSlideId(item)}
+      label={getFeedItemLabel(item, rank)}
+      className="transition-opacity duration-150 tablet:hover:opacity-60"
+      preserveAspectDuringZoom={shouldPreserveAspectDuringZoom(item.target.block?.blockType)}
+    >
+      {thumbnail}
+    </ModuleLightboxTrigger>
+  ) : item.target.href === '#' ? (
     thumbnail
   ) : (
     <Link
@@ -531,12 +581,21 @@ function FeedItem({ item, rank }: { item: ModuleLikeFeedItem; rank: number }) {
 }
 
 function FeedGrid({ items }: { items: ModuleLikeFeedItem[] }) {
-  return (
+  const slides = getFeedLightboxSlides(items)
+  const grid = (
     <div className="grid grid-cols-1 gap-x-5 gap-y-5 tablet:grid-cols-2 tablet:gap-y-10 desktop:grid-cols-3">
       {items.map((item, index) => (
         <FeedItem key={item.id} item={item} rank={index + 1} />
       ))}
     </div>
+  )
+
+  if (slides.length === 0) return grid
+
+  return (
+    <ModuleLightboxProvider slides={slides}>
+      {grid}
+    </ModuleLightboxProvider>
   )
 }
 
