@@ -241,12 +241,14 @@ function ModuleSlide({
   sourceRect,
   sourceAspectRatio,
   movableSurface,
+  useSourceSize,
 }: {
   slide: ModuleLightboxSlide
   active: boolean
   sourceRect?: LightboxRect
   sourceAspectRatio?: number
   movableSurface?: MovableModuleSurface
+  useSourceSize?: boolean
 }) {
   const Component = mediaBlockComponents[slide.block?.blockType]
 
@@ -276,7 +278,12 @@ function ModuleSlide({
   )
 
   if (movableSurface) {
-    const surfaceStyle = displayAspectRatio
+    const surfaceStyle = useSourceSize && sourceRect
+      ? {
+        height: `${sourceRect.height}px`,
+        width: `${sourceRect.width}px`,
+      }
+      : displayAspectRatio
       ? {
         aspectRatio: displayAspectRatio,
         width: `min(calc(100dvw - 48px), calc((100dvh - 96px) * ${displayAspectRatio}))`,
@@ -355,6 +362,7 @@ function ModuleLightboxSlideView({
   handlePointerMove,
   handlePointerEnd,
   handleMouseDown,
+  useSourceSize,
 }: {
   slide: ModuleLightboxSlide
   direction: number
@@ -379,6 +387,7 @@ function ModuleLightboxSlideView({
   handlePointerMove: (event: PointerEvent<HTMLDivElement>) => void
   handlePointerEnd: (event: PointerEvent<HTMLDivElement>) => void
   handleMouseDown: (event: ReactMouseEvent<HTMLDivElement>) => void
+  useSourceSize?: boolean
 }) {
   const slotRef = useRef<HTMLDivElement>(null)
   const targetRef = useRef<HTMLDivElement>(null)
@@ -636,6 +645,7 @@ function ModuleLightboxSlideView({
               sourceRect={entrySourceRect || exitSourceRect}
               sourceAspectRatio={sourceAspectRatio}
               movableSurface={movableSurface}
+              useSourceSize={useSourceSize}
             />
           </motion.div>
         </div>
@@ -673,6 +683,7 @@ export function ModuleLightboxOverlay({
   const [exitSourceRect, setExitSourceRect] = useState<LightboxRect | undefined>()
   const [dragOwnerId, setDragOwnerId] = useState<string | null>(null)
   const [swipeOffset, setSwipeOffset] = useState(0)
+  const [sourceSizedMovableSlideId, setSourceSizedMovableSlideId] = useState<string | null>(null)
   const dragScale = useTransform(dragY, [0, 240], [1, 0.88])
   const backdropOpacity = useTransform(dragY, [0, 260], [1, 0.36])
   const open = index >= 0
@@ -725,6 +736,7 @@ export function ModuleLightboxOverlay({
       if (activeSlide) onReturnCancelled(activeSlide.id)
     }
     setActivePhoneSurfaceBackgroundProgress(0)
+    setSourceSizedMovableSlideId(null)
     animate(dragX, 0, ZOOM_TRANSITION)
     animate(dragY, 0, ZOOM_TRANSITION)
   }, [activeSlide, dragX, dragY, onReturnCancelled, setActivePhoneSurfaceBackgroundProgress])
@@ -761,6 +773,7 @@ export function ModuleLightboxOverlay({
       setEntrySourceRect(undefined)
       setExitSourceRect(undefined)
       setActivePhoneSurfaceBackgroundProgress(0)
+      setSourceSizedMovableSlideId(null)
       onClosed()
     }, prefersReducedMotion ? 220 : 560)
   }, [activeSlide, dragX, dragY, getSourceRect, onClosed, onClosing, prefersReducedMotion, setActivePhoneSurfaceBackgroundProgress])
@@ -777,6 +790,7 @@ export function ModuleLightboxOverlay({
     }
     const nextIndex = wrapIndex(index + increment, slides.length)
     const nextSlide = slides[nextIndex]
+    setSourceSizedMovableSlideId(null)
     setEntrySourceRect(undefined)
     setExitSourceRect(undefined)
 
@@ -865,6 +879,7 @@ export function ModuleLightboxOverlay({
 
       if (state.intent === 'vertical' && activeSlide && !sourceHiddenForDragRef.current) {
         sourceHiddenForDragRef.current = true
+        if (activeSlide.movableSurface) setSourceSizedMovableSlideId(activeSlide.id)
         onClosing(activeSlide.id)
       }
     }
@@ -945,6 +960,7 @@ export function ModuleLightboxOverlay({
 
         if (currentState.intent === 'vertical' && activeSlide && !sourceHiddenForDragRef.current) {
           sourceHiddenForDragRef.current = true
+          if (activeSlide.movableSurface) setSourceSizedMovableSlideId(activeSlide.id)
           onClosing(activeSlide.id)
         }
       }
@@ -1096,6 +1112,7 @@ export function ModuleLightboxOverlay({
               exitSourceRect={exitSourceRect}
               sourceAspectRatio={renderedSlideSourceAspectRatio}
               movableSurface={renderedMovableSurface}
+              useSourceSize={renderedSlide.id === sourceSizedMovableSlideId}
               activeSlideIsFramed={renderedSlideIsFramed}
               activeSlideUsesMeasuredAspect={renderedSlideUsesMeasuredAspect}
               activeSlideTransition={activeSlideTransition}
