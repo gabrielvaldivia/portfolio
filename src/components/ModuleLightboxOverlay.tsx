@@ -286,7 +286,12 @@ function ModuleSlide({
   )
 
   if (movableSurface) {
-    const surfaceStyle = displayAspectRatio
+    const surfaceStyle = movableSurfaceState === 'returning' && sourceRect
+      ? {
+        height: `${sourceRect.height}px`,
+        width: `${sourceRect.width}px`,
+      }
+      : displayAspectRatio
       ? {
         aspectRatio: displayAspectRatio,
         width: `min(100dvw, calc(100dvh * ${displayAspectRatio}))`,
@@ -296,7 +301,10 @@ function ModuleSlide({
     return (
       <div
         className="mx-auto flex"
-        style={surfaceStyle}
+        style={{
+          ...surfaceStyle,
+          transition: 'width 180ms ease, height 180ms ease',
+        }}
       >
         {component}
       </div>
