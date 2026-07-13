@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
+import { Avatar } from '@/components/Avatar'
 
 type Person = {
   id: number
@@ -54,21 +54,7 @@ export function PeopleGrid({ people }: { people: Person[] }) {
 
           const content = (
             <div className="flex items-center gap-3 group">
-              {photo?.url ? (
-                <div className="relative size-10 shrink-0 overflow-hidden rounded-full after:pointer-events-none after:absolute after:inset-0 after:rounded-full after:border after:border-border">
-                  <Image
-                    src={photo.url}
-                    alt={person.name}
-                    fill
-                    sizes="40px"
-                    className="object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-background-alt text-sm text-muted">
-                  {person.name.charAt(0)}
-                </div>
-              )}
+              <Avatar name={person.name} photo={photo} size={40} showTooltip={false} />
               <div className="flex-1 min-w-0 flex items-center gap-1">
                 <h4 className="truncate">{person.name}</h4>
                 {href && (

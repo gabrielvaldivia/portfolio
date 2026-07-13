@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import { Avatar } from '@/components/Avatar'
 
 type Props = {
   quote: string
@@ -22,13 +22,7 @@ export function Testimonial({ quote, name, company, companyLogo, photo, linkedIn
         )}
       </div>
       {photo?.url && (
-        <div className="relative w-11 h-11 shrink-0 group/avatar">
-          <div className="w-full h-full rounded-full overflow-hidden">
-            <Image src={photo.url} alt={photo.alt || name} width={44} height={44} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 rounded-full border border-border pointer-events-none" />
-          </div>
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-content text-inverse text-xs rounded whitespace-nowrap opacity-0 group-hover/avatar:opacity-100 transition-opacity pointer-events-none">{name}</div>
-        </div>
+        <Avatar name={name} photo={photo} size={44} />
       )}
     </div>
   )

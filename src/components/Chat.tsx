@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { SocialIcon } from './Icons'
+import { Avatar } from './Avatar'
 import { cn } from '@/lib/cn'
 
 type Message = {
@@ -215,10 +216,14 @@ function AssistantMessage({
   return (
     <div className={`flex items-end gap-3 ${topMargin}`}>
       {avatarUrl && (
-        <div className="!hidden tablet:!block w-[45px] desktop:w-[48px] h-[45px] desktop:h-[48px] rounded-full shrink-0 relative overflow-hidden">
-          <img src={avatarUrl} alt="" className={`absolute inset-0 w-full h-full object-cover ${avatarUrlDark ? 'light-only' : ''}`} />
-          {avatarUrlDark && <img src={avatarUrlDark} alt="" className="absolute inset-0 w-full h-full object-cover dark-only" />}
-        </div>
+        <Avatar
+          name="Gabriel Valdivia"
+          photo={{ url: avatarUrl }}
+          photoDark={avatarUrlDark ? { url: avatarUrlDark } : undefined}
+          size={48}
+          showTooltip={false}
+          className="!hidden tablet:!block"
+        />
       )}
       <div className="flex flex-col gap-1 max-w-[85%]">
         {visible.map((text, pi) => (
@@ -772,10 +777,13 @@ export function Chat({
       {/* Mobile avatar header — hidden on the dedicated /chat page */}
       {avatarUrl && !persistentSidebar && (
         <div className="tablet:!hidden flex justify-center pt-2 pb-5 relative z-10">
-          <div className="w-8 h-8 rounded-full relative overflow-hidden">
-            <img src={avatarUrl} alt="" className={`absolute inset-0 w-full h-full object-cover ${avatarUrlDark ? 'light-only' : ''}`} />
-            {avatarUrlDark && <img src={avatarUrlDark} alt="" className="absolute inset-0 w-full h-full object-cover dark-only" />}
-          </div>
+          <Avatar
+            name="Gabriel Valdivia"
+            photo={{ url: avatarUrl }}
+            photoDark={avatarUrlDark ? { url: avatarUrlDark } : undefined}
+            size={32}
+            showTooltip={false}
+          />
         </div>
       )}
 
