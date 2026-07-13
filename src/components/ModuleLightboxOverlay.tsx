@@ -192,13 +192,7 @@ function getRenderedContentRect(root: HTMLElement | null) {
   return undefined
 }
 
-function MovableModuleSurfaceMount({
-  surface,
-  state = 'overlay',
-}: {
-  surface: MovableModuleSurface
-  state?: 'overlay' | 'returning'
-}) {
+function MovableModuleSurfaceMount({ surface }: { surface: MovableModuleSurface }) {
   const hostRef = useRef<HTMLDivElement>(null)
 
   useLayoutEffect(() => {
@@ -236,10 +230,6 @@ function MovableModuleSurfaceMount({
     }
   }, [surface])
 
-  useLayoutEffect(() => {
-    surface.element.dataset.lightboxSurfaceState = state
-  }, [state, surface])
-
   return <div ref={hostRef} className="flex h-full w-full items-center justify-center" />
 }
 
@@ -249,14 +239,12 @@ function ModuleSlide({
   sourceRect,
   sourceAspectRatio,
   movableSurface,
-  movableSurfaceState,
 }: {
   slide: ModuleLightboxSlide
   active: boolean
   sourceRect?: LightboxRect
   sourceAspectRatio?: number
   movableSurface?: MovableModuleSurface
-  movableSurfaceState?: 'overlay' | 'returning'
 }) {
   const Component = mediaBlockComponents[slide.block?.blockType]
 
@@ -270,7 +258,7 @@ function ModuleSlide({
     ? getPaddedSurfaceAspectRatio(intrinsicFrameAspectRatio, movableSurface)
     : contentAspectRatio
   const component = movableSurface ? (
-    <MovableModuleSurfaceMount surface={movableSurface} state={movableSurfaceState} />
+    <MovableModuleSurfaceMount surface={movableSurface} />
   ) : (
     <Component
       {...slide.block}
@@ -286,12 +274,7 @@ function ModuleSlide({
   )
 
   if (movableSurface) {
-    const surfaceStyle = movableSurfaceState === 'returning' && sourceRect
-      ? {
-        height: `${sourceRect.height}px`,
-        width: `${sourceRect.width}px`,
-      }
-      : displayAspectRatio
+    const surfaceStyle = displayAspectRatio
       ? {
         aspectRatio: displayAspectRatio,
         width: `min(100dvw, calc(100dvh * ${displayAspectRatio}))`,
@@ -301,10 +284,7 @@ function ModuleSlide({
     return (
       <div
         className="mx-auto flex"
-        style={{
-          ...surfaceStyle,
-          transition: 'width 180ms ease, height 180ms ease',
-        }}
+        style={surfaceStyle}
       >
         {component}
       </div>
@@ -373,7 +353,6 @@ function ModuleLightboxSlideView({
   handlePointerMove,
   handlePointerEnd,
   handleMouseDown,
-  movableSurfaceState,
 }: {
   slide: ModuleLightboxSlide
   direction: number
@@ -398,7 +377,6 @@ function ModuleLightboxSlideView({
   handlePointerMove: (event: PointerEvent<HTMLDivElement>) => void
   handlePointerEnd: (event: PointerEvent<HTMLDivElement>) => void
   handleMouseDown: (event: ReactMouseEvent<HTMLDivElement>) => void
-  movableSurfaceState?: 'overlay' | 'returning'
 }) {
   const slotRef = useRef<HTMLDivElement>(null)
   const targetRef = useRef<HTMLDivElement>(null)
@@ -656,7 +634,6 @@ function ModuleLightboxSlideView({
               sourceRect={entrySourceRect || exitSourceRect}
               sourceAspectRatio={sourceAspectRatio}
               movableSurface={movableSurface}
-              movableSurfaceState={movableSurfaceState}
             />
           </motion.div>
         </div>
@@ -694,7 +671,6 @@ export function ModuleLightboxOverlay({
   const [exitSourceRect, setExitSourceRect] = useState<LightboxRect | undefined>()
   const [dragOwnerId, setDragOwnerId] = useState<string | null>(null)
   const [swipeOffset, setSwipeOffset] = useState(0)
-  const [returningMovableSlideId, setReturningMovableSlideId] = useState<string | null>(null)
   const dragScale = useTransform(dragY, [0, 240], [1, 0.88])
   const backdropOpacity = useTransform(dragY, [0, 260], [1, 0.36])
   const open = index >= 0
@@ -732,7 +708,6 @@ export function ModuleLightboxOverlay({
       sourceHiddenForDragRef.current = false
       if (activeSlide) onReturnCancelled(activeSlide.id)
     }
-    setReturningMovableSlideId(null)
     animate(dragX, 0, ZOOM_TRANSITION)
     animate(dragY, 0, ZOOM_TRANSITION)
   }, [activeSlide, dragX, dragY, onReturnCancelled])
@@ -748,9 +723,6 @@ export function ModuleLightboxOverlay({
       if (mode === 'zoom' && activeSlide && nextSourceRect) {
         onClosing(activeSlide.id)
       }
-      setReturningMovableSlideId(
-        mode === 'zoom' && activeSlide?.movableSurface ? activeSlide.id : null,
-      )
       setExitSourceRect(nextSourceRect)
       setTransitionMode(mode)
       setClosingSlide(activeSlide)
@@ -770,7 +742,6 @@ export function ModuleLightboxOverlay({
       closeTimeoutRef.current = null
       setEntrySourceRect(undefined)
       setExitSourceRect(undefined)
-      setReturningMovableSlideId(null)
       onClosed()
     }, prefersReducedMotion ? 220 : 560)
   }, [activeSlide, dragX, dragY, getSourceRect, onClosed, onClosing, prefersReducedMotion])
@@ -787,7 +758,6 @@ export function ModuleLightboxOverlay({
     }
     const nextIndex = wrapIndex(index + increment, slides.length)
     const nextSlide = slides[nextIndex]
-    setReturningMovableSlideId(null)
     setEntrySourceRect(undefined)
     setExitSourceRect(undefined)
 
@@ -876,7 +846,6 @@ export function ModuleLightboxOverlay({
 
       if (state.intent === 'vertical' && activeSlide && !sourceHiddenForDragRef.current) {
         sourceHiddenForDragRef.current = true
-        if (activeSlide.movableSurface) setReturningMovableSlideId(activeSlide.id)
         onClosing(activeSlide.id)
       }
     }
@@ -956,7 +925,6 @@ export function ModuleLightboxOverlay({
 
         if (currentState.intent === 'vertical' && activeSlide && !sourceHiddenForDragRef.current) {
           sourceHiddenForDragRef.current = true
-          if (activeSlide.movableSurface) setReturningMovableSlideId(activeSlide.id)
           onClosing(activeSlide.id)
         }
       }
@@ -1107,7 +1075,6 @@ export function ModuleLightboxOverlay({
               exitSourceRect={exitSourceRect}
               sourceAspectRatio={renderedSlideSourceAspectRatio}
               movableSurface={renderedMovableSurface}
-              movableSurfaceState={renderedSlide.id === returningMovableSlideId ? 'returning' : 'overlay'}
               activeSlideIsFramed={renderedSlideIsFramed}
               activeSlideUsesMeasuredAspect={renderedSlideUsesMeasuredAspect}
               activeSlideTransition={activeSlideTransition}
