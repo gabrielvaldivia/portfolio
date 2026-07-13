@@ -217,10 +217,12 @@ function MovableModuleSurfaceMount({ surface }: { surface: MovableModuleSurface 
     }
 
     surface.element.dataset.lightboxSurfaceState = 'overlay'
+    surface.element.style.setProperty('--lightbox-phone-surface-bg-alpha', '0')
     host.appendChild(surface.element)
 
     return () => {
       surface.element.dataset.lightboxSurfaceState = 'source'
+      surface.element.style.removeProperty('--lightbox-phone-surface-bg-alpha')
       surface.element.style.paddingTop = previousPadding.top
       surface.element.style.paddingRight = previousPadding.right
       surface.element.style.paddingBottom = previousPadding.bottom
@@ -703,14 +705,29 @@ export function ModuleLightboxOverlay({
     }
   }, [])
 
+  const setActivePhoneSurfaceBackgroundProgress = useCallback((progress: number) => {
+    if (!activeSlide?.movableSurface) return
+
+    const surface = getMovableSurface(activeSlide.id)
+    const element = surface?.element
+    if (!element?.querySelector('[id^="iphone"]')) return
+
+    const visibleAlpha = Number.parseFloat(
+      getComputedStyle(element).getPropertyValue('--lightbox-phone-surface-bg-alpha-visible'),
+    ) || 0
+    const alpha = Math.min(1, Math.max(0, progress)) * visibleAlpha
+    element.style.setProperty('--lightbox-phone-surface-bg-alpha', alpha.toFixed(4))
+  }, [activeSlide, getMovableSurface])
+
   const resetDrag = useCallback(() => {
     if (sourceHiddenForDragRef.current) {
       sourceHiddenForDragRef.current = false
       if (activeSlide) onReturnCancelled(activeSlide.id)
     }
+    setActivePhoneSurfaceBackgroundProgress(0)
     animate(dragX, 0, ZOOM_TRANSITION)
     animate(dragY, 0, ZOOM_TRANSITION)
-  }, [activeSlide, dragX, dragY, onReturnCancelled])
+  }, [activeSlide, dragX, dragY, onReturnCancelled, setActivePhoneSurfaceBackgroundProgress])
 
   const close = useCallback((mode: TransitionMode = 'zoom') => {
     if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
@@ -723,6 +740,7 @@ export function ModuleLightboxOverlay({
       if (mode === 'zoom' && activeSlide && nextSourceRect) {
         onClosing(activeSlide.id)
       }
+      if (mode === 'zoom') setActivePhoneSurfaceBackgroundProgress(1)
       setExitSourceRect(nextSourceRect)
       setTransitionMode(mode)
       setClosingSlide(activeSlide)
@@ -742,9 +760,10 @@ export function ModuleLightboxOverlay({
       closeTimeoutRef.current = null
       setEntrySourceRect(undefined)
       setExitSourceRect(undefined)
+      setActivePhoneSurfaceBackgroundProgress(0)
       onClosed()
     }, prefersReducedMotion ? 220 : 560)
-  }, [activeSlide, dragX, dragY, getSourceRect, onClosed, onClosing, prefersReducedMotion])
+  }, [activeSlide, dragX, dragY, getSourceRect, onClosed, onClosing, prefersReducedMotion, setActivePhoneSurfaceBackgroundProgress])
 
   const navigate = useCallback((increment: number) => {
     if (slides.length <= 1 || index < 0) {
@@ -856,8 +875,9 @@ export function ModuleLightboxOverlay({
     } else if (state.intent === 'vertical') {
       dragX.set(0)
       dragY.set(rubberBandDismissOffset(offsetY))
+      setActivePhoneSurfaceBackgroundProgress(offsetY / 120)
     }
-  }, [activeSlide, dragX, dragY, onClosing])
+  }, [activeSlide, dragX, dragY, onClosing, setActivePhoneSurfaceBackgroundProgress])
 
   const handlePointerEnd = useCallback((event: PointerEvent<HTMLDivElement>) => {
     const state = dragState.current
@@ -935,6 +955,7 @@ export function ModuleLightboxOverlay({
       } else if (currentState.intent === 'vertical') {
         dragX.set(0)
         dragY.set(rubberBandDismissOffset(offsetY))
+        setActivePhoneSurfaceBackgroundProgress(offsetY / 120)
       }
     }
 
@@ -956,7 +977,7 @@ export function ModuleLightboxOverlay({
 
     window.addEventListener('mousemove', handleWindowMouseMove)
     window.addEventListener('mouseup', handleWindowMouseUp)
-  }, [activeSlide, completeDrag, dragX, dragY, onClosing])
+  }, [activeSlide, completeDrag, dragX, dragY, onClosing, setActivePhoneSurfaceBackgroundProgress])
 
   useEffect(() => {
     if (!lightboxMounted) return

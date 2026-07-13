@@ -60,7 +60,7 @@
 
 @media (max-width: 809px) {
   [data-lightbox-surface-state='overlay']:has([id^='iphone']) {
-    background-color: transparent;
+    background-color: rgb(var(--lightbox-phone-surface-bg-rgb) / var(--lightbox-phone-surface-bg-alpha, 0));
   }
 }
 
@@ -108,6 +108,8 @@
   --color-floating-rgb: 240 240 240 / 0.6;
   --color-accent-rgb: 0 31 235;
   --color-inverse-rgb: 255 255 255;
+  --lightbox-phone-surface-bg-rgb: 0 0 0;
+  --lightbox-phone-surface-bg-alpha-visible: 0.03;
   --color-nav-active-text: #ffffff;
   --logo-filter: brightness(0);
 }
@@ -125,6 +127,8 @@
     --color-floating-rgb: 64 64 64 / 0.6;
     --color-accent-rgb: 0 157 255;
     --color-inverse-rgb: 0 0 0;
+    --lightbox-phone-surface-bg-rgb: 255 255 255;
+    --lightbox-phone-surface-bg-alpha-visible: 0.1;
     --color-nav-active-text: #000000;
     --logo-filter: brightness(0) invert(1);
   }
