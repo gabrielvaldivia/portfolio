@@ -24,7 +24,12 @@ import { createPortal, flushSync } from 'react-dom'
 import { framedBlockTypes, mediaBlockComponents } from '@/blocks/MediaBlockComponents'
 import { ModuleLikeButton } from '@/components/ModuleLikeButton'
 import { cn } from '@/lib/cn'
-import type { LightboxRect, ModuleLightboxOverlayProps, ModuleLightboxSlide } from '@/components/ModuleLightbox'
+import type {
+  LightboxRect,
+  ModuleLightboxOverlayProps,
+  ModuleLightboxSlide,
+  MovableModuleSurface,
+} from '@/components/ModuleLightbox'
 
 type DragState = {
   pointerId: number
@@ -61,7 +66,17 @@ const SWIPE_TRANSITION: Transition = {
 }
 
 const ZOOM_DURATION_MS = 560
+const SOURCE_REVEAL_PROGRESS = 0.65
 const BACKDROP_FADE_DELAY_SECONDS = 0.1
+
+const INTRINSIC_LIGHTBOX_ASPECT_RATIOS: Record<string, number> = {
+  dc1: 718 / 960,
+  iphone15: 2005 / 4096,
+  iphone13mini: 553 / 1024,
+  iphone5: 762 / 1597,
+  iphone6: 990 / 1934,
+  iphonex: 1405 / 2796,
+}
 
 const ZOOM_ENTRY_TIMING: KeyframeAnimationOptions = {
   duration: ZOOM_DURATION_MS,
@@ -76,6 +91,31 @@ const ZOOM_EXIT_TRANSITION: Transition = {
 
 function wrapIndex(index: number, total: number) {
   return ((index % total) + total) % total
+}
+
+function getLightboxDisplayAspectRatio(slide: ModuleLightboxSlide, sourceAspectRatio?: number) {
+  const blockType = slide.block?.blockType
+  const intrinsicAspectRatio = INTRINSIC_LIGHTBOX_ASPECT_RATIOS[blockType]
+  if (intrinsicAspectRatio) return intrinsicAspectRatio
+
+  if (blockType === 'video' || blockType === 'fullWidthVideo') {
+    const width = Number(slide.block?.video?.width)
+    const height = Number(slide.block?.video?.height)
+    if (width > 0 && height > 0) return width / height
+  }
+
+  return sourceAspectRatio
+}
+
+function getPaddedSurfaceAspectRatio(contentAspectRatio: number, surface?: MovableModuleSurface) {
+  const padding = surface?.sourcePaddingRatios
+  if (!padding) return contentAspectRatio
+
+  const contentWidthRatio = 1 - padding.left - padding.right
+  const surfaceHeightRatio = contentWidthRatio / contentAspectRatio + padding.top + padding.bottom
+  return contentWidthRatio > 0 && surfaceHeightRatio > 0
+    ? 1 / surfaceHeightRatio
+    : contentAspectRatio
 }
 
 function rubberBandDismissOffset(offset: number) {
@@ -101,9 +141,25 @@ function getFlipTransform(
   sourceRect: LightboxRect,
   targetRect: LightboxRect,
   contentRect: LightboxRect = targetRect,
+  preserveAspectRatio = false,
 ) {
   const scaleX = sourceRect.width / contentRect.width
   const scaleY = sourceRect.height / contentRect.height
+
+  if (preserveAspectRatio) {
+    const scale = Math.min(scaleX, scaleY)
+    const scaledContentWidth = contentRect.width * scale
+    const scaledContentHeight = contentRect.height * scale
+    const destinationLeft = sourceRect.left + (sourceRect.width - scaledContentWidth) / 2
+    const destinationTop = sourceRect.top + (sourceRect.height - scaledContentHeight) / 2
+
+    return {
+      x: destinationLeft - targetRect.left - (contentRect.left - targetRect.left) * scale,
+      y: destinationTop - targetRect.top - (contentRect.top - targetRect.top) * scale,
+      scaleX: scale,
+      scaleY: scale,
+    }
+  }
 
   return {
     x: sourceRect.left - targetRect.left - (contentRect.left - targetRect.left) * scaleX,
@@ -117,8 +173,9 @@ function getFlipCssTransform(
   sourceRect: LightboxRect,
   targetRect: LightboxRect,
   contentRect?: LightboxRect,
+  preserveAspectRatio = false,
 ) {
-  const transform = getFlipTransform(sourceRect, targetRect, contentRect)
+  const transform = getFlipTransform(sourceRect, targetRect, contentRect, preserveAspectRatio)
 
   return `translate3d(${transform.x}px, ${transform.y}px, 0) scale(${transform.scaleX}, ${transform.scaleY})`
 }
@@ -135,23 +192,74 @@ function getRenderedContentRect(root: HTMLElement | null) {
   return undefined
 }
 
+function MovableModuleSurfaceMount({ surface }: { surface: MovableModuleSurface }) {
+  const hostRef = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    const host = hostRef.current
+    if (!host) return
+
+    const slotHeight = surface.slot.getBoundingClientRect().height
+    const previousSlotHeight = surface.slot.style.height
+    const previousPadding = {
+      top: surface.element.style.paddingTop,
+      right: surface.element.style.paddingRight,
+      bottom: surface.element.style.paddingBottom,
+      left: surface.element.style.paddingLeft,
+    }
+    if (slotHeight > 0) surface.slot.style.height = `${slotHeight}px`
+
+    if (surface.sourcePaddingRatios) {
+      surface.element.style.paddingTop = `${surface.sourcePaddingRatios.top * 100}%`
+      surface.element.style.paddingRight = `${surface.sourcePaddingRatios.right * 100}%`
+      surface.element.style.paddingBottom = `${surface.sourcePaddingRatios.bottom * 100}%`
+      surface.element.style.paddingLeft = `${surface.sourcePaddingRatios.left * 100}%`
+    }
+
+    surface.element.dataset.lightboxSurfaceState = 'overlay'
+    host.appendChild(surface.element)
+
+    return () => {
+      surface.element.dataset.lightboxSurfaceState = 'source'
+      surface.element.style.paddingTop = previousPadding.top
+      surface.element.style.paddingRight = previousPadding.right
+      surface.element.style.paddingBottom = previousPadding.bottom
+      surface.element.style.paddingLeft = previousPadding.left
+      surface.slot.appendChild(surface.element)
+      surface.slot.style.height = previousSlotHeight
+    }
+  }, [surface])
+
+  return <div ref={hostRef} className="flex h-full w-full items-center justify-center" />
+}
+
 function ModuleSlide({
   slide,
   active,
   sourceRect,
   sourceAspectRatio,
+  movableSurface,
 }: {
   slide: ModuleLightboxSlide
   active: boolean
   sourceRect?: LightboxRect
   sourceAspectRatio?: number
+  movableSurface?: MovableModuleSurface
 }) {
   const Component = mediaBlockComponents[slide.block?.blockType]
 
   if (!Component) return null
 
-  const isFramed = framedBlockTypes.includes(slide.block?.blockType)
-  const component = (
+  const blockType = slide.block?.blockType
+  const isFramed = framedBlockTypes.includes(blockType)
+  const intrinsicFrameAspectRatio = INTRINSIC_LIGHTBOX_ASPECT_RATIOS[blockType]
+  const contentAspectRatio = getLightboxDisplayAspectRatio(slide, sourceAspectRatio)
+  const displayAspectRatio = intrinsicFrameAspectRatio
+    ? getPaddedSurfaceAspectRatio(intrinsicFrameAspectRatio, movableSurface)
+    : contentAspectRatio
+  const component = movableSurface ? (
+    <MovableModuleSurfaceMount surface={movableSurface} />
+  ) : (
     <Component
       {...slide.block}
       _active={active}
@@ -164,6 +272,24 @@ function ModuleSlide({
         : undefined}
     />
   )
+
+  if (movableSurface) {
+    const surfaceStyle = displayAspectRatio
+      ? {
+        aspectRatio: displayAspectRatio,
+        width: `min(100dvw, calc(100dvh * ${displayAspectRatio}))`,
+      }
+      : { width: '100dvw', height: '100dvh' }
+
+    return (
+      <div
+        className="mx-auto flex"
+        style={surfaceStyle}
+      >
+        {component}
+      </div>
+    )
+  }
 
   if (isFramed && sourceAspectRatio) {
     const sourceWidth = sourceRect?.width
@@ -212,10 +338,12 @@ function ModuleLightboxSlideView({
   entrySourceRect,
   exitSourceRect,
   sourceAspectRatio,
+  movableSurface,
   activeSlideIsFramed,
   activeSlideUsesMeasuredAspect,
   activeSlideTransition,
   onSourceReady,
+  onSourceReveal,
   ownsDrag,
   swipeOffset,
   dragX,
@@ -234,10 +362,12 @@ function ModuleLightboxSlideView({
   entrySourceRect?: LightboxRect
   exitSourceRect?: LightboxRect
   sourceAspectRatio?: number
+  movableSurface?: MovableModuleSurface
   activeSlideIsFramed: boolean
   activeSlideUsesMeasuredAspect: boolean
   activeSlideTransition: Transition
   onSourceReady: (id: string) => void
+  onSourceReveal: (id: string) => void
   ownsDrag: boolean
   swipeOffset: number
   dragX: ReturnType<typeof useMotionValue<number>>
@@ -299,7 +429,12 @@ function ModuleLightboxSlideView({
 
       const nextTransformRect = getElementRect(element) || nextTargetRect
       const nextContentRect = getRenderedContentRect(contentRef.current) || nextTargetRect
-      const initialTransform = getFlipCssTransform(entrySourceRect, nextTransformRect, nextContentRect)
+      const initialTransform = getFlipCssTransform(
+        entrySourceRect,
+        nextTransformRect,
+        nextContentRect,
+        activeSlideIsFramed,
+      )
       const finalTransform = 'translate3d(0px, 0px, 0px) scale(1, 1)'
 
       element.style.transform = initialTransform
@@ -344,10 +479,10 @@ function ModuleLightboxSlideView({
       }
       animation?.cancel()
     }
-  }, [entrySourceRect, onSourceReady, prefersReducedMotion, slide.id, transitionMode])
+  }, [activeSlideIsFramed, entrySourceRect, onSourceReady, prefersReducedMotion, slide.id, transitionMode])
 
   useLayoutEffect(() => {
-    const slotElement = slotRef.current
+    const zoomElement = zoomRef.current
 
     exitAnimationRef.current?.cancel()
     exitAnimationRef.current = null
@@ -357,32 +492,49 @@ function ModuleLightboxSlideView({
       || transitionMode !== 'zoom'
       || prefersReducedMotion
       || !exitSourceRect
-      || !slotElement
-      || typeof slotElement.animate !== 'function'
+      || !zoomElement
+      || typeof zoomElement.animate !== 'function'
     ) return
 
+    const slotElement = slotRef.current
     const targetElement = targetRef.current
     const nextSlotRect = getElementRect(slotElement)
     const nextTargetRect = getElementRect(targetElement)
+    const nextZoomRect = getElementRect(zoomElement)
     const nextContentRect = getRenderedContentRect(contentRef.current)
-    if (!targetElement || !nextSlotRect || !nextTargetRect || !nextContentRect) return
+    if (!slotElement || !targetElement || !nextSlotRect || !nextTargetRect || !nextZoomRect || !nextContentRect) return
 
+    // The drag transform is resetting while the return animation runs. Measure
+    // the content once, then remove that temporary scale from the FLIP geometry
+    // so both compositor animations converge on the same source rectangle.
     const renderedTargetScale = targetElement.offsetWidth > 0
       ? nextTargetRect.width / targetElement.offsetWidth
       : 1
     const baseTargetLeft = nextSlotRect.left + targetElement.offsetLeft
     const baseTargetTop = nextSlotRect.top + targetElement.offsetTop
-    const exitContentRect = {
-      left: baseTargetLeft + (nextContentRect.left - nextTargetRect.left) / renderedTargetScale,
-      top: baseTargetTop + (nextContentRect.top - nextTargetRect.top) / renderedTargetScale,
-      width: nextContentRect.width / renderedTargetScale,
-      height: nextContentRect.height / renderedTargetScale,
-    }
-    const finalTransform = getFlipCssTransform(exitSourceRect, nextSlotRect, exitContentRect)
-    const animation = slotElement.animate([
+    const toUntransformedRect = (rect: LightboxRect): LightboxRect => ({
+      left: baseTargetLeft + (rect.left - nextTargetRect.left) / renderedTargetScale,
+      top: baseTargetTop + (rect.top - nextTargetRect.top) / renderedTargetScale,
+      width: rect.width / renderedTargetScale,
+      height: rect.height / renderedTargetScale,
+    })
+    const baseZoomRect = toUntransformedRect(nextZoomRect)
+    const baseContentRect = toUntransformedRect(nextContentRect)
+
+    const finalTransform = getFlipCssTransform(
+      exitSourceRect,
+      baseZoomRect,
+      baseContentRect,
+      activeSlideIsFramed,
+    )
+    const animation = zoomElement.animate([
       { transform: 'translate3d(0px, 0px, 0px) scale(1, 1)', opacity: 1 },
       { transform: finalTransform, opacity: 1 },
     ], ZOOM_ENTRY_TIMING)
+    const revealTimer = window.setTimeout(
+      () => onSourceReveal(slide.id),
+      ZOOM_DURATION_MS * SOURCE_REVEAL_PROGRESS,
+    )
 
     exitAnimationRef.current = animation
     animation.onfinish = () => {
@@ -393,10 +545,11 @@ function ModuleLightboxSlideView({
     }
 
     return () => {
+      window.clearTimeout(revealTimer)
       if (exitAnimationRef.current === animation) exitAnimationRef.current = null
       animation.cancel()
     }
-  }, [closing, exitSourceRect, prefersReducedMotion, transitionMode])
+  }, [activeSlideIsFramed, closing, exitSourceRect, onSourceReveal, prefersReducedMotion, slide.id, transitionMode])
 
   const slotExitTransform = transitionMode === 'dismiss' && !prefersReducedMotion
       ? { y: 220, scale: 0.86, opacity: 0 }
@@ -415,7 +568,7 @@ function ModuleLightboxSlideView({
       key={slide.id}
       data-lightbox-slide={slide.id}
       data-lightbox-present={isPresent ? 'true' : 'false'}
-      className="pointer-events-none absolute inset-0 flex items-center justify-center px-4 py-14 tablet:px-12 tablet:py-16 desktop:px-20"
+      className="pointer-events-none absolute inset-0 flex items-center justify-center"
       initial={
         transitionMode === 'swipe' && !prefersReducedMotion
           ? { x: swipeEntryX, opacity: 1 }
@@ -438,7 +591,9 @@ function ModuleLightboxSlideView({
         ref={targetRef}
         className={cn(
           isPresent ? 'pointer-events-auto' : 'pointer-events-none',
-          activeSlideIsFramed
+          movableSurface
+            ? 'w-full'
+            : activeSlideIsFramed
             ? 'w-fit max-w-[calc(100dvw-32px)]'
             : activeSlideUsesMeasuredAspect
               ? 'w-[calc(100dvw-32px)] max-w-[1440px]'
@@ -478,6 +633,7 @@ function ModuleLightboxSlideView({
               active
               sourceRect={entrySourceRect || exitSourceRect}
               sourceAspectRatio={sourceAspectRatio}
+              movableSurface={movableSurface}
             />
           </motion.div>
         </div>
@@ -492,8 +648,10 @@ export function ModuleLightboxOverlay({
   initialSourceRect,
   getSourceRect,
   getSourceAspectRatio,
+  getMovableSurface,
   onSourceReady,
   onClosing,
+  onSourceReveal,
   onReturnCancelled,
   onClosed,
 }: ModuleLightboxOverlayProps) {
@@ -525,6 +683,9 @@ export function ModuleLightboxOverlay({
   const renderedSlideUsesMeasuredAspect = Boolean(renderedSlide?.preserveAspectDuringZoom)
   const renderedSlideSourceAspectRatio = renderedSlide
     ? getSourceAspectRatio(renderedSlide.id)
+    : undefined
+  const renderedMovableSurface = renderedSlide?.movableSurface
+    ? getMovableSurface(renderedSlide.id)
     : undefined
   const activeSlideTransition = prefersReducedMotion
     ? FADE_TRANSITION
@@ -640,7 +801,7 @@ export function ModuleLightboxOverlay({
 
   const handlePointerDown = useCallback((event: PointerEvent<HTMLDivElement>) => {
     const target = event.target
-    if (target instanceof HTMLElement && target.closest('button,a,input,textarea,select,summary')) return
+    if (target instanceof Element && target.closest('button,a,input,textarea,select,summary')) return
 
     setDragOwnerId(activeSlide?.id ?? null)
     event.currentTarget.setPointerCapture(event.pointerId)
@@ -719,8 +880,8 @@ export function ModuleLightboxOverlay({
     if (dragState.current || event.button !== 0) return
 
     const target = event.target
-    if (target instanceof HTMLElement && target.closest('button,a,input,textarea,select,summary')) return
-    if (!(target instanceof HTMLElement && target.closest('video'))) event.preventDefault()
+    if (target instanceof Element && target.closest('button,a,input,textarea,select,summary')) return
+    if (!(target instanceof Element && target.closest('video'))) event.preventDefault()
 
     const state: DragState = {
       pointerId: -1,
@@ -843,7 +1004,7 @@ export function ModuleLightboxOverlay({
 
       {activeSlide && (
         <>
-          <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-end p-3 tablet:p-5">
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-end p-3 tablet:p-5 desktop:p-10">
             <button
               type="button"
               aria-label="Close lightbox"
@@ -864,7 +1025,7 @@ export function ModuleLightboxOverlay({
               <button
                 type="button"
                 aria-label="Previous module"
-                className="absolute left-3 top-1/2 z-20 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full bg-floating backdrop-blur-[40px] transition-colors hover:bg-hover tablet:flex"
+                className="absolute left-3 top-1/2 z-20 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full bg-floating backdrop-blur-[40px] transition-colors hover:bg-hover tablet:flex desktop:left-10"
                 onClick={(event) => {
                   event.stopPropagation()
                   navigate(-1)
@@ -877,7 +1038,7 @@ export function ModuleLightboxOverlay({
               <button
                 type="button"
                 aria-label="Next module"
-                className="absolute right-3 top-1/2 z-20 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full bg-floating backdrop-blur-[40px] transition-colors hover:bg-hover tablet:flex"
+                className="absolute right-3 top-1/2 z-20 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full bg-floating backdrop-blur-[40px] transition-colors hover:bg-hover tablet:flex desktop:right-10"
                 onClick={(event) => {
                   event.stopPropagation()
                   navigate(1)
@@ -891,8 +1052,8 @@ export function ModuleLightboxOverlay({
           )}
 
           {activeSlide.likeTargetId && (
-            <div className="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center px-4 tablet:bottom-6">
-              <div className="pointer-events-auto rounded-full bg-black/10 p-1 text-black backdrop-blur-xl dark:bg-white/10 dark:text-white">
+            <div className="pointer-events-none absolute inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 flex justify-center px-4 tablet:bottom-6">
+              <div className="pointer-events-auto text-black dark:text-white">
                 <ModuleLikeButton targetId={activeSlide.likeTargetId} />
               </div>
             </div>
@@ -913,10 +1074,12 @@ export function ModuleLightboxOverlay({
               entrySourceRect={entrySourceRect}
               exitSourceRect={exitSourceRect}
               sourceAspectRatio={renderedSlideSourceAspectRatio}
+              movableSurface={renderedMovableSurface}
               activeSlideIsFramed={renderedSlideIsFramed}
               activeSlideUsesMeasuredAspect={renderedSlideUsesMeasuredAspect}
               activeSlideTransition={activeSlideTransition}
               onSourceReady={onSourceReady}
+              onSourceReveal={onSourceReveal}
               ownsDrag={renderedSlide.id === dragOwnerId}
               swipeOffset={swipeOffset}
               dragX={dragX}

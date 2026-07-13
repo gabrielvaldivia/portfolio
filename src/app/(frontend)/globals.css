@@ -1,5 +1,63 @@
 @import 'tailwindcss';
 
+.video-player-controls {
+  opacity: 1;
+}
+
+[data-lightbox-surface-state='overlay'] .video-open-lightbox-button {
+  display: none;
+}
+
+@media (hover: hover) {
+  .video-player-controls {
+    opacity: 0;
+  }
+
+  .video-player-group:hover .video-player-controls,
+  .video-player-group:focus-within .video-player-controls {
+    opacity: 1;
+  }
+}
+
+[data-lightbox-surface-state='overlay'] [data-module-video-root] {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+[data-lightbox-surface-state='overlay'] p {
+  display: none;
+}
+
+[data-lightbox-surface-state='overlay'] [data-module-video-frame] {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+[data-lightbox-surface-state='overlay'] [data-module-image-root] {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+[data-lightbox-surface-state='overlay'] [data-module-image-frame] {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+[data-lightbox-surface-state='overlay'] [data-module-image-content] {
+  height: 100%;
+  aspect-ratio: auto !important;
+}
+
+[data-lightbox-surface-state='overlay'] .module-like-overlay {
+  display: none;
+}
+
 @theme {
   --font-heading: 'Inter Display', 'Inter', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
@@ -128,9 +186,8 @@ body {
     overflow-x: clip;
   }
 
-  body > header,
-  body > main > section,
-  .mobile-site-nav {
+  .chat-header-content,
+  .chat-nav-content {
     transition: transform 200ms ease-out;
   }
 
@@ -138,9 +195,8 @@ body {
     overflow: hidden;
   }
 
-  body.chat-mobile-sidebar-open > header,
-  body.chat-mobile-sidebar-open > main > section,
-  body.chat-mobile-sidebar-open .mobile-site-nav {
+  body.chat-mobile-sidebar-open .chat-header-content,
+  body.chat-mobile-sidebar-open .chat-nav-content {
     transform: translateX(var(--chat-drawer-width));
   }
 
@@ -150,9 +206,8 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body > header,
-  body > main > section,
-  .mobile-site-nav {
+  .chat-header-content,
+  .chat-nav-content {
     transition-duration: 0ms;
   }
 }
@@ -385,7 +440,7 @@ a {
 
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  to { opacity: 1; transform: none; }
 }
 
 .page-transition {

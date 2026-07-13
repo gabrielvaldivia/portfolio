@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { cn } from '@/lib/cn'
 
 const pages = [
   { label: 'Home', url: '/' },
@@ -17,12 +18,16 @@ const pages = [
 export function NavMenu() {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
+  const isChat = pathname.startsWith('/chat')
 
   return (
     <>
       {/* Desktop — top right */}
-      <nav className="fixed top-0 right-0 z-50 hidden tablet:block p-10">
-        <div className="relative">
+      <nav
+        className="fixed top-0 right-0 z-50 hidden tablet:block p-10"
+        style={isChat ? { transform: 'translateY(var(--chat-viewport-top, 0px))' } : undefined}
+      >
+        <div className={cn('relative', isChat && 'chat-nav-content')}>
           <button
             onClick={() => setOpen(!open)}
             aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
@@ -77,8 +82,11 @@ export function NavMenu() {
       </nav>
 
       {/* Mobile — top right */}
-      <nav className="mobile-site-nav fixed top-0 right-0 z-[61] tablet:hidden p-4">
-        <div className="relative">
+      <nav
+        className="mobile-site-nav fixed top-0 right-0 z-[61] tablet:hidden p-4"
+        style={isChat ? { transform: 'translateY(var(--chat-viewport-top, 0px))' } : undefined}
+      >
+        <div className={cn('relative', isChat && 'chat-nav-content')}>
           <button
             onClick={() => setOpen(!open)}
             aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}

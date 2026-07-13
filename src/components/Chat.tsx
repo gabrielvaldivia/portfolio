@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { createPortal } from 'react-dom'
 import { SocialIcon } from './Icons'
+import { cn } from '@/lib/cn'
 
 type Message = {
   role: 'user' | 'assistant'
@@ -349,9 +349,6 @@ export function Chat({
   const [hasScrolled, setHasScrolled] = useState(false)
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [conversationId, setConversationIdRaw] = useState<number | null>(initialConversationId)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => setMounted(true), [])
 
   useEffect(() => {
     if (!persistentSidebar) return
@@ -954,7 +951,7 @@ export function Chat({
             placeholder="Message..."
             disabled={isStreaming}
             rows={1}
-            className="block w-full bg-black/[0.02] dark:bg-white/[0.02] rounded-[23px] px-4 py-2.5 pr-11 text-body text-content placeholder:text-muted outline-none disabled:opacity-50 resize-none overflow-hidden"
+            className="block w-full bg-black/[0.02] dark:bg-floating rounded-[23px] px-4 py-2.5 pr-11 text-body text-content placeholder:text-muted outline-none disabled:opacity-50 resize-none overflow-hidden"
           />
           {input.trim() && (
             <button
@@ -974,31 +971,33 @@ export function Chat({
 
   if (persistentSidebar) {
     return (
-      <div className="flex flex-row h-full overflow-hidden">
-        {mounted && createPortal(
-          <div className={`fixed inset-0 z-50 tablet:hidden ${sidebarOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+      <div className="relative h-full overflow-hidden">
+          <div className={`absolute inset-0 z-40 tablet:hidden ${sidebarOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
             <button
               type="button"
               aria-label="Close conversation sidebar"
               onClick={() => setSidebarOpen(false)}
-              className={`fixed inset-0 bg-black/20 transition-[opacity,translate] duration-200 ease-out ${sidebarOpen ? 'translate-x-[var(--chat-drawer-width)] opacity-100' : 'translate-x-0 opacity-0'}`}
+              className={`absolute inset-0 bg-black/20 dark:bg-black/60 transition-[opacity,translate] duration-200 ease-out ${sidebarOpen ? 'translate-x-[var(--chat-drawer-width)] opacity-100' : 'translate-x-0 opacity-0'}`}
             />
             <aside
               aria-label="Conversation history"
-              className={`fixed inset-y-0 left-0 z-10 flex flex-col bg-background px-2 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] transition-transform duration-200 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+              className={`absolute inset-y-0 left-0 z-10 flex flex-col bg-background dark:bg-white/10 px-2 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] transition-transform duration-200 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
               style={{ width: 'var(--chat-drawer-width)' }}
             >
               {sidebarInner}
             </aside>
-          </div>,
-          document.body,
-        )}
-        <aside
-          className={`hidden tablet:flex w-[280px] shrink-0 flex-col bg-background-alt-hover dark:bg-white/[0.06] py-5 tablet:py-8 px-2 transition-[margin-left] duration-300 ease-in-out ${sidebarOpen ? 'ml-0' : '-ml-[280px]'}`}
-        >
-          {sidebarInner}
-        </aside>
-        {chatBody}
+          </div>
+        <div className={cn(
+          'flex h-full flex-row transition-transform duration-200 ease-out tablet:translate-x-0',
+          sidebarOpen ? 'translate-x-[var(--chat-drawer-width)]' : 'translate-x-0',
+        )}>
+          <aside
+            className={`hidden w-[280px] shrink-0 flex-col bg-background-alt-hover px-2 py-5 transition-[margin-left] duration-300 ease-in-out dark:bg-white/[0.06] tablet:flex tablet:py-8 ${sidebarOpen ? 'ml-0' : '-ml-[280px]'}`}
+          >
+            {sidebarInner}
+          </aside>
+          {chatBody}
+        </div>
       </div>
     )
   }

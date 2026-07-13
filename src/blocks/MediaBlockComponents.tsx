@@ -38,7 +38,7 @@ const VIDEO_LIGHTBOX_VERTICAL_OFFSET = 72
 
 export function ModuleLikeOverlay({ targetId }: { targetId: string }) {
   return (
-    <div className="pointer-events-none absolute bottom-3 left-3 z-20 opacity-100 transition-opacity duration-150 desktop:opacity-0 desktop:group-hover/module:opacity-100 desktop:group-focus-within/module:opacity-100">
+    <div className="module-like-overlay pointer-events-none absolute bottom-3 left-3 z-20 opacity-100 transition-opacity duration-150 desktop:opacity-0 desktop:group-hover/module:opacity-100 desktop:group-focus-within/module:opacity-100">
       <LazyModuleLikeButton targetId={targetId} />
     </div>
   )
@@ -117,14 +117,16 @@ export function ImageBlockComponent({
   const objectFit = fit === 'contain' ? 'object-contain' : 'object-cover'
 
   return (
-    <div className={cn(isLightbox ? 'mx-auto w-full' : '')} style={isLightbox ? { width: getConstrainedWidth(aspectRatio) } : undefined}>
+    <div data-module-image-root className={cn(isLightbox ? 'mx-auto w-full' : '')} style={isLightbox ? { width: getConstrainedWidth(aspectRatio) } : undefined}>
       <div
+        data-module-image-frame
         className={`${bg} w-full relative ${hasPadding ? padClass : ''} ${!hasPadding ? 'overflow-hidden' : ''}`}
         style={{
           ...(customBg ? { backgroundColor: customBg } : {}),
         }}
       >
         <div
+          data-module-image-content
           className={`relative w-full ${shadow ? 'drop-shadow-md' : ''} ${roundedClass}`}
           style={{ aspectRatio, ...(rowHeight && !isLightbox ? { ['--row-height' as string]: `${rowHeight}px` } : {}) }}
         >
@@ -197,8 +199,9 @@ export function VideoBlockComponent({
   }
 
   return (
-    <div>
+    <div data-module-video-root>
       <div
+        data-module-video-frame
         className={cn(bg, 'relative overflow-hidden', border ? 'border border-border' : '', hasPadding ? padClass : '')}
         style={{
           ...(rowHeight ? { ['--row-height' as string]: `${rowHeight}px` } : {}),
@@ -407,6 +410,7 @@ export function iPhone15Block({ id: blockId, video, image, rows, showNotch, _con
         @media (min-width: 1280px) {
           #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
+        [data-lightbox-surface-state="overlay"] #${id} { height: 100%; width: auto; max-height: 100%; max-width: 100%; }
       ` }} />
       <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
@@ -450,6 +454,7 @@ export function iPhone13MiniBlock({ id: blockId, video, image, rows, _containedI
         @media (min-width: 1280px) {
           #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
+        [data-lightbox-surface-state="overlay"] #${id} { height: 100%; width: auto; max-height: 100%; max-width: 100%; }
       ` }} />
       <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
@@ -483,6 +488,7 @@ export function iPhone5Block({ id: blockId, video, image, rows, _containedInLigh
         @media (min-width: 1280px) {
           #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
+        [data-lightbox-surface-state="overlay"] #${id} { height: 100%; width: auto; max-height: 100%; max-width: 100%; }
       ` }} />
       <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
@@ -516,6 +522,7 @@ export function iPhone6Block({ id: blockId, video, image, rows, _containedInLigh
         @media (min-width: 1280px) {
           #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
+        [data-lightbox-surface-state="overlay"] #${id} { height: 100%; width: auto; max-height: 100%; max-width: 100%; }
       ` }} />
       <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
@@ -549,6 +556,7 @@ export function iPhoneXBlock({ id: blockId, video, image, rows, _containedInLigh
         @media (min-width: 1280px) {
           #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
+        [data-lightbox-surface-state="overlay"] #${id} { height: 100%; width: auto; max-height: 100%; max-width: 100%; }
       ` }} />
       <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
@@ -580,4 +588,4 @@ export const mediaBlockComponents: Record<string, React.ComponentType<any>> = {
 export const framedBlockTypes = ['browser', 'dc1', 'iphone15', 'iphone13mini', 'iphone5', 'iphone6', 'iphonex']
 export const phoneFrameBlockTypes = ['dc1', 'iphone15', 'iphone13mini', 'iphone5', 'iphone6', 'iphonex']
 export const internalLikeButtonBlockTypes = ['image', 'video', 'fullWidthImage', 'fullWidthVideo']
-export const lightboxableBlockTypes = [...Object.keys(mediaBlockComponents), 'imageGrid']
+export const lightboxableBlockTypes = Object.keys(mediaBlockComponents)

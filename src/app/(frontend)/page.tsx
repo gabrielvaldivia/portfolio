@@ -6,7 +6,7 @@ import { ServicePill } from '@/components/ServicePill'
 import { HScrollContainer } from '@/components/HScrollContainer'
 import { FitText } from '@/components/FitText'
 import { SocialIcon } from '@/components/Icons'
-import { Chat } from '@/components/Chat'
+import { AskMeAnything, AskMeAnythingRestart } from '@/components/AskMeAnything'
 import { getClients } from '@/lib/queries'
 import { getPayload } from '@/lib/payload'
 import { getFAQItemsFromSections } from '@/lib/buildContext'
@@ -14,6 +14,14 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 export const revalidate = 300
+
+function normalizeAskedQuestion(question: string) {
+  return question
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
 
 function SectionWithTitle({ title, cols, children, titleRight }: { title?: string; cols: string; children: React.ReactNode; titleRight?: React.ReactNode }) {
   if (!title) return <>{children}</>
@@ -45,40 +53,46 @@ export default async function HomePage() {
     pageResult,
     services,
     clientsResult,
-    allProjects,
-    allPeople,
-    allSideProjects,
-    aboutPage,
+    conversationsResult,
   ] = await Promise.all([
     payload.find({ collection: 'pages', where: { slug: { equals: 'home' } }, depth: 3, limit: 1 }),
     payload.find({ collection: 'services', sort: 'order', limit: 20, where: { featured: { equals: true } }, select: { title: true } }),
     getClients(),
-    payload.find({ collection: 'projects', sort: 'order', limit: 100, depth: 0, select: { title: true, slug: true } }),
-    payload.find({ collection: 'people', limit: 100, depth: 0, select: { name: true, linkedIn: true } }),
-    payload.find({ collection: 'side-projects', sort: 'order', limit: 100, depth: 0, select: { title: true, slug: true } }),
-    payload.find({ collection: 'pages', where: { slug: { equals: 'about' } }, depth: 0, limit: 1, select: { talks: true, interviews: true } }),
+    payload.find({ collection: 'conversations', sort: '-updatedAt', limit: 500, depth: 0, select: { messages: true } }),
   ])
   const page = pageResult.docs[0] || null
   const sections = (page?.sections || []) as any[]
   const faqItems = getFAQItemsFromSections(sections)
   const clients = clientsResult.docs
-  const projectLinks = allProjects.docs.map((p: any) => ({ title: p.title, slug: p.slug }))
-  const peopleLinks = allPeople.docs.filter((p: any) => p.linkedIn).map((p: any) => ({ name: p.name, linkedin: p.linkedIn }))
-  const sideProjectLinks = allSideProjects.docs.filter((p: any) => p.slug).map((p: any) => ({ title: p.title, slug: p.slug }))
-  const aboutData = aboutPage.docs[0] as any
-  const talkLinks = [
-    ...((aboutData?.talks || []) as any[]).filter((t: any) => t.url).map((t: any) => ({ title: t.title, url: t.url })),
-    ...((aboutData?.interviews || []) as any[]).filter((t: any) => t.url).map((t: any) => ({ title: t.title, url: t.url })),
-  ]
+  const questionCounts = new Map<string, { question: string; count: number }>()
 
-  const aboutSection = sections.find((s: any) => s.blockType === 'aboutSection')
-  const aboutImage = aboutSection?.image?.url || ''
-  const aboutImageDark = aboutSection?.imageDark?.url || ''
-  const chatBlock = sections.find((s: any) => s.blockType === 'accordion')
-  const socialLinks = (chatBlock?.links || []).map((l: any) => ({
-    platform: l.platform,
-    url: l.url,
-  }))
+  for (const conversation of conversationsResult.docs as any[]) {
+    for (const message of Array.isArray(conversation.messages) ? conversation.messages : []) {
+      if (message?.role !== 'user' || typeof message.content !== 'string') continue
+      const question = message.content.trim()
+      const normalized = normalizeAskedQuestion(question)
+      if (normalized.length < 8 || normalized.length > 160 || /@|https?:\/\//i.test(question)) continue
+      const existing = questionCounts.get(normalized)
+      questionCounts.set(normalized, {
+        question: existing?.question || question,
+        count: (existing?.count || 0) + 1,
+      })
+    }
+  }
+
+  const suggestedQuestions = [...questionCounts.entries()]
+    .filter(([, entry]) => entry.count >= 2)
+    .sort((a, b) => b[1].count - a[1].count)
+    .map(([normalized, entry]) => {
+      const authored = faqItems.find((item) => normalizeAskedQuestion(item.question) === normalized)
+      return { question: entry.question, answer: authored?.answer || '' }
+    })
+
+  for (const item of faqItems.filter((faq) => faq.showAsPill !== false)) {
+    if (suggestedQuestions.length >= 5) break
+    if (suggestedQuestions.some((question) => normalizeAskedQuestion(question.question) === normalizeAskedQuestion(item.question))) continue
+    suggestedQuestions.push(item)
+  }
 
   if (!sections.length) {
     return (
@@ -364,16 +378,22 @@ export default async function HomePage() {
           <Container key={block.id || i} className="h-full scroll-mt-5 tablet:scroll-mt-32" id="contact">
             {isFullWidth ? (
               <div className="flex flex-col tablet:grid tablet:grid-cols-6 gap-5 tablet:gap-10 h-full">
-                {block.title && <div className="tablet:col-span-2 flex items-start"><h3>{block.title}</h3></div>}
-                <div className="tablet:col-span-4 bg-background-alt rounded-[20px] tablet:rounded-[30px] p-5 tablet:p-8 tablet:h-full tablet:min-h-[400px] overflow-hidden" style={{ height: block.fixedHeight || '70dvh' }}>
-                  <Chat faqItems={faqItems} avatarUrl={aboutImage} avatarUrlDark={aboutImageDark} projects={projectLinks} sideProjects={sideProjectLinks} people={peopleLinks} socialLinks={socialLinks} talks={talkLinks} />
+                <div className="tablet:col-span-2 flex items-start gap-2">
+                  <h3 className="text-balance">Ask me anything</h3>
+                  <AskMeAnythingRestart />
+                </div>
+                <div className="tablet:col-span-4">
+                  <AskMeAnything items={faqItems} suggestedQuestions={suggestedQuestions.slice(0, 5)} />
                 </div>
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                {block.title && <h3 className="pb-5 tablet:pb-10">{block.title}</h3>}
-                <div className="bg-background-alt rounded-[20px] tablet:rounded-[30px] p-5 tablet:p-8 tablet:flex-1 min-h-0 overflow-hidden" style={{ height: block.fixedHeight || '70dvh' }}>
-                  <Chat faqItems={faqItems} avatarUrl={aboutImage} avatarUrlDark={aboutImageDark} projects={projectLinks} sideProjects={sideProjectLinks} people={peopleLinks} socialLinks={socialLinks} talks={talkLinks} />
+                <div className="flex items-start gap-2 pb-5 tablet:pb-10">
+                  <h3 className="text-balance">Ask me anything</h3>
+                  <AskMeAnythingRestart />
+                </div>
+                <div className="min-h-0 tablet:flex-1">
+                  <AskMeAnything items={faqItems} suggestedQuestions={suggestedQuestions.slice(0, 5)} />
                 </div>
               </div>
             )}

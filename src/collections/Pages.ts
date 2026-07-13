@@ -2,7 +2,6 @@ import type { Block, CollectionConfig, Field } from 'payload'
 import { SectionHeader } from '../blocks/SectionHeader/config'
 import { FullWidthImage } from '../blocks/FullWidthImage/config'
 import { FullWidthVideo } from '../blocks/FullWidthVideo/config'
-import { ImageGrid } from '../blocks/ImageGrid/config'
 import { DeviceMockup } from '../blocks/DeviceMockup/config'
 import { TextBlock } from '../blocks/TextBlock/config'
 import { TwoColumn } from '../blocks/TwoColumn/config'
@@ -454,7 +453,7 @@ export const Pages: CollectionConfig = {
       name: 'content',
       type: 'blocks',
       admin: { condition: isType('custom') },
-      blocks: [SectionHeader, FullWidthImage, FullWidthVideo, ImageGrid, DeviceMockup, TextBlock, TwoColumn],
+      blocks: [SectionHeader, FullWidthImage, FullWidthVideo, DeviceMockup, TextBlock, TwoColumn],
     },
 
     // ── SEO ──

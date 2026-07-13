@@ -1,7 +1,6 @@
 import { RichText } from '@/components/RichText'
 import { ModuleLightboxProvider, ModuleLightboxTrigger, type ModuleLightboxSlide } from '@/components/ModuleLightbox'
 import {
-  ImageBlockComponent,
   ModuleLikeOverlay,
   framedBlockTypes,
   internalLikeButtonBlockTypes,
@@ -39,16 +38,6 @@ const blockComponents: Record<string, React.ComponentType<any>> = {
   text: TextBlock,
   sectionHeader: (props: any) => <TextBlock title={props.title} content={props.description} columns={props.columns} />,
   textContent: (props: any) => <TextBlock content={props.content} columns={props.columns} />,
-  imageGrid: ({ images, columns }: any) => {
-    if (!images?.length) return null
-    return (
-      <div className={`grid gap-10 ${columns === '3' ? 'grid-cols-3' : columns === '1' ? 'grid-cols-1' : 'grid-cols-2'}`}>
-        {images.map((item: any, i: number) => (
-          <ImageBlockComponent key={i} image={item.image} border={item.border} />
-        ))}
-      </div>
-    )
-  },
   textBlock: (props: any) => <TextBlock content={props.content} columns={props.columns} />,
   twoColumn: () => null,
 }
@@ -79,10 +68,6 @@ function getBaseSlideId(block: any, index: number) {
   return `${block.id || `${block.blockType}-${index}`}`
 }
 
-function getImageGridSlideId(block: any, blockIndex: number, itemIndex: number) {
-  return `${getBaseSlideId(block, blockIndex)}:image-grid:${itemIndex}`
-}
-
 function getBlockSlideId(block: any, blockIndex: number) {
   return `${getBaseSlideId(block, blockIndex)}:${block.blockType}`
 }
@@ -103,6 +88,16 @@ function shouldPreserveAspectDuringZoom(blockType?: string) {
   ].includes(blockType || '')
 }
 
+function shouldUseMovableSurface(blockType?: string) {
+  return phoneFrameBlockTypes.includes(blockType || '')
+    || blockType === 'browser'
+    || blockType === 'image'
+    || blockType === 'fullWidthImage'
+    || blockType === 'deviceMockup'
+    || blockType === 'video'
+    || blockType === 'fullWidthVideo'
+}
+
 function getVideoAspectRatio(block: any) {
   const width = Number(block?.video?.width)
   const height = Number(block?.video?.height)
@@ -110,44 +105,9 @@ function getVideoAspectRatio(block: any) {
   return width > 0 && height > 0 ? width / height : undefined
 }
 
-function getImageGridSlide(block: any, blockIndex: number, item: any, itemIndex: number, likeNamespace?: string): ModuleLightboxSlide {
-  const imageBlock = {
-    id: getImageGridSlideId(block, blockIndex, itemIndex),
-    blockType: 'image',
-    image: item.image,
-    border: item.border,
-    imageBorder: item.imageBorder,
-    rounded: item.rounded,
-    shadow: item.shadow,
-    fit: item.fit || 'contain',
-    bgColor: item.bgColor || 'alt',
-    padding: item.padding || '0',
-    caption: item.caption,
-    rows: 'wrap',
-    columns: '6',
-  }
-
-  return {
-    id: imageBlock.id,
-    type: 'module',
-    block: imageBlock,
-    label: item.image?.alt ? `Open ${item.image.alt} fullscreen` : `Open image ${itemIndex + 1} fullscreen`,
-    likeTargetId: likeNamespace ? getModuleLikeTargetId(likeNamespace, imageBlock, itemIndex) : null,
-    preserveAspectDuringZoom: true,
-  }
-}
-
 function getModuleLightboxSlides(blocks: any[], likeNamespace?: string): ModuleLightboxSlide[] {
   return blocks.flatMap((block, blockIndex) => {
     if (!lightboxableBlockTypes.includes(block.blockType)) return []
-
-    if (block.blockType === 'imageGrid') {
-      return Array.isArray(block.images)
-        ? block.images
-          .filter((item: any) => item?.image?.url)
-          .map((item: any, itemIndex: number) => getImageGridSlide(block, blockIndex, item, itemIndex, likeNamespace))
-        : []
-    }
 
     return [{
       id: getBlockSlideId(block, blockIndex),
@@ -158,26 +118,9 @@ function getModuleLightboxSlides(blocks: any[], likeNamespace?: string): ModuleL
         ? getModuleLikeTargetId(likeNamespace, block, blockIndex)
         : null,
       preserveAspectDuringZoom: shouldPreserveAspectDuringZoom(block.blockType),
+      movableSurface: shouldUseMovableSurface(block.blockType),
     }]
   })
-}
-
-function renderImageGridWithLightbox(block: any, blockIndex: number, likeNamespace?: string) {
-  if (!block.images?.length) return null
-
-  return (
-    <div className={`grid gap-10 ${block.columns === '3' ? 'grid-cols-3' : block.columns === '1' ? 'grid-cols-1' : 'grid-cols-2'}`}>
-      {block.images.map((item: any, itemIndex: number) => {
-        if (!item?.image?.url) return null
-        const slide = getImageGridSlide(block, blockIndex, item, itemIndex, likeNamespace)
-        return (
-          <ModuleLightboxTrigger key={slide.id} slideId={slide.id} label={slide.label} preserveAspectDuringZoom>
-            <ImageBlockComponent image={item.image} border={item.border} />
-          </ModuleLightboxTrigger>
-        )
-      })}
-    </div>
-  )
 }
 
 export function RenderBlocks({ blocks, likeNamespace }: { blocks?: any[]; likeNamespace?: string }) {
@@ -194,48 +137,58 @@ export function RenderBlocks({ blocks, likeNamespace }: { blocks?: any[]; likeNa
         const cols = block.columns || '6'
         const rows = block.rows || '1'
         const isFramedBlock = framedBlockTypes.includes(block.blockType)
-        const isPhoneFrameBlock = phoneFrameBlockTypes.includes(block.blockType)
+        const usesMovableSurface = shouldUseMovableSurface(block.blockType)
+        const opensOnlyFromVideoControl = (block.blockType === 'video' || block.blockType === 'fullWidthVideo') && Boolean(block.controls)
         const isDC1Block = block.blockType === 'dc1'
         const moduleBackgroundClass = isFramedBlock ? 'bg-background-alt' : ''
         const likeTargetId = likeNamespace && isLikeableModuleBlock(block.blockType)
           ? getModuleLikeTargetId(likeNamespace, block, i)
           : null
         const rendersOwnLikeButton = internalLikeButtonBlockTypes.includes(block.blockType)
-        const slideId = lightboxEnabled && lightboxableBlockTypes.includes(block.blockType) && block.blockType !== 'imageGrid'
+        const slideId = lightboxEnabled && lightboxableBlockTypes.includes(block.blockType)
           ? getBlockSlideId(block, i)
           : null
         const slideLabel = slideId ? getModuleLabel(block, `Open ${block.blockType} module fullscreen`) : ''
-        const content = block.blockType === 'imageGrid' && lightboxEnabled
-          ? renderImageGridWithLightbox(block, i, likeNamespace)
-          : <Component {...block} _likeTargetId={rendersOwnLikeButton ? likeTargetId : null} />
+        const content = <Component {...block} _likeTargetId={rendersOwnLikeButton ? likeTargetId : null} />
 
         return (
           <div
             key={block.id || i}
             id={likeTargetId ? getModuleLikeAnchorId(likeTargetId) : undefined}
-            data-lightbox-source-container={isFramedBlock ? '' : undefined}
+            data-lightbox-source-container={isFramedBlock && !usesMovableSurface ? '' : undefined}
             className={cn(
               colSpan[cols] || 'desktop:col-span-6',
               rows !== '1' ? (rowSpan[rows] || '') : '',
-              moduleBackgroundClass,
-              isFramedBlock ? 'p-5 tablet:p-8 desktop:p-10' : '',
-              isDC1Block ? 'py-6 tablet:py-10 desktop:py-12' : '',
-              likeTargetId ? 'group/module relative' : '',
+              !usesMovableSurface ? moduleBackgroundClass : '',
+              isFramedBlock && !usesMovableSurface ? 'p-5 tablet:p-8 desktop:p-10' : '',
+              isDC1Block && !usesMovableSurface ? 'py-6 tablet:py-10 desktop:py-12' : '',
+              likeTargetId && !usesMovableSurface ? 'group/module relative' : '',
             )}
           >
             {slideId ? (
-              isPhoneFrameBlock ? (
-                <div className="h-full flex items-center justify-center">
-                  <ModuleLightboxTrigger
-                    slideId={slideId}
-                    label={slideLabel}
-                    className="mx-auto flex h-full max-w-full items-center justify-center"
-                    preserveAspectDuringZoom
-                    sourceContainer
-                  >
-                    {content}
-                  </ModuleLightboxTrigger>
-                </div>
+              usesMovableSurface ? (
+                <ModuleLightboxTrigger
+                  slideId={slideId}
+                  label={slideLabel}
+                  className="h-full"
+                  surfaceClassName={cn(
+                    'relative',
+                    isFramedBlock ? moduleBackgroundClass : '',
+                    isFramedBlock ? 'flex items-center justify-center p-5 tablet:p-8 desktop:p-10' : '',
+                    isDC1Block ? 'py-6 tablet:py-10 desktop:py-12' : '',
+                    likeTargetId ? 'group/module' : '',
+                  )}
+                  preserveAspectDuringZoom
+                  movableSurface
+                  openOnClick={!opensOnlyFromVideoControl}
+                >
+                  {isFramedBlock ? (
+                    <div className="flex h-full w-full items-center justify-center">
+                      {content}
+                    </div>
+                  ) : content}
+                  {likeTargetId && !rendersOwnLikeButton && <ModuleLikeOverlay targetId={likeTargetId} />}
+                </ModuleLightboxTrigger>
               ) : (
                 <ModuleLightboxTrigger
                   slideId={slideId}
@@ -255,7 +208,7 @@ export function RenderBlocks({ blocks, likeNamespace }: { blocks?: any[]; likeNa
                 {content}
               </div>
             )}
-            {likeTargetId && !rendersOwnLikeButton && <ModuleLikeOverlay targetId={likeTargetId} />}
+            {likeTargetId && !rendersOwnLikeButton && !usesMovableSurface && <ModuleLikeOverlay targetId={likeTargetId} />}
           </div>
         )
       })}

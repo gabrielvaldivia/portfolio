@@ -288,17 +288,6 @@ function normalizeMedia(value: unknown): MediaValue | null {
   return media.url ? media : null
 }
 
-function getFirstImageGridMedia(block: any) {
-  if (!Array.isArray(block?.images)) return null
-
-  for (const item of block.images) {
-    const media = normalizeMedia(item?.image)
-    if (media) return media
-  }
-
-  return null
-}
-
 function getFeedPadding(block: any) {
   const value = String(block?.padding || '0')
   return feedPaddingScale[value]
@@ -392,7 +381,7 @@ function getBlockThumbnailFrame(block: any): ActivityThumbnailFrame | undefined 
 }
 
 function getBlockThumbnail(block: any) {
-  const image = normalizeMedia(block?.image) || getFirstImageGridMedia(block)
+  const image = normalizeMedia(block?.image)
   const video = normalizeMedia(block?.video)
   const caption = typeof block?.caption === 'string' ? block.caption : ''
   const frame = getBlockThumbnailFrame(block)

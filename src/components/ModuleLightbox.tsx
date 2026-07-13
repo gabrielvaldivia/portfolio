@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { createPortal } from 'react-dom'
 import {
   createContext,
   useCallback,
@@ -13,6 +14,7 @@ import {
   type ReactNode,
 } from 'react'
 import { cn } from '@/lib/cn'
+import { ModuleLightboxControlProvider } from '@/components/ModuleLightboxControlContext'
 
 export type ModuleLightboxSlide = {
   id: string
@@ -21,6 +23,18 @@ export type ModuleLightboxSlide = {
   label: string
   likeTargetId?: string | null
   preserveAspectDuringZoom?: boolean
+  movableSurface?: boolean
+}
+
+export type MovableModuleSurface = {
+  element: HTMLDivElement
+  slot: HTMLDivElement
+  sourcePaddingRatios?: {
+    top: number
+    right: number
+    bottom: number
+    left: number
+  }
 }
 
 export type LightboxRect = {
@@ -36,8 +50,10 @@ export type ModuleLightboxOverlayProps = {
   initialSourceRect?: LightboxRect
   getSourceRect: (id: string) => LightboxRect | undefined
   getSourceAspectRatio: (id: string) => number | undefined
+  getMovableSurface: (id: string) => MovableModuleSurface | undefined
   onSourceReady: (id: string) => void
   onClosing: (id: string) => void
+  onSourceReveal: (id: string) => void
   onReturnCancelled: (id: string) => void
   onClosed: () => void
 }
@@ -47,6 +63,7 @@ type ModuleLightboxContextValue = {
   openSlide: (id: string, sourceAspectRatio?: number, sourceRect?: LightboxRect) => void
   registerSlideAspectRatio: (id: string, sourceAspectRatio: number) => void
   registerSlideElement: (id: string, element: HTMLElement | null) => void
+  registerMovableSurface: (id: string, surface: MovableModuleSurface | null) => void
 }
 
 type OpenLightboxState = {
@@ -89,6 +106,19 @@ function getElementRect(element: HTMLElement | null): LightboxRect | undefined {
   }
 }
 
+function getSurfacePaddingRatios(element: HTMLElement) {
+  const rect = element.getBoundingClientRect()
+  if (rect.width <= 0) return undefined
+
+  const style = getComputedStyle(element)
+  return {
+    top: parseFloat(style.paddingTop) / rect.width || 0,
+    right: parseFloat(style.paddingRight) / rect.width || 0,
+    bottom: parseFloat(style.paddingBottom) / rect.width || 0,
+    left: parseFloat(style.paddingLeft) / rect.width || 0,
+  }
+}
+
 export function ModuleLightboxProvider({
   slides,
   children,
@@ -102,6 +132,7 @@ export function ModuleLightboxProvider({
   const sourceAspectRatiosRef = useRef(new Map<string, number>())
   const sourceElementsRef = useRef(new Map<string, HTMLElement>())
   const sourceRectsRef = useRef(new Map<string, LightboxRect>())
+  const movableSurfacesRef = useRef(new Map<string, MovableModuleSurface>())
 
   const slideIndexById = useMemo(() => {
     const map = new Map<string, number>()
@@ -140,6 +171,29 @@ export function ModuleLightboxProvider({
     return sourceAspectRatiosRef.current.get(id)
   }, [])
 
+  const registerMovableSurface = useCallback((id: string, surface: MovableModuleSurface | null) => {
+    if (surface) {
+      movableSurfacesRef.current.set(id, {
+        ...surface,
+        sourcePaddingRatios: getSurfacePaddingRatios(surface.element),
+      })
+    } else {
+      movableSurfacesRef.current.delete(id)
+    }
+  }, [])
+
+  const getMovableSurface = useCallback((id: string) => {
+    const surface = movableSurfacesRef.current.get(id)
+    if (!surface || surface.element.dataset.lightboxSurfaceState !== 'source') return surface
+
+    const measuredSurface = {
+      ...surface,
+      sourcePaddingRatios: getSurfacePaddingRatios(surface.element),
+    }
+    movableSurfacesRef.current.set(id, measuredSurface)
+    return measuredSurface
+  }, [])
+
   const openSlide = useCallback((id: string, sourceAspectRatio?: number, sourceRect?: LightboxRect) => {
     const nextIndex = slideIndexById.get(id)
     if (typeof nextIndex !== 'number') return
@@ -173,6 +227,10 @@ export function ModuleLightboxProvider({
     setHiddenSlideId(id)
   }, [])
 
+  const handleSourceReveal = useCallback((id: string) => {
+    setHiddenSlideId((hiddenId) => hiddenId === id ? null : hiddenId)
+  }, [])
+
   const handleReturnCancelled = useCallback((id: string) => {
     setHiddenSlideId(id)
   }, [])
@@ -182,7 +240,8 @@ export function ModuleLightboxProvider({
     openSlide,
     registerSlideAspectRatio,
     registerSlideElement,
-  }), [hiddenSlideId, openSlide, registerSlideAspectRatio, registerSlideElement])
+    registerMovableSurface,
+  }), [hiddenSlideId, openSlide, registerMovableSurface, registerSlideAspectRatio, registerSlideElement])
 
   return (
     <ModuleLightboxContext.Provider value={contextValue}>
@@ -195,8 +254,10 @@ export function ModuleLightboxProvider({
           initialSourceRect={openState.sourceRect}
           getSourceRect={getSourceRect}
           getSourceAspectRatio={getSourceAspectRatio}
+          getMovableSurface={getMovableSurface}
           onSourceReady={handleSourceReady}
           onClosing={handleClosing}
+          onSourceReveal={handleSourceReveal}
           onReturnCancelled={handleReturnCancelled}
           onClosed={handleClosed}
         />
@@ -206,7 +267,7 @@ export function ModuleLightboxProvider({
 }
 
 function shouldIgnoreClick(target: EventTarget | null) {
-  return target instanceof HTMLElement
+  return target instanceof Element
     && Boolean(target.closest('a,button,input,textarea,select,summary,[data-lightbox-ignore],video[controls]'))
 }
 
@@ -214,28 +275,66 @@ export function ModuleLightboxTrigger({
   slideId,
   label,
   className,
+  surfaceClassName,
   fallbackAspectRatio,
   preserveAspectDuringZoom = false,
   sourceContainer = false,
+  movableSurface = false,
+  openOnClick = true,
   children,
 }: {
   slideId: string
   label: string
   className?: string
+  surfaceClassName?: string
   fallbackAspectRatio?: number
   preserveAspectDuringZoom?: boolean
   sourceContainer?: boolean
+  movableSurface?: boolean
+  openOnClick?: boolean
   children: ReactNode
 }) {
   const context = useContext(ModuleLightboxContext)
+  const registerMovableSurface = context?.registerMovableSurface
   const triggerRef = useRef<HTMLDivElement>(null)
   const openFrameRef = useRef<number | null>(null)
+  const [surfaceElement, setSurfaceElement] = useState<HTMLDivElement | null>(null)
   const getSourceElement = useCallback(() => {
     const trigger = triggerRef.current
     if (!trigger || !sourceContainer) return trigger
 
     return trigger.closest<HTMLElement>('[data-lightbox-source-container]') || trigger
   }, [sourceContainer])
+
+  useLayoutEffect(() => {
+    if (!movableSurface || surfaceElement) return
+
+    const element = document.createElement('div')
+    element.className = cn(
+      'h-full w-full max-w-full',
+      surfaceClassName,
+    )
+    element.dataset.lightboxSurfaceState = 'source'
+    setSurfaceElement(element)
+  }, [movableSurface, surfaceClassName, surfaceElement])
+
+  useLayoutEffect(() => {
+    if (!surfaceElement) return
+    surfaceElement.className = cn(
+      'h-full w-full max-w-full',
+      surfaceClassName,
+    )
+  }, [surfaceClassName, surfaceElement])
+
+  useLayoutEffect(() => {
+    const slot = triggerRef.current
+    if (!registerMovableSurface || !movableSurface || !surfaceElement || !slot) return
+
+    slot.appendChild(surfaceElement)
+    registerMovableSurface(slideId, { element: surfaceElement, slot })
+
+    return () => registerMovableSurface(slideId, null)
+  }, [movableSurface, registerMovableSurface, slideId, surfaceElement])
 
   useLayoutEffect(() => {
     return () => {
@@ -257,9 +356,8 @@ export function ModuleLightboxTrigger({
     const fallback = isValidAspectRatio(fallbackAspectRatio) ? fallbackAspectRatio : undefined
     const videoAspectRatio = getVideoElementAspectRatio(trigger)
     const stableFallback = sourceContainer ? undefined : fallback || videoAspectRatio
-    const hasFixedModuleHeight = Boolean(trigger?.querySelector('[style*="--row-height"]'))
 
-    if (stableFallback && !hasFixedModuleHeight) return stableFallback
+    if (stableFallback) return stableFallback
 
     const rect = sourceElement?.getBoundingClientRect()
     if (!rect || rect.width <= 0 || rect.height <= 0) return undefined
@@ -310,7 +408,7 @@ export function ModuleLightboxTrigger({
   const hiddenAsLightboxSource = context?.hiddenSlideId === slideId
 
   useLayoutEffect(() => {
-    if (!sourceContainer || !hiddenAsLightboxSource) return
+    if (movableSurface || !sourceContainer || !hiddenAsLightboxSource) return
 
     const sourceElement = getSourceElement()
     if (!sourceElement) return
@@ -321,11 +419,13 @@ export function ModuleLightboxTrigger({
     return () => {
       sourceElement.style.visibility = previousVisibility
     }
-  }, [getSourceElement, hiddenAsLightboxSource, sourceContainer])
+  }, [getSourceElement, hiddenAsLightboxSource, movableSurface, sourceContainer])
 
   if (!context) return <>{children}</>
 
   const open = () => {
+    if (movableSurface && surfaceElement?.dataset.lightboxSurfaceState === 'overlay') return
+
     preloadModuleLightboxOverlay()
     if (openFrameRef.current !== null) cancelAnimationFrame(openFrameRef.current)
     openFrameRef.current = requestAnimationFrame(() => {
@@ -347,28 +447,36 @@ export function ModuleLightboxTrigger({
   }
 
   return (
-    <div
-      ref={triggerRef}
-      role="button"
-      tabIndex={0}
-      aria-label={label}
-      aria-hidden={hiddenAsLightboxSource || undefined}
-      className={cn(
-        'relative block w-full cursor-zoom-in touch-manipulation outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-content/50 focus-visible:ring-offset-4 focus-visible:ring-offset-background',
-        hiddenAsLightboxSource ? 'invisible' : '',
-        className,
-      )}
-      onPointerEnter={preloadModuleLightboxOverlay}
-      onFocus={preloadModuleLightboxOverlay}
-      onClickCapture={(event) => {
-        if (!shouldIgnoreClick(event.target)) {
-          event.preventDefault()
-          open()
-        }
-      }}
-      onKeyDown={handleKeyDown}
-    >
-      {children}
-    </div>
+    <ModuleLightboxControlProvider open={open}>
+      <div
+        ref={triggerRef}
+        role={openOnClick ? 'button' : undefined}
+        tabIndex={openOnClick ? (hiddenAsLightboxSource ? -1 : 0) : undefined}
+        aria-label={openOnClick ? label : undefined}
+        aria-hidden={hiddenAsLightboxSource || undefined}
+        className={cn(
+          'relative block w-full touch-manipulation outline-none transition-opacity duration-150',
+          openOnClick ? 'cursor-zoom-in focus-visible:ring-2 focus-visible:ring-content/50 focus-visible:ring-offset-4 focus-visible:ring-offset-background' : '',
+          !movableSurface && hiddenAsLightboxSource ? 'invisible opacity-0' : 'opacity-100',
+          className,
+        )}
+        onPointerEnter={preloadModuleLightboxOverlay}
+        onFocus={preloadModuleLightboxOverlay}
+        onClickCapture={(event) => {
+          if (
+            openOnClick
+            &&
+            !(movableSurface && surfaceElement?.dataset.lightboxSurfaceState === 'overlay')
+            && !shouldIgnoreClick(event.target)
+          ) {
+            event.preventDefault()
+            open()
+          }
+        }}
+        onKeyDown={openOnClick ? handleKeyDown : undefined}
+      >
+        {movableSurface && surfaceElement ? createPortal(children, surfaceElement) : children}
+      </div>
+    </ModuleLightboxControlProvider>
   )
 }

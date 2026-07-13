@@ -55,17 +55,17 @@ export function PeopleGrid({ people }: { people: Person[] }) {
           const content = (
             <div className="flex items-center gap-3 group">
               {photo?.url ? (
-                <div className="w-10 h-10 rounded-full shrink-0 relative overflow-hidden after:absolute after:inset-0 after:rounded-full after:border after:border-border after:pointer-events-none">
+                <div className="relative size-10 shrink-0 overflow-hidden rounded-full after:pointer-events-none after:absolute after:inset-0 after:rounded-full after:border after:border-border">
                   <Image
                     src={photo.url}
                     alt={person.name}
-                    width={40}
-                    height={40}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="40px"
+                    className="object-cover"
                   />
                 </div>
               ) : (
-                <div className="w-10 h-10 rounded-full bg-background-alt shrink-0 flex items-center justify-center text-muted text-sm">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-background-alt text-sm text-muted">
                   {person.name.charAt(0)}
                 </div>
               )}

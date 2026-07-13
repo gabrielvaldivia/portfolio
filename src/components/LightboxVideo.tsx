@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useState, type CSSProperties, type SyntheticEvent } from 'react'
+import { VideoPlayer } from '@/components/VideoPlayer'
 
 export function LightboxVideo({
   src,
@@ -13,7 +14,6 @@ export function LightboxVideo({
   aspectRatio?: number
   className?: string
 }) {
-  const videoRef = useRef<HTMLVideoElement>(null)
   const [metadataAspectRatio, setMetadataAspectRatio] = useState<number | null>(null)
   const stableAspectRatio = aspectRatio || metadataAspectRatio || undefined
   const aspectRatioStyle: CSSProperties | undefined = stableAspectRatio
@@ -21,17 +21,11 @@ export function LightboxVideo({
     : undefined
 
   useEffect(() => {
-    if (!active) {
-      videoRef.current?.pause()
-    }
-  }, [active])
-
-  useEffect(() => {
     setMetadataAspectRatio(null)
   }, [src])
 
-  const handleLoadedMetadata = useCallback(() => {
-    const video = videoRef.current
+  const handleLoadedMetadata = useCallback((event: SyntheticEvent<HTMLVideoElement>) => {
+    const video = event.currentTarget
     if (!video || aspectRatio) return
 
     if (video.videoWidth > 0 && video.videoHeight > 0) {
@@ -40,15 +34,15 @@ export function LightboxVideo({
   }, [aspectRatio])
 
   return (
-    <video
-      ref={videoRef}
+    <VideoPlayer
       src={src}
       controls
-      playsInline
-      preload="metadata"
+      loop={false}
+      muted={false}
+      active={active}
       style={aspectRatioStyle}
       onLoadedMetadata={handleLoadedMetadata}
-      className={`block ${className}`}
+      className={className}
     />
   )
 }
