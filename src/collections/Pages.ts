@@ -209,15 +209,28 @@ const CalloutBlock: Block = {
 
 const SocialLinksBlock: Block = {
   slug: 'socialLinks',
-  labels: { singular: 'Social Links', plural: 'Social Links' },
+  labels: { singular: 'Contact', plural: 'Contact Sections' },
   fields: [
     sizeFields,
-    { name: 'title', type: 'text', defaultValue: 'Elsewhere' },
+    { name: 'title', type: 'text', defaultValue: 'Contact' },
     {
       name: 'links',
       type: 'array',
+      label: 'Contact Links',
+      admin: { description: 'Add each social profile or contact method to show on the homepage.' },
       fields: [
-        { name: 'platform', type: 'text', required: true },
+        {
+          name: 'platform',
+          type: 'select',
+          required: true,
+          options: [
+            { label: 'Email', value: 'Email' },
+            { label: 'X / Twitter', value: 'Twitter' },
+            { label: 'LinkedIn', value: 'LinkedIn' },
+            { label: 'Substack', value: 'Substack' },
+            { label: 'Instagram', value: 'Instagram' },
+          ],
+        },
         { name: 'url', type: 'text', required: true },
       ],
     },

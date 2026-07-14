@@ -30,7 +30,7 @@ export function ChatHeader() {
         <SidebarIcon />
       </button>
 
-      <nav aria-label="Chat view" className="pointer-events-auto absolute left-1/2 top-4 z-30 flex h-10 -translate-x-1/2 items-center rounded-full bg-floating p-1 backdrop-blur-xl tablet:top-10">
+      <nav aria-label="Chat view" className="chat-view-toggle pointer-events-auto absolute left-1/2 top-4 z-30 flex h-10 -translate-x-1/2 items-center rounded-full bg-floating p-1 backdrop-blur-xl tablet:top-10">
         <Link
           href={chatHref}
           scroll={false}

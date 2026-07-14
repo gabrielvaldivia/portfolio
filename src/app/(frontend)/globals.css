@@ -217,7 +217,8 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .chat-header-content,
-  .chat-nav-content {
+  .chat-nav-content,
+  .chat-view-toggle {
     transition-duration: 0ms;
   }
 }
@@ -236,8 +237,16 @@ body.birthday-donation-visible .birthday-nav {
 }
 
 @media (min-width: 810px) {
+  .chat-view-toggle {
+    transition: transform 300ms ease-in-out;
+  }
+
   body.chat-desktop-sidebar-open .chat-sidebar-toggle {
     transform: translateX(280px);
+  }
+
+  body.chat-desktop-sidebar-open .chat-view-toggle {
+    transform: translateX(calc(-50% + 140px));
   }
 
   .map-conversation-panel {
@@ -250,6 +259,12 @@ body.birthday-donation-visible .birthday-nav {
 
   body {
     font-size: 18px;
+  }
+}
+
+@media (min-width: 810px) and (prefers-reduced-motion: reduce) {
+  .chat-view-toggle {
+    transition-duration: 0ms;
   }
 }
 

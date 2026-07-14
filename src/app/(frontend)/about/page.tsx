@@ -16,7 +16,7 @@ function HoverArrow() {
 
 function AboutSection({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="grid grid-cols-1 tablet:grid-cols-6 gap-6 tablet:gap-10">
+    <div className="grid grid-cols-1 tablet:grid-cols-6 gap-6 tablet:items-baseline tablet:gap-10">
       <div className="tablet:col-span-2">
         <h3 className="sticky top-5">{title}</h3>
       </div>
@@ -90,21 +90,9 @@ export default async function AboutPage() {
       <AboutSection title={section.title || 'Playground'}>
         <div className="flex flex-col gap-8">
           {projects.map((project: any, i: number) => {
-            const thumb = project.featuredImage as any
             const href = project.slug ? `/playground/${project.slug}` : null
             return href ? (
               <Link key={i} href={href} className="flex flex-col tablet:flex-row tablet:items-center gap-3 tablet:gap-6 group hover:opacity-60 transition-colors">
-                {thumb?.url && (
-                  <div className="w-full tablet:w-52 tablet:shrink-0 aspect-video rounded-lg overflow-hidden border border-border relative">
-                    <Image
-                      src={thumb.url}
-                      alt={thumb.alt || project.title}
-                      fill
-                      className="object-cover object-center"
-                      sizes="(min-width: 768px) 208px, 100vw"
-                    />
-                  </div>
-                )}
                 <div className="flex flex-col tablet:flex-row tablet:flex-1 tablet:items-baseline gap-1 tablet:gap-4">
                   <h4>{project.title}</h4>
                   {project.description && (
@@ -114,17 +102,6 @@ export default async function AboutPage() {
               </Link>
             ) : (
               <div key={i} className="flex flex-col tablet:flex-row tablet:items-center gap-3 tablet:gap-6">
-                {thumb?.url && (
-                  <div className="w-full tablet:w-52 tablet:shrink-0 aspect-video rounded-lg overflow-hidden border border-border relative">
-                    <Image
-                      src={thumb.url}
-                      alt={thumb.alt || project.title}
-                      fill
-                      className="object-cover object-center"
-                      sizes="(min-width: 768px) 208px, 100vw"
-                    />
-                  </div>
-                )}
                 <div className="flex flex-col tablet:flex-row tablet:flex-1 tablet:items-baseline gap-1 tablet:gap-4">
                   <h4>{project.title}</h4>
                   {project.description && (

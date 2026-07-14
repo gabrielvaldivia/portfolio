@@ -5,6 +5,7 @@ import * as migration_20260708_190000_add_project_hide from './20260708_190000_a
 import * as migration_20260708_223000_add_module_like_event_amount from './20260708_223000_add_module_like_event_amount'
 import * as migration_20260708_225000_backfill_module_like_event_amount from './20260708_225000_backfill_module_like_event_amount'
 import * as migration_20260710_000000_add_browser_module from './20260710_000000_add_browser_module'
+import * as migration_20260714_000000_index_conversations_updated_at from './20260714_000000_index_conversations_updated_at'
 
 export const migrations = [
   {
@@ -41,5 +42,10 @@ export const migrations = [
     up: migration_20260710_000000_add_browser_module.up,
     down: migration_20260710_000000_add_browser_module.down,
     name: '20260710_000000_add_browser_module',
+  },
+  {
+    up: migration_20260714_000000_index_conversations_updated_at.up,
+    down: migration_20260714_000000_index_conversations_updated_at.down,
+    name: '20260714_000000_index_conversations_updated_at',
   },
 ]

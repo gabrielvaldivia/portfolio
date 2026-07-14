@@ -32,6 +32,7 @@ export function Avatar({
               src={photo.url}
               alt={photo.alt || name}
               fill
+              unoptimized
               sizes={`${size}px`}
               className={cn('object-cover', photoDark?.url && 'light-only')}
             />
@@ -40,6 +41,7 @@ export function Avatar({
                 src={photoDark.url}
                 alt={photoDark.alt || name}
                 fill
+                unoptimized
                 sizes={`${size}px`}
                 className="object-cover dark-only"
               />

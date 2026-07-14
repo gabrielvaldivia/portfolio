@@ -6,10 +6,7 @@ import { ActivityViewSwitcher, type ActivityView } from '@/components/ActivityVi
 import { Container } from '@/components/Container'
 import { LazyModuleLikeButton } from '@/components/LazyModuleLikeButton'
 import { ModuleLightboxProvider, ModuleLightboxTrigger, type ModuleLightboxSlide } from '@/components/ModuleLightbox'
-import {
-  framedBlockTypes,
-  lightboxableBlockTypes,
-} from '@/blocks/MediaBlockComponents'
+import { lightboxableBlockTypes } from '@/blocks/MediaBlockComponents'
 import { cn } from '@/lib/cn'
 import {
   getModuleLikeActivity,
@@ -298,6 +295,7 @@ function ActivityFramedThumbnail({
               src={thumbnail.url}
               alt=""
               fill
+              unoptimized
               sizes={imageSizes}
               quality={90}
               className={resolvedMediaClassName}
@@ -308,6 +306,7 @@ function ActivityFramedThumbnail({
           src={frame.url}
           alt=""
           fill
+          unoptimized
           sizes={imageSizes}
           quality={90}
           className="z-10 object-contain pointer-events-none"
@@ -374,6 +373,7 @@ function ActivityMediaThumbnail({
               src={thumbnail.url}
               alt=""
               fill
+              unoptimized
               sizes={imageSizes}
               quality={90}
               className={resolvedMediaClassName}
@@ -394,6 +394,7 @@ function ActivityMediaThumbnail({
           src={thumbnail.url}
           alt=""
           fill
+          unoptimized
           sizes={imageSizes}
           quality={90}
           className={resolvedMediaClassName}
@@ -506,16 +507,6 @@ function getFeedSlideId(item: ModuleLikeFeedItem) {
   return `activity-feed:${item.targetId}`
 }
 
-function shouldPreserveAspectDuringZoom(blockType?: string) {
-  return framedBlockTypes.includes(blockType || '') || [
-    'image',
-    'fullWidthImage',
-    'deviceMockup',
-    'video',
-    'fullWidthVideo',
-  ].includes(blockType || '')
-}
-
 function getFeedLightboxSlides(items: ModuleLikeFeedItem[]): ModuleLightboxSlide[] {
   const slidesById = new Map<string, ModuleLightboxSlide>()
 
@@ -529,7 +520,6 @@ function getFeedLightboxSlides(items: ModuleLikeFeedItem[]): ModuleLightboxSlide
       block,
       label: `Open ${item.target.label} fullscreen`,
       likeTargetId: item.targetId,
-      preserveAspectDuringZoom: shouldPreserveAspectDuringZoom(block.blockType),
       movableSurface: false,
     })
   })
@@ -553,8 +543,6 @@ function FeedItem({ item, rank }: { item: ModuleLikeFeedItem; rank: number }) {
     <ModuleLightboxTrigger
       slideId={getFeedSlideId(item)}
       label={getFeedItemLabel(item, rank)}
-      className="transition-opacity duration-150 tablet:hover:opacity-60"
-      preserveAspectDuringZoom={shouldPreserveAspectDuringZoom(item.target.block?.blockType)}
     >
       {thumbnail}
     </ModuleLightboxTrigger>
@@ -563,7 +551,7 @@ function FeedItem({ item, rank }: { item: ModuleLikeFeedItem; rank: number }) {
   ) : (
     <Link
       href={item.target.href}
-      className="block transition-opacity duration-150 tablet:hover:opacity-60"
+      className="block"
       aria-label={getFeedItemLabel(item, rank)}
     >
       {thumbnail}

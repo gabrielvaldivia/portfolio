@@ -3,7 +3,15 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { SocialIcon } from './Icons'
 import { Avatar } from './Avatar'
+import { ConversationSidebarList } from './ConversationSidebarList'
 import { cn } from '@/lib/cn'
+import {
+  cacheConversation,
+  loadConversation as loadConversationById,
+  useConversationSummaries,
+  type ConversationSummary,
+} from '@/lib/conversationSummaries'
+import { useChatSidebar } from '@/lib/useChatSidebar'
 
 type Message = {
   role: 'user' | 'assistant'
@@ -248,14 +256,6 @@ function AssistantMessage({
   )
 }
 
-type Conversation = {
-  id: number
-  title: string
-  location?: string
-  messages: Message[]
-  updatedAt: string
-}
-
 function ScrollMask({ children, className = '', extraStyle }: { children: React.ReactNode; className?: string; extraStyle?: React.CSSProperties }) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [maskLeft, setMaskLeft] = useState(false)
@@ -350,26 +350,15 @@ export function Chat({
   const [inputFocused, setInputFocused] = useState(false)
   const [iconsCollapsed, setIconsCollapsed] = useState(false)
   const [isMultiline, setIsMultiline] = useState(false)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useChatSidebar(persistentSidebar)
   const [hasScrolled, setHasScrolled] = useState(false)
-  const [conversations, setConversations] = useState<Conversation[]>([])
+  const {
+    items: conversations,
+    loading: conversationsLoading,
+    hasMore: hasMoreConversations,
+    loadMore: loadMoreConversations,
+  } = useConversationSummaries()
   const [conversationId, setConversationIdRaw] = useState<number | null>(initialConversationId)
-
-  useEffect(() => {
-    if (!persistentSidebar) return
-
-    const desktop = window.matchMedia('(min-width: 1280px)')
-    setSidebarOpen(desktop.matches)
-
-    const handleBreakpointChange = (event: MediaQueryListEvent) => setSidebarOpen(event.matches)
-    const handleToggle = () => setSidebarOpen((open) => !open)
-    desktop.addEventListener('change', handleBreakpointChange)
-    window.addEventListener('chat:toggle-sidebar', handleToggle)
-    return () => {
-      desktop.removeEventListener('change', handleBreakpointChange)
-      window.removeEventListener('chat:toggle-sidebar', handleToggle)
-    }
-  }, [persistentSidebar])
 
   useEffect(() => {
     if (!persistentSidebar || !sidebarOpen) {
@@ -464,6 +453,7 @@ export function Chat({
         .then((r) => r.json())
         .then((doc) => {
           if (doc.messages?.length) {
+            cacheConversation(doc)
             const lastMsg = doc.messages[doc.messages.length - 1]
             if (lastMsg.role === 'assistant' && !lastMsg.content) {
               // Retry the failed response
@@ -675,40 +665,39 @@ export function Chat({
         })
           .then((r) => r.json())
           .then((doc) => {
-            if (doc.id) setConversationId(doc.id)
+            if (doc.id) {
+              cacheConversation(doc)
+              setConversationId(doc.id)
+            }
           })
           .catch(() => {})
       }
     }, 3000)
   }, [isStreaming])
 
-  function loadConversations() {
-    fetch('/api/chat/conversations')
-      .then((r) => r.json())
-      .then((docs) => setConversations(docs))
-      .catch(() => {})
-  }
-
-  useEffect(() => {
-    if (persistentSidebar) loadConversations()
-  }, [persistentSidebar])
-
-  function loadConversation(conv: Conversation) {
+  async function loadConversation(conv: ConversationSummary) {
     setAnimateBubbles(false)
-    setSidebarOpen(false)
-    // Delay setting messages until after animation flag is committed
-    requestAnimationFrame(() => {
-      setMessages(conv.messages)
-      setConversationId(conv.id)
-      requestAnimationFrame(() => setAnimateBubbles(true))
-    })
+    if (window.matchMedia('(max-width: 809px)').matches) setSidebarOpen(false)
+
+    try {
+      const loadedConversation = await loadConversationById(conv.id)
+
+      // Delay setting messages until after the animation flag is committed.
+      requestAnimationFrame(() => {
+        setMessages(loadedConversation.messages || [])
+        setConversationId(conv.id)
+        requestAnimationFrame(() => setAnimateBubbles(true))
+      })
+    } catch {
+      setAnimateBubbles(true)
+    }
   }
 
   function startNewConversation() {
     const random = GREETINGS[Math.floor(Math.random() * GREETINGS.length)]
     setMessages([{ role: 'assistant', content: random }])
     setConversationId(null)
-    setSidebarOpen(false)
+    if (window.matchMedia('(max-width: 809px)').matches) setSidebarOpen(false)
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -730,49 +719,35 @@ export function Chat({
 
   const sidebarInner = (
     <>
-      <div className="pt-1 pb-4 px-3">
+      <div className="flex items-center justify-between pt-1 pb-4 pl-3 pr-1">
         <span className="text-body font-medium text-content">Conversations</span>
-      </div>
-      <div className="flex-1 overflow-y-auto space-y-1" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 16px, black calc(100% - 16px), transparent)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 16px, black calc(100% - 16px), transparent)' }}>
-        {conversations.map((conv) => (
+        {conversationId && (
           <button
-            key={conv.id}
-            onClick={() => loadConversation(conv)}
-            className={`w-full text-left px-3 py-2.5 rounded-[12px] transition-colors cursor-pointer ${
-              conv.id === conversationId ? 'bg-black/5 dark:bg-white/5' : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.02]'
-            }`}
+            type="button"
+            onClick={startNewConversation}
+            title="New chat"
+            aria-label="New chat"
+            className="flex size-8 cursor-pointer items-center justify-center rounded-full text-muted transition-colors hover:bg-black/5 hover:text-content dark:hover:bg-white/5"
           >
-            <div className="text-[13px] text-muted truncate">
-              {conv.title}
-            </div>
-            <div className="text-[16px] text-content truncate mt-0.5">
-              {conv.messages?.find((m: Message) => m.role === 'user')?.content || 'No messages'}
-            </div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
           </button>
-        ))}
-        {conversations.length === 0 && (
-          <p className="text-caption text-muted px-3 py-2">No conversations yet</p>
         )}
       </div>
+      <ConversationSidebarList
+        conversations={conversations}
+        selectedId={conversationId}
+        loading={conversationsLoading}
+        hasMore={hasMoreConversations}
+        onLoadMore={loadMoreConversations}
+        onSelect={loadConversation}
+      />
     </>
   )
 
   const chatBody = (
     <div className={`flex flex-col h-full relative ${persistentSidebar ? 'flex-1 min-w-0 px-5 tablet:px-8 pb-5 tablet:pb-8 pt-[94px] tablet:pt-[114px]' : ''}`}>
-
-      {/* New chat button — only on the dedicated /chat page, when a conversation is active */}
-      {persistentSidebar && conversationId && (
-        <button
-          onClick={startNewConversation}
-          title="New chat"
-          aria-label="New chat"
-          className={`absolute ${persistentSidebar ? 'top-[94px] tablet:top-[114px] right-4' : 'top-1 right-0'} z-20 w-10 h-10 flex items-center justify-center rounded-full text-muted hover:text-content transition-all duration-200 cursor-pointer ${hasScrolled ? 'bg-background/60 dark:bg-white/10 backdrop-blur-xl' : ''}`}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-        </button>
-      )}
 
       {/* Mobile avatar header — hidden on the dedicated /chat page */}
       {avatarUrl && !persistentSidebar && (

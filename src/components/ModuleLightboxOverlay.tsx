@@ -215,6 +215,8 @@ function MovableModuleSurfaceMount({ surface }: { surface: MovableModuleSurface 
       bottom: surface.element.style.paddingBottom,
       left: surface.element.style.paddingLeft,
     }
+    const responsiveImages = Array.from(surface.element.querySelectorAll<HTMLImageElement>('img[sizes]'))
+    const previousImageSizes = responsiveImages.map((image) => image.sizes)
     if (slotHeight > 0) surface.slot.style.height = `${slotHeight}px`
 
     if (surface.sourcePaddingRatios) {
@@ -226,9 +228,15 @@ function MovableModuleSurfaceMount({ surface }: { surface: MovableModuleSurface 
 
     surface.element.dataset.lightboxSurfaceState = 'overlay'
     surface.element.style.setProperty('--lightbox-phone-surface-bg-alpha', '0')
+    responsiveImages.forEach((image) => {
+      image.sizes = '100vw'
+    })
     host.appendChild(surface.element)
 
     return () => {
+      responsiveImages.forEach((image, index) => {
+        image.sizes = previousImageSizes[index]
+      })
       surface.element.dataset.lightboxSurfaceState = 'source'
       surface.element.style.removeProperty('--lightbox-phone-surface-bg-alpha')
       surface.element.style.paddingTop = previousPadding.top
@@ -302,6 +310,20 @@ function ModuleSlide({
       <div
         className="mx-auto flex"
         style={surfaceStyle}
+      >
+        {component}
+      </div>
+    )
+  }
+
+  if (intrinsicFrameAspectRatio && !sourceAspectRatio) {
+    return (
+      <div
+        className="mx-auto flex items-center justify-center"
+        style={{
+          aspectRatio: intrinsicFrameAspectRatio,
+          width: `min(calc(100dvw - 32px), calc((100dvh - 72px) * ${intrinsicFrameAspectRatio}))`,
+        }}
       >
         {component}
       </div>

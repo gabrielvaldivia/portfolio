@@ -4,21 +4,16 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { Map, Marker } from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import { ConversationSidebarList } from './ConversationSidebarList'
+import {
+  loadConversation as loadConversationById,
+  loadConversationMarkers,
+  useConversationSummaries,
+  type ConversationSummary,
+} from '@/lib/conversationSummaries'
+import { useChatSidebar } from '@/lib/useChatSidebar'
 
 type MapboxGL = (typeof import('mapbox-gl'))['default']
-
-type Message = { role: 'user' | 'assistant'; content: string }
-
-type Conversation = {
-  id: number
-  title: string
-  location?: string
-  latitude?: number | null
-  longitude?: number | null
-  messages?: Message[]
-  createdAt?: string
-  timezone?: string | null
-}
 
 function stripFollowups(text: string) {
   return text.replace(/\{\{FOLLOWUPS:[^}]+\}\}/g, '').trim()
@@ -52,27 +47,21 @@ export function ChatMap() {
   const mapboxRef = useRef<MapboxGL | null>(null)
   const mapRef = useRef<Map | null>(null)
   const markersRef = useRef<Marker[]>([])
-  const [conversations, setConversations] = useState<Conversation[]>([])
+  const selectionRequestRef = useRef(0)
+  const {
+    items: conversations,
+    loading: conversationsLoading,
+    hasMore: hasMoreConversations,
+    loadMore: loadMoreConversations,
+  } = useConversationSummaries()
+  const [mapPoints, setMapPoints] = useState<ConversationSummary[]>([])
   const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [selectedConversation, setSelectedConversation] = useState<ConversationSummary | null>(null)
   const [mapReady, setMapReady] = useState(false)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useChatSidebar()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => setMounted(true), [])
-
-  useEffect(() => {
-    const desktop = window.matchMedia('(min-width: 1280px)')
-    setSidebarOpen(desktop.matches)
-
-    const handleBreakpointChange = (event: MediaQueryListEvent) => setSidebarOpen(event.matches)
-    const handleToggle = () => setSidebarOpen((open) => !open)
-    desktop.addEventListener('change', handleBreakpointChange)
-    window.addEventListener('chat:toggle-sidebar', handleToggle)
-    return () => {
-      desktop.removeEventListener('change', handleBreakpointChange)
-      window.removeEventListener('chat:toggle-sidebar', handleToggle)
-    }
-  }, [])
 
   useEffect(() => {
     const mobile = window.matchMedia('(max-width: 809px)')
@@ -90,11 +79,10 @@ export function ChatMap() {
     }
   }, [sidebarOpen])
 
-  // Load conversations
+  // Load lightweight marker coordinates separately from the paginated sidebar.
   useEffect(() => {
-    fetch('/api/chat/conversations')
-      .then((r) => r.json())
-      .then(setConversations)
+    loadConversationMarkers()
+      .then(setMapPoints)
       .catch(() => {})
   }, [])
 
@@ -171,7 +159,7 @@ export function ChatMap() {
     markersRef.current.forEach((m) => m.remove())
     markersRef.current = []
 
-    conversations.forEach((c) => {
+    mapPoints.forEach((c) => {
       if (typeof c.latitude !== 'number' || typeof c.longitude !== 'number') return
       // Outer element — Mapbox owns its transform (for lat/lng positioning).
       // Inner dot handles hover scaling so we never clobber the positioning.
@@ -192,20 +180,19 @@ export function ChatMap() {
       })
       el.addEventListener('click', (e) => {
         e.stopPropagation()
-        setSelectedId(c.id)
+        void selectConversation(c)
       })
       const marker = new mapbox.Marker({ element: el, anchor: 'center' })
         .setLngLat([c.longitude, c.latitude])
         .addTo(map)
       markersRef.current.push(marker)
     })
-  }, [conversations, mapReady])
+  }, [mapPoints, mapReady])
 
-  const selected =
-    selectedId !== null ? conversations.find((c) => c.id === selectedId) || null : null
-
-  function selectConversation(conversation: Conversation) {
+  async function selectConversation(conversation: ConversationSummary) {
+    const requestId = ++selectionRequestRef.current
     setSelectedId(conversation.id)
+    setSelectedConversation(conversation)
     if (window.matchMedia('(max-width: 809px)').matches) setSidebarOpen(false)
     if (typeof conversation.longitude === 'number' && typeof conversation.latitude === 'number') {
       mapRef.current?.flyTo({
@@ -214,6 +201,12 @@ export function ChatMap() {
         essential: true,
       })
     }
+    try {
+      const loaded = await loadConversationById(conversation.id)
+      if (selectionRequestRef.current === requestId) setSelectedConversation(loaded)
+    } catch {
+      // Keep the lightweight metadata visible if the transcript request fails.
+    }
   }
 
   const sidebarInner = (
@@ -221,28 +214,14 @@ export function ChatMap() {
       <div className="px-3 pb-4 pt-1">
         <span className="text-body font-medium text-content">Conversations</span>
       </div>
-      <div className="flex-1 space-y-1 overflow-y-auto">
-        {conversations.map((conversation) => (
-          <button
-            key={conversation.id}
-            type="button"
-            onClick={() => selectConversation(conversation)}
-            className={`w-full rounded-[12px] px-3 py-2.5 text-left transition-colors cursor-pointer ${
-              conversation.id === selectedId
-                ? 'bg-black/5 dark:bg-white/5'
-                : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.02]'
-            }`}
-          >
-            <div className="truncate text-[13px] text-muted">{conversation.title}</div>
-            <div className="mt-0.5 truncate text-[16px] text-content">
-              {conversation.messages?.find((message) => message.role === 'user')?.content || 'No messages'}
-            </div>
-          </button>
-        ))}
-        {conversations.length === 0 && (
-          <p className="px-3 py-2 text-caption text-muted">No conversations yet</p>
-        )}
-      </div>
+      <ConversationSidebarList
+        conversations={conversations}
+        selectedId={selectedId}
+        loading={conversationsLoading}
+        hasMore={hasMoreConversations}
+        onLoadMore={loadMoreConversations}
+        onSelect={(conversation) => void selectConversation(conversation)}
+      />
     </>
   )
 
@@ -277,21 +256,25 @@ export function ChatMap() {
       <div className="relative min-w-0 flex-1 overflow-hidden">
         <div ref={containerRef} className="size-full" />
 
-        {selected && (
+        {selectedConversation && (
         <div className="map-conversation-panel absolute bottom-2 left-2 right-2 z-10 flex max-h-[calc(50%-8px)] flex-col rounded-[12px] bg-background shadow-lg">
           <div className="flex items-start justify-between gap-2 p-4 pb-3">
             <div className="min-w-0">
               <div className="text-[15px] font-medium text-content truncate">
-                {selected.location || 'Unknown location'}
+                {selectedConversation.location || 'Unknown location'}
               </div>
-              {selected.createdAt && (
+              {selectedConversation.createdAt && (
                 <div className="text-[11px] text-muted truncate mt-0.5">
-                  {formatDateTime(selected.createdAt, selected.timezone)}
+                  {formatDateTime(selectedConversation.createdAt, selectedConversation.timezone)}
                 </div>
               )}
             </div>
             <button
-              onClick={() => setSelectedId(null)}
+              onClick={() => {
+                selectionRequestRef.current += 1
+                setSelectedId(null)
+                setSelectedConversation(null)
+              }}
               aria-label="Close"
               className="shrink-0 w-6 h-6 flex items-center justify-center text-muted hover:text-content transition-colors cursor-pointer"
             >
@@ -301,7 +284,10 @@ export function ChatMap() {
             </button>
           </div>
           <div className="flex-1 overflow-y-auto p-4 pb-6 space-y-3 min-h-0">
-            {(selected.messages || []).map((m, i) => {
+            {!selectedConversation.messages && (
+              <p className="text-[14px] text-muted">Loading conversation…</p>
+            )}
+            {(selectedConversation.messages || []).map((m, i) => {
               const text = stripFollowups(m.content)
               if (!text) return null
               return (

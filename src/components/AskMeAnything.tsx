@@ -80,6 +80,8 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
   const [followUpFocused, setFollowUpFocused] = useState(false)
   const [initialInputFocused, setInitialInputFocused] = useState(false)
   const conversationIdRef = useRef<number | string | null>(null)
+  const initialInputRef = useRef<HTMLInputElement>(null)
+  const followUpInputRef = useRef<HTMLInputElement>(null)
   const reduceMotion = useReducedMotion()
   const hasConversation = messages.length > 0
 
@@ -98,7 +100,7 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: `Homepage · ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+          title: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
           messages: nextMessages,
         }),
       })
@@ -223,7 +225,9 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
                 onSelect={() => selectQuestion(item)}
               />
             ))}
-            <form
+            <motion.form
+              layout
+              transition={transition}
               onSubmit={handleSubmit}
               className={cn(
                 'flex items-center gap-2 rounded-full border border-border-strong bg-background',
@@ -233,11 +237,19 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
               )}
             >
               <label htmlFor="ask-anything-initial" className="sr-only">Ask your own question</label>
-              <input
+              <motion.input
+                ref={initialInputRef}
+                layout="position"
+                transition={transition}
                 id="ask-anything-initial"
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
                 onFocus={() => setInitialInputFocused(true)}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Escape') return
+                  setInitialInputFocused(false)
+                  initialInputRef.current?.blur()
+                }}
                 onBlur={() => {
                   if (!input.trim()) setInitialInputFocused(false)
                 }}
@@ -265,7 +277,7 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
                   </motion.button>
                 )}
               </AnimatePresence>
-            </form>
+            </motion.form>
             {error && <p className="text-caption text-red-600 dark:text-red-400">{error}</p>}
           </motion.div>
         ) : (
@@ -312,16 +324,28 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
                     className={cn('flex flex-col items-end', followUpFocused ? 'w-full' : 'w-fit')}
                   >
                     <label htmlFor="ask-anything-follow-up" className="sr-only">Ask a follow-up question</label>
-                    <div className={cn(
-                      'flex items-center gap-2 rounded-full border border-border-strong bg-background px-2 pl-5',
-                      followUpFocused ? 'w-full' : 'w-fit',
-                    )}>
-                      <input
+                    <motion.div
+                      layout
+                      transition={transition}
+                      className={cn(
+                        'flex items-center gap-2 rounded-full border border-border-strong bg-background px-2 pl-5',
+                        followUpFocused ? 'w-full' : 'w-fit',
+                      )}
+                    >
+                      <motion.input
+                        ref={followUpInputRef}
+                        layout="position"
+                        transition={transition}
                         id="ask-anything-follow-up"
                         size={15}
                         value={input}
                         onChange={(event) => setInput(event.target.value)}
                         onFocus={() => setFollowUpFocused(true)}
+                        onKeyDown={(event) => {
+                          if (event.key !== 'Escape') return
+                          setFollowUpFocused(false)
+                          followUpInputRef.current?.blur()
+                        }}
                         onBlur={() => {
                           if (!input.trim()) setFollowUpFocused(false)
                         }}
@@ -346,7 +370,7 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
                           </motion.button>
                         )}
                       </AnimatePresence>
-                    </div>
+                    </motion.div>
                     {error && <p className="mt-2 px-2 text-caption text-red-600 dark:text-red-400">{error}</p>}
                   </form>
                 </div>

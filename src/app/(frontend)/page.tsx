@@ -6,6 +6,7 @@ import { ServicePill } from '@/components/ServicePill'
 import { HScrollContainer } from '@/components/HScrollContainer'
 import { FitText } from '@/components/FitText'
 import { SocialIcon } from '@/components/Icons'
+import { ContactForm } from '@/components/ContactForm'
 import { AskMeAnything, AskMeAnythingRestart } from '@/components/AskMeAnything'
 import { getClients } from '@/lib/queries'
 import { getPayload } from '@/lib/payload'
@@ -375,11 +376,11 @@ export default async function HomePage() {
       case 'accordion': {
         const isFullWidth = cols === '6'
         return (
-          <Container key={block.id || i} className="h-full scroll-mt-5 tablet:scroll-mt-32" id="contact">
+          <Container key={block.id || i} className="h-full scroll-mt-5 tablet:scroll-mt-32" id="ask-me-anything">
             {isFullWidth ? (
               <div className="flex flex-col tablet:grid tablet:grid-cols-6 gap-5 tablet:gap-10 h-full">
                 <div className="tablet:col-span-2 flex items-start gap-2">
-                  <h3 className="text-balance">Ask me anything</h3>
+                  <h3 className="text-balance">{block.title || 'Ask me anything'}</h3>
                   <AskMeAnythingRestart />
                 </div>
                 <div className="tablet:col-span-4">
@@ -389,7 +390,7 @@ export default async function HomePage() {
             ) : (
               <div className="flex flex-col h-full">
                 <div className="flex items-start gap-2 pb-5 tablet:pb-10">
-                  <h3 className="text-balance">Ask me anything</h3>
+                  <h3 className="text-balance">{block.title || 'Ask me anything'}</h3>
                   <AskMeAnythingRestart />
                 </div>
                 <div className="min-h-0 tablet:flex-1">
@@ -424,26 +425,38 @@ export default async function HomePage() {
       case 'socialLinks': {
         const links = (block.links || []) as any[]
         if (!links.length) return null
+        const emailLink = links.find((link: any) => ['email', 'mail'].includes(link.platform?.toLowerCase()))
+        const email = emailLink?.url?.replace(/^mailto:/i, '') || 'gabe@valdivia.works'
+        const socialLinks = links.filter((link: any) => link !== emailLink)
         return (
-          <div key={block.id || i} className="h-full">
-            <SectionWithTitle title={block.title || 'Elsewhere'} cols={cols}>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-8">
-                {links.map((link: any, j: number) => (
-                  <a
-                    key={j}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted hover:text-content transition-colors text-body inline-flex items-baseline gap-3 group"
-                  >
-                    <span className="shrink-0 w-[18px] flex items-center justify-center translate-y-[2px]"><SocialIcon platform={link.platform} /></span>
-                    {link.platform}
-                    <svg className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity translate-y-[5px]" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 17L17 7M17 7H9M17 7V15" /></svg>
-                  </a>
-                ))}
-              </div>
-            </SectionWithTitle>
-          </div>
+          <section key={block.id || i} id="contact" className="h-full scroll-mt-5 tablet:scroll-mt-32">
+            <Container>
+              <SectionWithTitle title={block.title || 'Contact'} cols={cols}>
+                <div className="rounded-[20px] bg-background-alt p-6 tablet:rounded-[30px] tablet:p-8 desktop:rounded-[40px] desktop:p-10">
+                  <ContactForm email={email} />
+                </div>
+                <div className="mt-12">
+                  <div className="grid grid-cols-2 gap-x-10 gap-y-6 tablet:gap-y-8">
+                    {socialLinks.map((link: any, j: number) => (
+                      <a
+                        key={j}
+                        href={link.url}
+                        target={link.url.startsWith('mailto:') ? undefined : '_blank'}
+                        rel={link.url.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
+                        className="group inline-flex min-w-0 items-center gap-3 text-body text-muted transition-colors hover:text-content"
+                      >
+                        <span className="flex size-5 shrink-0 items-center justify-center" aria-hidden="true">
+                          <SocialIcon platform={link.platform} />
+                        </span>
+                        <span>{link.platform}</span>
+                        <svg className="size-5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 17L17 7M17 7H9M17 7V15" /></svg>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </SectionWithTitle>
+            </Container>
+          </section>
         )
       }
 

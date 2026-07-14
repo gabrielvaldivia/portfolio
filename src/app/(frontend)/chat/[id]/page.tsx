@@ -33,9 +33,6 @@ export default async function ChatByIdPage({ params }: { params: Promise<{ id: s
   const aboutData = aboutPageResult.docs[0] as any
   const sections = (home?.sections || []) as any[]
   const faqItems = getFAQItemsFromSections(sections)
-  const aboutSection = sections.find((s: any) => s.blockType === 'aboutSection')
-  const aboutImage = aboutSection?.image?.url || ''
-  const aboutImageDark = aboutSection?.imageDark?.url || ''
   const chatBlock = sections.find((s: any) => s.blockType === 'accordion')
 
   const projectLinks = allProjects.docs.map((p: any) => ({ title: p.title, slug: p.slug }))
@@ -45,7 +42,12 @@ export default async function ChatByIdPage({ params }: { params: Promise<{ id: s
   const sideProjectLinks = allSideProjects.docs
     .filter((p: any) => p.slug)
     .map((p: any) => ({ title: p.title, slug: p.slug }))
-  const socialLinks = (chatBlock?.links || []).map((l: any) => ({ platform: l.platform, url: l.url }))
+  const socialLinks = (chatBlock?.links || [])
+    .filter((link: any) => {
+      const platform = link.platform.toLowerCase().replace(/[^a-z]/g, '')
+      return !['x', 'twitter', 'email', 'mail', 'linkedin'].includes(platform)
+    })
+    .map((link: any) => ({ platform: link.platform, url: link.url }))
   const talkLinks = [
     ...((aboutData?.talks || []) as any[])
       .filter((t: any) => t.url)
@@ -68,8 +70,8 @@ export default async function ChatByIdPage({ params }: { params: Promise<{ id: s
           <ChatView view="chat" chatHref={isNew ? '/chat/new' : `/chat/${numericId}`}>
             <Chat
               faqItems={faqItems}
-              avatarUrl={aboutImage}
-              avatarUrlDark={aboutImageDark}
+              avatarUrl="/chat-avatar-light.webp"
+              avatarUrlDark="/chat-avatar-dark.webp"
               projects={projectLinks}
               sideProjects={sideProjectLinks}
               people={peopleLinks}
