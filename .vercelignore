@@ -8,9 +8,5 @@ next-env.d.ts
 src/payload-types.ts
 /media/
 public/media/
-public/build-anything/
-public/loupe/
-public/fieldtone/
-scripts/images/
 .DS_Store
 .vercel

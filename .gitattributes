@@ -1,2 +1,0 @@
-public/build-anything/*.mp4 filter=lfs diff=lfs merge=lfs -text
-public/loupe/*.mp4 filter=lfs diff=lfs merge=lfs -text
