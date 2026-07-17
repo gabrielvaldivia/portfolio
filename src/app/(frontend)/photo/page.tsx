@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Container } from '@/components/Container'
-import { FitText } from '@/components/FitText'
 import { getPhotos, PHOTO_FEED_URL } from '@/lib/photos'
 
 export const metadata: Metadata = {
@@ -19,12 +18,6 @@ export default async function PhotoPage() {
   return (
     <section className="pb-20 tablet:pb-40">
       <Container>
-        <div className="pb-20">
-          <h1 className="text-[34px] tablet:hidden">Photos</h1>
-          <div className="hidden tablet:block">
-            <FitText className="font-heading" maxSize={120}>Photos</FitText>
-          </div>
-        </div>
         {photos.length === 0 ? (
           <p className="text-muted">No photos yet.</p>
         ) : (
