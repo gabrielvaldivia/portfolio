@@ -5,7 +5,7 @@ import { RichText } from '@/components/RichText'
 import { ServicePill } from '@/components/ServicePill'
 import { HScrollContainer } from '@/components/HScrollContainer'
 import { FitText } from '@/components/FitText'
-import { SocialIcon } from '@/components/Icons'
+import { normalizeSocialLink } from '@/lib/socialLinks'
 import { ContactForm } from '@/components/ContactForm'
 import { AskMeAnything, AskMeAnythingRestart } from '@/components/AskMeAnything'
 import { getClients } from '@/lib/queries'
@@ -423,36 +423,16 @@ export default async function HomePage() {
         )
 
       case 'socialLinks': {
-        const links = (block.links || []) as any[]
+        const links = ((block.links || []) as any[]).map(normalizeSocialLink)
         if (!links.length) return null
         const emailLink = links.find((link: any) => ['email', 'mail'].includes(link.platform?.toLowerCase()))
         const email = emailLink?.url?.replace(/^mailto:/i, '') || 'gabe@valdivia.works'
-        const socialLinks = links.filter((link: any) => link !== emailLink)
         return (
           <section key={block.id || i} id="contact" className="h-full scroll-mt-5 tablet:scroll-mt-32">
             <Container>
               <SectionWithTitle title={block.title || 'Contact'} cols={cols}>
                 <div className="rounded-[20px] bg-background-alt p-6 tablet:rounded-[30px] tablet:p-8 desktop:rounded-[40px] desktop:p-10">
                   <ContactForm email={email} />
-                </div>
-                <div className="mt-12">
-                  <div className="grid grid-cols-2 gap-x-10 gap-y-6 tablet:gap-y-8">
-                    {socialLinks.map((link: any, j: number) => (
-                      <a
-                        key={j}
-                        href={link.url}
-                        target={link.url.startsWith('mailto:') ? undefined : '_blank'}
-                        rel={link.url.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
-                        className="group inline-flex min-w-0 items-center gap-3 text-body text-muted transition-colors hover:text-content"
-                      >
-                        <span className="flex size-5 shrink-0 items-center justify-center" aria-hidden="true">
-                          <SocialIcon platform={link.platform} />
-                        </span>
-                        <span>{link.platform}</span>
-                        <svg className="size-5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 17L17 7M17 7H9M17 7V15" /></svg>
-                      </a>
-                    ))}
-                  </div>
                 </div>
               </SectionWithTitle>
             </Container>

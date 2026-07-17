@@ -5,7 +5,8 @@ import { SiteHeader } from '@/components/SiteHeader'
 import { Footer } from '@/components/Footer'
 import { OverlayManager } from '@/components/OverlayManager'
 import { PageTransition } from '@/components/PageTransition'
-import { getSiteSettings } from '@/lib/queries'
+import { getPageBySlug, getSiteSettings } from '@/lib/queries'
+import { normalizeSocialLink } from '@/lib/socialLinks'
 
 export const revalidate = 60
 
@@ -38,9 +39,23 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const settings = await getSiteSettings()
+  const [settings, homePage] = await Promise.all([
+    getSiteSettings(),
+    getPageBySlug('home'),
+  ])
 
   const s = settings as any
+  const contactBlock = ((homePage as any)?.sections || []).find(
+    (section: any) => section.blockType === 'socialLinks',
+  )
+  const contactLinks = ((contactBlock?.links || []) as any[]).map(normalizeSocialLink)
+  const emailLink = contactLinks.find((link: any) =>
+    ['email', 'mail'].includes(link.platform?.toLowerCase()),
+  )
+  const footerEmail = emailLink?.url?.replace(/^mailto:/i, '') || 'gabe@valdivia.works'
+  const footerSocialLinks = contactLinks
+    .filter((link: any) => link !== emailLink)
+    .slice(0, 4)
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -60,7 +75,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <NavMenu />
         <SiteHeader />
         <PageTransition>{children}</PageTransition>
-        <Footer />
+        <Footer email={footerEmail} socialLinks={footerSocialLinks} />
       </body>
     </html>
   )

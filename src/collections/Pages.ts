@@ -228,7 +228,7 @@ const SocialLinksBlock: Block = {
             { label: 'X / Twitter', value: 'Twitter' },
             { label: 'LinkedIn', value: 'LinkedIn' },
             { label: 'Substack', value: 'Substack' },
-            { label: 'Instagram', value: 'Instagram' },
+            { label: 'Threads', value: 'Threads' },
           ],
         },
         { name: 'url', type: 'text', required: true },

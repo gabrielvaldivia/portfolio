@@ -5,6 +5,7 @@ import { ChatView } from '@/components/ChatView'
 import { ChatHeader } from '@/components/ChatHeader'
 import { getPayload } from '@/lib/payload'
 import { getFAQItemsFromSections } from '@/lib/buildContext'
+import { normalizeSocialLink } from '@/lib/socialLinks'
 
 export const metadata: Metadata = {
   title: 'Chat — Gabriel Valdivia',
@@ -47,7 +48,7 @@ export default async function ChatByIdPage({ params }: { params: Promise<{ id: s
       const platform = link.platform.toLowerCase().replace(/[^a-z]/g, '')
       return !['x', 'twitter', 'email', 'mail', 'linkedin'].includes(platform)
     })
-    .map((link: any) => ({ platform: link.platform, url: link.url }))
+    .map((link: any) => normalizeSocialLink({ platform: link.platform, url: link.url }))
   const talkLinks = [
     ...((aboutData?.talks || []) as any[])
       .filter((t: any) => t.url)
