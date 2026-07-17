@@ -1,6 +1,5 @@
 import { cache } from 'react'
 import { getPayload } from './payload'
-import type { Photo as PhotoDoc } from '@/payload-types'
 
 export const SITE_URL = 'https://gabrielvaldivia.com'
 export const PHOTO_FEED_URL = `${SITE_URL}/photo/feed.json`
@@ -26,31 +25,6 @@ export type Photo = {
   exif: PhotoExif
 }
 
-function toPhoto(doc: PhotoDoc): Photo | null {
-  const web = doc.sizes?.web
-  const src = web?.url || doc.url
-  if (!src || !doc.slug) return null
-
-  const width = (web?.url ? web.width : doc.width) ?? 0
-  const height = (web?.url ? web.height : doc.height) ?? 0
-
-  const exif: PhotoExif = Object.fromEntries(
-    Object.entries(doc.exif ?? {}).filter(([, value]) => value != null && value !== ''),
-  )
-
-  return {
-    slug: doc.slug,
-    src,
-    width,
-    height,
-    datePublished: new Date(doc.captureDate || doc.createdAt)
-      .toISOString()
-      .replace(/\.\d{3}Z$/, 'Z'),
-    alt: doc.alt ?? '',
-    exif,
-  }
-}
-
 export const getPhotos = cache(async (): Promise<Photo[]> => {
   const payload = await getPayload()
   const result = await payload.find({
@@ -60,7 +34,29 @@ export const getPhotos = cache(async (): Promise<Photo[]> => {
     sort: '-captureDate',
   })
   return result.docs
-    .map(toPhoto)
+    .map((doc) => {
+      const web = doc.sizes?.web
+      const src = web?.url || doc.url
+      if (!src || !doc.slug) return null
+
+      const width = (web?.url ? web.width : doc.width) ?? 0
+      const height = (web?.url ? web.height : doc.height) ?? 0
+      const exif: PhotoExif = Object.fromEntries(
+        Object.entries(doc.exif ?? {}).filter(([, value]) => value != null && value !== ''),
+      )
+
+      return {
+        slug: doc.slug,
+        src,
+        width,
+        height,
+        datePublished: new Date(doc.captureDate || doc.createdAt)
+          .toISOString()
+          .replace(/\.\d{3}Z$/, 'Z'),
+        alt: doc.alt ?? '',
+        exif,
+      }
+    })
     .filter((photo): photo is Photo => photo !== null)
     .sort((a, b) => b.datePublished.localeCompare(a.datePublished))
 })
