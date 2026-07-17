@@ -25,7 +25,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!project) return {}
   const title = `${project.meta?.title || project.title} — Gabriel Valdivia`
   const description = project.meta?.description || project.subtitle || ''
-  const ogImage = project.meta?.image?.url || project.featuredImage?.url
+  const metaImage = typeof project.meta?.image === 'object' ? project.meta?.image : undefined
+  const featuredImage = typeof project.featuredImage === 'object' ? project.featuredImage : undefined
+  const ogImage = metaImage?.url || featuredImage?.url
   return {
     title,
     description,

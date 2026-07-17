@@ -2,8 +2,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { Container } from '@/components/Container'
 import { getPhotos, getPhotoBySlug, PHOTO_FEED_URL } from '@/lib/photos'
+
+export const revalidate = 60
 
 export async function generateStaticParams() {
   const photos = await getPhotos()
@@ -49,8 +50,7 @@ export default async function PhotoDetailPage({
   const photo = await getPhotoBySlug(slug)
   if (!photo) notFound()
 
-  const date = new Date(photo.datePublished)
-  const dateLabel = date.toLocaleDateString('en-US', {
+  const dateLabel = new Date(photo.datePublished).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -59,30 +59,30 @@ export default async function PhotoDetailPage({
   const exifSummary = exifLine(photo.exif)
 
   return (
-    <section className="pb-20 tablet:pb-40">
-      <Container>
-        <Link href="/photo" className="text-muted hover:opacity-50 transition-opacity inline-flex items-center gap-2 mb-8">
-          <svg className="shrink-0" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M10 4L6 8l4 4" /></svg>
+    <div className="flex min-h-svh flex-col gap-5 px-5 py-5 tablet:gap-6 tablet:px-10 tablet:py-8">
+      <div className="flex justify-end">
+        <Link
+          href="/photo"
+          className="font-mono text-sm uppercase tracking-[-0.03em] text-content opacity-50 transition-opacity duration-150 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
+        >
           All photos
         </Link>
-        <div className="max-w-[1000px] mx-auto">
-          <Image
-            src={photo.src}
-            alt=""
-            width={photo.width}
-            height={photo.height}
-            priority
-            className="w-full h-auto rounded-lg"
-            sizes="(min-width: 1000px) 1000px, 100vw"
-          />
-          <div className="mt-6 flex flex-col gap-2">
-            <p className="text-muted">{dateLabel}</p>
-            {exifSummary && (
-              <p className="text-muted font-mono text-sm">{exifSummary}</p>
-            )}
-          </div>
-        </div>
-      </Container>
-    </section>
+      </div>
+      <div className="flex flex-1 items-center">
+        <Image
+          src={photo.src}
+          alt={photo.alt}
+          width={photo.width}
+          height={photo.height}
+          priority
+          className="h-auto w-full"
+          sizes="100vw"
+        />
+      </div>
+      <div className="flex flex-wrap justify-between gap-x-6 gap-y-1 font-mono text-sm uppercase tracking-[-0.03em] text-content opacity-50">
+        <span>{dateLabel}</span>
+        {exifSummary && <span>{exifSummary}</span>}
+      </div>
+    </div>
   )
 }

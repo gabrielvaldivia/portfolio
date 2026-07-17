@@ -15,6 +15,7 @@ import { Services } from './collections/Services'
 import { SideProjects } from './collections/SideProjects'
 import { Pages } from './collections/Pages'
 import { Conversations } from './collections/Conversations'
+import { Photos } from './collections/Photos'
 
 import { SiteSettings } from './globals/SiteSettings'
 import { getPayloadSecret } from './lib/payloadSecret'
@@ -95,7 +96,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Pages, Projects, SideProjects, Clients, People, Services, Conversations, Users, Media],
+  collections: [Pages, Projects, SideProjects, Clients, People, Services, Conversations, Photos, Users, Media],
   globals: [SiteSettings],
   editor: lexicalEditor(),
   secret: getPayloadSecret(),
@@ -123,6 +124,11 @@ export default buildConfig({
             clientUploads: true,
             collections: {
               media: {
+                disablePayloadAccessControl: true,
+                generateFileURL: ({ filename, prefix }) => joinURLParts(r2PublicURL, prefix, filename),
+              },
+              photos: {
+                prefix: 'photos',
                 disablePayloadAccessControl: true,
                 generateFileURL: ({ filename, prefix }) => joinURLParts(r2PublicURL, prefix, filename),
               },

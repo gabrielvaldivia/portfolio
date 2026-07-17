@@ -1,8 +1,6 @@
-import fs from 'node:fs/promises'
-import path from 'node:path'
 import { cache } from 'react'
-import sharp from 'sharp'
-import exifReader from 'exif-reader'
+import { getPayload } from './payload'
+import type { Photo as PhotoDoc } from '@/payload-types'
 
 export const SITE_URL = 'https://gabrielvaldivia.com'
 export const PHOTO_FEED_URL = `${SITE_URL}/photo/feed.json`
@@ -18,138 +16,53 @@ export type PhotoExif = {
 
 export type Photo = {
   slug: string
-  /** Filename inside public/photos, e.g. "some-photo.jpg" */
-  file: string
-  /** Site-relative src for rendering, e.g. "/photos/some-photo.jpg" */
+  /** Absolute URL of the web rendition (EXIF-stripped), from R2 */
   src: string
   width: number
   height: number
-  /** RFC 3339, from EXIF DateTimeOriginal (file mtime fallback) */
+  /** RFC 3339, from EXIF capture date (upload time fallback) */
   datePublished: string
+  alt: string
   exif: PhotoExif
 }
 
-const PHOTOS_DIR = path.join(process.cwd(), 'public', 'photos')
-// Full-quality originals with intact EXIF live here (not web-served). EXIF and
-// capture dates are read from the original matching a web image's basename;
-// the exported files in public/photos usually have EXIF stripped.
-const ORIGINALS_DIR = path.join(process.cwd(), 'photos', 'originals')
-const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp'])
+function toPhoto(doc: PhotoDoc): Photo | null {
+  const web = doc.sizes?.web
+  const src = web?.url || doc.url
+  if (!src || !doc.slug) return null
 
-function slugify(filename: string): string {
-  return path
-    .parse(filename)
-    .name.toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}
+  const width = (web?.url ? web.width : doc.width) ?? 0
+  const height = (web?.url ? web.height : doc.height) ?? 0
 
-function formatCamera(make?: string, model?: string): string | undefined {
-  if (!model) return make || undefined
-  const cleanMake = make?.trim()
-  const cleanModel = model.trim()
-  if (!cleanMake) return cleanModel
-  // Avoid "FUJIFILM FUJIFILM X-E5" — many models already embed the make
-  if (cleanModel.toLowerCase().startsWith(cleanMake.toLowerCase())) return cleanModel
-  const displayMake = cleanMake === cleanMake.toUpperCase()
-    ? cleanMake.charAt(0) + cleanMake.slice(1).toLowerCase()
-    : cleanMake
-  return `${displayMake} ${cleanModel}`
-}
-
-function formatShutter(exposureTime?: number): string | undefined {
-  if (!exposureTime || exposureTime <= 0) return undefined
-  if (exposureTime >= 1) return `${Number(exposureTime.toFixed(1))}s`
-  return `1/${Math.round(1 / exposureTime)}`
-}
-
-async function loadPhoto(file: string, originalPath?: string): Promise<Photo> {
-  const filePath = path.join(PHOTOS_DIR, file)
-  const [metadata, stat] = await Promise.all([
-    sharp(filePath).metadata(),
-    fs.stat(filePath),
-  ])
-
-  // EXIF comes from the untouched original when one exists; the web export in
-  // public/photos is only used for EXIF if there is no original at all (e.g. a
-  // straight-from-camera file dropped directly into public/photos).
-  let exifBuffer = metadata.exif
-  if (originalPath) {
-    try {
-      exifBuffer = (await sharp(originalPath).metadata()).exif
-    } catch {
-      exifBuffer = undefined
-    }
-  }
-
-  let date: Date = stat.mtime
-  const exif: PhotoExif = {}
-
-  if (exifBuffer) {
-    try {
-      const parsed = exifReader(exifBuffer)
-      const image = parsed.Image ?? {}
-      const photo = parsed.Photo ?? {}
-
-      if (photo.DateTimeOriginal instanceof Date) date = photo.DateTimeOriginal
-      else if (image.DateTime instanceof Date) date = image.DateTime
-
-      exif.camera = formatCamera(image.Make as string | undefined, image.Model as string | undefined)
-      exif.lens = (photo.LensModel as string | undefined)?.trim() || undefined
-      exif.shutter = formatShutter(photo.ExposureTime as number | undefined)
-      if (typeof photo.FNumber === 'number') exif.aperture = `f/${Number(photo.FNumber.toFixed(1))}`
-      const iso = (photo as any).ISOSpeedRatings ?? (photo as any).PhotographicSensitivity ?? (photo as any).ISO
-      if (iso != null) exif.iso = String(Array.isArray(iso) ? iso[0] : iso)
-      if (typeof photo.FocalLength === 'number') exif.focal = `${Number(photo.FocalLength.toFixed(1))}mm`
-    } catch {
-      // Unparseable EXIF — fall back to file mtime, no shooting metadata
-    }
-  }
-
-  const orientation = metadata.orientation ?? 1
-  const swapped = orientation >= 5
-  const width = (swapped ? metadata.height : metadata.width) ?? 0
-  const height = (swapped ? metadata.width : metadata.height) ?? 0
+  const exif: PhotoExif = Object.fromEntries(
+    Object.entries(doc.exif ?? {}).filter(([, value]) => value != null && value !== ''),
+  )
 
   return {
-    slug: slugify(file),
-    file,
-    src: `/photos/${encodeURIComponent(file)}`,
+    slug: doc.slug,
+    src,
     width,
     height,
-    datePublished: date.toISOString().replace(/\.\d{3}Z$/, 'Z'),
+    datePublished: new Date(doc.captureDate || doc.createdAt)
+      .toISOString()
+      .replace(/\.\d{3}Z$/, 'Z'),
+    alt: doc.alt ?? '',
     exif,
   }
 }
 
-async function getOriginalsByBasename(): Promise<Map<string, string>> {
-  const originals = new Map<string, string>()
-  let entries: string[]
-  try {
-    entries = await fs.readdir(ORIGINALS_DIR)
-  } catch {
-    return originals
-  }
-  for (const entry of entries) {
-    if (!IMAGE_EXTENSIONS.has(path.extname(entry).toLowerCase())) continue
-    originals.set(path.parse(entry).name.toLowerCase(), path.join(ORIGINALS_DIR, entry))
-  }
-  return originals
-}
-
 export const getPhotos = cache(async (): Promise<Photo[]> => {
-  let entries: string[]
-  try {
-    entries = await fs.readdir(PHOTOS_DIR)
-  } catch {
-    return []
-  }
-  const originals = await getOriginalsByBasename()
-  const files = entries.filter((f) => IMAGE_EXTENSIONS.has(path.extname(f).toLowerCase()))
-  const photos = await Promise.all(
-    files.map((file) => loadPhoto(file, originals.get(path.parse(file).name.toLowerCase()))),
-  )
-  return photos.sort((a, b) => b.datePublished.localeCompare(a.datePublished))
+  const payload = await getPayload()
+  const result = await payload.find({
+    collection: 'photos',
+    limit: 500,
+    depth: 0,
+    sort: '-captureDate',
+  })
+  return result.docs
+    .map(toPhoto)
+    .filter((photo): photo is Photo => photo !== null)
+    .sort((a, b) => b.datePublished.localeCompare(a.datePublished))
 })
 
 export async function getPhotoBySlug(slug: string): Promise<Photo | undefined> {

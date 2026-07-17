@@ -4,6 +4,8 @@ import { Container } from '@/components/Container'
 import { ModuleLightboxProvider, ModuleLightboxTrigger, type ModuleLightboxSlide } from '@/components/ModuleLightbox'
 import { getPhotos, PHOTO_FEED_URL, type Photo } from '@/lib/photos'
 
+export const revalidate = 60
+
 export const metadata: Metadata = {
   title: 'Photos — Gabriel Valdivia',
   description: 'Photographs by Gabriel Valdivia',
@@ -22,7 +24,7 @@ function getPhotoSlides(photos: Photo[]): ModuleLightboxSlide[] {
     type: 'module',
     block: {
       blockType: 'image',
-      image: { url: photo.src, width: photo.width, height: photo.height, alt: '' },
+      image: { url: photo.src, width: photo.width, height: photo.height, alt: photo.alt },
       fit: 'contain',
     },
     label: 'Open photo fullscreen',
@@ -51,7 +53,7 @@ export default async function PhotoPage() {
                 >
                   <Image
                     src={photo.src}
-                    alt=""
+                    alt={photo.alt}
                     width={photo.width}
                     height={photo.height}
                     className="w-full h-auto"

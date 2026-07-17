@@ -1,6 +1,6 @@
 import { getPhotos, SITE_URL, PHOTO_FEED_URL } from '@/lib/photos'
 
-export const dynamic = 'force-static'
+export const revalidate = 60
 
 export async function GET() {
   const photos = await getPhotos()
@@ -26,7 +26,7 @@ export async function GET() {
       return {
         id: permalink,
         url: permalink,
-        image: `${SITE_URL}${photo.src}`,
+        image: photo.src,
         date_published: photo.datePublished,
         ...(Object.keys(exif).length > 0 ? { _photoring: { exif } } : {}),
       }
