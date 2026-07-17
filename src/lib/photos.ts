@@ -30,6 +30,10 @@ export type Photo = {
 }
 
 const PHOTOS_DIR = path.join(process.cwd(), 'public', 'photos')
+// Full-quality originals with intact EXIF live here (not web-served). EXIF and
+// capture dates are read from the original matching a web image's basename;
+// the exported files in public/photos usually have EXIF stripped.
+const ORIGINALS_DIR = path.join(process.cwd(), 'photos', 'originals')
 const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp'])
 
 function slugify(filename: string): string {
@@ -59,19 +63,31 @@ function formatShutter(exposureTime?: number): string | undefined {
   return `1/${Math.round(1 / exposureTime)}`
 }
 
-async function loadPhoto(file: string): Promise<Photo> {
+async function loadPhoto(file: string, originalPath?: string): Promise<Photo> {
   const filePath = path.join(PHOTOS_DIR, file)
   const [metadata, stat] = await Promise.all([
     sharp(filePath).metadata(),
     fs.stat(filePath),
   ])
 
+  // EXIF comes from the untouched original when one exists; the web export in
+  // public/photos is only used for EXIF if there is no original at all (e.g. a
+  // straight-from-camera file dropped directly into public/photos).
+  let exifBuffer = metadata.exif
+  if (originalPath) {
+    try {
+      exifBuffer = (await sharp(originalPath).metadata()).exif
+    } catch {
+      exifBuffer = undefined
+    }
+  }
+
   let date: Date = stat.mtime
   const exif: PhotoExif = {}
 
-  if (metadata.exif) {
+  if (exifBuffer) {
     try {
-      const parsed = exifReader(metadata.exif)
+      const parsed = exifReader(exifBuffer)
       const image = parsed.Image ?? {}
       const photo = parsed.Photo ?? {}
 
@@ -106,6 +122,21 @@ async function loadPhoto(file: string): Promise<Photo> {
   }
 }
 
+async function getOriginalsByBasename(): Promise<Map<string, string>> {
+  const originals = new Map<string, string>()
+  let entries: string[]
+  try {
+    entries = await fs.readdir(ORIGINALS_DIR)
+  } catch {
+    return originals
+  }
+  for (const entry of entries) {
+    if (!IMAGE_EXTENSIONS.has(path.extname(entry).toLowerCase())) continue
+    originals.set(path.parse(entry).name.toLowerCase(), path.join(ORIGINALS_DIR, entry))
+  }
+  return originals
+}
+
 export const getPhotos = cache(async (): Promise<Photo[]> => {
   let entries: string[]
   try {
@@ -113,8 +144,11 @@ export const getPhotos = cache(async (): Promise<Photo[]> => {
   } catch {
     return []
   }
+  const originals = await getOriginalsByBasename()
   const files = entries.filter((f) => IMAGE_EXTENSIONS.has(path.extname(f).toLowerCase()))
-  const photos = await Promise.all(files.map(loadPhoto))
+  const photos = await Promise.all(
+    files.map((file) => loadPhoto(file, originals.get(path.parse(file).name.toLowerCase()))),
+  )
   return photos.sort((a, b) => b.datePublished.localeCompare(a.datePublished))
 })
 

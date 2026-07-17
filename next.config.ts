@@ -5,9 +5,9 @@ const nextConfig: NextConfig = {
   // The photo pages and feed read EXIF from public/photos with fs at
   // build/regeneration time, so the folder must ship with the functions.
   outputFileTracingIncludes: {
-    '/photo': ['./public/photos/**'],
-    '/photo/[slug]': ['./public/photos/**'],
-    '/photo/feed.json': ['./public/photos/**'],
+    '/photo': ['./public/photos/**', './photos/originals/**'],
+    '/photo/[slug]': ['./public/photos/**', './photos/originals/**'],
+    '/photo/feed.json': ['./public/photos/**', './photos/originals/**'],
   },
   images: {
     // Serve media directly from R2. Vercel's image optimizer can return 402s
