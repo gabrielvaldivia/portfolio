@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useReducedMotion } from 'motion/react'
@@ -9,6 +10,12 @@ import { SocialIcon } from './Icons'
 const ALTERNATE_COPYRIGHT = '© Copyright is a fallacy'
 const SCRAMBLE_CHARACTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?#$%&'
 const SCRAMBLE_DURATION = 600
+const FOOTER_TEXT_LINK_CLASS =
+  'font-mono text-sm uppercase tracking-[-0.03em] text-content opacity-50 transition-opacity duration-150 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content'
+const FOOTER_LINKS = [
+  { label: 'Photo', href: '/photo' },
+  { label: 'Activity', href: '/activity' },
+]
 
 type FooterSocialLink = {
   platform: string
@@ -33,6 +40,10 @@ export function Footer({
   const flippedRef = useRef(false)
   const animationFrameRef = useRef<number | null>(null)
   const prefersReducedMotion = useReducedMotion()
+  const footerSocialLinks = [
+    { platform: 'Email', url: `mailto:${email}` },
+    ...socialLinks,
+  ]
 
   useEffect(() => {
     return () => {
@@ -120,20 +131,13 @@ export function Footer({
             </button>
           </div>
 
-          <a
-            href={`mailto:${email}`}
-            className="font-mono text-sm uppercase tracking-[-0.03em] text-content opacity-50 transition-opacity duration-150 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content tablet:justify-self-center"
-          >
-            {email}
-          </a>
-
-          <div className="flex items-center gap-4 tablet:justify-self-end">
-            {socialLinks.map((link) => (
+          <div className="flex items-center gap-4 tablet:justify-self-center">
+            {footerSocialLinks.map((link) => (
               <a
-                key={link.platform}
+                key={`${link.platform}:${link.url}`}
                 href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
+                target={link.url.startsWith('mailto:') ? undefined : '_blank'}
+                rel={link.url.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
                 aria-label={link.platform}
                 className="flex size-5 items-center justify-center text-content opacity-50 transition-opacity duration-150 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
               >
@@ -143,6 +147,21 @@ export function Footer({
               </a>
             ))}
           </div>
+
+          <nav
+            aria-label="Footer"
+            className="flex items-center gap-4 tablet:justify-self-end"
+          >
+            {FOOTER_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={FOOTER_TEXT_LINK_CLASS}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
         </div>
       </Container>
     </footer>
