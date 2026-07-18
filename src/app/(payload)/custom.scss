@@ -194,6 +194,16 @@ body,
   box-shadow: var(--cms-popover-shadow);
 }
 
+.template-minimal .login__brand {
+  display: none !important;
+}
+
+.template-minimal .login__form > a {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 16px !important;
+}
+
 .app-header,
 .nav,
 .collection-list,
