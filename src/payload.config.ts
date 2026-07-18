@@ -20,6 +20,11 @@ import { Photos } from './collections/Photos'
 import { SiteSettings } from './globals/SiteSettings'
 import { getPayloadSecret } from './lib/payloadSecret'
 
+const dashboardDefaultLayout = [
+  { widgetSlug: 'page-shortcuts', width: 'full' },
+  { widgetSlug: 'collections', width: 'full' },
+] as const
+
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 const rawDatabaseURI = process.env.DATABASE_URI || process.env.DATABASE_URL || ''
@@ -46,11 +51,12 @@ const serverURL = (
   (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : '') ||
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '')
 ).replace(/\/+$/, '')
-const r2Bucket = process.env.R2_BUCKET || ''
-const r2Endpoint = process.env.R2_ENDPOINT || ''
-const r2AccessKeyId = process.env.R2_ACCESS_KEY_ID || ''
-const r2SecretAccessKey = process.env.R2_SECRET_ACCESS_KEY || ''
-const r2PublicURL = (process.env.R2_PUBLIC_URL || '').replace(/\/+$/, '')
+const cleanEnv = (value?: string) => (value || '').replace(/\\n/g, '').replace(/[\r\n]/g, '').trim()
+const r2Bucket = cleanEnv(process.env.R2_BUCKET)
+const r2Endpoint = cleanEnv(process.env.R2_ENDPOINT)
+const r2AccessKeyId = cleanEnv(process.env.R2_ACCESS_KEY_ID)
+const r2SecretAccessKey = cleanEnv(process.env.R2_SECRET_ACCESS_KEY)
+const r2PublicURL = cleanEnv(process.env.R2_PUBLIC_URL).replace(/\/+$/, '')
 const hasR2Storage = Boolean(r2Bucket && r2Endpoint && r2AccessKeyId && r2SecretAccessKey && r2PublicURL)
 
 const normalizeOrigin = (value?: string) => {
@@ -92,6 +98,27 @@ export default buildConfig({
   serverURL,
   admin: {
     user: Users.slug,
+    components: {
+      afterNav: ['./components/admin/SidebarAccount#SidebarAccount'],
+      beforeNavLinks: ['./components/admin/DashboardSidebarNav#DashboardSidebarNav'],
+      graphics: {
+        Icon: './components/admin/Hugeicons#AdminBrandIcon',
+        Logo: './components/admin/Hugeicons#AdminBrandLogo',
+      },
+      providers: ['./components/admin/AdminCreateHeaderProvider#AdminCreateHeaderProvider'],
+    },
+    dashboard: {
+      defaultLayout: dashboardDefaultLayout as any,
+      widgets: [
+        {
+          slug: 'page-shortcuts',
+          Component: './components/admin/PageDashboard#PageDashboard',
+          label: 'Pages',
+          maxWidth: 'full',
+          minWidth: 'full',
+        },
+      ],
+    },
     importMap: {
       baseDir: path.resolve(dirname),
     },
@@ -136,6 +163,7 @@ export default buildConfig({
             bucket: r2Bucket,
             config: {
               endpoint: r2Endpoint,
+              forcePathStyle: true,
               credentials: {
                 accessKeyId: r2AccessKeyId,
                 secretAccessKey: r2SecretAccessKey,

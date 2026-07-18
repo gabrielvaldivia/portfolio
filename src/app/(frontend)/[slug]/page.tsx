@@ -1,5 +1,6 @@
 import { Container } from '@/components/Container'
 import { RenderBlocks } from '@/blocks/RenderBlocks'
+import { buildPageMetadata } from '@/lib/pageMetadata'
 import { getPublishedPageBySlug } from '@/lib/queries'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
@@ -14,10 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (RESERVED.includes(slug)) return {}
   const page = await getPublishedPageBySlug(slug)
   if (!page) return {}
-  return {
-    title: `${page.meta?.title || page.title} — Gabriel Valdivia`,
-    description: page.meta?.description || '',
-  }
+  return buildPageMetadata(page, { fallbackTitle: page.title })
 }
 
 export default async function DynamicPage({ params }: { params: Promise<{ slug: string }> }) {

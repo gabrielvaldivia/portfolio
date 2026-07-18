@@ -8,13 +8,25 @@ import { FitText } from '@/components/FitText'
 import { normalizeSocialLink } from '@/lib/socialLinks'
 import { ContactForm } from '@/components/ContactForm'
 import { AskMeAnything, AskMeAnythingRestart } from '@/components/AskMeAnything'
-import { getClients } from '@/lib/queries'
+import { buildPageMetadata } from '@/lib/pageMetadata'
+import { getClients, getPageBySlug } from '@/lib/queries'
 import { getPayload } from '@/lib/payload'
 import { getFAQItemsFromSections } from '@/lib/buildContext'
 import Image from 'next/image'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 
 export const revalidate = 300
+
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getPageBySlug('home')
+
+  return buildPageMetadata(page, {
+    fallbackTitle: 'Gabriel Valdivia',
+    fallbackDescription: 'Fractional design partner for early-stage teams.',
+    appendSiteName: false,
+  })
+}
 
 function normalizeAskedQuestion(question: string) {
   return question

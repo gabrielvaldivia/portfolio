@@ -1,13 +1,18 @@
 import { Container } from '@/components/Container'
 import { FitText } from '@/components/FitText'
 import { getPayload } from '@/lib/payload'
+import { buildPageMetadata } from '@/lib/pageMetadata'
 import { getPageBySlug } from '@/lib/queries'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
-export const metadata: Metadata = {
-  title: 'Clients — Gabriel Valdivia',
-  description: 'Companies I have worked with',
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getPageBySlug('clients')
+
+  return buildPageMetadata(page, {
+    fallbackTitle: 'Clients',
+    fallbackDescription: 'Companies I have worked with',
+  })
 }
 
 export const revalidate = 60

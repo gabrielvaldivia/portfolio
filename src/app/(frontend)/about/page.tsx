@@ -1,6 +1,7 @@
 import { Container } from '@/components/Container'
 import { FitText } from '@/components/FitText'
 import { RichText } from '@/components/RichText'
+import { buildPageMetadata } from '@/lib/pageMetadata'
 import { getPageBySlug, getSideProjects } from '@/lib/queries'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
@@ -39,9 +40,13 @@ function AboutSection({
   )
 }
 
-export const metadata: Metadata = {
-  title: 'About — Gabriel Valdivia',
-  description: 'Designer and creative technologist',
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getPageBySlug('about')
+
+  return buildPageMetadata(page, {
+    fallbackTitle: 'About',
+    fallbackDescription: 'Designer and creative technologist',
+  })
 }
 
 export const revalidate = 60

@@ -2,12 +2,17 @@ import { Container } from '@/components/Container'
 import { FitText } from '@/components/FitText'
 import { PeopleGrid } from '@/components/PeopleGrid'
 import { getPayload } from '@/lib/payload'
+import { buildPageMetadata } from '@/lib/pageMetadata'
 import { getPageBySlug } from '@/lib/queries'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = {
-  title: 'People — Gabriel Valdivia',
-  description: 'People I have worked with',
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getPageBySlug('people')
+
+  return buildPageMetadata(page, {
+    fallbackTitle: 'People',
+    fallbackDescription: 'People I have worked with',
+  })
 }
 
 export const revalidate = 300

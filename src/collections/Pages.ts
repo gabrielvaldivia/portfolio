@@ -314,6 +314,11 @@ export const Pages: CollectionConfig = {
   slug: 'pages',
   defaultSort: 'order',
   admin: {
+    components: {
+      edit: {
+        editMenuItems: ['./components/admin/PagesEditMenuTabs#PagesEditMenuTabs'],
+      },
+    },
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', 'type', 'status', 'order'],
     pagination: { defaultLimit: 100 },
@@ -476,6 +481,15 @@ export const Pages: CollectionConfig = {
       fields: [
         { name: 'title', type: 'text' },
         { name: 'description', type: 'textarea' },
+        {
+          name: 'image',
+          label: 'OG Image',
+          type: 'upload',
+          relationTo: 'media',
+          admin: {
+            description: 'Overrides the default social share image for this page.',
+          },
+        },
       ],
     },
   ],

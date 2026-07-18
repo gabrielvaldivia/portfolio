@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { NavMenu } from '@/components/NavMenu'
 import { SiteHeader } from '@/components/SiteHeader'
 import { Footer } from '@/components/Footer'
+import { AgentationToolbar } from '@/components/AgentationToolbar'
 import { OverlayManager } from '@/components/OverlayManager'
 import { PageTransition } from '@/components/PageTransition'
 import { getPageBySlug, getSiteSettings } from '@/lib/queries'
@@ -76,6 +77,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <SiteHeader />
         <PageTransition>{children}</PageTransition>
         <Footer email={footerEmail} socialLinks={footerSocialLinks} />
+        <AgentationToolbar />
       </body>
     </html>
   )

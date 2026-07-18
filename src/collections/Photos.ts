@@ -26,12 +26,25 @@ export const Photos: CollectionConfig = {
     read: () => true,
   },
   admin: {
-    pagination: { defaultLimit: 100 },
+    components: {
+      beforeListTable: ['./components/admin/PhotosListActions#PhotosListUploadStatus'],
+      edit: {
+        SaveButton: './components/admin/MediaSaveButton#MediaSaveButton',
+      },
+      views: {
+        list: {
+          Component: './components/admin/PhotosListView#PhotosListView',
+          actions: ['./components/admin/PhotosListActions#PhotosListAddAction'],
+        },
+      },
+    },
+    pagination: { defaultLimit: 500 },
     group: 'Collections',
     useAsTitle: 'filename',
     defaultColumns: ['filename', 'captureDate', 'slug'],
   },
   upload: {
+    bulkUpload: false,
     mimeTypes: ['image/*'],
     imageSizes: [
       // EXIF-stripped web rendition; the untouched original stays in R2

@@ -16,6 +16,11 @@ export const Media: CollectionConfig = {
     ],
   },
   admin: {
+    components: {
+      edit: {
+        SaveButton: './components/admin/MediaSaveButton#MediaSaveButton',
+      },
+    },
     pagination: { defaultLimit: 100 },
     group: 'Admin',
     useAsTitle: 'alt',

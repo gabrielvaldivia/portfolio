@@ -7,6 +7,7 @@ import * as migration_20260708_225000_backfill_module_like_event_amount from './
 import * as migration_20260710_000000_add_browser_module from './20260710_000000_add_browser_module';
 import * as migration_20260714_000000_index_conversations_updated_at from './20260714_000000_index_conversations_updated_at';
 import * as migration_20260717_124017_add_photos_collection from './20260717_124017_add_photos_collection';
+import * as migration_20260718_194126_add_page_meta_image from './20260718_194126_add_page_meta_image';
 
 export const migrations = [
   {
@@ -52,6 +53,11 @@ export const migrations = [
   {
     up: migration_20260717_124017_add_photos_collection.up,
     down: migration_20260717_124017_add_photos_collection.down,
-    name: '20260717_124017_add_photos_collection'
+    name: '20260717_124017_add_photos_collection',
+  },
+  {
+    up: migration_20260718_194126_add_page_meta_image.up,
+    down: migration_20260718_194126_add_page_meta_image.down,
+    name: '20260718_194126_add_page_meta_image'
   },
 ];

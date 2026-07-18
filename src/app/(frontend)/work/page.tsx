@@ -1,11 +1,16 @@
 import { ProjectCard } from '@/components/ProjectCard'
 import { FitText } from '@/components/FitText'
-import { getProjects } from '@/lib/queries'
+import { buildPageMetadata } from '@/lib/pageMetadata'
+import { getPageBySlug, getProjects } from '@/lib/queries'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = {
-  title: 'Work — Gabriel Valdivia',
-  description: 'Selected projects and case studies',
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getPageBySlug('work')
+
+  return buildPageMetadata(page, {
+    fallbackTitle: 'Work',
+    fallbackDescription: 'Selected projects and case studies',
+  })
 }
 
 export const revalidate = 60
