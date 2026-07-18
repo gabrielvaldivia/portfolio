@@ -1,12 +1,14 @@
 import { Container } from '@/components/Container'
 import { FitText } from '@/components/FitText'
 import { RichText } from '@/components/RichText'
+import { buildPageMetadata } from '@/lib/pageMetadata'
 import { getPageBySlug, getSideProjects } from '@/lib/queries'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { HoverChevron } from '@/components/Icons'
+import { cn } from '@/lib/cn'
 
 function HoverArrow() {
   return (
@@ -14,9 +16,20 @@ function HoverArrow() {
   )
 }
 
-function AboutSection({ title, children }: { title: string; children: ReactNode }) {
+function AboutSection({
+  title,
+  children,
+  alignBaseline = true,
+}: {
+  title: string
+  children: ReactNode
+  alignBaseline?: boolean
+}) {
   return (
-    <div className="grid grid-cols-1 tablet:grid-cols-6 gap-6 tablet:gap-10">
+    <div className={cn(
+      'grid grid-cols-1 gap-6 tablet:grid-cols-6 tablet:gap-10',
+      alignBaseline ? 'tablet:items-baseline' : 'tablet:items-start',
+    )}>
       <div className="tablet:col-span-2">
         <h3 className="sticky top-5">{title}</h3>
       </div>
@@ -27,17 +40,22 @@ function AboutSection({ title, children }: { title: string; children: ReactNode 
   )
 }
 
-export const metadata: Metadata = {
-  title: 'About — Gabriel Valdivia',
-  description: 'Designer and creative technologist',
-}
-
-export const revalidate = 3600
-
-export default async function AboutPage() {
+export async function generateMetadata(): Promise<Metadata> {
   const page = await getPageBySlug('about')
 
-  const sideProjectsResult = await getSideProjects()
+  return buildPageMetadata(page, {
+    fallbackTitle: 'About',
+    fallbackDescription: 'Designer and creative technologist',
+  })
+}
+
+export const revalidate = 60
+
+export default async function AboutPage() {
+  const [page, sideProjectsResult] = await Promise.all([
+    getPageBySlug('about'),
+    getSideProjects(),
+  ])
   const sideProjects = sideProjectsResult.docs as any[]
   const aboutSections = (page?.aboutSections as any[]) || []
 
@@ -89,21 +107,9 @@ export default async function AboutPage() {
       <AboutSection title={section.title || 'Playground'}>
         <div className="flex flex-col gap-8">
           {projects.map((project: any, i: number) => {
-            const thumb = project.featuredImage as any
             const href = project.slug ? `/playground/${project.slug}` : null
             return href ? (
               <Link key={i} href={href} className="flex flex-col tablet:flex-row tablet:items-center gap-3 tablet:gap-6 group hover:opacity-60 transition-colors">
-                {thumb?.url && (
-                  <div className="w-full tablet:w-52 tablet:shrink-0 aspect-video rounded-lg overflow-hidden border border-border relative">
-                    <Image
-                      src={thumb.url}
-                      alt={thumb.alt || project.title}
-                      fill
-                      className="object-cover object-center"
-                      sizes="(min-width: 768px) 208px, 100vw"
-                    />
-                  </div>
-                )}
                 <div className="flex flex-col tablet:flex-row tablet:flex-1 tablet:items-baseline gap-1 tablet:gap-4">
                   <h4>{project.title}</h4>
                   {project.description && (
@@ -113,17 +119,6 @@ export default async function AboutPage() {
               </Link>
             ) : (
               <div key={i} className="flex flex-col tablet:flex-row tablet:items-center gap-3 tablet:gap-6">
-                {thumb?.url && (
-                  <div className="w-full tablet:w-52 tablet:shrink-0 aspect-video rounded-lg overflow-hidden border border-border relative">
-                    <Image
-                      src={thumb.url}
-                      alt={thumb.alt || project.title}
-                      fill
-                      className="object-cover object-center"
-                      sizes="(min-width: 768px) 208px, 100vw"
-                    />
-                  </div>
-                )}
                 <div className="flex flex-col tablet:flex-row tablet:flex-1 tablet:items-baseline gap-1 tablet:gap-4">
                   <h4>{project.title}</h4>
                   {project.description && (
@@ -159,7 +154,7 @@ export default async function AboutPage() {
         const talks = (section.talks || []) as any[]
         if (talks.length === 0) return null
         return (
-          <AboutSection title={section.title || 'Talks'}>
+          <AboutSection title={section.title || 'Talks'} alignBaseline={false}>
             {renderMediaList(talks)}
           </AboutSection>
         )
@@ -168,7 +163,7 @@ export default async function AboutPage() {
         const interviews = (section.interviews || []) as any[]
         if (interviews.length === 0) return null
         return (
-          <AboutSection title={section.title || 'Interviews'}>
+          <AboutSection title={section.title || 'Interviews'} alignBaseline={false}>
             {renderMediaList(interviews)}
           </AboutSection>
         )

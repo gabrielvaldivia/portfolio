@@ -1,44 +1,35 @@
 import { Container } from '@/components/Container'
 import { FitText } from '@/components/FitText'
 import { getPayload } from '@/lib/payload'
+import { buildPageMetadata } from '@/lib/pageMetadata'
 import { getPageBySlug } from '@/lib/queries'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
-export const metadata: Metadata = {
-  title: 'Clients — Gabriel Valdivia',
-  description: 'Companies I have worked with',
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getPageBySlug('clients')
+
+  return buildPageMetadata(page, {
+    fallbackTitle: 'Clients',
+    fallbackDescription: 'Companies I have worked with',
+  })
 }
 
-export const revalidate = 3600
+export const revalidate = 60
 
 export default async function ClientsPage() {
   const payload = await getPayload()
-  const page = await getPageBySlug('clients')
+  const [page, clientsResult] = await Promise.all([
+    getPageBySlug('clients'),
+    payload.find({
+      collection: 'clients',
+      sort: 'name',
+      limit: 100,
+      depth: 1,
+    }),
+  ])
   const heading = (page as any)?.clientsHeading || page?.title || 'Clients'
-  const { docs: clients } = await payload.find({
-    collection: 'clients',
-    sort: 'name',
-    limit: 100,
-    depth: 1,
-  })
-
-  // Get all projects with client relationship
-  const { docs: projects } = await payload.find({
-    collection: 'projects',
-    limit: 100,
-    depth: 0,
-  })
-
-  // Group projects by client ID
-  const projectsByClient: Record<number, typeof projects> = {}
-  for (const project of projects) {
-    const clientId = project.client as number
-    if (clientId) {
-      if (!projectsByClient[clientId]) projectsByClient[clientId] = []
-      projectsByClient[clientId].push(project)
-    }
-  }
+  const clients = clientsResult.docs
 
   // Group clients by first letter
   const grouped: Record<string, typeof clients> = {}

@@ -4,27 +4,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params
   const payload = await getPayload()
   try {
-    const doc = await payload.findByID({
-      collection: 'conversations',
-      id,
-      depth: 0,
-      overrideAccess: true,
-      select: {
-        id: true,
-        title: true,
-        location: true,
-        latitude: true,
-        longitude: true,
-        messages: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    })
-    return Response.json(doc, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
-      },
-    })
+    const doc = await payload.findByID({ collection: 'conversations', id })
+    return Response.json(doc)
   } catch {
     return Response.json({ error: 'Not found' }, { status: 404 })
   }
@@ -43,12 +24,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const doc = await payload.update({
       collection: 'conversations',
       id,
-      overrideAccess: true,
       data: { messages },
     })
 
 
-    return Response.json({ id: doc.id })
+    return Response.json(doc)
   } catch {
     return Response.json({ error: 'Not found' }, { status: 404 })
   }

@@ -1,5 +1,69 @@
 @import 'tailwindcss';
 
+.video-player-controls {
+  opacity: 1;
+}
+
+[data-lightbox-surface-state='overlay'] .video-open-lightbox-button {
+  display: none;
+}
+
+@media (hover: hover) {
+  .video-player-controls {
+    opacity: 0;
+  }
+
+  .video-player-group:hover .video-player-controls,
+  .video-player-group:focus-within .video-player-controls {
+    opacity: 1;
+  }
+}
+
+[data-lightbox-surface-state='overlay'] [data-module-video-root] {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+[data-lightbox-surface-state='overlay'] p {
+  display: none;
+}
+
+[data-lightbox-surface-state='overlay'] [data-module-video-frame] {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+[data-lightbox-surface-state='overlay'] [data-module-image-root] {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+[data-lightbox-surface-state='overlay'] [data-module-image-frame] {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+[data-lightbox-surface-state='overlay'] [data-module-image-content] {
+  height: 100%;
+  aspect-ratio: auto !important;
+}
+
+[data-lightbox-surface-state='overlay'] .module-like-overlay {
+  display: none;
+}
+
+@media (max-width: 809px) {
+  [data-lightbox-surface-state='overlay']:has([id^='iphone']) {
+    background-color: rgb(var(--lightbox-phone-surface-bg-rgb) / var(--lightbox-phone-surface-bg-alpha, 0));
+  }
+}
+
 @theme {
   --font-heading: 'Inter Display', 'Inter', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
@@ -44,6 +108,8 @@
   --color-floating-rgb: 240 240 240 / 0.6;
   --color-accent-rgb: 0 31 235;
   --color-inverse-rgb: 255 255 255;
+  --lightbox-phone-surface-bg-rgb: 0 0 0;
+  --lightbox-phone-surface-bg-alpha-visible: 0.03;
   --color-nav-active-text: #ffffff;
   --logo-filter: brightness(0);
 }
@@ -61,6 +127,8 @@
     --color-floating-rgb: 64 64 64 / 0.6;
     --color-accent-rgb: 0 157 255;
     --color-inverse-rgb: 0 0 0;
+    --lightbox-phone-surface-bg-rgb: 255 255 255;
+    --lightbox-phone-surface-bg-alpha-visible: 0.1;
     --color-nav-active-text: #000000;
     --logo-filter: brightness(0) invert(1);
   }
@@ -122,6 +190,39 @@ body {
   letter-spacing: -0.01em;
 }
 
+@media (max-width: 809px) {
+  body {
+    --chat-drawer-width: min(82vw, 320px);
+    overflow-x: clip;
+  }
+
+  .chat-header-content,
+  .chat-nav-content {
+    transition: transform 200ms ease-out;
+  }
+
+  body.chat-mobile-sidebar-open {
+    overflow: hidden;
+  }
+
+  body.chat-mobile-sidebar-open .chat-header-content,
+  body.chat-mobile-sidebar-open .chat-nav-content {
+    transform: translateX(var(--chat-drawer-width));
+  }
+
+  body.chat-mobile-sidebar-open .mobile-site-nav {
+    z-index: 30;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-header-content,
+  .chat-nav-content,
+  .chat-view-toggle {
+    transition-duration: 0ms;
+  }
+}
+
 body.birthday-donation-visible .birthday-nav {
   bottom: 4rem;
 }
@@ -136,8 +237,34 @@ body.birthday-donation-visible .birthday-nav {
 }
 
 @media (min-width: 810px) {
+  .chat-view-toggle {
+    transition: transform 300ms ease-in-out;
+  }
+
+  body.chat-desktop-sidebar-open .chat-sidebar-toggle {
+    transform: translateX(280px);
+  }
+
+  body.chat-desktop-sidebar-open .chat-view-toggle {
+    transform: translateX(calc(-50% + 140px));
+  }
+
+  .map-conversation-panel {
+    inset: 96px 16px auto auto;
+    width: 340px;
+    max-width: calc(100% - 32px);
+    max-height: calc(100% - 112px);
+    border-radius: 14px;
+  }
+
   body {
     font-size: 18px;
+  }
+}
+
+@media (min-width: 810px) and (prefers-reduced-motion: reduce) {
+  .chat-view-toggle {
+    transition-duration: 0ms;
   }
 }
 
@@ -338,7 +465,7 @@ a {
 
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  to { opacity: 1; transform: none; }
 }
 
 .page-transition {

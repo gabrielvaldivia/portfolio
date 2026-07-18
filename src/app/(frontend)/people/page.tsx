@@ -2,28 +2,36 @@ import { Container } from '@/components/Container'
 import { FitText } from '@/components/FitText'
 import { PeopleGrid } from '@/components/PeopleGrid'
 import { getPayload } from '@/lib/payload'
+import { buildPageMetadata } from '@/lib/pageMetadata'
 import { getPageBySlug } from '@/lib/queries'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = {
-  title: 'People — Gabriel Valdivia',
-  description: 'People I have worked with',
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getPageBySlug('people')
+
+  return buildPageMetadata(page, {
+    fallbackTitle: 'People',
+    fallbackDescription: 'People I have worked with',
+  })
 }
 
-export const revalidate = 3600
+export const revalidate = 300
 
 export default async function PeoplePage() {
   const payload = await getPayload()
-  const page = await getPageBySlug('people')
+  const [page, peopleResult] = await Promise.all([
+    getPageBySlug('people'),
+    payload.find({
+      collection: 'people',
+      sort: 'name',
+      limit: 200,
+      depth: 1,
+      select: { name: true, role: true, linkedIn: true, photo: true, company: true },
+    }),
+  ])
   const heading = (page as any)?.peopleHeading || page?.title || 'People'
   const description = (page as any)?.peopleDescription || ''
-
-  const { docs: people } = await payload.find({
-    collection: 'people',
-    sort: 'name',
-    limit: 200,
-    depth: 2,
-  })
+  const people = peopleResult.docs
 
   const serialized = people.map((p: any) => ({
     id: p.id,

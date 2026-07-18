@@ -1,23 +1,19 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import mapboxgl from 'mapbox-gl'
+import { createPortal } from 'react-dom'
+import type { Map, Marker } from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import { ConversationSidebarList } from './ConversationSidebarList'
+import {
+  loadConversation as loadConversationById,
+  loadConversationMarkers,
+  useConversationSummaries,
+  type ConversationSummary,
+} from '@/lib/conversationSummaries'
+import { useChatSidebar } from '@/lib/useChatSidebar'
 
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || ''
-
-type Message = { role: 'user' | 'assistant'; content: string }
-
-type Conversation = {
-  id: number
-  title: string
-  location?: string
-  latitude?: number | null
-  longitude?: number | null
-  messages?: Message[]
-  createdAt?: string
-  timezone?: string | null
-}
+type MapboxGL = (typeof import('mapbox-gl'))['default']
 
 function stripFollowups(text: string) {
   return text.replace(/\{\{FOLLOWUPS:[^}]+\}\}/g, '').trim()
@@ -48,17 +44,45 @@ function prefersDark() {
 
 export function ChatMap() {
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const mapRef = useRef<mapboxgl.Map | null>(null)
-  const markersRef = useRef<mapboxgl.Marker[]>([])
-  const [conversations, setConversations] = useState<Conversation[]>([])
+  const mapboxRef = useRef<MapboxGL | null>(null)
+  const mapRef = useRef<Map | null>(null)
+  const markersRef = useRef<Marker[]>([])
+  const selectionRequestRef = useRef(0)
+  const {
+    items: conversations,
+    loading: conversationsLoading,
+    hasMore: hasMoreConversations,
+    loadMore: loadMoreConversations,
+  } = useConversationSummaries()
+  const [mapPoints, setMapPoints] = useState<ConversationSummary[]>([])
   const [selectedId, setSelectedId] = useState<number | null>(null)
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
+  const [selectedConversation, setSelectedConversation] = useState<ConversationSummary | null>(null)
+  const [mapReady, setMapReady] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useChatSidebar()
+  const [mounted, setMounted] = useState(false)
 
-  // Load conversations
+  useEffect(() => setMounted(true), [])
+
   useEffect(() => {
-    fetch('/api/chat/conversations')
-      .then((r) => r.json())
-      .then(setConversations)
+    const mobile = window.matchMedia('(max-width: 809px)')
+    const desktopSidebar = window.matchMedia('(min-width: 810px)')
+    document.body.classList.toggle('chat-mobile-sidebar-open', sidebarOpen && mobile.matches)
+    document.body.classList.toggle('chat-desktop-sidebar-open', sidebarOpen && desktopSidebar.matches)
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSidebarOpen(false)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.body.classList.remove('chat-mobile-sidebar-open', 'chat-desktop-sidebar-open')
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [sidebarOpen])
+
+  // Load lightweight marker coordinates separately from the paginated sidebar.
+  useEffect(() => {
+    loadConversationMarkers()
+      .then(setMapPoints)
       .catch(() => {})
   }, [])
 
@@ -66,52 +90,76 @@ export function ChatMap() {
   useEffect(() => {
     const container = containerRef.current
     if (!container || mapRef.current) return
-    if (!mapboxgl.accessToken) {
-      console.warn('NEXT_PUBLIC_MAPBOX_TOKEN is not set — map will be blank.')
-      return
-    }
-    const map = new mapboxgl.Map({
-      container,
-      style: prefersDark() ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11',
-      projection: 'mercator',
-      center: [10, 25],
-      zoom: 1.1,
-      attributionControl: false,
-      logoPosition: 'bottom-left',
-    })
-    map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right')
-    map.on('load', () => map.resize())
-    mapRef.current = map
+    const containerEl = container
+    let disposed = false
+    let cleanup: (() => void) | null = null
 
-    // Force a resize on size changes of the container (tab switches can mount
-    // with stale dimensions; this keeps the canvas aligned to the container).
-    const ro = new ResizeObserver(() => map.resize())
-    ro.observe(container)
+    async function initMap() {
+      const mapbox = (await import('mapbox-gl')).default
+      if (disposed) return
 
-    // Follow OS theme changes
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    const onThemeChange = (e: MediaQueryListEvent) => {
-      map.setStyle(e.matches ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11')
+      mapbox.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || ''
+      mapboxRef.current = mapbox
+
+      if (!mapbox.accessToken) {
+        console.warn('NEXT_PUBLIC_MAPBOX_TOKEN is not set — map will be blank.')
+        return
+      }
+
+      const map = new mapbox.Map({
+        container: containerEl,
+        style: prefersDark() ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11',
+        projection: 'mercator',
+        center: [10, 25],
+        zoom: 1.1,
+        attributionControl: false,
+        logoPosition: 'bottom-left',
+      })
+      map.addControl(new mapbox.AttributionControl({ compact: true }), 'bottom-right')
+      map.on('load', () => map.resize())
+      mapRef.current = map
+      setMapReady(true)
+
+      // Force a resize on size changes of the container (tab switches can mount
+      // with stale dimensions; this keeps the canvas aligned to the container).
+      const ro = new ResizeObserver(() => map.resize())
+      ro.observe(containerEl)
+
+      // Follow OS theme changes
+      const mq = window.matchMedia('(prefers-color-scheme: dark)')
+      const onThemeChange = (e: MediaQueryListEvent) => {
+        map.setStyle(e.matches ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11')
+      }
+      mq.addEventListener('change', onThemeChange)
+
+      cleanup = () => {
+        ro.disconnect()
+        mq.removeEventListener('change', onThemeChange)
+        map.remove()
+        mapRef.current = null
+        mapboxRef.current = null
+      }
     }
-    mq.addEventListener('change', onThemeChange)
+
+    initMap().catch(() => {})
 
     return () => {
-      ro.disconnect()
-      mq.removeEventListener('change', onThemeChange)
-      map.remove()
-      mapRef.current = null
+      disposed = true
+      cleanup?.()
+      setMapReady(false)
     }
   }, [])
 
   // Plot markers whenever conversations change
   useEffect(() => {
     const map = mapRef.current
-    if (!map) return
+    const mapbox = mapboxRef.current
+    if (!map || !mapbox) return
 
     markersRef.current.forEach((m) => m.remove())
     markersRef.current = []
 
-    conversations.forEach((c) => {
+    mapPoints.forEach((c) => {
       if (typeof c.latitude !== 'number' || typeof c.longitude !== 'number') return
       // Outer element — Mapbox owns its transform (for lat/lng positioning).
       // Inner dot handles hover scaling so we never clobber the positioning.
@@ -132,58 +180,101 @@ export function ChatMap() {
       })
       el.addEventListener('click', (e) => {
         e.stopPropagation()
-        setSelectedId(c.id)
+        void selectConversation(c)
       })
-      const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+      const marker = new mapbox.Marker({ element: el, anchor: 'center' })
         .setLngLat([c.longitude, c.latitude])
         .addTo(map)
       markersRef.current.push(marker)
     })
-  }, [conversations])
+  }, [mapPoints, mapReady])
 
-  useEffect(() => {
-    if (selectedId === null) {
-      setSelectedConversation(null)
-      return
-    }
-
-    const summary = conversations.find((c) => c.id === selectedId) || null
-    setSelectedConversation(summary)
-
-    fetch(`/api/chat/conversations/${selectedId}`)
-      .then((r) => r.json())
-      .then((doc) => {
-        if (doc?.id === selectedId) {
-          setSelectedConversation((current) => {
-            const fallback = current || summary
-            return fallback ? { ...fallback, ...doc } : doc
-          })
-        }
+  async function selectConversation(conversation: ConversationSummary) {
+    const requestId = ++selectionRequestRef.current
+    setSelectedId(conversation.id)
+    setSelectedConversation(conversation)
+    if (window.matchMedia('(max-width: 809px)').matches) setSidebarOpen(false)
+    if (typeof conversation.longitude === 'number' && typeof conversation.latitude === 'number') {
+      mapRef.current?.flyTo({
+        center: [conversation.longitude, conversation.latitude],
+        zoom: Math.max(mapRef.current.getZoom(), 5),
+        essential: true,
       })
-      .catch(() => {})
-  }, [selectedId, conversations])
+    }
+    try {
+      const loaded = await loadConversationById(conversation.id)
+      if (selectionRequestRef.current === requestId) setSelectedConversation(loaded)
+    } catch {
+      // Keep the lightweight metadata visible if the transcript request fails.
+    }
+  }
 
-  const selected = selectedConversation
+  const sidebarInner = (
+    <>
+      <div className="px-3 pb-4 pt-1">
+        <span className="text-body font-medium text-content">Conversations</span>
+      </div>
+      <ConversationSidebarList
+        conversations={conversations}
+        selectedId={selectedId}
+        loading={conversationsLoading}
+        hasMore={hasMoreConversations}
+        onLoadMore={loadMoreConversations}
+        onSelect={(conversation) => void selectConversation(conversation)}
+      />
+    </>
+  )
 
   return (
-    <div className="relative w-full h-full overflow-hidden">
-      <div ref={containerRef} className="w-full h-full" />
+    <div className="flex size-full overflow-hidden">
+      {mounted && createPortal(
+        <div className={`fixed inset-0 z-50 tablet:hidden ${sidebarOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+          <button
+            type="button"
+            aria-label="Close conversation sidebar"
+            onClick={() => setSidebarOpen(false)}
+            className={`fixed inset-0 bg-black/20 transition-[opacity,translate] duration-200 ease-out ${sidebarOpen ? 'translate-x-[var(--chat-drawer-width)] opacity-100' : 'translate-x-0 opacity-0'}`}
+          />
+          <aside
+            aria-label="Conversation history"
+            className={`fixed inset-y-0 left-0 z-10 flex flex-col bg-background px-2 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] transition-transform duration-200 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+            style={{ width: 'var(--chat-drawer-width)' }}
+          >
+            {sidebarInner}
+          </aside>
+        </div>,
+        document.body,
+      )}
 
-      {selected && (
-        <div className="absolute bottom-2 left-2 right-2 max-h-[calc(50%-8px)] rounded-[12px] tablet:bottom-auto tablet:left-auto tablet:top-4 tablet:right-4 tablet:w-[340px] tablet:max-w-[calc(100%-32px)] tablet:max-h-[calc(100%-32px)] tablet:rounded-[14px] bg-background shadow-lg flex flex-col z-10">
+      <aside
+        aria-label="Conversation history"
+        className={`hidden w-[280px] shrink-0 flex-col bg-background-alt-hover px-2 py-8 transition-[margin-left] duration-200 ease-out tablet:flex ${sidebarOpen ? 'ml-0' : '-ml-[280px]'}`}
+      >
+        {sidebarInner}
+      </aside>
+
+      <div className="relative min-w-0 flex-1 overflow-hidden">
+        <div ref={containerRef} className="size-full" />
+
+        {selectedConversation && (
+        <div className="map-conversation-panel absolute bottom-2 left-2 right-2 z-10 flex max-h-[calc(50%-8px)] flex-col rounded-[12px] bg-background shadow-lg">
           <div className="flex items-start justify-between gap-2 p-4 pb-3">
             <div className="min-w-0">
               <div className="text-[15px] font-medium text-content truncate">
-                {selected.location || 'Unknown location'}
+                {selectedConversation.location || 'Unknown location'}
               </div>
-              {selected.createdAt && (
+              {selectedConversation.createdAt && (
                 <div className="text-[11px] text-muted truncate mt-0.5">
-                  {formatDateTime(selected.createdAt, selected.timezone)}
+                  {formatDateTime(selectedConversation.createdAt, selectedConversation.timezone)}
                 </div>
               )}
             </div>
             <button
-              onClick={() => setSelectedId(null)}
+              onClick={() => {
+                selectionRequestRef.current += 1
+                setSelectedId(null)
+                setSelectedConversation(null)
+              }}
               aria-label="Close"
               className="shrink-0 w-6 h-6 flex items-center justify-center text-muted hover:text-content transition-colors cursor-pointer"
             >
@@ -193,7 +284,10 @@ export function ChatMap() {
             </button>
           </div>
           <div className="flex-1 overflow-y-auto p-4 pb-6 space-y-3 min-h-0">
-            {(selected.messages || []).map((m, i) => {
+            {!selectedConversation.messages && (
+              <p className="text-[14px] text-muted">Loading conversation…</p>
+            )}
+            {(selectedConversation.messages || []).map((m, i) => {
               const text = stripFollowups(m.content)
               if (!text) return null
               return (
@@ -212,7 +306,8 @@ export function ChatMap() {
             })}
           </div>
         </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

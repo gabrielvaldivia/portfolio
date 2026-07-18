@@ -3,18 +3,17 @@ import { Avatar } from '@/components/Avatar'
 import { ServicePill } from '@/components/ServicePill'
 import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { RichText } from '@/components/RichText'
-import { getProjectBySlug, getProjects } from '@/lib/queries'
+import { getProjectBySlug, getProjectSlugs } from '@/lib/queries'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import { FitText } from '@/components/FitText'
 
-export const revalidate = 3600
+export const revalidate = 60
 
 export async function generateStaticParams() {
   try {
-    const { docs } = await getProjects()
-    return docs.map((project: any) => ({ slug: project.slug }))
+    const slugs = await getProjectSlugs()
+    return slugs.map((slug) => ({ slug }))
   } catch {
     return []
   }
@@ -26,7 +25,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!project) return {}
   const title = `${project.meta?.title || project.title} — Gabriel Valdivia`
   const description = project.meta?.description || project.subtitle || ''
-  const ogImage = project.meta?.image?.url || project.featuredImage?.url
+  const metaImage = typeof project.meta?.image === 'object' ? project.meta?.image : undefined
+  const featuredImage = typeof project.featuredImage === 'object' ? project.featuredImage : undefined
+  const ogImage = metaImage?.url || featuredImage?.url
   return {
     title,
     description,
@@ -60,8 +61,6 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
 
   const team = (project.team || []) as any[]
   const services = (project.services || []) as any[]
-  const featuredImage = project.featuredImage as any
-
   return (
     <>
 
@@ -120,7 +119,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
 
 
             {/* Content blocks */}
-            <RenderBlocks blocks={project.content as any[]} />
+            <RenderBlocks blocks={project.content as any[]} likeNamespace={`project:${slug}`} />
           </div>
         </Container>
 

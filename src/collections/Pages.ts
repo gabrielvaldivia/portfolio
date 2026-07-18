@@ -2,7 +2,6 @@ import type { Block, CollectionConfig, Field } from 'payload'
 import { SectionHeader } from '../blocks/SectionHeader/config'
 import { FullWidthImage } from '../blocks/FullWidthImage/config'
 import { FullWidthVideo } from '../blocks/FullWidthVideo/config'
-import { ImageGrid } from '../blocks/ImageGrid/config'
 import { DeviceMockup } from '../blocks/DeviceMockup/config'
 import { TextBlock } from '../blocks/TextBlock/config'
 import { TwoColumn } from '../blocks/TwoColumn/config'
@@ -210,15 +209,28 @@ const CalloutBlock: Block = {
 
 const SocialLinksBlock: Block = {
   slug: 'socialLinks',
-  labels: { singular: 'Social Links', plural: 'Social Links' },
+  labels: { singular: 'Contact', plural: 'Contact Sections' },
   fields: [
     sizeFields,
-    { name: 'title', type: 'text', defaultValue: 'Elsewhere' },
+    { name: 'title', type: 'text', defaultValue: 'Contact' },
     {
       name: 'links',
       type: 'array',
+      label: 'Contact Links',
+      admin: { description: 'Add each social profile or contact method to show on the homepage.' },
       fields: [
-        { name: 'platform', type: 'text', required: true },
+        {
+          name: 'platform',
+          type: 'select',
+          required: true,
+          options: [
+            { label: 'Email', value: 'Email' },
+            { label: 'X / Twitter', value: 'Twitter' },
+            { label: 'LinkedIn', value: 'LinkedIn' },
+            { label: 'Substack', value: 'Substack' },
+            { label: 'Threads', value: 'Threads' },
+          ],
+        },
         { name: 'url', type: 'text', required: true },
       ],
     },
@@ -302,6 +314,11 @@ export const Pages: CollectionConfig = {
   slug: 'pages',
   defaultSort: 'order',
   admin: {
+    components: {
+      edit: {
+        editMenuItems: ['./components/admin/PagesEditMenuTabs#PagesEditMenuTabs'],
+      },
+    },
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', 'type', 'status', 'order'],
     pagination: { defaultLimit: 100 },
@@ -309,35 +326,6 @@ export const Pages: CollectionConfig = {
   },
   access: {
     read: () => true,
-  },
-  hooks: {
-    afterChange: [
-      async ({ doc, previousDoc, req }) => {
-        if (doc.slug !== 'home') return doc
-        try {
-          const sections = (doc.sections || []) as any[]
-          const prevSections = (previousDoc?.sections || []) as any[]
-          for (const section of sections) {
-            if (section.blockType === 'hScroll' && section.source === 'featuredProjects') {
-              const currentIds: number[] = (section.projects || []).map((p: any) => typeof p === 'object' ? p.id : p)
-              const prevBlock = prevSections.find((s: any) => s.blockType === 'hScroll' && s.source === 'featuredProjects')
-              const prevIds: number[] = ((prevBlock?.projects || []) as any[]).map((p: any) => typeof p === 'object' ? p.id : p)
-              const added = currentIds.filter(id => !prevIds.includes(id))
-              const removed = prevIds.filter(id => !currentIds.includes(id))
-              for (const id of added) {
-                await req.payload.update({ collection: 'projects', id, data: { featured: true }, depth: 0 })
-              }
-              for (const id of removed) {
-                await req.payload.update({ collection: 'projects', id, data: { featured: false }, depth: 0 })
-              }
-            }
-          }
-        } catch (e) {
-          // Silent fail
-        }
-        return doc
-      },
-    ],
   },
   fields: [
     {
@@ -483,7 +471,7 @@ export const Pages: CollectionConfig = {
       name: 'content',
       type: 'blocks',
       admin: { condition: isType('custom') },
-      blocks: [SectionHeader, FullWidthImage, FullWidthVideo, ImageGrid, DeviceMockup, TextBlock, TwoColumn],
+      blocks: [SectionHeader, FullWidthImage, FullWidthVideo, DeviceMockup, TextBlock, TwoColumn],
     },
 
     // ── SEO ──
@@ -493,6 +481,15 @@ export const Pages: CollectionConfig = {
       fields: [
         { name: 'title', type: 'text' },
         { name: 'description', type: 'textarea' },
+        {
+          name: 'image',
+          label: 'OG Image',
+          type: 'upload',
+          relationTo: 'media',
+          admin: {
+            description: 'Overrides the default social share image for this page.',
+          },
+        },
       ],
     },
   ],

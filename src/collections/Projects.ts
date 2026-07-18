@@ -1,37 +1,5 @@
 import type { Block, CollectionConfig } from 'payload'
 
-const layoutFields = {
-  type: 'row' as const,
-  fields: [
-    {
-      name: 'columns',
-      type: 'select' as const,
-      defaultValue: '6',
-      options: [
-        { label: '1 Col', value: '1' },
-        { label: '2 Col', value: '2' },
-        { label: '3 Col', value: '3' },
-        { label: '4 Col', value: '4' },
-        { label: '5 Col', value: '5' },
-        { label: '6 Col', value: '6' },
-      ],
-    },
-    {
-      name: 'rows',
-      type: 'select' as const,
-      defaultValue: '1',
-      options: [
-        { label: '1 Row', value: '1' },
-        { label: '2 Row', value: '2' },
-        { label: '3 Row', value: '3' },
-        { label: '4 Row', value: '4' },
-        { label: '5 Row', value: '5' },
-        { label: '6 Row', value: '6' },
-      ],
-    },
-  ],
-}
-
 // ── Content Blocks ──
 
 const textLayoutFields = {
@@ -210,6 +178,52 @@ const VideoBlock: Block = {
   ],
 }
 
+const BrowserBlock: Block = {
+  slug: 'browser',
+  labels: { singular: 'Browser', plural: 'Browsers' },
+  imageURL: '/block-icons/Browser.svg',
+  fields: [
+    imageLayoutFields,
+    { name: 'image', type: 'upload', relationTo: 'media', required: true },
+    { name: 'address', type: 'text', defaultValue: 'gabrielvaldivia.com' },
+    { name: 'caption', type: 'text' },
+    {
+      type: 'row' as const,
+      fields: [
+        {
+          name: 'fit',
+          type: 'select' as const,
+          defaultValue: 'cover',
+          options: [
+            { label: 'Fill', value: 'cover' },
+            { label: 'Fit', value: 'contain' },
+          ],
+        },
+        {
+          name: 'padding',
+          type: 'select' as const,
+          options: [
+            { label: 'None', value: '0' },
+            { label: 'XS (10px)', value: '10' },
+            { label: 'S (20px)', value: '20' },
+            { label: 'M (40px)', value: '40' },
+            { label: 'L (60px)', value: '60' },
+            { label: 'XL (80px)', value: '80' },
+          ],
+        },
+        { name: 'bgColor', type: 'text' as const, defaultValue: 'alt' },
+      ],
+    },
+    {
+      type: 'row' as const,
+      fields: [
+        { name: 'imageBorder', type: 'checkbox' as const, defaultValue: false, label: 'Image Border' },
+        { name: 'shadow', type: 'checkbox' as const, defaultValue: false },
+      ],
+    },
+  ],
+}
+
 
 const DC1Block: Block = {
   slug: 'dc1',
@@ -277,7 +291,7 @@ const iPhoneXBlock: Block = {
   ],
 }
 
-export const contentBlocks = [DC1Block, ImageBlock, iPhone5Block, iPhone6Block, iPhoneXBlock, iPhone13MiniBlock, iPhone15Block, TextBlock, VideoBlock]
+export const contentBlocks = [BrowserBlock, DC1Block, ImageBlock, iPhone5Block, iPhone6Block, iPhoneXBlock, iPhone13MiniBlock, iPhone15Block, TextBlock, VideoBlock]
 
 export const Projects: CollectionConfig = {
   slug: 'projects',
@@ -285,53 +299,10 @@ export const Projects: CollectionConfig = {
     pagination: { defaultLimit: 100 },
     group: 'Collections',
     useAsTitle: 'title',
-    defaultColumns: ['title', 'year', 'featured', 'order'],
+    defaultColumns: ['title', 'year', 'hide', 'order'],
   },
   access: {
     read: () => true,
-  },
-  hooks: {
-    afterChange: [
-      async ({ doc, previousDoc, req }) => {
-        if (doc.featured === previousDoc?.featured) return doc
-        try {
-          const homePage = await req.payload.find({
-            collection: 'pages',
-            where: { slug: { equals: 'home' } },
-            limit: 1,
-            depth: 0,
-          })
-          const page = homePage.docs[0]
-          if (!page) return doc
-          const sections = (page as any).sections || []
-          let changed = false
-          for (const section of sections) {
-            if (section.blockType === 'hScroll' && section.source === 'featuredProjects') {
-              const projectIds: number[] = (section.projects || []).map((p: any) => typeof p === 'object' ? p.id : p)
-              if (doc.featured && !projectIds.includes(doc.id)) {
-                projectIds.push(doc.id)
-                section.projects = projectIds
-                changed = true
-              } else if (!doc.featured && projectIds.includes(doc.id)) {
-                section.projects = projectIds.filter((id: number) => id !== doc.id)
-                changed = true
-              }
-            }
-          }
-          if (changed) {
-            await req.payload.update({
-              collection: 'pages',
-              id: page.id,
-              data: { sections },
-              depth: 0,
-            })
-          }
-        } catch (e) {
-          // Silent fail — don't block project save
-        }
-        return doc
-      },
-    ],
   },
   fields: [
     // ── Sidebar ──
@@ -355,10 +326,13 @@ export const Projects: CollectionConfig = {
       admin: { position: 'sidebar' },
     },
     {
-      name: 'featured',
+      name: 'hide',
       type: 'checkbox',
       defaultValue: false,
-      admin: { position: 'sidebar' },
+      admin: {
+        position: 'sidebar',
+        description: 'Hide this project from the work page.',
+      },
     },
     {
       name: 'featuredImage',

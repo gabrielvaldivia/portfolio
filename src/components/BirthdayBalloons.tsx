@@ -52,7 +52,7 @@ export function BirthdayBalloons({ force = false }: { force?: boolean }) {
   const confettiRef = useRef<Confetti[]>([])
   const animFrameRef = useRef<number>(0)
   const dragRef = useRef<{ id: number; offsetX: number; offsetY: number; lastX: number; lastY: number; lastTime: number } | null>(null)
-  const [balloonStates, setBalloonStates] = useState<Balloon[]>([])
+  const [, setBalloonsReady] = useState(false)
   const [done, setDone] = useState(false)
   const tiltRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
 
@@ -83,7 +83,7 @@ export function BirthdayBalloons({ force = false }: { force?: boolean }) {
       })
     }
     balloonsRef.current = balloons
-    setBalloonStates([...balloons])
+    setBalloonsReady(true)
   }, [])
 
   const spawnConfetti = useCallback((x: number, y: number, color: string, radius: number) => {
@@ -168,7 +168,7 @@ export function BirthdayBalloons({ force = false }: { force?: boolean }) {
     dragRef.current = null
   }, [])
 
-  const handleBalloonClick = useCallback((e: React.MouseEvent, balloonId: number) => {
+  const handleBalloonClick = useCallback((balloonId: number) => {
     // Only pop if it wasn't a drag
     const b = balloonsRef.current.find(b => b.id === balloonId)
     if (!b || b.popped) return
@@ -215,7 +215,6 @@ export function BirthdayBalloons({ force = false }: { force?: boolean }) {
       }
     }
 
-    let frameCount = 0
     const animate = () => {
       const w = canvas.width
       const h = canvas.height
@@ -401,12 +400,6 @@ export function BirthdayBalloons({ force = false }: { force?: boolean }) {
 
       confettiRef.current = confetti.filter(c => c.opacity > 0)
 
-      // Sync React state occasionally for popped state
-      frameCount++
-      if (frameCount % 10 === 0) {
-        setBalloonStates([...balloons])
-      }
-
       const allPopped = balloons.every(b => b.popped)
       const noConfetti = confettiRef.current.length === 0
       if (allPopped && noConfetti) {
@@ -442,7 +435,7 @@ export function BirthdayBalloons({ force = false }: { force?: boolean }) {
           key={b.id}
           ref={(el) => { if (el) balloonElsRef.current.set(b.id, el) }}
           onPointerDown={(e) => handlePointerDown(e, b.id)}
-          onClick={(e) => handleBalloonClick(e, b.id)}
+          onClick={() => handleBalloonClick(b.id)}
           style={{
             position: 'absolute',
             top: 0,

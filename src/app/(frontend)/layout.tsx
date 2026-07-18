@@ -1,14 +1,15 @@
 import './globals.css'
 import type { Metadata } from 'next'
-// import { Nav } from '@/components/Nav'
-import Link from 'next/link'
 import { NavMenu } from '@/components/NavMenu'
+import { SiteHeader } from '@/components/SiteHeader'
 import { Footer } from '@/components/Footer'
+import { AgentationToolbar } from '@/components/AgentationToolbar'
 import { OverlayManager } from '@/components/OverlayManager'
 import { PageTransition } from '@/components/PageTransition'
-import { getSiteSettings } from '@/lib/queries'
+import { getPageBySlug, getSiteSettings } from '@/lib/queries'
+import { normalizeSocialLink } from '@/lib/socialLinks'
 
-export const revalidate = 3600
+export const revalidate = 60
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings() as any
@@ -39,9 +40,23 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const settings = await getSiteSettings()
+  const [settings, homePage] = await Promise.all([
+    getSiteSettings(),
+    getPageBySlug('home'),
+  ])
 
   const s = settings as any
+  const contactBlock = ((homePage as any)?.sections || []).find(
+    (section: any) => section.blockType === 'socialLinks',
+  )
+  const contactLinks = ((contactBlock?.links || []) as any[]).map(normalizeSocialLink)
+  const emailLink = contactLinks.find((link: any) =>
+    ['email', 'mail'].includes(link.platform?.toLowerCase()),
+  )
+  const footerEmail = emailLink?.url?.replace(/^mailto:/i, '') || 'gabe@valdivia.works'
+  const footerSocialLinks = contactLinks
+    .filter((link: any) => link !== emailLink)
+    .slice(0, 4)
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -58,15 +73,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="bg-background text-content">
         <OverlayManager overlays={(s?.overlays as any[]) || []} />
-        {/* <Nav items={navItems} /> */}
         <NavMenu />
-        <section className="px-5 tablet:px-10 pt-6 tablet:pt-10 pb-10">
-          <h3 className="text-content opacity-50">
-            <Link href="/">Gabriel Valdivia</Link>
-          </h3>
-        </section>
+        <SiteHeader />
         <PageTransition>{children}</PageTransition>
-        <Footer />
+        <Footer email={footerEmail} socialLinks={footerSocialLinks} />
+        <AgentationToolbar />
       </body>
     </html>
   )

@@ -175,6 +175,15 @@ async function seed() {
       links: [{ label: 'Visit website', url: 'https://patina.md' }],
       order: 2,
     },
+    {
+      title: 'Fieldtone',
+      slug: 'fieldtone',
+      description: 'Generative ambient music shaped by place, time, and weather',
+      richDescription: richText('A browser-based ambient instrument that creates a different soundscape for every place and moment on Earth. Nothing is recorded; each note, drone, pulse, and cymatic visual is synthesized live, then shaped by the selected location, local time of day, current weather, wind, and rain.'),
+      year: '2026',
+      links: [{ label: 'Visit website', url: 'https://fieldtone.vercel.app' }],
+      order: 0,
+    },
     { title: 'Recall', slug: 'recall', description: 'A daily reflection app to fill any gaps', order: 3 },
     { title: 'Sumi', slug: 'sumi', description: 'The fastest way to commit your thoughts', order: 4 },
     { title: 'Life OS', slug: 'life-os', description: 'A second brain out of markdown files', order: 5 },
@@ -235,7 +244,7 @@ async function seed() {
     slug: 'homepage',
     data: {
       heroHeading: 'Fractional Design Partner for Early-Stage Teams',
-      heroSubheading: 'I help early-stage startups ship fast without compromising quality.',
+      heroSubheading: 'I help founders make the right product decisions sooner.',
       featuredProjects: featuredProjectIds,
       aboutHeading: 'About',
       aboutText: {
@@ -247,7 +256,35 @@ async function seed() {
               children: [
                 {
                   type: 'text',
-                  text: "I help early-stage startups ship fast without compromising quality. I've spent the last fifteen years building 0→1 products for the world's top tech companies. Today, I partner with founders to bring their ideas to life.",
+                  text: "I've designed inside large companies and small teams, worked across several startups, and built my own products from zero to launch. In a world where AI can generate almost anything, that range matters: it gives me the discernment to help teams skip past attractive wrong turns and make the right calls sooner. As your design partner, I will:",
+                },
+              ],
+              version: 1,
+            },
+            {
+              type: 'list',
+              tag: 'ul',
+              listType: 'bullet',
+              children: [
+                {
+                  type: 'listitem',
+                  children: [{ type: 'text', text: 'Turn loose ideas into a sharp product strategy without drowning in docs.' }],
+                  version: 1,
+                },
+                {
+                  type: 'listitem',
+                  children: [{ type: 'text', text: 'Prototype the right paths fast, with enough fidelity to validate decisions.' }],
+                  version: 1,
+                },
+                {
+                  type: 'listitem',
+                  children: [{ type: 'text', text: 'Work directly with engineering so design momentum turns into shipped product.' }],
+                  version: 1,
+                },
+                {
+                  type: 'listitem',
+                  children: [{ type: 'text', text: 'Build the habits, systems, and team structure that keep quality high.' }],
+                  version: 1,
                 },
               ],
               version: 1,

@@ -304,7 +304,7 @@ export default function DesignSystemPage() {
               <div className="flex gap-6 items-center">
                 <div className="flex items-center gap-2"><SocialIcon platform="Twitter" /> Twitter</div>
                 <div className="flex items-center gap-2"><SocialIcon platform="LinkedIn" /> LinkedIn</div>
-                <div className="flex items-center gap-2"><SocialIcon platform="Instagram" /> Instagram</div>
+                <div className="flex items-center gap-2"><SocialIcon platform="Threads" /> Threads</div>
                 <div className="flex items-center gap-2"><SocialIcon platform="Substack" /> Substack</div>
               </div>
             </div>

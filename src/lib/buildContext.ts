@@ -28,7 +28,19 @@ export type FAQItem = { question: string; answer: string; showAsPill?: boolean }
 
 type CachedContext = { systemPrompt: string; faqItems: FAQItem[]; apiKey: string; model: string; gabosApiUrl: string }
 let contextCache: { data: CachedContext; timestamp: number } | null = null
-const CACHE_TTL = 900_000 // 15 minutes
+const CACHE_TTL = 120_000 // 2 minutes
+
+export function getFAQItemsFromSections(sections: any[] = []): FAQItem[] {
+  return sections.flatMap((section) => {
+    if (section.blockType !== 'accordion') return []
+
+    return (section.items || []).map((item: any) => ({
+      question: item.question,
+      answer: typeof item.answer === 'string' ? item.answer : extractText(item.answer),
+      showAsPill: item.showAsPill !== false,
+    }))
+  })
+}
 
 export async function buildContext(): Promise<CachedContext> {
   if (contextCache && Date.now() - contextCache.timestamp < CACHE_TTL) {
@@ -39,15 +51,15 @@ export async function buildContext(): Promise<CachedContext> {
 
   const [homePage, aboutPage, projectsResult, clientsResult, testimonialsResult, allPeopleResult, servicesResult, sideProjectsResult, annotatedConversations] =
     await Promise.all([
-      payload.find({ collection: 'pages', where: { slug: { equals: 'home' } }, depth: 0, limit: 1 }),
-      payload.find({ collection: 'pages', where: { slug: { equals: 'about' } }, depth: 0, limit: 1 }),
-      payload.find({ collection: 'projects', sort: 'order', limit: 100, depth: 1 }),
+      payload.find({ collection: 'pages', where: { slug: { equals: 'home' } }, depth: 2, limit: 1 }),
+      payload.find({ collection: 'pages', where: { slug: { equals: 'about' } }, depth: 2, limit: 1 }),
+      payload.find({ collection: 'projects', sort: 'order', limit: 100, depth: 2 }),
       payload.find({ collection: 'clients', limit: 100, depth: 1 }),
       payload.find({ collection: 'people', where: { featuredTestimonial: { equals: true } }, limit: 20, depth: 1 }),
-      payload.find({ collection: 'people', limit: 100, depth: 1 }),
+      payload.find({ collection: 'people', limit: 100, depth: 2 }),
       payload.find({ collection: 'services', sort: 'order', limit: 20 }),
-      payload.find({ collection: 'side-projects', sort: 'order', limit: 100, depth: 1 }),
-      payload.find({ collection: 'conversations', where: { notes: { not_equals: '' } }, limit: 50, depth: 0, overrideAccess: true }),
+      payload.find({ collection: 'side-projects', sort: 'order', limit: 100, depth: 2 }),
+      payload.find({ collection: 'conversations', where: { notes: { not_equals: '' } }, limit: 50, depth: 0 }),
     ])
 
   const home = homePage.docs[0] as any
@@ -58,27 +70,32 @@ export async function buildContext(): Promise<CachedContext> {
   const services = servicesResult.docs as any[]
   const sideProjects = sideProjectsResult.docs as any[]
   const allPeople = allPeopleResult.docs as any[]
+  const sections = (home?.sections || []) as any[]
 
   // Extract FAQ items and config from home sections
-  const faqItems: FAQItem[] = []
+  const faqItems = getFAQItemsFromSections(sections)
   let apiKey = ''
   let model = ''
   let gabosApiUrl = ''
   let systemPromptExtra = ''
-  const sections = (home?.sections || []) as any[]
+  const featuredProjectIds = [
+    ...new Set(
+      sections
+        .filter((section) => section.blockType === 'hScroll' && section.source === 'featuredProjects')
+        .flatMap((section) => section.projects || [])
+        .map((project) => String(typeof project === 'object' ? project.id : project))
+        .filter(Boolean),
+    ),
+  ]
+  const projectsById = new Map(projects.map((project) => [String(project.id), project]))
+  const featuredProjects = featuredProjectIds.map((id) => projectsById.get(id)).filter(Boolean)
+
   for (const section of sections) {
     if (section.blockType === 'accordion') {
       apiKey = section.apiKey || ''
       model = section.model || ''
       gabosApiUrl = section.gabosApiUrl || ''
       systemPromptExtra = section.systemPromptExtra || ''
-      for (const item of section.items || []) {
-        faqItems.push({
-          question: item.question,
-          answer: typeof item.answer === 'string' ? item.answer : extractText(item.answer),
-          showAsPill: item.showAsPill !== false,
-        })
-      }
     }
   }
 
@@ -131,8 +148,7 @@ ${approachItems.length ? `## My Design Process / Approach\nWhen asked about my d
 ## Featured Projects
 IMPORTANT: Use the year field to determine if a project is current or past. Today is ${new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}. If a year range ends before 2026 or has no end date implying it ended, it's a PAST project. Only say "currently working on" if the year range includes 2026.
 
-${projects
-  .filter((p) => p.featured)
+${featuredProjects
   .map((p) => {
     const client = typeof p.client === 'object' ? p.client?.name : ''
     const projectServices = (p.services || []).map((s: any) => (typeof s === 'object' ? s.title : '')).filter(Boolean)

@@ -190,12 +190,5 @@ export async function GET(req: Request) {
   const country = req.headers.get('x-vercel-ip-country') || ''
   const location = city ? `${decodeURIComponent(city)}${country ? `, ${country}` : ''}` : ''
 
-  return Response.json(
-    { location },
-    {
-      headers: {
-        'Cache-Control': 'private, max-age=300',
-      },
-    },
-  )
+  return Response.json({ location })
 }

@@ -9,9 +9,9 @@ export const Conversations: CollectionConfig = {
     group: 'Collections',
   },
   access: {
-    read: ({ req: { user } }) => Boolean(user),
-    create: ({ req: { user } }) => Boolean(user),
-    update: ({ req: { user } }) => Boolean(user),
+    read: () => true,
+    create: () => true,
+    update: () => true,
   },
   fields: [
     { name: 'title', type: 'text', required: true },

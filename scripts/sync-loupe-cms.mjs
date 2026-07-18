@@ -10,6 +10,7 @@ const { Client } = pg
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const rootDir = path.resolve(__dirname, '..')
+const env = (key) => (process.env[key] || '').trim()
 
 const description =
   'An iPhone app that identifies watches from a photo using an ensemble of vision models, reconciles their structured candidates, and saves each result into a local collection with repeat sightings, rarity, location, collector context, and live eBay asking-price snapshots.'
@@ -72,8 +73,9 @@ function databaseURL() {
 }
 
 function r2URL(filename) {
-  if (!process.env.R2_PUBLIC_URL) throw new Error('R2_PUBLIC_URL is required')
-  return [process.env.R2_PUBLIC_URL.replace(/\/$/, ''), filename].join('/')
+  const publicURL = env('R2_PUBLIC_URL').replace(/\/+$/, '')
+  if (!publicURL) throw new Error('R2_PUBLIC_URL is required')
+  return [publicURL, filename].join('/')
 }
 
 async function uploadAsset(client, asset) {
@@ -82,7 +84,7 @@ async function uploadAsset(client, asset) {
 
   await client.send(
     new PutObjectCommand({
-      Bucket: process.env.R2_BUCKET,
+      Bucket: env('R2_BUCKET'),
       Key: asset.filename,
       Body: file,
       ContentType: asset.mimeType,
@@ -193,16 +195,17 @@ async function replaceLoupeBlocks(db, projectId, mediaIds) {
 }
 
 async function main() {
-  if (!process.env.R2_BUCKET || !process.env.R2_ENDPOINT || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY) {
+  if (!env('R2_BUCKET') || !env('R2_ENDPOINT') || !env('R2_ACCESS_KEY_ID') || !env('R2_SECRET_ACCESS_KEY')) {
     throw new Error('R2_BUCKET, R2_ENDPOINT, R2_ACCESS_KEY_ID, and R2_SECRET_ACCESS_KEY are required')
   }
 
   const r2 = new S3Client({
-    endpoint: process.env.R2_ENDPOINT,
+    endpoint: env('R2_ENDPOINT'),
+    forcePathStyle: true,
     region: 'auto',
     credentials: {
-      accessKeyId: process.env.R2_ACCESS_KEY_ID,
-      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+      accessKeyId: env('R2_ACCESS_KEY_ID'),
+      secretAccessKey: env('R2_SECRET_ACCESS_KEY'),
     },
   })
 

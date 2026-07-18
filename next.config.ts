@@ -3,8 +3,11 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   images: {
-    loader: 'custom',
-    loaderFile: './src/lib/imageLoader.ts',
+    // Serve media directly from R2. Vercel's image optimizer can return 402s
+    // when the optimization allowance is exhausted, which makes otherwise
+    // healthy CMS assets appear broken across the site.
+    unoptimized: true,
+    qualities: [75, 90],
     remotePatterns: [
       {
         protocol: 'https',

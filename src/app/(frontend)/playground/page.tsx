@@ -1,16 +1,21 @@
 import { Container } from '@/components/Container'
 import { FitText } from '@/components/FitText'
-import { getSideProjects } from '@/lib/queries'
+import { buildPageMetadata } from '@/lib/pageMetadata'
+import { getPageBySlug, getSideProjects } from '@/lib/queries'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { HoverChevron } from '@/components/Icons'
 
-export const metadata: Metadata = {
-  title: 'Playground — Gabriel Valdivia',
-  description: 'Side projects and experiments',
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getPageBySlug('playground')
+
+  return buildPageMetadata(page, {
+    fallbackTitle: 'Playground',
+    fallbackDescription: 'Side projects and experiments',
+  })
 }
 
-export const revalidate = 3600
+export const revalidate = 60
 
 export default async function PlaygroundPage() {
   const { docs: projects } = await getSideProjects()

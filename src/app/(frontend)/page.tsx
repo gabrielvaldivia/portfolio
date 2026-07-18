@@ -4,17 +4,37 @@ import { Testimonial } from '@/components/Testimonial'
 import { RichText } from '@/components/RichText'
 import { ServicePill } from '@/components/ServicePill'
 import { HScrollContainer } from '@/components/HScrollContainer'
-import { MomentumScroll } from '@/components/MomentumScroll'
 import { FitText } from '@/components/FitText'
-import { SocialIcon } from '@/components/Icons'
-import { Chat } from '@/components/Chat'
-import { getClients } from '@/lib/queries'
+import { normalizeSocialLink } from '@/lib/socialLinks'
+import { ContactForm } from '@/components/ContactForm'
+import { AskMeAnything, AskMeAnythingRestart } from '@/components/AskMeAnything'
+import { buildPageMetadata } from '@/lib/pageMetadata'
+import { getClients, getPageBySlug } from '@/lib/queries'
 import { getPayload } from '@/lib/payload'
-import { buildContext } from '@/lib/buildContext'
+import { getFAQItemsFromSections } from '@/lib/buildContext'
 import Image from 'next/image'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 
-export const revalidate = 3600
+export const revalidate = 300
+
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getPageBySlug('home')
+
+  return buildPageMetadata(page, {
+    fallbackTitle: 'Gabriel Valdivia',
+    fallbackDescription: 'Fractional design partner for early-stage teams.',
+    appendSiteName: false,
+  })
+}
+
+function normalizeAskedQuestion(question: string) {
+  return question
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
 
 function SectionWithTitle({ title, cols, children, titleRight }: { title?: string; cols: string; children: React.ReactNode; titleRight?: React.ReactNode }) {
   if (!title) return <>{children}</>
@@ -42,33 +62,73 @@ function SectionWithTitle({ title, cols, children, titleRight }: { title?: strin
 
 export default async function HomePage() {
   const payload = await getPayload()
-  const pageResult = await payload.find({ collection: 'pages', where: { slug: { equals: 'home' } }, depth: 3, limit: 1 })
+  const [
+    pageResult,
+    services,
+    clientsResult,
+    conversationsResult,
+  ] = await Promise.all([
+    payload.find({ collection: 'pages', where: { slug: { equals: 'home' } }, depth: 3, limit: 1 }),
+    payload.find({ collection: 'services', sort: 'order', limit: 20, where: { featured: { equals: true } }, select: { title: true } }),
+    getClients(),
+    payload.find({ collection: 'conversations', sort: '-updatedAt', limit: 500, depth: 0, select: { messages: true } }),
+  ])
   const page = pageResult.docs[0] || null
-  const services = await payload.find({ collection: 'services', sort: 'order', limit: 20, where: { featured: { equals: true } } })
-  const { docs: clients } = await getClients()
-  const { faqItems } = await buildContext()
-  const allProjects = await payload.find({ collection: 'projects', sort: 'order', limit: 100, depth: 0 })
-  const projectLinks = allProjects.docs.map((p: any) => ({ title: p.title, slug: p.slug }))
-  const allPeople = await payload.find({ collection: 'people', limit: 100, depth: 0 })
-  const peopleLinks = allPeople.docs.filter((p: any) => p.linkedIn).map((p: any) => ({ name: p.name, linkedin: p.linkedIn }))
-  const allSideProjects = await payload.find({ collection: 'side-projects', sort: 'order', limit: 100, depth: 0 })
-  const sideProjectLinks = allSideProjects.docs.filter((p: any) => p.slug).map((p: any) => ({ title: p.title, slug: p.slug }))
-  const aboutPage = await payload.find({ collection: 'pages', where: { slug: { equals: 'about' } }, depth: 0, limit: 1 })
-  const aboutData = aboutPage.docs[0] as any
-  const talkLinks = [
-    ...((aboutData?.talks || []) as any[]).filter((t: any) => t.url).map((t: any) => ({ title: t.title, url: t.url })),
-    ...((aboutData?.interviews || []) as any[]).filter((t: any) => t.url).map((t: any) => ({ title: t.title, url: t.url })),
-  ]
-
   const sections = (page?.sections || []) as any[]
-  const aboutSection = sections.find((s: any) => s.blockType === 'aboutSection')
-  const aboutImage = aboutSection?.image?.url || ''
-  const aboutImageDark = aboutSection?.imageDark?.url || ''
-  const chatBlock = sections.find((s: any) => s.blockType === 'accordion')
-  const socialLinks = (chatBlock?.links || []).map((l: any) => ({
-    platform: l.platform,
-    url: l.url,
-  }))
+  const faqItems = getFAQItemsFromSections(sections)
+  const clients = clientsResult.docs
+  const questionCounts = new Map<string, { question: string; count: number }>()
+
+  for (const conversation of conversationsResult.docs as any[]) {
+    for (const message of Array.isArray(conversation.messages) ? conversation.messages : []) {
+      if (message?.role !== 'user' || typeof message.content !== 'string') continue
+      const question = message.content.trim()
+      const normalized = normalizeAskedQuestion(question)
+      if (normalized.length < 8 || normalized.length > 160 || /@|https?:\/\//i.test(question)) continue
+      const existing = questionCounts.get(normalized)
+      questionCounts.set(normalized, {
+        question: existing?.question || question,
+        count: (existing?.count || 0) + 1,
+      })
+    }
+  }
+
+  const suggestedQuestions = [...questionCounts.entries()]
+    .filter(([, entry]) => entry.count >= 2)
+    .sort((a, b) => b[1].count - a[1].count)
+    .map(([normalized, entry]) => {
+      const authored = faqItems.find((item) => normalizeAskedQuestion(item.question) === normalized)
+      return { question: entry.question, answer: authored?.answer || '' }
+    })
+
+  for (const item of faqItems.filter((faq) => faq.showAsPill !== false)) {
+    if (suggestedQuestions.length >= 5) break
+    if (suggestedQuestions.some((question) => normalizeAskedQuestion(question.question) === normalizeAskedQuestion(item.question))) continue
+    suggestedQuestions.push(item)
+  }
+
+  if (!sections.length) {
+    return (
+      <>
+        <Container>
+          <section className="pt-0 tablet:pt-[60px] desktop:pt-20">
+            <h1 className="text-balance text-[42px] tablet:text-[72px] desktop:text-[104px]">
+              Gabriel Valdivia
+            </h1>
+            <p className="mt-5 max-w-2xl text-body-large text-muted text-pretty">
+              Fractional design partner for early-stage teams.
+            </p>
+            <div className="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-body">
+              <Link href="/work" className="transition-opacity duration-150 hover:opacity-60">Work</Link>
+              <Link href="/about" className="transition-opacity duration-150 hover:opacity-60">About</Link>
+              <Link href="/chat" className="transition-opacity duration-150 hover:opacity-60">Chat</Link>
+            </div>
+          </section>
+        </Container>
+        <div className="h-20 tablet:h-28 desktop:h-[200px]" />
+      </>
+    )
+  }
 
   function renderSection(block: any, i: number) {
     const cols = block.columns || '6'
@@ -119,7 +179,6 @@ export default async function HomePage() {
                           slug={item.slug}
                           subtitle={item.subtitle}
                           featuredImage={item.featuredImage}
-                          year={item.year}
                           priority={idx === 0}
                         />
                       ) : (
@@ -159,7 +218,6 @@ export default async function HomePage() {
                         slug={item.slug}
                         subtitle={item.subtitle}
                         featuredImage={item.featuredImage}
-                        year={item.year}
                       />
                     ) : (
                       <Testimonial
@@ -200,6 +258,7 @@ export default async function HomePage() {
                       fill
                       className={`object-cover ${block.imageDark ? 'light-only' : ''}`}
                       sizes="(max-width: 1280px) 100vw, 33vw"
+                      quality={90}
                     />
                     {block.imageDark && (
                       <Image
@@ -208,6 +267,7 @@ export default async function HomePage() {
                         fill
                         className="object-cover dark-only"
                         sizes="(max-width: 1280px) 100vw, 33vw"
+                        quality={90}
                       />
                     )}
                   </div>
@@ -328,19 +388,25 @@ export default async function HomePage() {
       case 'accordion': {
         const isFullWidth = cols === '6'
         return (
-          <Container key={block.id || i} className="h-full scroll-mt-5 tablet:scroll-mt-32" id="contact">
+          <Container key={block.id || i} className="h-full scroll-mt-5 tablet:scroll-mt-32" id="ask-me-anything">
             {isFullWidth ? (
               <div className="flex flex-col tablet:grid tablet:grid-cols-6 gap-5 tablet:gap-10 h-full">
-                {block.title && <div className="tablet:col-span-2 flex items-start"><h3>{block.title}</h3></div>}
-                <div className="tablet:col-span-4 bg-background-alt rounded-[20px] tablet:rounded-[30px] p-5 tablet:p-8 tablet:h-full tablet:min-h-[400px] overflow-hidden" style={{ height: block.fixedHeight || '70dvh' }}>
-                  <Chat faqItems={faqItems} avatarUrl={aboutImage} avatarUrlDark={aboutImageDark} projects={projectLinks} sideProjects={sideProjectLinks} people={peopleLinks} socialLinks={socialLinks} talks={talkLinks} />
+                <div className="tablet:col-span-2 flex items-start gap-2">
+                  <h3 className="text-balance">{block.title || 'Ask me anything'}</h3>
+                  <AskMeAnythingRestart />
+                </div>
+                <div className="tablet:col-span-4">
+                  <AskMeAnything items={faqItems} suggestedQuestions={suggestedQuestions.slice(0, 5)} />
                 </div>
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                {block.title && <h3 className="pb-5 tablet:pb-10">{block.title}</h3>}
-                <div className="bg-background-alt rounded-[20px] tablet:rounded-[30px] p-5 tablet:p-8 tablet:flex-1 min-h-0 overflow-hidden" style={{ height: block.fixedHeight || '70dvh' }}>
-                  <Chat faqItems={faqItems} avatarUrl={aboutImage} avatarUrlDark={aboutImageDark} projects={projectLinks} sideProjects={sideProjectLinks} people={peopleLinks} socialLinks={socialLinks} talks={talkLinks} />
+                <div className="flex items-start gap-2 pb-5 tablet:pb-10">
+                  <h3 className="text-balance">{block.title || 'Ask me anything'}</h3>
+                  <AskMeAnythingRestart />
+                </div>
+                <div className="min-h-0 tablet:flex-1">
+                  <AskMeAnything items={faqItems} suggestedQuestions={suggestedQuestions.slice(0, 5)} />
                 </div>
               </div>
             )}
@@ -369,28 +435,20 @@ export default async function HomePage() {
         )
 
       case 'socialLinks': {
-        const links = (block.links || []) as any[]
+        const links = ((block.links || []) as any[]).map(normalizeSocialLink)
         if (!links.length) return null
+        const emailLink = links.find((link: any) => ['email', 'mail'].includes(link.platform?.toLowerCase()))
+        const email = emailLink?.url?.replace(/^mailto:/i, '') || 'gabe@valdivia.works'
         return (
-          <div key={block.id || i} className="h-full">
-            <SectionWithTitle title={block.title || 'Elsewhere'} cols={cols}>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-8">
-                {links.map((link: any, j: number) => (
-                  <a
-                    key={j}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted hover:text-content transition-colors text-body inline-flex items-baseline gap-3 group"
-                  >
-                    <span className="shrink-0 w-[18px] flex items-center justify-center translate-y-[2px]"><SocialIcon platform={link.platform} /></span>
-                    {link.platform}
-                    <svg className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity translate-y-[5px]" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 17L17 7M17 7H9M17 7V15" /></svg>
-                  </a>
-                ))}
-              </div>
-            </SectionWithTitle>
-          </div>
+          <section key={block.id || i} id="contact" className="h-full scroll-mt-5 tablet:scroll-mt-32">
+            <Container>
+              <SectionWithTitle title={block.title || 'Contact'} cols={cols}>
+                <div className="rounded-[20px] bg-background-alt p-6 tablet:rounded-[30px] tablet:p-8 desktop:rounded-[40px] desktop:p-10">
+                  <ContactForm email={email} />
+                </div>
+              </SectionWithTitle>
+            </Container>
+          </section>
         )
       }
 

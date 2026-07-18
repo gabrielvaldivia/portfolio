@@ -2,16 +2,17 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { Chat } from '@/components/Chat'
 import { ChatView } from '@/components/ChatView'
-import { Container } from '@/components/Container'
+import { ChatHeader } from '@/components/ChatHeader'
 import { getPayload } from '@/lib/payload'
-import { buildContext } from '@/lib/buildContext'
+import { getFAQItemsFromSections } from '@/lib/buildContext'
+import { normalizeSocialLink } from '@/lib/socialLinks'
 
 export const metadata: Metadata = {
   title: 'Chat — Gabriel Valdivia',
   description: 'Ask me anything.',
 }
 
-export const revalidate = 3600
+export const revalidate = 300
 
 export default async function ChatByIdPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -20,7 +21,6 @@ export default async function ChatByIdPage({ params }: { params: Promise<{ id: s
   if (!isNew && (!Number.isFinite(numericId) || numericId! <= 0)) notFound()
 
   const payload = await getPayload()
-  const { faqItems } = await buildContext()
 
   const [homePageResult, aboutPageResult, allProjects, allPeople, allSideProjects] = await Promise.all([
     payload.find({ collection: 'pages', where: { slug: { equals: 'home' } }, depth: 2, limit: 1 }),
@@ -33,9 +33,7 @@ export default async function ChatByIdPage({ params }: { params: Promise<{ id: s
   const home = homePageResult.docs[0] as any
   const aboutData = aboutPageResult.docs[0] as any
   const sections = (home?.sections || []) as any[]
-  const aboutSection = sections.find((s: any) => s.blockType === 'aboutSection')
-  const aboutImage = aboutSection?.image?.url || ''
-  const aboutImageDark = aboutSection?.imageDark?.url || ''
+  const faqItems = getFAQItemsFromSections(sections)
   const chatBlock = sections.find((s: any) => s.blockType === 'accordion')
 
   const projectLinks = allProjects.docs.map((p: any) => ({ title: p.title, slug: p.slug }))
@@ -45,7 +43,12 @@ export default async function ChatByIdPage({ params }: { params: Promise<{ id: s
   const sideProjectLinks = allSideProjects.docs
     .filter((p: any) => p.slug)
     .map((p: any) => ({ title: p.title, slug: p.slug }))
-  const socialLinks = (chatBlock?.links || []).map((l: any) => ({ platform: l.platform, url: l.url }))
+  const socialLinks = (chatBlock?.links || [])
+    .filter((link: any) => {
+      const platform = link.platform.toLowerCase().replace(/[^a-z]/g, '')
+      return !['x', 'twitter', 'email', 'mail', 'linkedin'].includes(platform)
+    })
+    .map((link: any) => normalizeSocialLink({ platform: link.platform, url: link.url }))
   const talkLinks = [
     ...((aboutData?.talks || []) as any[])
       .filter((t: any) => t.url)
@@ -56,14 +59,20 @@ export default async function ChatByIdPage({ params }: { params: Promise<{ id: s
   ]
 
   return (
-    <section className="tablet:pb-10">
-      <Container>
-        <div className="relative bg-background-alt rounded-[20px] tablet:rounded-[30px] h-[calc(100dvh-110px)] tablet:h-[calc(100dvh-145px)] min-h-[500px] overflow-hidden">
+    <section>
+        <div
+          className="fixed inset-x-0 overflow-hidden tablet:min-h-[500px]"
+          style={{
+            height: 'var(--chat-viewport-height, 100dvh)',
+            transform: 'translateY(var(--chat-viewport-top, 0px))',
+          }}
+        >
+          <ChatHeader />
           <ChatView view="chat" chatHref={isNew ? '/chat/new' : `/chat/${numericId}`}>
             <Chat
               faqItems={faqItems}
-              avatarUrl={aboutImage}
-              avatarUrlDark={aboutImageDark}
+              avatarUrl="/chat-avatar-light.webp"
+              avatarUrlDark="/chat-avatar-dark.webp"
               projects={projectLinks}
               sideProjects={sideProjectLinks}
               people={peopleLinks}
@@ -74,7 +83,6 @@ export default async function ChatByIdPage({ params }: { params: Promise<{ id: s
             />
           </ChatView>
         </div>
-      </Container>
     </section>
   )
 }
