@@ -10,7 +10,6 @@ import {
   useTransform,
   type Transition,
 } from 'motion/react'
-import { Info, X } from 'lucide-react'
 import {
   useCallback,
   useEffect,
@@ -61,6 +60,15 @@ const FADE_TRANSITION: Transition = {
   duration: 0.18,
   ease: [0.2, 0, 0, 1],
 }
+
+const INFO_DISMISS_TRANSITION: Transition = {
+  duration: 0.18,
+  ease: [0.16, 1, 0.3, 1],
+}
+
+const INFO_DISMISS_THRESHOLD = 36
+const INFO_COUNTER_DRAG_LIMIT = 90
+const INFO_COUNTER_DRAG_RESISTANCE = 0.55
 
 const SWIPE_TRANSITION: Transition = {
   duration: 0.28,
@@ -121,6 +129,27 @@ function getExifTiles(exif: ModuleLightboxPhotoExif) {
   return tiles
 }
 
+function rubberBandInfoCounterDragOffset(offset: number) {
+  if (offset === 0) return 0
+
+  const direction = Math.sign(offset)
+  const distance = Math.abs(offset)
+  const resistedDistance = INFO_COUNTER_DRAG_LIMIT * (1 - Math.exp(-(distance * INFO_COUNTER_DRAG_RESISTANCE) / INFO_COUNTER_DRAG_LIMIT))
+
+  return direction * resistedDistance
+}
+
+function PhotoInfoTile({ label, value, className }: { label: string; value: string; className?: string }) {
+  return (
+    <div className={cn('min-w-0 break-words rounded-xl bg-white/[0.07] px-2 pb-3 pt-2.5 font-mono text-[13px] leading-tight text-white/90 tablet:px-4 tablet:text-[15px]', className)}>
+      <span className="mb-0.5 block text-[10px] leading-tight text-white/45 tablet:text-[11px]">
+        {label}
+      </span>
+      {value}
+    </div>
+  )
+}
+
 function wrapIndex(index: number, total: number) {
   return ((index % total) + total) % total
 }
@@ -139,60 +168,166 @@ function getLightboxDisplayAspectRatio(slide: ModuleLightboxSlide, sourceAspectR
   return sourceAspectRatio
 }
 
-function PhotoExifPopover({
-  exif,
-  onClose,
+function PhotoInfoPopover({
+  info,
   prefersReducedMotion,
+  onClose,
 }: {
-  exif: ModuleLightboxPhotoExif
-  onClose: () => void
+  info: ModuleLightboxSlide['photoInfo']
   prefersReducedMotion: boolean | null
+  onClose: () => void
 }) {
-  const tiles = getExifTiles(exif)
+  const exif = info?.exif
+  const primaryTiles = [
+    exif?.camera ? { label: 'Camera', value: exif.camera } : null,
+    info?.dateLabel ? { label: 'Date', value: info.dateLabel } : null,
+  ].filter((tile): tile is { label: string; value: string } => tile !== null)
+  const tiles = exif ? getExifTiles(exif) : []
+  const dragX = useMotionValue(0)
+  const dragY = useMotionValue(0)
+  const dragScale = useMotionValue(1)
+  const dragOpacity = useMotionValue(1)
+  const handleDragRef = useRef<{
+    pointerId: number
+    pointerStartX: number
+    pointerStartY: number
+    motionStartX: number
+    motionStartY: number
+  } | null>(null)
+  const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current)
+    }
+  }, [])
+
+  const resetHandleDrag = useCallback(() => {
+    animate(dragX, 0, ZOOM_TRANSITION)
+    animate(dragY, 0, ZOOM_TRANSITION)
+    animate(dragScale, 1, ZOOM_TRANSITION)
+    animate(dragOpacity, 1, ZOOM_TRANSITION)
+  }, [dragOpacity, dragScale, dragX, dragY])
+
+  const dismissHandleDrag = useCallback(() => {
+    if (prefersReducedMotion) {
+      onClose()
+      return
+    }
+
+    animate(dragX, 0, INFO_DISMISS_TRANSITION)
+    animate(dragY, 0, INFO_DISMISS_TRANSITION)
+    animate(dragScale, 0.32, INFO_DISMISS_TRANSITION)
+    animate(dragOpacity, 0, { duration: 0.14, ease: [0.2, 0, 0, 1] })
+    if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current)
+    dismissTimerRef.current = setTimeout(() => {
+      dismissTimerRef.current = null
+      onClose()
+    }, 180)
+  }, [dragOpacity, dragScale, dragX, dragY, onClose, prefersReducedMotion])
+
+  const handleHandlePointerDown = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    event.currentTarget.setPointerCapture(event.pointerId)
+    if (dismissTimerRef.current) {
+      clearTimeout(dismissTimerRef.current)
+      dismissTimerRef.current = null
+    }
+    dragScale.set(1)
+    dragOpacity.set(1)
+    handleDragRef.current = {
+      pointerId: event.pointerId,
+      pointerStartX: event.clientX,
+      pointerStartY: event.clientY,
+      motionStartX: dragX.get(),
+      motionStartY: dragY.get(),
+    }
+  }, [dragOpacity, dragScale, dragX, dragY])
+
+  const handleHandlePointerMove = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    const state = handleDragRef.current
+    if (!state || state.pointerId !== event.pointerId) return
+
+    event.preventDefault()
+    event.stopPropagation()
+    const offsetX = event.clientX - state.pointerStartX + state.motionStartX
+    const offsetY = event.clientY - state.pointerStartY + state.motionStartY
+    dragX.set(rubberBandInfoCounterDragOffset(offsetX))
+    dragY.set(offsetY > 0 ? offsetY : rubberBandInfoCounterDragOffset(offsetY))
+  }, [dragX, dragY])
+
+  const handleHandlePointerEnd = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    const state = handleDragRef.current
+    if (!state || state.pointerId !== event.pointerId) return
+
+    const offsetY = event.clientY - state.pointerStartY + state.motionStartY
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+    handleDragRef.current = null
+
+    if (offsetY > INFO_DISMISS_THRESHOLD) {
+      dismissHandleDrag()
+      return
+    }
+
+    resetHandleDrag()
+  }, [dismissHandleDrag, resetHandleDrag])
 
   return (
     <motion.div
-      className="pointer-events-auto absolute bottom-[calc(1.125rem+env(safe-area-inset-bottom)+42px)] right-5 z-30 w-[calc(100dvw-40px)] max-w-[392px] origin-bottom-right rounded-[20px] bg-[#181818]/[0.94] p-5 text-white/[0.92] shadow-[0_8px_30px_rgba(0,0,0,0.24)] backdrop-blur-[16px] tablet:bottom-[calc(1.5rem+env(safe-area-inset-bottom)+42px)] tablet:right-10 tablet:p-6"
-      initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.94 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.94 }}
+      className="pointer-events-none absolute inset-x-5 bottom-[calc(1.125rem+env(safe-area-inset-bottom))] z-30 mx-auto w-[calc(100dvw-40px)] max-w-[452px] origin-bottom tablet:inset-x-10 tablet:bottom-[calc(1.5rem+env(safe-area-inset-bottom))]"
+      initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.68, y: 14 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.68, y: 14 }}
       transition={{ duration: prefersReducedMotion ? 0 : 0.18, ease: [0.2, 0, 0, 1] }}
-      onClick={(event) => event.stopPropagation()}
+      style={{ transformOrigin: 'bottom center' }}
     >
-      <button
-        type="button"
-        aria-label="Close photo information"
-        className="absolute right-4 top-4 flex size-7 items-center justify-center rounded-full bg-white/10 text-white/75 transition-colors duration-150 hover:bg-white/15 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-        onClick={onClose}
+      <motion.div
+        className="pointer-events-auto cursor-grab touch-none rounded-[24px] bg-[#181818]/[0.96] p-3 text-white/[0.92] shadow-[0_8px_30px_rgba(0,0,0,0.24)] active:cursor-grabbing"
+        style={{
+          opacity: dragOpacity,
+          scale: dragScale,
+          transformOrigin: 'bottom center',
+          willChange: 'transform, opacity',
+          x: dragX,
+          y: dragY,
+        }}
+        onClick={(event) => event.stopPropagation()}
+        onPointerDown={handleHandlePointerDown}
+        onPointerMove={handleHandlePointerMove}
+        onPointerUp={handleHandlePointerEnd}
+        onPointerCancel={handleHandlePointerEnd}
       >
-        <X aria-hidden="true" className="size-4" strokeWidth={1.8} />
-      </button>
-
-      {exif.camera && (
-        <p className="pr-10 text-[17px] font-medium leading-tight text-white/[0.92]">
-          {exif.camera}
-        </p>
-      )}
-      {exif.lens && (
-        <p className="mt-0.5 pr-10 text-[14px] leading-snug text-white/50">
-          {formatFStop(exif.lens)}
-        </p>
-      )}
-      {tiles.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div
+          className="-mx-1 mb-2 flex cursor-grab touch-none justify-center py-1 active:cursor-grabbing"
+          aria-label="Dismiss photo information"
+          role="button"
+          tabIndex={0}
+          onPointerDown={handleHandlePointerDown}
+          onPointerMove={handleHandlePointerMove}
+          onPointerUp={handleHandlePointerEnd}
+          onPointerCancel={handleHandlePointerEnd}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              event.stopPropagation()
+              onClose()
+            }
+          }}
+        >
+          <span className="h-1 w-10 rounded-full bg-white/25" />
+        </div>
+        <div className="grid grid-cols-4 gap-2">
+          {primaryTiles.map((tile) => (
+            <PhotoInfoTile key={tile.label} label={tile.label} value={tile.value} className="col-span-2" />
+          ))}
           {tiles.map((tile) => (
-            <div
-              key={tile.label}
-              className="min-w-0 flex-1 basis-0 rounded-xl bg-white/[0.07] px-2 pb-3 pt-2.5 font-mono text-[13px] leading-tight text-white/90 tablet:px-4 tablet:text-[15px]"
-            >
-              <span className="mb-0.5 block text-[10px] leading-tight text-white/45 tablet:text-[11px]">
-                {tile.label}
-              </span>
-              {tile.value}
-            </div>
+            <PhotoInfoTile key={tile.label} label={tile.label} value={tile.value} />
           ))}
         </div>
-      )}
+      </motion.div>
     </motion.div>
   )
 }
@@ -212,38 +347,37 @@ function PhotoLightboxMeta({
 }) {
   const exif = info?.exif
   const hasExif = hasPhotoExif(exif)
-  if (!info?.dateLabel && !hasExif) return null
+  const hasInfo = Boolean(info?.dateLabel || hasExif)
+  if (!hasInfo) return null
 
   return (
     <>
-      <div className="pointer-events-none absolute inset-x-0 bottom-[calc(1.125rem+env(safe-area-inset-bottom))] z-20 flex justify-end px-5 tablet:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] tablet:px-10">
-        <div
-          className="pointer-events-auto flex h-6 items-center gap-2 font-mono text-[12px] uppercase leading-6 text-white/55"
-          onClick={(event) => event.stopPropagation()}
-        >
-          {info?.dateLabel && <span className="tabular-nums">{info.dateLabel}</span>}
-          {hasExif && (
-            <button
-              type="button"
-              aria-label="Show photo information"
-              aria-expanded={infoOpen}
-              title="Photo information"
-              className="flex size-6 items-center justify-center rounded-full text-white/55 transition-colors duration-150 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              onClick={onToggleInfo}
-            >
-              <Info aria-hidden="true" className="size-[18px]" strokeWidth={1.5} />
-            </button>
+      <div className="pointer-events-none absolute inset-x-0 bottom-[calc(1.125rem+env(safe-area-inset-bottom))] z-20 flex justify-center px-5 tablet:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] tablet:px-10">
+        <button
+          type="button"
+          aria-label="Show photo information"
+          aria-expanded={infoOpen}
+          title="Photo information"
+          className={cn(
+            'flex h-8 items-center justify-center rounded-full px-1 font-mono text-[12px] uppercase leading-none text-black/45 transition-[color,opacity] duration-150 hover:text-black/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current dark:text-white/45 dark:hover:text-white/70',
+            infoOpen ? 'pointer-events-none opacity-0' : 'pointer-events-auto opacity-100',
           )}
-        </div>
+          onClick={(event) => {
+            event.stopPropagation()
+            onToggleInfo()
+          }}
+        >
+          INFO
+        </button>
       </div>
 
       <AnimatePresence>
-        {hasExif && exif && infoOpen && (
-          <PhotoExifPopover
-            key="photo-exif"
-            exif={exif}
-            onClose={onCloseInfo}
+        {infoOpen && (
+          <PhotoInfoPopover
+            key="photo-info"
+            info={info}
             prefersReducedMotion={prefersReducedMotion}
+            onClose={onCloseInfo}
           />
         )}
       </AnimatePresence>
@@ -1199,7 +1333,7 @@ export function ModuleLightboxOverlay({
   const lightbox = lightboxMounted ? (
     <div
       className={cn(
-        'fixed inset-0 z-[100] overflow-hidden text-black dark:text-white',
+        'fixed inset-0 z-[100010] overflow-hidden text-black dark:text-white',
         open ? '' : 'pointer-events-none',
       )}
       onClick={() => {

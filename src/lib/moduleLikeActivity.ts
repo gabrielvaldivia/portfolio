@@ -9,6 +9,10 @@ import {
   SUPER_MODULE_LIKE_AMOUNT,
   parseModuleLikeTargetId,
 } from '@/lib/moduleLikes'
+import {
+  MODULE_LIKE_ACTIVITY_PAGE_SIZE,
+  MODULE_LIKE_FEED_PAGE_SIZE,
+} from '@/lib/moduleLikeActivityPagination'
 
 type ModuleLikeActivityRow = {
   id: number | string
@@ -89,6 +93,27 @@ export type ModuleLikeFeedItem = {
   likeCount: number
   updatedAt: string
   target: ActivityTarget
+}
+
+export type ModuleLikeActivityCursor = {
+  createdAt: string
+  id: string
+}
+
+export type ModuleLikeFeedCursor = {
+  likeCount: number
+  updatedAt: string
+  targetId: string
+}
+
+export type ModuleLikeActivityPage = {
+  items: ModuleLikeActivityItem[]
+  nextCursor: ModuleLikeActivityCursor | null
+}
+
+export type ModuleLikeFeedPage = {
+  items: ModuleLikeFeedItem[]
+  nextCursor: ModuleLikeFeedCursor | null
 }
 
 const GEO_LOOKUP_TIMEOUT_MS = 900
@@ -500,78 +525,232 @@ function getResolvedActivityTarget(index: Map<string, ActivityTarget>, targetId:
   return parseModuleLikeTargetId(targetId) ? null : getFallbackTarget(targetId)
 }
 
-export async function getModuleLikeActivity(limit = 100): Promise<ModuleLikeActivityItem[]> {
+function normalizePageLimit(limit: number | null | undefined) {
+  if (limit === null || limit === undefined) return null
+  if (!Number.isFinite(limit)) return null
+
+  const normalizedLimit = Math.trunc(limit)
+  return normalizedLimit > 0 ? normalizedLimit : null
+}
+
+function normalizeActivityCursor(cursor: ModuleLikeActivityCursor | null | undefined) {
+  if (!cursor) return null
+
+  const createdAt = new Date(cursor.createdAt)
+  const id = Number(cursor.id)
+
+  if (Number.isNaN(createdAt.getTime()) || !Number.isFinite(id)) return null
+
+  return {
+    createdAt: createdAt.toISOString(),
+    id: Math.trunc(id),
+  }
+}
+
+function normalizeFeedCursor(cursor: ModuleLikeFeedCursor | null | undefined) {
+  if (!cursor) return null
+
+  const likeCount = Number(cursor.likeCount)
+  const updatedAt = new Date(cursor.updatedAt)
+  const targetId = typeof cursor.targetId === 'string' ? cursor.targetId.trim() : ''
+
+  if (!Number.isFinite(likeCount) || Number.isNaN(updatedAt.getTime()) || !targetId) return null
+
+  return {
+    likeCount: Math.max(0, Math.trunc(likeCount)),
+    updatedAt: updatedAt.toISOString(),
+    targetId,
+  }
+}
+
+function getActivityCursor(row: ModuleLikeActivityRow): ModuleLikeActivityCursor | null {
+  const createdAt = row.created_at instanceof Date ? row.created_at : new Date(row.created_at)
+  if (Number.isNaN(createdAt.getTime())) return null
+
+  return {
+    createdAt: createdAt.toISOString(),
+    id: String(row.id),
+  }
+}
+
+function getFeedCursor(row: ModuleLikeFeedRow): ModuleLikeFeedCursor | null {
+  const updatedAt = row.updated_at instanceof Date ? row.updated_at : new Date(row.updated_at || Date.now())
+  if (Number.isNaN(updatedAt.getTime())) return null
+
+  return {
+    likeCount: Math.max(0, Math.trunc(Number(row.like_count) || 0)),
+    updatedAt: updatedAt.toISOString(),
+    targetId: row.target_id,
+  }
+}
+
+function getActivityItem(row: ModuleLikeActivityRow, targetIndex: Map<string, ActivityTarget>) {
+  const target = getResolvedActivityTarget(targetIndex, row.target_id)
+  if (!target) return null
+
+  const createdAt = row.created_at instanceof Date ? row.created_at : new Date(row.created_at)
+  const derivedLocation = toLocationParts(row.city || '', row.region || '', row.country || '')
+  const location = derivedLocation.location || cleanLocationPart(row.location || '') || ''
+
+  return {
+    id: String(row.id),
+    targetId: row.target_id,
+    amount: Math.min(Math.max(Math.trunc(Number(row.amount) || 1), 1), SUPER_MODULE_LIKE_AMOUNT),
+    createdAt: Number.isNaN(createdAt.getTime()) ? new Date().toISOString() : createdAt.toISOString(),
+    location,
+    city: cleanLocationPart(row.city || ''),
+    region: cleanRegionPart(row.region || ''),
+    country: cleanRegionPart(row.country || ''),
+    target,
+  }
+}
+
+function getFeedItem(row: ModuleLikeFeedRow, targetIndex: Map<string, ActivityTarget>) {
+  const target = getResolvedActivityTarget(targetIndex, row.target_id)
+  if (!target || !target.thumbnail) return null
+
+  const likeCount = Math.max(0, Math.trunc(Number(row.like_count) || 0))
+  if (likeCount < 1) return null
+
+  const updatedAt = row.updated_at instanceof Date ? row.updated_at : new Date(row.updated_at || Date.now())
+
+  return {
+    id: row.target_id,
+    targetId: row.target_id,
+    likeCount,
+    updatedAt: Number.isNaN(updatedAt.getTime()) ? new Date().toISOString() : updatedAt.toISOString(),
+    target,
+  }
+}
+
+export async function getModuleLikeActivityPage({
+  cursor,
+  limit = MODULE_LIKE_ACTIVITY_PAGE_SIZE,
+}: {
+  cursor?: ModuleLikeActivityCursor | null
+  limit?: number | null
+} = {}): Promise<ModuleLikeActivityPage> {
   const payload = await getPayload()
   if (isPayloadUnavailable(payload)) throw new Error('Activity data is temporarily unavailable')
   const db = payload.db.drizzle
+  const normalizedCursor = normalizeActivityCursor(cursor)
+  const normalizedLimit = normalizePageLimit(limit)
+  const cursorFilter = normalizedCursor
+    ? sql`WHERE ("created_at", "id") < (${normalizedCursor.createdAt}, ${normalizedCursor.id})`
+    : sql``
+  const rowLimit = normalizedLimit ? normalizedLimit + 1 : null
 
-  const result = await db.execute(sql`
-    SELECT "id", "target_id", "amount", "location", "city", "region", "country", "created_at"
-    FROM "module_like_events"
-    ORDER BY "created_at" DESC, "id" DESC
-    LIMIT ${limit}
-  `)
+  const result = rowLimit
+    ? await db.execute(sql`
+      SELECT "id", "target_id", "amount", "location", "city", "region", "country", "created_at"
+      FROM "module_like_events"
+      ${cursorFilter}
+      ORDER BY "created_at" DESC, "id" DESC
+      LIMIT ${rowLimit}
+    `)
+    : await db.execute(sql`
+      SELECT "id", "target_id", "amount", "location", "city", "region", "country", "created_at"
+      FROM "module_like_events"
+      ${cursorFilter}
+      ORDER BY "created_at" DESC, "id" DESC
+    `)
 
   const rows = readRows<ModuleLikeActivityRow>(result)
+  const pageRows = normalizedLimit ? rows.slice(0, normalizedLimit) : rows
+  const hasMore = Boolean(normalizedLimit && rows.length > normalizedLimit)
+  const lastPageRow = pageRows[pageRows.length - 1]
   const targetIndex = await getActivityTargetIndex()
 
-  return rows.flatMap((row) => {
-    const target = getResolvedActivityTarget(targetIndex, row.target_id)
-    if (!target) return []
-
-    const createdAt = row.created_at instanceof Date ? row.created_at : new Date(row.created_at)
-    const derivedLocation = toLocationParts(row.city || '', row.region || '', row.country || '')
-    const location = derivedLocation.location || cleanLocationPart(row.location || '') || ''
-
-    return [{
-      id: String(row.id),
-      targetId: row.target_id,
-      amount: Math.min(Math.max(Math.trunc(Number(row.amount) || 1), 1), SUPER_MODULE_LIKE_AMOUNT),
-      createdAt: Number.isNaN(createdAt.getTime()) ? new Date().toISOString() : createdAt.toISOString(),
-      location,
-      city: cleanLocationPart(row.city || ''),
-      region: cleanRegionPart(row.region || ''),
-      country: cleanRegionPart(row.country || ''),
-      target,
-    }]
-  })
+  return {
+    items: pageRows.flatMap((row) => {
+      const item = getActivityItem(row, targetIndex)
+      return item ? [item] : []
+    }),
+    nextCursor: hasMore && lastPageRow ? getActivityCursor(lastPageRow) : null,
+  }
 }
 
-export async function getModuleLikeFeed(limit = 100): Promise<ModuleLikeFeedItem[]> {
+export async function getModuleLikeActivity(limit?: number | null): Promise<ModuleLikeActivityItem[]> {
+  const page = await getModuleLikeActivityPage({ limit: limit ?? null })
+  return page.items
+}
+
+export async function getModuleLikeFeedPage({
+  cursor,
+  limit = MODULE_LIKE_FEED_PAGE_SIZE,
+}: {
+  cursor?: ModuleLikeFeedCursor | null
+  limit?: number | null
+} = {}): Promise<ModuleLikeFeedPage> {
   const payload = await getPayload()
   if (isPayloadUnavailable(payload)) throw new Error('Activity feed data is temporarily unavailable')
   const db = payload.db.drizzle
+  const normalizedCursor = normalizeFeedCursor(cursor)
+  const normalizedLimit = normalizePageLimit(limit)
+  const cursorFilter = normalizedCursor
+    ? sql`
+      WHERE (
+        "like_count" < ${normalizedCursor.likeCount}
+        OR ("like_count" = ${normalizedCursor.likeCount} AND "updated_at" < ${normalizedCursor.updatedAt})
+        OR (
+          "like_count" = ${normalizedCursor.likeCount}
+          AND "updated_at" = ${normalizedCursor.updatedAt}
+          AND "target_id" > ${normalizedCursor.targetId}
+        )
+      )
+    `
+    : sql``
+  const rowLimit = normalizedLimit ? normalizedLimit + 1 : null
 
-  const result = await db.execute(sql`
-    SELECT
-      "target_id",
-      COALESCE(SUM("like_count"), 0)::int AS "like_count",
-      MAX("updated_at") AS "updated_at"
-    FROM "module_likes"
-    GROUP BY "target_id"
-    HAVING COALESCE(SUM("like_count"), 0) > 0
-    ORDER BY "like_count" DESC, "updated_at" DESC, "target_id" ASC
-    LIMIT ${limit}
-  `)
+  const result = rowLimit
+    ? await db.execute(sql`
+      WITH "feed_rows" AS (
+        SELECT
+          "target_id",
+          COALESCE(SUM("like_count"), 0)::int AS "like_count",
+          COALESCE(MAX("updated_at"), to_timestamp(0)) AS "updated_at"
+        FROM "module_likes"
+        GROUP BY "target_id"
+        HAVING COALESCE(SUM("like_count"), 0) > 0
+      )
+      SELECT "target_id", "like_count", "updated_at"
+      FROM "feed_rows"
+      ${cursorFilter}
+      ORDER BY "like_count" DESC, "updated_at" DESC, "target_id" ASC
+      LIMIT ${rowLimit}
+    `)
+    : await db.execute(sql`
+      WITH "feed_rows" AS (
+        SELECT
+          "target_id",
+          COALESCE(SUM("like_count"), 0)::int AS "like_count",
+          COALESCE(MAX("updated_at"), to_timestamp(0)) AS "updated_at"
+        FROM "module_likes"
+        GROUP BY "target_id"
+        HAVING COALESCE(SUM("like_count"), 0) > 0
+      )
+      SELECT "target_id", "like_count", "updated_at"
+      FROM "feed_rows"
+      ${cursorFilter}
+      ORDER BY "like_count" DESC, "updated_at" DESC, "target_id" ASC
+    `)
 
   const rows = readRows<ModuleLikeFeedRow>(result)
+  const pageRows = normalizedLimit ? rows.slice(0, normalizedLimit) : rows
+  const hasMore = Boolean(normalizedLimit && rows.length > normalizedLimit)
+  const lastPageRow = pageRows[pageRows.length - 1]
   const targetIndex = await getActivityTargetIndex()
 
-  return rows.flatMap((row) => {
-    const target = getResolvedActivityTarget(targetIndex, row.target_id)
-    if (!target || !target.thumbnail) return []
+  return {
+    items: pageRows.flatMap((row) => {
+      const item = getFeedItem(row, targetIndex)
+      return item ? [item] : []
+    }),
+    nextCursor: hasMore && lastPageRow ? getFeedCursor(lastPageRow) : null,
+  }
+}
 
-    const likeCount = Math.max(0, Math.trunc(Number(row.like_count) || 0))
-    if (likeCount < 1) return []
-
-    const updatedAt = row.updated_at instanceof Date ? row.updated_at : new Date(row.updated_at || Date.now())
-
-    return [{
-      id: row.target_id,
-      targetId: row.target_id,
-      likeCount,
-      updatedAt: Number.isNaN(updatedAt.getTime()) ? new Date().toISOString() : updatedAt.toISOString(),
-      target,
-    }]
-  })
+export async function getModuleLikeFeed(limit?: number | null): Promise<ModuleLikeFeedItem[]> {
+  const page = await getModuleLikeFeedPage({ limit: limit ?? null })
+  return page.items
 }

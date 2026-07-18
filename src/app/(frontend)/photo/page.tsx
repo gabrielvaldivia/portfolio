@@ -61,17 +61,17 @@ export default async function PhotoPage() {
                   key={photo.slug}
                   slideId={getPhotoSlideId(photo)}
                   label="Open photo fullscreen"
+                  fallbackAspectRatio={photo.width && photo.height ? photo.width / photo.height : undefined}
                   className="overflow-hidden rounded-md border border-border bg-background-alt"
                 >
-                  <div className="relative aspect-[4/3] w-full">
-                    <Image
-                      src={photo.src}
-                      alt={photo.alt}
-                      fill
-                      className="object-cover"
-                      sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
-                    />
-                  </div>
+                  <Image
+                    src={photo.src}
+                    alt={photo.alt}
+                    width={photo.width}
+                    height={photo.height}
+                    className="h-auto w-full"
+                    sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
+                  />
                 </ModuleLightboxTrigger>
               ))}
             </div>
