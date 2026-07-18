@@ -111,12 +111,14 @@ function hasPhotoExif(exif: ModuleLightboxPhotoExif | undefined) {
 }
 
 function getExifTiles(exif: ModuleLightboxPhotoExif) {
-  return EXIF_TILE_KEYS
-    .map(([label, key]) => {
-      const value = key === 'aperture' ? formatFStop(exif[key]) : exif[key]
-      return value ? { label, value } : null
-    })
-    .filter((tile): tile is { label: string; value: string } => tile !== null)
+  const tiles: Array<{ label: string; value: string }> = []
+
+  for (const [label, key] of EXIF_TILE_KEYS) {
+    const value = key === 'aperture' ? formatFStop(exif[key]) : exif[key]
+    if (value) tiles.push({ label, value })
+  }
+
+  return tiles
 }
 
 function wrapIndex(index: number, total: number) {
