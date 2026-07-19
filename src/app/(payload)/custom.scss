@@ -2767,7 +2767,7 @@ body:has(.collection-edit--photos.collection-edit--is-editing) .app-header__step
 }
 
 .template-default__nav-toggler-container {
-  position: absolute;
+  position: fixed;
   top: calc((var(--cms-header-height) - var(--cms-button-height)) / 2);
   left: var(--cms-screen-gutter);
   z-index: calc(var(--z-modal) + 4);
