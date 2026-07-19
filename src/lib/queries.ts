@@ -1,9 +1,15 @@
 import { cache } from 'react'
 import { getPayload } from './payload'
-import type { Page } from '@/payload-types'
+import type { PageLike } from './pageMetadata'
 
 type GetProjectsOptions = {
   includeHidden?: boolean
+}
+
+type PageQueryResult = PageLike & {
+  title: string
+  content?: unknown
+  [key: string]: unknown
 }
 
 export async function getProjects(options: GetProjectsOptions = {}) {
@@ -87,7 +93,7 @@ export async function getFeaturedTestimonials() {
   })
 }
 
-export const getPageBySlug = cache(async function getPageBySlug(slug: string): Promise<Page | null> {
+export const getPageBySlug = cache(async function getPageBySlug(slug: string): Promise<PageQueryResult | null> {
   const payload = await getPayload()
   const result = await payload.find({
     collection: 'pages',
@@ -95,10 +101,10 @@ export const getPageBySlug = cache(async function getPageBySlug(slug: string): P
     depth: 2,
     limit: 1,
   })
-  return (result.docs[0] as Page | undefined) || null
+  return (result.docs[0] as unknown as PageQueryResult | undefined) || null
 })
 
-export const getPublishedPageBySlug = cache(async function getPublishedPageBySlug(slug: string): Promise<Page | null> {
+export const getPublishedPageBySlug = cache(async function getPublishedPageBySlug(slug: string): Promise<PageQueryResult | null> {
   const payload = await getPayload()
   const result = await payload.find({
     collection: 'pages',
@@ -109,7 +115,7 @@ export const getPublishedPageBySlug = cache(async function getPublishedPageBySlu
     limit: 1,
     depth: 2,
   })
-  return (result.docs[0] as Page | undefined) || null
+  return (result.docs[0] as unknown as PageQueryResult | undefined) || null
 })
 
 export const getSiteSettings = cache(async function getSiteSettings() {

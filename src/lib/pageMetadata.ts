@@ -9,7 +9,7 @@ type MetaImage = {
   alt?: string | null
 }
 
-type PageLike = {
+export type PageLike = {
   title?: string | null
   meta?: {
     title?: string | null
