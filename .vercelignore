@@ -7,8 +7,6 @@ node_modules
 next-env.d.ts
 src/payload-types.ts
 /media/
+public/media/
 .DS_Store
 .vercel
-.neon
-
-public/build-anything/build-anything-walkthrough.mp4

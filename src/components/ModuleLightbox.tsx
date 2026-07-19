@@ -22,8 +22,23 @@ export type ModuleLightboxSlide = {
   block: any
   label: string
   likeTargetId?: string | null
+  photoInfo?: ModuleLightboxPhotoInfo | null
   preserveAspectDuringZoom?: boolean
   movableSurface?: boolean
+}
+
+export type ModuleLightboxPhotoExif = {
+  camera?: string
+  lens?: string
+  shutter?: string
+  aperture?: string
+  iso?: string
+  focal?: string
+}
+
+export type ModuleLightboxPhotoInfo = {
+  dateLabel?: string
+  exif?: ModuleLightboxPhotoExif
 }
 
 export type MovableModuleSurface = {

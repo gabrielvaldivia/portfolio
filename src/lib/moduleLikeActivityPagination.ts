@@ -1,0 +1,2 @@
+export const MODULE_LIKE_ACTIVITY_PAGE_SIZE = 50
+export const MODULE_LIKE_FEED_PAGE_SIZE = 36

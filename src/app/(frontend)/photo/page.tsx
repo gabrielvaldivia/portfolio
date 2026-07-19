@@ -18,6 +18,15 @@ function getPhotoSlideId(photo: Photo) {
   return `photo:${photo.slug}`
 }
 
+function getPhotoDateLabel(photo: Photo) {
+  return new Date(photo.datePublished).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC',
+  })
+}
+
 function getPhotoSlides(photos: Photo[]): ModuleLightboxSlide[] {
   return photos.map((photo) => ({
     id: getPhotoSlideId(photo),
@@ -28,6 +37,10 @@ function getPhotoSlides(photos: Photo[]): ModuleLightboxSlide[] {
       fit: 'contain',
     },
     label: 'Open photo fullscreen',
+    photoInfo: {
+      dateLabel: getPhotoDateLabel(photo),
+      exif: photo.exif,
+    },
     movableSurface: false,
   }))
 }
@@ -42,22 +55,22 @@ export default async function PhotoPage() {
           <p className="text-muted">No photos yet.</p>
         ) : (
           <ModuleLightboxProvider slides={getPhotoSlides(photos)}>
-            <div className="columns-1 tablet:columns-2 gap-5 space-y-5">
+            <div className="grid grid-cols-1 gap-x-5 gap-y-5 tablet:grid-cols-2 tablet:gap-y-10 desktop:grid-cols-3">
               {photos.map((photo) => (
                 <ModuleLightboxTrigger
                   key={photo.slug}
                   slideId={getPhotoSlideId(photo)}
                   label="Open photo fullscreen"
                   fallbackAspectRatio={photo.width && photo.height ? photo.width / photo.height : undefined}
-                  className="break-inside-avoid rounded-lg overflow-hidden"
+                  className="overflow-hidden rounded-md border border-border bg-background-alt"
                 >
                   <Image
                     src={photo.src}
                     alt={photo.alt}
                     width={photo.width}
                     height={photo.height}
-                    className="w-full h-auto"
-                    sizes="(min-width: 768px) 50vw, 100vw"
+                    className="h-auto w-full"
+                    sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
                   />
                 </ModuleLightboxTrigger>
               ))}

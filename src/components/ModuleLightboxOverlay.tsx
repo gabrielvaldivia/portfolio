@@ -27,6 +27,7 @@ import { cn } from '@/lib/cn'
 import type {
   LightboxRect,
   ModuleLightboxOverlayProps,
+  ModuleLightboxPhotoExif,
   ModuleLightboxSlide,
   MovableModuleSurface,
 } from '@/components/ModuleLightbox'
@@ -60,6 +61,15 @@ const FADE_TRANSITION: Transition = {
   ease: [0.2, 0, 0, 1],
 }
 
+const INFO_DISMISS_TRANSITION: Transition = {
+  duration: 0.18,
+  ease: [0.16, 1, 0.3, 1],
+}
+
+const INFO_DISMISS_THRESHOLD = 36
+const INFO_COUNTER_DRAG_LIMIT = 90
+const INFO_COUNTER_DRAG_RESISTANCE = 0.55
+
 const SWIPE_TRANSITION: Transition = {
   duration: 0.28,
   ease: [0.22, 1, 0.36, 1],
@@ -89,6 +99,57 @@ const ZOOM_EXIT_TRANSITION: Transition = {
   ease: [0.22, 1, 0.36, 1],
 }
 
+const EXIF_TILE_KEYS = [
+  ['Shutter', 'shutter'],
+  ['Aperture', 'aperture'],
+  ['ISO', 'iso'],
+  ['Focal', 'focal'],
+] as const
+
+function formatFStop(value: string | undefined) {
+  if (!value) return value
+
+  const text = String(value).trim()
+  if (/^\d+(?:\.\d+)?$/.test(text)) return `ƒ/${text}`
+  return text.replace(/\bf\s*\/\s*/gi, 'ƒ/')
+}
+
+function hasPhotoExif(exif: ModuleLightboxPhotoExif | undefined) {
+  return Boolean(exif && Object.values(exif).some(Boolean))
+}
+
+function getExifTiles(exif: ModuleLightboxPhotoExif) {
+  const tiles: Array<{ label: string; value: string }> = []
+
+  for (const [label, key] of EXIF_TILE_KEYS) {
+    const value = key === 'aperture' ? formatFStop(exif[key]) : exif[key]
+    if (value) tiles.push({ label, value })
+  }
+
+  return tiles
+}
+
+function rubberBandInfoCounterDragOffset(offset: number) {
+  if (offset === 0) return 0
+
+  const direction = Math.sign(offset)
+  const distance = Math.abs(offset)
+  const resistedDistance = INFO_COUNTER_DRAG_LIMIT * (1 - Math.exp(-(distance * INFO_COUNTER_DRAG_RESISTANCE) / INFO_COUNTER_DRAG_LIMIT))
+
+  return direction * resistedDistance
+}
+
+function PhotoInfoTile({ label, value, className }: { label: string; value: string; className?: string }) {
+  return (
+    <div className={cn('min-w-0 break-words rounded-xl bg-white/[0.07] px-2 pb-3 pt-2.5 font-mono text-[13px] leading-tight text-white/90 tablet:px-4 tablet:text-[15px]', className)}>
+      <span className="mb-0.5 block text-[10px] leading-tight text-white/45 tablet:text-[11px]">
+        {label}
+      </span>
+      {value}
+    </div>
+  )
+}
+
 function wrapIndex(index: number, total: number) {
   return ((index % total) + total) % total
 }
@@ -105,6 +166,223 @@ function getLightboxDisplayAspectRatio(slide: ModuleLightboxSlide, sourceAspectR
   }
 
   return sourceAspectRatio
+}
+
+function PhotoInfoPopover({
+  info,
+  prefersReducedMotion,
+  onClose,
+}: {
+  info: ModuleLightboxSlide['photoInfo']
+  prefersReducedMotion: boolean | null
+  onClose: () => void
+}) {
+  const exif = info?.exif
+  const primaryTiles = [
+    exif?.camera ? { label: 'Camera', value: exif.camera } : null,
+    info?.dateLabel ? { label: 'Date', value: info.dateLabel } : null,
+  ].filter((tile): tile is { label: string; value: string } => tile !== null)
+  const tiles = exif ? getExifTiles(exif) : []
+  const dragX = useMotionValue(0)
+  const dragY = useMotionValue(0)
+  const dragScale = useMotionValue(1)
+  const dragOpacity = useMotionValue(1)
+  const handleDragRef = useRef<{
+    pointerId: number
+    pointerStartX: number
+    pointerStartY: number
+    motionStartX: number
+    motionStartY: number
+  } | null>(null)
+  const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current)
+    }
+  }, [])
+
+  const resetHandleDrag = useCallback(() => {
+    animate(dragX, 0, ZOOM_TRANSITION)
+    animate(dragY, 0, ZOOM_TRANSITION)
+    animate(dragScale, 1, ZOOM_TRANSITION)
+    animate(dragOpacity, 1, ZOOM_TRANSITION)
+  }, [dragOpacity, dragScale, dragX, dragY])
+
+  const dismissHandleDrag = useCallback(() => {
+    if (prefersReducedMotion) {
+      onClose()
+      return
+    }
+
+    animate(dragX, 0, INFO_DISMISS_TRANSITION)
+    animate(dragY, 0, INFO_DISMISS_TRANSITION)
+    animate(dragScale, 0.32, INFO_DISMISS_TRANSITION)
+    animate(dragOpacity, 0, { duration: 0.14, ease: [0.2, 0, 0, 1] })
+    if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current)
+    dismissTimerRef.current = setTimeout(() => {
+      dismissTimerRef.current = null
+      onClose()
+    }, 180)
+  }, [dragOpacity, dragScale, dragX, dragY, onClose, prefersReducedMotion])
+
+  const handleHandlePointerDown = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    event.currentTarget.setPointerCapture(event.pointerId)
+    if (dismissTimerRef.current) {
+      clearTimeout(dismissTimerRef.current)
+      dismissTimerRef.current = null
+    }
+    dragScale.set(1)
+    dragOpacity.set(1)
+    handleDragRef.current = {
+      pointerId: event.pointerId,
+      pointerStartX: event.clientX,
+      pointerStartY: event.clientY,
+      motionStartX: dragX.get(),
+      motionStartY: dragY.get(),
+    }
+  }, [dragOpacity, dragScale, dragX, dragY])
+
+  const handleHandlePointerMove = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    const state = handleDragRef.current
+    if (!state || state.pointerId !== event.pointerId) return
+
+    event.preventDefault()
+    event.stopPropagation()
+    const offsetX = event.clientX - state.pointerStartX + state.motionStartX
+    const offsetY = event.clientY - state.pointerStartY + state.motionStartY
+    dragX.set(rubberBandInfoCounterDragOffset(offsetX))
+    dragY.set(offsetY > 0 ? offsetY : rubberBandInfoCounterDragOffset(offsetY))
+  }, [dragX, dragY])
+
+  const handleHandlePointerEnd = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    const state = handleDragRef.current
+    if (!state || state.pointerId !== event.pointerId) return
+
+    const offsetY = event.clientY - state.pointerStartY + state.motionStartY
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+    handleDragRef.current = null
+
+    if (offsetY > INFO_DISMISS_THRESHOLD) {
+      dismissHandleDrag()
+      return
+    }
+
+    resetHandleDrag()
+  }, [dismissHandleDrag, resetHandleDrag])
+
+  return (
+    <motion.div
+      className="pointer-events-none absolute inset-x-5 bottom-[calc(1.125rem+env(safe-area-inset-bottom))] z-30 mx-auto w-[calc(100dvw-40px)] max-w-[452px] origin-bottom tablet:inset-x-10 tablet:bottom-[calc(1.5rem+env(safe-area-inset-bottom))]"
+      initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.68, y: 14 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.68, y: 14 }}
+      transition={{ duration: prefersReducedMotion ? 0 : 0.18, ease: [0.2, 0, 0, 1] }}
+      style={{ transformOrigin: 'bottom center' }}
+    >
+      <motion.div
+        className="pointer-events-auto cursor-grab touch-none rounded-[24px] bg-[#181818]/[0.96] p-3 text-white/[0.92] shadow-[0_8px_30px_rgba(0,0,0,0.24)] active:cursor-grabbing"
+        style={{
+          opacity: dragOpacity,
+          scale: dragScale,
+          transformOrigin: 'bottom center',
+          willChange: 'transform, opacity',
+          x: dragX,
+          y: dragY,
+        }}
+        onClick={(event) => event.stopPropagation()}
+        onPointerDown={handleHandlePointerDown}
+        onPointerMove={handleHandlePointerMove}
+        onPointerUp={handleHandlePointerEnd}
+        onPointerCancel={handleHandlePointerEnd}
+      >
+        <div
+          className="-mx-1 mb-2 flex cursor-grab touch-none justify-center py-1 active:cursor-grabbing"
+          aria-label="Dismiss photo information"
+          role="button"
+          tabIndex={0}
+          onPointerDown={handleHandlePointerDown}
+          onPointerMove={handleHandlePointerMove}
+          onPointerUp={handleHandlePointerEnd}
+          onPointerCancel={handleHandlePointerEnd}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              event.stopPropagation()
+              onClose()
+            }
+          }}
+        >
+          <span className="h-1 w-10 rounded-full bg-white/25" />
+        </div>
+        <div className="grid grid-cols-4 gap-2">
+          {primaryTiles.map((tile) => (
+            <PhotoInfoTile key={tile.label} label={tile.label} value={tile.value} className="col-span-2" />
+          ))}
+          {tiles.map((tile) => (
+            <PhotoInfoTile key={tile.label} label={tile.label} value={tile.value} />
+          ))}
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+function PhotoLightboxMeta({
+  info,
+  infoOpen,
+  prefersReducedMotion,
+  onToggleInfo,
+  onCloseInfo,
+}: {
+  info: ModuleLightboxSlide['photoInfo']
+  infoOpen: boolean
+  prefersReducedMotion: boolean | null
+  onToggleInfo: () => void
+  onCloseInfo: () => void
+}) {
+  const exif = info?.exif
+  const hasExif = hasPhotoExif(exif)
+  const hasInfo = Boolean(info?.dateLabel || hasExif)
+  if (!hasInfo) return null
+
+  return (
+    <>
+      <div className="pointer-events-none absolute inset-x-0 bottom-[calc(1.125rem+env(safe-area-inset-bottom))] z-20 flex justify-center px-5 tablet:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] tablet:px-10">
+        <button
+          type="button"
+          aria-label="Show photo information"
+          aria-expanded={infoOpen}
+          title="Photo information"
+          className={cn(
+            'flex h-8 items-center justify-center rounded-full px-1 font-mono text-[12px] uppercase leading-none text-black/45 transition-[color,opacity] duration-150 hover:text-black/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current dark:text-white/45 dark:hover:text-white/70',
+            infoOpen ? 'pointer-events-none opacity-0' : 'pointer-events-auto opacity-100',
+          )}
+          onClick={(event) => {
+            event.stopPropagation()
+            onToggleInfo()
+          }}
+        >
+          INFO
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {infoOpen && (
+          <PhotoInfoPopover
+            key="photo-info"
+            info={info}
+            prefersReducedMotion={prefersReducedMotion}
+            onClose={onCloseInfo}
+          />
+        )}
+      </AnimatePresence>
+    </>
+  )
 }
 
 function getPaddedSurfaceAspectRatio(contentAspectRatio: number, surface?: MovableModuleSurface) {
@@ -710,6 +988,7 @@ export function ModuleLightboxOverlay({
   const [exitSourceRect, setExitSourceRect] = useState<LightboxRect | undefined>()
   const [dragOwnerId, setDragOwnerId] = useState<string | null>(null)
   const [swipeOffset, setSwipeOffset] = useState(0)
+  const [infoPopoverOpen, setInfoPopoverOpen] = useState(false)
   const dragScale = useTransform(dragY, [0, 240], [1, 0.88])
   const backdropOpacity = useTransform(dragY, [0, 260], [1, 0.36])
   const open = index >= 0
@@ -742,6 +1021,10 @@ export function ModuleLightboxOverlay({
     }
   }, [])
 
+  useEffect(() => {
+    setInfoPopoverOpen(false)
+  }, [activeSlide?.id])
+
   const setActivePhoneSurfaceBackgroundProgress = useCallback((progress: number) => {
     if (!activeSlide?.movableSurface) return
 
@@ -769,6 +1052,7 @@ export function ModuleLightboxOverlay({
   const close = useCallback((mode: TransitionMode = 'zoom') => {
     if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
     dragState.current = null
+    setInfoPopoverOpen(false)
 
     const nextSourceRect = mode === 'zoom' && activeSlide
       ? getSourceRect(activeSlide.id)
@@ -803,6 +1087,8 @@ export function ModuleLightboxOverlay({
   }, [activeSlide, dragX, dragY, getSourceRect, onClosed, onClosing, prefersReducedMotion, setActivePhoneSurfaceBackgroundProgress])
 
   const navigate = useCallback((increment: number) => {
+    setInfoPopoverOpen(false)
+
     if (slides.length <= 1 || index < 0) {
       resetDrag()
       return
@@ -1025,6 +1311,10 @@ export function ModuleLightboxOverlay({
     const handleKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault()
+        if (infoPopoverOpen) {
+          setInfoPopoverOpen(false)
+          return
+        }
         if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
         close()
       }
@@ -1038,16 +1328,21 @@ export function ModuleLightboxOverlay({
       document.documentElement.style.overflow = originalOverflow
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [close, lightboxMounted, navigate])
+  }, [close, infoPopoverOpen, lightboxMounted, navigate])
 
   const lightbox = lightboxMounted ? (
     <div
       className={cn(
-        'fixed inset-0 z-[100] overflow-hidden text-black dark:text-white',
+        'fixed inset-0 z-[100010] overflow-hidden text-black dark:text-white',
         open ? '' : 'pointer-events-none',
       )}
       onClick={() => {
-        if (open) close()
+        if (!open) return
+        if (infoPopoverOpen) {
+          setInfoPopoverOpen(false)
+          return
+        }
+        close()
       }}
     >
       <motion.div
@@ -1116,6 +1411,14 @@ export function ModuleLightboxOverlay({
               </div>
             </div>
           )}
+
+          <PhotoLightboxMeta
+            info={activeSlide.photoInfo}
+            infoOpen={infoPopoverOpen}
+            prefersReducedMotion={prefersReducedMotion}
+            onToggleInfo={() => setInfoPopoverOpen((value) => !value)}
+            onCloseInfo={() => setInfoPopoverOpen(false)}
+          />
         </>
       )}
 
