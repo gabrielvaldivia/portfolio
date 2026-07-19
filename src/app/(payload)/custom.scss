@@ -3086,23 +3086,20 @@ body:has(.template-default--nav-open) .template-default__nav-toggler-container {
   height: var(--cms-icon-size);
   justify-self: end;
   opacity: 0;
-  transform: rotate(0deg);
   background: currentColor;
-  -webkit-mask: var(--cms-icon-chevron-down) center / var(--cms-icon-size) var(--cms-icon-size) no-repeat;
-  mask: var(--cms-icon-chevron-down) center / var(--cms-icon-size) var(--cms-icon-size) no-repeat;
-  transition:
-    opacity 100ms cubic-bezier(0, 0.2, 0.2, 1),
-    transform 100ms cubic-bezier(0, 0.2, 0.2, 1);
+  -webkit-mask: var(--cms-icon-chevron-up) center / var(--cms-icon-size) var(--cms-icon-size) no-repeat;
+  mask: var(--cms-icon-chevron-up) center / var(--cms-icon-size) var(--cms-icon-size) no-repeat;
+  transition: opacity 100ms cubic-bezier(0, 0.2, 0.2, 1);
 }
 
 .nav .custom-sidebar-nav__item--with-children:hover .custom-sidebar-nav__chevron,
-.nav .custom-sidebar-nav__item--with-children:focus-visible .custom-sidebar-nav__chevron,
-.nav .custom-sidebar-nav__group:not([open]) > .custom-sidebar-nav__item--with-children .custom-sidebar-nav__chevron {
+.nav .custom-sidebar-nav__item--with-children:focus-visible .custom-sidebar-nav__chevron {
   opacity: 0.72;
 }
 
 .nav .custom-sidebar-nav__group:not([open]) > .custom-sidebar-nav__item--with-children .custom-sidebar-nav__chevron {
-  transform: rotate(-90deg);
+  -webkit-mask-image: var(--cms-icon-chevron-down);
+  mask-image: var(--cms-icon-chevron-down);
 }
 
 .nav .custom-sidebar-nav__icon {
