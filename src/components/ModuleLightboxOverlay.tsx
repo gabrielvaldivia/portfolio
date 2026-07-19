@@ -98,6 +98,20 @@ type PhotoLastTap = {
   y: number
 }
 
+type PhotoTrackpadGestureState = {
+  startPanX: number
+  startPanY: number
+  startScale: number
+  x: number
+  y: number
+}
+
+type PhotoNativeGestureEvent = Event & {
+  scale?: number
+  clientX?: number
+  clientY?: number
+}
+
 const ZOOM_TRANSITION: Transition = {
   type: 'spring',
   stiffness: 420,
@@ -135,6 +149,8 @@ const PHOTO_TAP_MAX_DURATION_MS = 450
 const PHOTO_DOUBLE_TAP_DELAY_MS = 320
 const PHOTO_DOUBLE_TAP_DISTANCE = 44
 const PHOTO_SYNTHETIC_CLICK_SUPPRESS_MS = 520
+const PHOTO_TRACKPAD_PINCH_SENSITIVITY = 0.004
+const PHOTO_WHEEL_SETTLE_DELAY_MS = 140
 
 const INTRINSIC_LIGHTBOX_ASPECT_RATIOS: Record<string, number> = {
   dc1: 718 / 960,
@@ -252,6 +268,12 @@ function getCenter(a: PhotoPointerPosition, b: PhotoPointerPosition) {
     x: (a.x + b.x) / 2,
     y: (a.y + b.y) / 2,
   }
+}
+
+function getNormalizedWheelDelta(delta: number, deltaMode: number) {
+  if (deltaMode === 1) return delta * 16
+  if (deltaMode === 2 && typeof window !== 'undefined') return delta * window.innerHeight
+  return delta
 }
 
 function PhotoInfoPopover({
@@ -827,6 +849,10 @@ function ModuleLightboxSlideView({
   handlePhotoMouseDown,
   handlePhotoDoubleClick,
   handlePhotoClick,
+  handlePhotoWheel,
+  handlePhotoNativeGestureStart,
+  handlePhotoNativeGestureChange,
+  handlePhotoNativeGestureEnd,
 }: {
   slide: ModuleLightboxSlide
   direction: number
@@ -863,6 +889,10 @@ function ModuleLightboxSlideView({
   handlePhotoMouseDown: (event: ReactMouseEvent<HTMLDivElement>) => void
   handlePhotoDoubleClick: (event: ReactMouseEvent<HTMLDivElement>) => void
   handlePhotoClick: (event: ReactMouseEvent<HTMLDivElement>) => void
+  handlePhotoWheel: (event: globalThis.WheelEvent) => void
+  handlePhotoNativeGestureStart: (event: Event) => void
+  handlePhotoNativeGestureChange: (event: Event) => void
+  handlePhotoNativeGestureEnd: (event: Event) => void
 }) {
   const slotRef = useRef<HTMLDivElement>(null)
   const targetRef = useRef<HTMLDivElement>(null)
@@ -875,6 +905,31 @@ function ModuleLightboxSlideView({
   const activeDragStyle = ownsDrag
     ? { x: dragX, y: dragY, scale: dragScale }
     : {}
+
+  useEffect(() => {
+    if (!photoZoomEnabled) return
+
+    const element = contentRef.current
+    if (!element) return
+
+    element.addEventListener('wheel', handlePhotoWheel, { passive: false })
+    element.addEventListener('gesturestart', handlePhotoNativeGestureStart, { passive: false })
+    element.addEventListener('gesturechange', handlePhotoNativeGestureChange, { passive: false })
+    element.addEventListener('gestureend', handlePhotoNativeGestureEnd, { passive: false })
+
+    return () => {
+      element.removeEventListener('wheel', handlePhotoWheel)
+      element.removeEventListener('gesturestart', handlePhotoNativeGestureStart)
+      element.removeEventListener('gesturechange', handlePhotoNativeGestureChange)
+      element.removeEventListener('gestureend', handlePhotoNativeGestureEnd)
+    }
+  }, [
+    handlePhotoNativeGestureChange,
+    handlePhotoNativeGestureEnd,
+    handlePhotoNativeGestureStart,
+    handlePhotoWheel,
+    photoZoomEnabled,
+  ])
 
   useLayoutEffect(() => {
     const element = zoomRef.current
@@ -1171,11 +1226,13 @@ export function ModuleLightboxOverlay({
   const photoZoomTargetRef = useRef<HTMLDivElement | null>(null)
   const photoPointersRef = useRef(new Map<number, PhotoPointerPosition>())
   const photoGestureRef = useRef<PhotoGestureState | null>(null)
+  const photoTrackpadGestureRef = useRef<PhotoTrackpadGestureState | null>(null)
   const photoTapCandidateRef = useRef<PhotoTapCandidate | null>(null)
   const photoLastTapRef = useRef<PhotoLastTap | null>(null)
   const suppressLightboxClickUntilRef = useRef(0)
   const sourceHiddenForDragRef = useRef(false)
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const photoWheelSettleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [entrySourceRect, setEntrySourceRect] = useState<LightboxRect | undefined>(initialSourceRect)
   const [exitSourceRect, setExitSourceRect] = useState<LightboxRect | undefined>()
   const [dragOwnerId, setDragOwnerId] = useState<string | null>(null)
@@ -1213,6 +1270,7 @@ export function ModuleLightboxOverlay({
   useEffect(() => {
     return () => {
       if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
+      if (photoWheelSettleTimeoutRef.current) clearTimeout(photoWheelSettleTimeoutRef.current)
     }
   }, [])
 
@@ -1223,8 +1281,13 @@ export function ModuleLightboxOverlay({
   useEffect(() => {
     photoPointersRef.current.clear()
     photoGestureRef.current = null
+    photoTrackpadGestureRef.current = null
     photoTapCandidateRef.current = null
     photoLastTapRef.current = null
+    if (photoWheelSettleTimeoutRef.current) {
+      clearTimeout(photoWheelSettleTimeoutRef.current)
+      photoWheelSettleTimeoutRef.current = null
+    }
     photoZoomX.set(0)
     photoZoomY.set(0)
     photoZoomScale.set(1)
@@ -1385,6 +1448,26 @@ export function ModuleLightboxOverlay({
     applyPhotoZoomValues(currentZoom, { animated })
   }, [applyPhotoZoomValues, getCurrentPhotoZoom, resetPhotoZoom])
 
+  const schedulePhotoWheelSettle = useCallback(() => {
+    if (photoWheelSettleTimeoutRef.current) {
+      clearTimeout(photoWheelSettleTimeoutRef.current)
+    }
+
+    photoWheelSettleTimeoutRef.current = setTimeout(() => {
+      photoWheelSettleTimeoutRef.current = null
+      settlePhotoZoom(true)
+    }, PHOTO_WHEEL_SETTLE_DELAY_MS)
+  }, [settlePhotoZoom])
+
+  const getPhotoGestureEventPoint = useCallback((event: PhotoNativeGestureEvent) => {
+    if (typeof window === 'undefined') return { x: 0, y: 0 }
+
+    return {
+      x: typeof event.clientX === 'number' && event.clientX > 0 ? event.clientX : window.innerWidth / 2,
+      y: typeof event.clientY === 'number' && event.clientY > 0 ? event.clientY : window.innerHeight / 2,
+    }
+  }, [])
+
   const resetDrag = useCallback(() => {
     if (sourceHiddenForDragRef.current) {
       sourceHiddenForDragRef.current = false
@@ -1400,6 +1483,11 @@ export function ModuleLightboxOverlay({
     dragState.current = null
     photoPointersRef.current.clear()
     photoGestureRef.current = null
+    photoTrackpadGestureRef.current = null
+    if (photoWheelSettleTimeoutRef.current) {
+      clearTimeout(photoWheelSettleTimeoutRef.current)
+      photoWheelSettleTimeoutRef.current = null
+    }
     resetPhotoZoom(false)
     setInfoPopoverOpen(false)
 
@@ -1439,6 +1527,11 @@ export function ModuleLightboxOverlay({
     setInfoPopoverOpen(false)
     photoPointersRef.current.clear()
     photoGestureRef.current = null
+    photoTrackpadGestureRef.current = null
+    if (photoWheelSettleTimeoutRef.current) {
+      clearTimeout(photoWheelSettleTimeoutRef.current)
+      photoWheelSettleTimeoutRef.current = null
+    }
     resetPhotoZoom(false)
 
     if (slides.length <= 1 || index < 0) {
@@ -1988,6 +2081,127 @@ export function ModuleLightboxOverlay({
     event.stopPropagation()
   }, [])
 
+  const handlePhotoWheel = useCallback((event: globalThis.WheelEvent) => {
+    if (!activeSlideIsZoomablePhoto) return
+
+    const target = event.target
+    if (target instanceof Element && target.closest('button,a,input,textarea,select,summary')) return
+
+    const currentZoom = getCurrentPhotoZoom()
+    const shouldZoom = event.ctrlKey
+    const shouldPan = currentZoom.scale > 1 + PHOTO_ZOOM_EPSILON
+    if (!shouldZoom && !shouldPan) return
+
+    event.preventDefault()
+    event.stopPropagation()
+    cancelLightboxDragForPhotoGesture()
+    suppressSyntheticPhotoClick()
+
+    if (shouldZoom) {
+      const deltaY = getNormalizedWheelDelta(event.deltaY, event.deltaMode)
+      const nextScale = currentZoom.scale * Math.exp(-deltaY * PHOTO_TRACKPAD_PINCH_SENSITIVITY)
+      applyPhotoZoomValues(
+        getAnchoredPhotoZoomValues(
+          { x: event.clientX, y: event.clientY },
+          nextScale,
+          currentZoom,
+        ),
+      )
+      schedulePhotoWheelSettle()
+      return
+    }
+
+    const deltaX = getNormalizedWheelDelta(event.deltaX, event.deltaMode)
+    const deltaY = getNormalizedWheelDelta(event.deltaY, event.deltaMode)
+    applyPhotoZoomValues({
+      x: currentZoom.x - deltaX,
+      y: currentZoom.y - deltaY,
+      scale: currentZoom.scale,
+    })
+    schedulePhotoWheelSettle()
+  }, [
+    activeSlideIsZoomablePhoto,
+    applyPhotoZoomValues,
+    cancelLightboxDragForPhotoGesture,
+    getAnchoredPhotoZoomValues,
+    getCurrentPhotoZoom,
+    schedulePhotoWheelSettle,
+    suppressSyntheticPhotoClick,
+  ])
+
+  const handlePhotoNativeGestureStart = useCallback((event: Event) => {
+    if (!activeSlideIsZoomablePhoto) return
+
+    event.preventDefault()
+    event.stopPropagation()
+    cancelLightboxDragForPhotoGesture()
+    suppressSyntheticPhotoClick()
+
+    const gestureEvent = event as PhotoNativeGestureEvent
+    const currentZoom = getCurrentPhotoZoom()
+    const point = getPhotoGestureEventPoint(gestureEvent)
+    photoTrackpadGestureRef.current = {
+      startPanX: currentZoom.x,
+      startPanY: currentZoom.y,
+      startScale: currentZoom.scale,
+      x: point.x,
+      y: point.y,
+    }
+  }, [
+    activeSlideIsZoomablePhoto,
+    cancelLightboxDragForPhotoGesture,
+    getCurrentPhotoZoom,
+    getPhotoGestureEventPoint,
+    suppressSyntheticPhotoClick,
+  ])
+
+  const handlePhotoNativeGestureChange = useCallback((event: Event) => {
+    if (!activeSlideIsZoomablePhoto) return
+
+    const gestureEvent = event as PhotoNativeGestureEvent
+    const gestureScale = typeof gestureEvent.scale === 'number' ? gestureEvent.scale : 1
+    const gestureState = photoTrackpadGestureRef.current
+    if (!gestureState || gestureScale <= 0) return
+
+    event.preventDefault()
+    event.stopPropagation()
+    suppressSyntheticPhotoClick()
+
+    const point = getPhotoGestureEventPoint(gestureEvent)
+    const anchor = {
+      x: point.x || gestureState.x,
+      y: point.y || gestureState.y,
+    }
+
+    applyPhotoZoomValues(
+      getAnchoredPhotoZoomValues(
+        anchor,
+        gestureState.startScale * gestureScale,
+        {
+          x: gestureState.startPanX,
+          y: gestureState.startPanY,
+          scale: gestureState.startScale,
+        },
+      ),
+    )
+  }, [
+    activeSlideIsZoomablePhoto,
+    applyPhotoZoomValues,
+    getAnchoredPhotoZoomValues,
+    getPhotoGestureEventPoint,
+    suppressSyntheticPhotoClick,
+  ])
+
+  const handlePhotoNativeGestureEnd = useCallback((event: Event) => {
+    if (!activeSlideIsZoomablePhoto || !photoTrackpadGestureRef.current) return
+
+    event.preventDefault()
+    event.stopPropagation()
+    suppressSyntheticPhotoClick()
+    photoTrackpadGestureRef.current = null
+    settlePhotoZoom(true)
+  }, [activeSlideIsZoomablePhoto, settlePhotoZoom, suppressSyntheticPhotoClick])
+
   useEffect(() => {
     if (!lightboxMounted) return
 
@@ -2153,6 +2367,10 @@ export function ModuleLightboxOverlay({
               handlePhotoMouseDown={handlePhotoMouseDown}
               handlePhotoDoubleClick={handlePhotoDoubleClick}
               handlePhotoClick={handlePhotoClick}
+              handlePhotoWheel={handlePhotoWheel}
+              handlePhotoNativeGestureStart={handlePhotoNativeGestureStart}
+              handlePhotoNativeGestureChange={handlePhotoNativeGestureChange}
+              handlePhotoNativeGestureEnd={handlePhotoNativeGestureEnd}
             />
           )}
         </AnimatePresence>
