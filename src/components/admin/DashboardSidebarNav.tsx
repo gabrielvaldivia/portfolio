@@ -1,5 +1,6 @@
 import type { SanitizedPermissions, ServerProps } from 'payload'
 import { formatAdminURL } from 'payload/shared'
+import { sortPagesByOrder } from '@/lib/pageOrdering'
 
 import {
   DashboardSidebarNavClient,
@@ -9,6 +10,7 @@ import {
 
 type DashboardPage = {
   id: number | string
+  order?: number | null
   slug?: string | null
   title?: string | null
 }
@@ -71,13 +73,14 @@ async function getPages({ payload, permissions }: Pick<ServerProps, 'payload' | 
       overrideAccess: true,
       pagination: false,
       select: {
+        order: true,
         slug: true,
         title: true,
       },
       sort: 'order',
     })
 
-    return docs as DashboardPage[]
+    return sortPagesByOrder(docs as DashboardPage[])
   } catch {
     return []
   }

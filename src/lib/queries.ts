@@ -1,6 +1,7 @@
 import { cache } from 'react'
 import { getPayload } from './payload'
 import type { PageLike } from './pageMetadata'
+import { getPagePath, sortPagesByOrder, type OrderedPage } from './pageOrdering'
 
 type GetProjectsOptions = {
   includeHidden?: boolean
@@ -10,6 +11,10 @@ type PageQueryResult = PageLike & {
   title: string
   content?: unknown
   [key: string]: unknown
+}
+
+type NavigationPageResult = OrderedPage & {
+  status?: string | null
 }
 
 export async function getProjects(options: GetProjectsOptions = {}) {
@@ -116,6 +121,37 @@ export const getPublishedPageBySlug = cache(async function getPublishedPageBySlu
     depth: 2,
   })
   return (result.docs[0] as unknown as PageQueryResult | undefined) || null
+})
+
+export const getNavigationPages = cache(async function getNavigationPages() {
+  const payload = await getPayload()
+  const result = await payload.find({
+    collection: 'pages',
+    depth: 0,
+    limit: 100,
+    pagination: false,
+    select: {
+      order: true,
+      slug: true,
+      title: true,
+    },
+    sort: 'order',
+    where: {
+      status: { equals: 'published' },
+    },
+  })
+
+  return sortPagesByOrder(result.docs as NavigationPageResult[]).flatMap((page) => {
+    const url = getPagePath(page.slug)
+    if (!url) return []
+
+    return [
+      {
+        label: page.title || page.slug || 'Untitled page',
+        url,
+      },
+    ]
+  })
 })
 
 export const getSiteSettings = cache(async function getSiteSettings() {

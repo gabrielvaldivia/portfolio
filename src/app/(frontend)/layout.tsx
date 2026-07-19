@@ -6,7 +6,7 @@ import { Footer } from '@/components/Footer'
 import { AgentationToolbar } from '@/components/AgentationToolbar'
 import { OverlayManager } from '@/components/OverlayManager'
 import { PageTransition } from '@/components/PageTransition'
-import { getPageBySlug, getSiteSettings } from '@/lib/queries'
+import { getNavigationPages, getPageBySlug, getSiteSettings } from '@/lib/queries'
 import { normalizeSocialLink } from '@/lib/socialLinks'
 
 export const revalidate = 60
@@ -40,9 +40,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [settings, homePage] = await Promise.all([
+  const [settings, homePage, navigationPages] = await Promise.all([
     getSiteSettings(),
     getPageBySlug('home'),
+    getNavigationPages(),
   ])
 
   const s = settings as any
@@ -73,7 +74,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="bg-background text-content">
         <OverlayManager overlays={(s?.overlays as any[]) || []} />
-        <NavMenu />
+        <NavMenu pages={navigationPages} />
         <SiteHeader />
         <PageTransition>{children}</PageTransition>
         <Footer email={footerEmail} socialLinks={footerSocialLinks} />

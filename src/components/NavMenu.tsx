@@ -5,7 +5,12 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/cn'
 
-const pages = [
+type NavMenuPage = {
+  label: string
+  url: string
+}
+
+const fallbackPages: NavMenuPage[] = [
   { label: 'Home', url: '/' },
   { label: 'Work', url: '/work' },
   { label: 'About', url: '/about' },
@@ -14,10 +19,11 @@ const pages = [
   { label: 'People', url: '/people' },
 ]
 
-export function NavMenu() {
+export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
   const isChat = pathname.startsWith('/chat')
+  const navPages = pages?.length ? pages : fallbackPages
 
   return (
     <>
@@ -57,7 +63,7 @@ export function NavMenu() {
                 : 'opacity-0 scale-95 pointer-events-none'
             }`}
           >
-            {pages.map((page) => {
+            {navPages.map((page) => {
               const isActive = pathname === page.url || (page.url !== '/' && pathname?.startsWith(page.url))
               return (
                 <Link
@@ -116,7 +122,7 @@ export function NavMenu() {
                 : 'opacity-0 scale-95 pointer-events-none'
             }`}
           >
-            {pages.map((page) => {
+            {navPages.map((page) => {
               const isActive = pathname === page.url || (page.url !== '/' && pathname?.startsWith(page.url))
               return (
                 <Link

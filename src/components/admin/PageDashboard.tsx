@@ -1,17 +1,13 @@
 import type { WidgetServerProps } from 'payload'
 import { formatAdminURL } from 'payload/shared'
+import { getPagePath, sortPagesByOrder } from '@/lib/pageOrdering'
 
 type DashboardPage = {
   id: number | string
+  order?: number | null
   slug?: string | null
   status?: string | null
   title?: string | null
-}
-
-function formatPageSlug(slug?: string | null) {
-  if (!slug) return null
-  if (slug === 'home') return '/'
-  return `/${slug.replace(/^\/+/, '')}`
 }
 
 export async function PageDashboard({ permissions, req }: WidgetServerProps) {
@@ -36,13 +32,14 @@ export async function PageDashboard({ permissions, req }: WidgetServerProps) {
     pagination: false,
     req,
     select: {
+      order: true,
       slug: true,
       status: true,
       title: true,
     },
     sort: 'order',
   })
-  const pages = docs as DashboardPage[]
+  const pages = sortPagesByOrder(docs as DashboardPage[])
 
   return (
     <section className="collections page-dashboard" aria-label="Pages">
@@ -52,7 +49,7 @@ export async function PageDashboard({ permissions, req }: WidgetServerProps) {
           {pages.length > 0 ? (
             <ul className="collections__card-list page-dashboard__list">
               {pages.map((page) => {
-                const slug = formatPageSlug(page.slug)
+                const slug = getPagePath(page.slug)
                 const href = formatAdminURL({
                   adminRoute,
                   path: `/collections/pages/${page.id}`,
