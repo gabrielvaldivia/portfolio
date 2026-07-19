@@ -1,5 +1,6 @@
 import { cache } from 'react'
 import { getPayload } from './payload'
+import type { Page } from '@/payload-types'
 
 type GetProjectsOptions = {
   includeHidden?: boolean
@@ -86,7 +87,7 @@ export async function getFeaturedTestimonials() {
   })
 }
 
-export const getPageBySlug = cache(async function getPageBySlug(slug: string) {
+export const getPageBySlug = cache(async function getPageBySlug(slug: string): Promise<Page | null> {
   const payload = await getPayload()
   const result = await payload.find({
     collection: 'pages',
@@ -94,10 +95,10 @@ export const getPageBySlug = cache(async function getPageBySlug(slug: string) {
     depth: 2,
     limit: 1,
   })
-  return result.docs[0] || null
+  return (result.docs[0] as Page | undefined) || null
 })
 
-export const getPublishedPageBySlug = cache(async function getPublishedPageBySlug(slug: string) {
+export const getPublishedPageBySlug = cache(async function getPublishedPageBySlug(slug: string): Promise<Page | null> {
   const payload = await getPayload()
   const result = await payload.find({
     collection: 'pages',
@@ -108,7 +109,7 @@ export const getPublishedPageBySlug = cache(async function getPublishedPageBySlu
     limit: 1,
     depth: 2,
   })
-  return result.docs[0] || null
+  return (result.docs[0] as Page | undefined) || null
 })
 
 export const getSiteSettings = cache(async function getSiteSettings() {
