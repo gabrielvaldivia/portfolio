@@ -41,6 +41,35 @@ function applyExtractedExif(data: Record<string, any>, extracted: ExtractedPhoto
   }
 }
 
+function getStorageSafeBuffer(value: unknown): unknown {
+  if (!Buffer.isBuffer(value)) return value
+  if (typeof SharedArrayBuffer === 'undefined' || !(value.buffer instanceof SharedArrayBuffer)) return value
+
+  const copy = Buffer.allocUnsafe(value.byteLength)
+  value.copy(copy)
+  return copy
+}
+
+function normalizeUploadSizeBuffers(uploadSizes: unknown) {
+  if (!uploadSizes || typeof uploadSizes !== 'object') return
+
+  const sizes = uploadSizes as Record<string, unknown>
+  Object.keys(sizes).forEach((key) => {
+    sizes[key] = getStorageSafeBuffer(sizes[key])
+  })
+}
+
+function normalizeCloudUploadBuffers(req: any) {
+  if (req.file?.data) req.file.data = getStorageSafeBuffer(req.file.data)
+  normalizeUploadSizeBuffers(req.payloadUploadSizes)
+
+  const cloudStorageContext = req.context?._payloadCloudStorage
+  if (cloudStorageContext?.file?.data) {
+    cloudStorageContext.file.data = getStorageSafeBuffer(cloudStorageContext.file.data)
+  }
+  normalizeUploadSizeBuffers(cloudStorageContext?.uploadSizes)
+}
+
 export const Photos: CollectionConfig = {
   slug: 'photos',
   access: {
@@ -89,6 +118,7 @@ export const Photos: CollectionConfig = {
       // Admin-panel uploads go straight from the browser to R2 (clientUploads),
       // so the buffer never reaches the server — fetch the original back once
       async ({ doc, operation, req }) => {
+        normalizeCloudUploadBuffers(req)
         if (operation !== 'create') return doc
         if (req.context?.photoExifExtracted || req.context?.photoExifBackfill) return doc
         if (!doc.url || !/^https?:\/\//.test(doc.url)) return doc
