@@ -41,6 +41,7 @@ function getPhotoSlides(photos: Photo[]): ModuleLightboxSlide[] {
       dateLabel: getPhotoDateLabel(photo),
       exif: photo.exif,
     },
+    zoomablePhoto: true,
     movableSurface: false,
   }))
 }

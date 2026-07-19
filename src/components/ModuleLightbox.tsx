@@ -23,6 +23,7 @@ export type ModuleLightboxSlide = {
   label: string
   likeTargetId?: string | null
   photoInfo?: ModuleLightboxPhotoInfo | null
+  zoomablePhoto?: boolean
   preserveAspectDuringZoom?: boolean
   movableSurface?: boolean
 }

@@ -2,6 +2,9 @@ import { withPayload } from '@payloadcms/next/withPayload'
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    root: process.cwd(),
+  },
   images: {
     // Serve media directly from R2. Vercel's image optimizer can return 402s
     // when the optimization allowance is exhausted, which makes otherwise
