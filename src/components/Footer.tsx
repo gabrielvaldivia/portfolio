@@ -15,6 +15,7 @@ const FOOTER_TEXT_LINK_CLASS =
 const FOOTER_LINKS = [
   { label: 'Photo', href: '/photo' },
   { label: 'Activity', href: '/activity' },
+  { label: 'Chat', href: '/chat' },
 ]
 
 type FooterSocialLink = {
