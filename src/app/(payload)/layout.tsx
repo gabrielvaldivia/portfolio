@@ -1,6 +1,7 @@
 /* THIS FILE WAS GENERATED AUTOMATICALLY BY PAYLOAD. */
 /* DO NOT MODIFY IT BECAUSE IT COULD BE REWRITTEN AT ANY TIME. */
 import type { ServerFunctionClient } from 'payload'
+import type { Viewport } from 'next'
 
 import config from '@payload-config'
 import '@payloadcms/next/css'
@@ -13,6 +14,11 @@ import './custom.scss'
 
 type Args = {
   children: React.ReactNode
+}
+
+export const viewport: Viewport = {
+  initialScale: 1,
+  width: 'device-width',
 }
 
 const serverFunction: ServerFunctionClient = async function (args) {

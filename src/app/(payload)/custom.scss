@@ -167,6 +167,25 @@ html[data-theme="dark"] {
 
 @media (max-width: 768px) {
   :root {
+    --cms-control-height: 44px;
+    --cms-control-small-height: 38px;
+    --cms-control-radius: 10px;
+    --cms-block-radius: 12px;
+    --cms-control-font-size: 16px;
+    --cms-control-small-font-size: 15px;
+    --cms-control-line-height: 22px;
+    --cms-control-small-line-height: 21px;
+    --cms-button-height: 38px;
+    --cms-button-small-height: 34px;
+    --cms-button-large-height: 44px;
+    --cms-button-radius: 8px;
+    --cms-button-small-radius: 7px;
+    --cms-button-padding-x: 14px;
+    --cms-icon-size: 20px;
+    --cms-nav-row-height: 40px;
+    --cms-header-height: 60px;
+    --app-header-height: var(--cms-header-height);
+    --doc-controls-height: var(--cms-header-height);
     --gutter-h: var(--cms-screen-gutter);
   }
 }
@@ -720,13 +739,7 @@ body:has(.collection-list--photos-ios) .app-header__actions .photos-list-add-act
   }
 }
 
-/* Dashboard: keep the landing screen quiet and card-first. */
-body:has(.collections) .app-header {
-  display: none !important;
-}
-
-body:has(.collections) .app-header :is(.step-nav, .app-header__step-nav, .nav-toggler, .app-header__mobile-nav-toggler),
-body:has(.collections) .app-header :is(.hamburger, .hamburger__open-icon, .hamburger__close-icon),
+/* Dashboard: keep the landing screen card-first without removing the shared header. */
 body:has(.collections) .collections .card__actions,
 body:has(.collections) .collections .card__actions * {
   display: none !important;
@@ -757,6 +770,15 @@ body:has(.collections) .collections:not(.page-dashboard) .collections__card-list
 
 .collections__card-list {
   gap: 10px;
+}
+
+.page-dashboard__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.page-dashboard__list > li {
+  min-width: 0;
 }
 
 .collections .card {
@@ -804,6 +826,31 @@ body:has(.collections) .collections:not(.page-dashboard) .collections__card-list
   color: var(--cms-text-tertiary);
   font-size: var(--cms-control-small-font-size);
   line-height: var(--cms-control-small-line-height);
+}
+
+@media (max-width: 768px) {
+  .collections__wrap {
+    gap: 20px;
+  }
+
+  .collections__group {
+    gap: 12px;
+  }
+
+  .page-dashboard__list {
+    grid-template-columns: 1fr;
+  }
+
+  .page-dashboard__card {
+    min-height: 104px;
+    padding: 18px 20px;
+  }
+
+  .page-dashboard__title.card__title,
+  .page-dashboard__title {
+    font-size: 17px;
+    line-height: 24px;
+  }
 }
 
 /* CMS controls: shared iOS-scale sizing, color, and icon treatment. */
@@ -3109,7 +3156,7 @@ body:has(.template-default--nav-open) .template-default__nav-toggler-container {
   }
 
   :root {
-    --nav-width: min(320px, calc(100vw - 56px));
+    --nav-width: min(360px, calc(100vw - 40px));
   }
 
   .template-default {
