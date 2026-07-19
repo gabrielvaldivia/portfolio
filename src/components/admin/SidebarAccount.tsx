@@ -1,41 +1,67 @@
-'use client'
-
-import { Link, useAuth, useConfig, useTranslation } from '@payloadcms/ui'
-import { UserCircleIcon } from '@hugeicons/core-free-icons'
+import type { SanitizedPermissions, ServerProps } from 'payload'
 import { formatAdminURL } from 'payload/shared'
-import { AdminHugeIcon } from './Hugeicons'
 
-export function SidebarAccount() {
-  const {
-    config: {
-      admin: {
-        routes: { account: accountRoute },
-      },
-      routes: { admin: adminRoute },
-    },
-  } = useConfig()
-  const { t } = useTranslation()
-  const { user } = useAuth()
-  const accountLabel = t('authentication:account')
+import { SidebarAccountClient, type SidebarAccountMenuItem } from './SidebarAccountClient'
 
-  return (
-    <Link
-      aria-label={user?.email ? `${accountLabel}: ${user.email}` : accountLabel}
-      className="custom-sidebar-account"
-      href={formatAdminURL({
+function canReadCollection(permissions: SanitizedPermissions | undefined, slug: string) {
+  return Boolean(permissions?.collections?.[slug]?.read)
+}
+
+function canReadGlobal(permissions: SanitizedPermissions | undefined, slug: string) {
+  return Boolean(permissions?.globals?.[slug]?.read)
+}
+
+export function SidebarAccount({ payload, permissions, user }: ServerProps) {
+  const adminRoute = payload.config.routes.admin
+  const accountRoute = payload.config.admin.routes?.account || '/account'
+  const logoutRoute = payload.config.admin.routes?.logout || '/logout'
+
+  const items: SidebarAccountMenuItem[] = [
+    ...(canReadGlobal(permissions, 'site-settings')
+      ? [
+          {
+            href: formatAdminURL({
+              adminRoute,
+              path: '/globals/site-settings',
+            }),
+            icon: 'settings' as const,
+            id: 'site-settings',
+            label: 'Site settings',
+          },
+        ]
+      : []),
+    ...(canReadCollection(permissions, 'users')
+      ? [
+          {
+            href: formatAdminURL({
+              adminRoute,
+              path: '/collections/users',
+            }),
+            icon: 'users' as const,
+            id: 'users',
+            label: 'Users',
+          },
+        ]
+      : []),
+    {
+      href: formatAdminURL({
         adminRoute,
         path: accountRoute,
-      })}
-      prefetch={false}
-    >
-      <span className="custom-sidebar-account__icon" aria-hidden="true">
-        <AdminHugeIcon icon={UserCircleIcon} />
-      </span>
-      {user?.email && (
-        <span className="custom-sidebar-account__text">
-          <span className="custom-sidebar-account__email">{user.email}</span>
-        </span>
-      )}
-    </Link>
-  )
+      }),
+      icon: 'account',
+      id: 'account',
+      label: 'Account',
+    },
+    {
+      href: formatAdminURL({
+        adminRoute,
+        path: logoutRoute,
+      }),
+      icon: 'logout',
+      id: 'sign-out',
+      label: 'Sign out',
+    },
+  ]
+
+  return <SidebarAccountClient accountLabel="Account" email={user?.email} items={items} />
 }

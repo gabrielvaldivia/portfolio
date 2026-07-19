@@ -29,11 +29,7 @@ const contentCollections: CollectionNavItem[] = [
   { icon: 'services', label: 'Services', slug: 'services' },
   { icon: 'conversations', label: 'Conversations', slug: 'conversations' },
   { icon: 'photos', label: 'Photos', slug: 'photos' },
-]
-
-const adminCollections: CollectionNavItem[] = [
   { icon: 'media', label: 'Media', slug: 'media' },
-  { icon: 'users', label: 'Users', slug: 'users' },
 ]
 
 function canReadCollection(permissions: SanitizedPermissions | undefined, slug: string) {
@@ -42,10 +38,6 @@ function canReadCollection(permissions: SanitizedPermissions | undefined, slug: 
 
 function canCreateCollection(permissions: SanitizedPermissions | undefined, slug: string) {
   return Boolean(permissions?.collections?.[slug]?.create)
-}
-
-function canReadGlobal(permissions: SanitizedPermissions | undefined, slug: string) {
-  return Boolean(permissions?.globals?.[slug]?.read)
 }
 
 function collectionItem(adminRoute: string, item: CollectionNavItem): DashboardSidebarNavItem {
@@ -148,34 +140,6 @@ export async function DashboardSidebarNav({ payload, permissions }: ServerProps)
       icon: 'collections',
       id: 'content',
       label: 'Content',
-    })
-  }
-
-  const adminChildren: DashboardSidebarNavItem[] = [
-    ...(canReadGlobal(permissions, 'site-settings')
-      ? [
-          {
-            href: formatAdminURL({
-              adminRoute,
-              path: '/globals/site-settings',
-            }),
-            icon: 'settings' as const,
-            id: 'global-site-settings',
-            label: 'Site settings',
-          },
-        ]
-      : []),
-    ...adminCollections
-      .filter((item) => canReadCollection(permissions, item.slug))
-      .map((item) => collectionItem(adminRoute, item)),
-  ]
-
-  if (adminChildren.length > 0) {
-    items.push({
-      children: adminChildren,
-      icon: 'admin',
-      id: 'admin',
-      label: 'Admin',
     })
   }
 

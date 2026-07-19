@@ -1450,7 +1450,8 @@ svg.icon--x {
 .clear-indicator:focus-visible,
 .nav a:focus-visible,
 .nav-group__toggle:focus-visible,
-.custom-sidebar-account:focus-visible {
+.custom-sidebar-account:focus-visible,
+.custom-sidebar-account-menu__item:focus-visible {
   outline: none !important;
   box-shadow: var(--cms-input-focus-shadow) !important;
 }
@@ -3123,20 +3124,7 @@ body:has(.template-default--nav-open) .template-default__nav-toggler-container {
 }
 
 .nav__controls {
-  position: absolute;
-  right: 20px;
-  bottom: calc(20px + ((var(--cms-control-height) - var(--cms-nav-footer-control-size)) / 2));
-  z-index: 2;
-  display: flex;
-  width: fit-content;
-  min-width: 0;
-  max-width: calc(100% - 40px);
-  height: var(--cms-nav-footer-control-size);
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  margin: 0;
+  display: none !important;
 }
 
 .nav__controls > :first-child {
@@ -3161,22 +3149,31 @@ body:has(.template-default--nav-open) .template-default__nav-toggler-container {
   mask-size: var(--cms-button-small-icon-size) var(--cms-button-small-icon-size);
 }
 
-.custom-sidebar-account {
+.custom-sidebar-account-menu {
   position: absolute;
-  right: calc(20px + var(--cms-nav-footer-control-size) + 8px);
+  right: 20px;
   bottom: 20px;
   left: 20px;
+  z-index: 6;
+}
+
+.custom-sidebar-account {
   display: flex;
   align-items: center;
   gap: 10px;
-  width: auto;
+  width: 100%;
   min-height: var(--cms-control-height);
   min-width: 0;
   margin: 0;
   overflow: hidden;
   padding: 5px 8px;
+  border: 0;
   border-radius: var(--cms-control-radius);
+  appearance: none;
+  background: transparent;
   color: var(--cms-text-tertiary);
+  cursor: pointer;
+  font: inherit;
   text-decoration: none;
   transition:
     background-color 100ms cubic-bezier(0, 0.2, 0.2, 1),
@@ -3219,6 +3216,56 @@ body:has(.template-default--nav-open) .template-default__nav-toggler-container {
   font-size: var(--cms-control-font-size);
   font-weight: 500;
   line-height: var(--cms-control-line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-sidebar-account-menu__popover {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  left: 0;
+  display: grid;
+  gap: 2px;
+  padding: 6px;
+  border: 0.5px solid var(--cms-border-primary);
+  border-radius: var(--cms-control-radius);
+  background: var(--cms-bg-primary);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28);
+}
+
+.nav .custom-sidebar-account-menu__item {
+  display: grid !important;
+  grid-template-columns: var(--cms-icon-size) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 8px;
+  border-radius: calc(var(--cms-control-radius) - 3px);
+  color: var(--cms-text-secondary);
+  font-size: var(--cms-control-small-font-size) !important;
+  font-weight: 500;
+  line-height: var(--cms-control-small-line-height) !important;
+}
+
+.nav .custom-sidebar-account-menu__item:hover,
+.nav .custom-sidebar-account-menu__item:focus-visible {
+  background: var(--cms-bg-quaternary);
+  color: var(--cms-text-primary);
+  text-decoration: none;
+}
+
+.custom-sidebar-account-menu__icon {
+  display: grid;
+  width: var(--cms-icon-size);
+  height: var(--cms-icon-size);
+  place-items: center;
+  color: currentColor;
+}
+
+.custom-sidebar-account-menu__label {
+  min-width: 0;
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
