@@ -9,6 +9,27 @@ function slugifyFilename(filename: string): string {
     .replace(/^-+|-+$/g, '')
 }
 
+async function getUniquePhotoSlug({ req, slug }: { req: any; slug: string }): Promise<string> {
+  const baseSlug = slug || 'photo'
+  let candidate = baseSlug
+
+  for (let suffix = 2; suffix < 1000; suffix += 1) {
+    const existing = await req.payload.find({
+      collection: 'photos',
+      depth: 0,
+      limit: 1,
+      overrideAccess: true,
+      pagination: false,
+      where: { slug: { equals: candidate } },
+    })
+
+    if (!existing.docs.length) return candidate
+    candidate = `${baseSlug}-${suffix}`
+  }
+
+  return `${baseSlug}-${Date.now()}`
+}
+
 function applyExtractedExif(data: Record<string, any>, extracted: ExtractedPhotoExif) {
   if (extracted.captureDate && !data.captureDate) {
     data.captureDate = extracted.captureDate.toISOString()
@@ -54,12 +75,13 @@ export const Photos: CollectionConfig = {
   hooks: {
     beforeChange: [
       // Local API uploads (and any server-side upload) carry the file buffer
-      async ({ data, req }) => {
+      async ({ data, operation, req }) => {
         if (req.file?.data) {
           applyExtractedExif(data, await extractPhotoExif(req.file.data))
           if (req.context) req.context.photoExifExtracted = true
         }
         if (!data.slug && data.filename) data.slug = slugifyFilename(data.filename)
+        if (operation === 'create' && data.slug) data.slug = await getUniquePhotoSlug({ req, slug: data.slug })
         return data
       },
     ],
