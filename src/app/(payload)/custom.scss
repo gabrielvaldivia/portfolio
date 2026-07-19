@@ -741,6 +741,54 @@ body:has(.collection-list--photos-ios) .app-header__actions .photos-list-add-act
 }
 
 /* Dashboard: keep the landing screen card-first without removing the shared header. */
+body:has(.dashboard) .app-header__step-nav {
+  gap: 0;
+}
+
+body:has(.dashboard) .app-header__step-nav .step-nav__home,
+body:has(.dashboard) .app-header__step-nav > span:not(.step-nav__last) {
+  display: none;
+}
+
+body:has(.dashboard) .dashboard-breadcrumb-select {
+  width: auto;
+  min-width: 0;
+  pointer-events: none;
+}
+
+body:has(.dashboard) .dashboard-breadcrumb-select .rs__control {
+  min-height: 0;
+  height: auto;
+  padding: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body:has(.dashboard) .dashboard-breadcrumb-select .value-container,
+body:has(.dashboard) .dashboard-breadcrumb-select .rs__value-container {
+  display: flex;
+  min-height: 0;
+  align-items: center;
+  padding: 0;
+}
+
+body:has(.dashboard) .dashboard-breadcrumb-select .react-select--single-value,
+body:has(.dashboard) .dashboard-breadcrumb-select .rs__single-value {
+  color: var(--cms-text-primary);
+  font-size: var(--cms-control-font-size);
+  font-weight: 600;
+  line-height: var(--cms-control-line-height);
+}
+
+body:has(.dashboard) .dashboard-breadcrumb-select .rs__indicators,
+body:has(.dashboard) .dashboard-breadcrumb-select .rs__indicator,
+body:has(.dashboard) .dashboard-breadcrumb-select .rs__input-container,
+body:has(.dashboard) .dashboard-breadcrumb-select .rs__menu {
+  display: none !important;
+}
+
 body:has(.collections) .collections .card__actions,
 body:has(.collections) .collections .card__actions * {
   display: none !important;
