@@ -26,6 +26,7 @@ import { PhotosListUploadStatus as PhotosListUploadStatus_96d485995b7b3edb90cf32
 import { MediaSaveButton as MediaSaveButton_85a09aeff9bc9d675c907495712c757d } from '../../../components/admin/MediaSaveButton'
 import { PhotosListView as PhotosListView_5c948fc8aa8b1d48429df697e10e6b08 } from '../../../components/admin/PhotosListView'
 import { PhotosListAddAction as PhotosListAddAction_96d485995b7b3edb90cf326c4478039d } from '../../../components/admin/PhotosListActions'
+import { MediaMasonryListView as MediaMasonryListView_d8a6c9fd08ebab0275fe3be3ef5bf85a } from '../../../components/admin/MediaMasonryListView'
 import { AdminBrandIcon as AdminBrandIcon_eedf415196c71adeb5318383c5699418 } from '../../../components/admin/Hugeicons'
 import { AdminBrandLogo as AdminBrandLogo_eedf415196c71adeb5318383c5699418 } from '../../../components/admin/Hugeicons'
 import { SidebarAccount as SidebarAccount_6824242b93ea38525d48c2f04b269307 } from '../../../components/admin/SidebarAccount'
@@ -65,6 +66,7 @@ export const importMap = {
   "./components/admin/MediaSaveButton#MediaSaveButton": MediaSaveButton_85a09aeff9bc9d675c907495712c757d,
   "./components/admin/PhotosListView#PhotosListView": PhotosListView_5c948fc8aa8b1d48429df697e10e6b08,
   "./components/admin/PhotosListActions#PhotosListAddAction": PhotosListAddAction_96d485995b7b3edb90cf326c4478039d,
+  "./components/admin/MediaMasonryListView#MediaMasonryListView": MediaMasonryListView_d8a6c9fd08ebab0275fe3be3ef5bf85a,
   "./components/admin/Hugeicons#AdminBrandIcon": AdminBrandIcon_eedf415196c71adeb5318383c5699418,
   "./components/admin/Hugeicons#AdminBrandLogo": AdminBrandLogo_eedf415196c71adeb5318383c5699418,
   "./components/admin/SidebarAccount#SidebarAccount": SidebarAccount_6824242b93ea38525d48c2f04b269307,

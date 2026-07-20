@@ -20,6 +20,11 @@ export const Media: CollectionConfig = {
       edit: {
         SaveButton: './components/admin/MediaSaveButton#MediaSaveButton',
       },
+      views: {
+        list: {
+          Component: './components/admin/MediaMasonryListView#MediaMasonryListView',
+        },
+      },
     },
     pagination: { defaultLimit: 100 },
     group: 'Admin',
