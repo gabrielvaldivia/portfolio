@@ -165,30 +165,6 @@ import { normalizeRelationshipValue } from '../../utilities/normalizeRelationshi
       collectionSlug: collectionToUse
     });
     if (fileToUpload && typeof uploadHandler === 'function' && !fileToUpload.type?.startsWith('image/')) {
-      let filename = fileToUpload.name;
-      const clientUploadContext = await uploadHandler({
-        docPrefix: undefined,
-        file: fileToUpload,
-        updateFilename: newFilename => {
-          filename = newFilename;
-        }
-      });
-      fileToUpload = JSON.stringify({
-        clientUploadContext,
-        collectionSlug: collectionToUse,
-        filename,
-        mimeType: file.type,
-        size: file.size
-      });
-    }
-    const formData = new FormData();
-    formData.append('_payload', JSON.stringify({}));
-    if (fileToUpload) {
-      formData.append('file', fileToUpload);
-    }
-    return formData;
-  }, [getUploadHandler]);
-  const uploadFilesInline = React.useCallback(async fileList => {
 `,
     findEnd: `  // only hasMany can bulk select`,
     replace: `  const createInlineUploadFormData = React.useCallback(async (file, collectionToUse) => {
@@ -196,7 +172,7 @@ import { normalizeRelationshipValue } from '../../utilities/normalizeRelationshi
     const uploadHandler = getUploadHandler({
       collectionSlug: collectionToUse
     });
-    if (fileToUpload && typeof uploadHandler === 'function' && !fileToUpload.type?.startsWith('image/')) {
+    if (fileToUpload && typeof uploadHandler === 'function') {
       let filename = fileToUpload.name;
       const clientUploadContext = await uploadHandler({
         docPrefix: undefined,
@@ -332,7 +308,7 @@ import { normalizeRelationshipValue } from '../../utilities/normalizeRelationshi
     const uploadHandler = getUploadHandler({
       collectionSlug: collectionToUse
     });
-    if (fileToUpload && typeof uploadHandler === 'function' && !fileToUpload.type?.startsWith('image/')) {
+    if (fileToUpload && typeof uploadHandler === 'function') {
       let filename = fileToUpload.name;
       const clientUploadContext = await uploadHandler({
         docPrefix: undefined,
@@ -670,7 +646,7 @@ import { normalizeRelationshipValue } from '../../utilities/normalizeRelationshi
     optional: true,
     findStart: 'D([{relationTo:fe.collectionSlug,value:fe.doc}])}},[I,X,d,v,ve]),Oe=Fn.useCallback(',
     findEnd: ',Be=Fn.useCallback',
-    replace: 'D([{relationTo:fe.collectionSlug,value:fe.doc}])}},[I,X,d,v,ve]),Oe=Fn.useCallback(async H=>{if(H?.length){let ce=H;if(!d&&H.length>1){let le=new DataTransfer;le.items.add(H[0]),ce=le.files}let fe=Array.from(ce),ie=Array.isArray(v)?T:v;if(typeof g=="number"&&d&&Array.isArray(I)&&(fe=fe.slice(0,Math.max(g-I.length,0))),!ie||!fe.length)return;setInlineUploading(!0),setInlineUploadProgress(0);let le=[];try{for(let Y=0;Y<fe.length;Y+=1){let K=fe[Y],ge=Math.round(Y/fe.length*100),re=Math.round((Y+1)/fe.length*100);setInlineUploadProgress(Math.max(5,ge));try{let pe=K,Te=inlineGetUploadHandler({collectionSlug:ie});if(pe&&typeof Te=="function"&&!(typeof pe.type=="string"&&pe.type.startsWith("image/"))){let je=pe.name,Re=await Te({docPrefix:void 0,file:pe,updateFilename:We=>{je=We}});pe=JSON.stringify({clientUploadContext:Re,collectionSlug:ie,filename:je,mimeType:K.type,size:K.size})}let je=new FormData;je.append("_payload",JSON.stringify({})),pe&&je.append("file",pe);let Re=await new Promise((We,Lt)=>{let kt=new XMLHttpRequest;kt.open("POST",NU({apiRoute:r,path:"/"+ie})+kA.stringify({locale:N},{addQueryPrefix:!0})),kt.withCredentials=!0,kt.setRequestHeader("Accept-Language",j.language),kt.upload.onprogress=wo=>{wo.lengthComputable&&setInlineUploadProgress(Math.round(ge+wo.loaded/wo.total*(re-ge)))},kt.onload=()=>{let wo=null;try{wo=kt.responseText?JSON.parse(kt.responseText):null}catch{}We({json:wo,status:kt.status})},kt.onerror=()=>Lt(new Error("Upload failed")),kt.onabort=()=>Lt(new Error("Upload canceled")),kt.send(je)});Re.status===201&&Re.json?.doc?(le.push({collectionSlug:ie,doc:Re.json.doc}),setInlineUploadProgress(re)):ee.error(Re.json?.errors?.[0]?.message||Re.json?.message||"Upload failed")}catch(pe){ee.error(pe instanceof Error?pe.message:"Upload failed")}}le.length&&xe(le)}finally{setInlineUploading(!1),setInlineUploadProgress(0)}return}let ce=H,fe=Array.isArray(v)?T:v;ce&&P(ce),k(fe),Array.isArray(V)&&B(V),typeof g=="number"&&L(g),_(A)},[d,v,T,g,I,inlineGetUploadHandler,r,N,j.language,xe,k,V,_,A,P,B,L]),Be=Fn.useCallback',
+    replace: 'D([{relationTo:fe.collectionSlug,value:fe.doc}])}},[I,X,d,v,ve]),Oe=Fn.useCallback(async H=>{if(H?.length){let ce=H;if(!d&&H.length>1){let le=new DataTransfer;le.items.add(H[0]),ce=le.files}let fe=Array.from(ce),ie=Array.isArray(v)?T:v;if(typeof g=="number"&&d&&Array.isArray(I)&&(fe=fe.slice(0,Math.max(g-I.length,0))),!ie||!fe.length)return;setInlineUploading(!0),setInlineUploadProgress(0);let le=[];try{for(let Y=0;Y<fe.length;Y+=1){let K=fe[Y],ge=Math.round(Y/fe.length*100),re=Math.round((Y+1)/fe.length*100);setInlineUploadProgress(Math.max(5,ge));try{let pe=K,Te=inlineGetUploadHandler({collectionSlug:ie});if(pe&&typeof Te=="function"){let je=pe.name,Re=await Te({docPrefix:void 0,file:pe,updateFilename:We=>{je=We}});pe=JSON.stringify({clientUploadContext:Re,collectionSlug:ie,filename:je,mimeType:K.type,size:K.size})}let je=new FormData;je.append("_payload",JSON.stringify({})),pe&&je.append("file",pe);let Re=await new Promise((We,Lt)=>{let kt=new XMLHttpRequest;kt.open("POST",NU({apiRoute:r,path:"/"+ie})+kA.stringify({locale:N},{addQueryPrefix:!0})),kt.withCredentials=!0,kt.setRequestHeader("Accept-Language",j.language),kt.upload.onprogress=wo=>{wo.lengthComputable&&setInlineUploadProgress(Math.round(ge+wo.loaded/wo.total*(re-ge)))},kt.onload=()=>{let wo=null;try{wo=kt.responseText?JSON.parse(kt.responseText):null}catch{}We({json:wo,status:kt.status})},kt.onerror=()=>Lt(new Error("Upload failed")),kt.onabort=()=>Lt(new Error("Upload canceled")),kt.send(je)});Re.status===201&&Re.json?.doc?(le.push({collectionSlug:ie,doc:Re.json.doc}),setInlineUploadProgress(re)):ee.error(Re.json?.errors?.[0]?.message||Re.json?.message||"Upload failed")}catch(pe){ee.error(pe instanceof Error?pe.message:"Upload failed")}}le.length&&xe(le)}finally{setInlineUploading(!1),setInlineUploadProgress(0)}return}let ce=H,fe=Array.isArray(v)?T:v;ce&&P(ce),k(fe),Array.isArray(V)&&B(V),typeof g=="number"&&L(g),_(A)},[d,v,T,g,I,inlineGetUploadHandler,r,N,j.language,xe,k,V,_,A,P,B,L]),Be=Fn.useCallback',
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
