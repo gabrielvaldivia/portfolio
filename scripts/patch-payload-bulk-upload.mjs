@@ -29,6 +29,43 @@ const patches = [
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/elements/BulkUpload/FormsManager/createFormData.js',
+    find: `  if (file && typeof uploadHandler === 'function') {
+    let filename = file.name;
+    const clientUploadContext = await uploadHandler({
+      docPrefix: typeof data?.prefix === 'string' ? data.prefix : undefined,
+      file,
+      updateFilename: value => {
+        filename = value;
+      }
+    });
+    file = JSON.stringify({
+      clientUploadContext,
+      collectionSlug,
+      filename,
+      mimeType: file.type,
+      size: file.size
+    });
+  }`,
+    replace: `  if (file && typeof uploadHandler === 'function' && !file.type?.startsWith('image/')) {
+    let filename = file.name;
+    const clientUploadContext = await uploadHandler({
+      docPrefix: typeof data?.prefix === 'string' ? data.prefix : undefined,
+      file,
+      updateFilename: value => {
+        filename = value;
+      }
+    });
+    file = JSON.stringify({
+      clientUploadContext,
+      collectionSlug,
+      filename,
+      mimeType: file.type,
+      size: file.size
+    });
+  }`,
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/elements/BulkUpload/FormsManager/createFormData.js',
     find: `  const dataToSerialize = {
     _payload: JSON.stringify(dataWithOverrides),
     file
@@ -48,6 +85,11 @@ const patches = [
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
     find: 'let It={_payload:JSON.stringify(ct)};return r&&"upload"in r&&r.upload&&At&&(It.file=At),(0,UD.serialize)(It,{indices:!0,nullsAsUndefineds:!1})',
     replace: 'let It=new FormData;return It.append("_payload",JSON.stringify(ct)),r&&"upload"in r&&r.upload&&At&&It.append("file",At),It',
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
+    find: 'if(s&&delete n.file,s&&typeof r=="function"){let a=s.name,c=await r({docPrefix:typeof n?.prefix=="string"?n.prefix:void 0,file:s,updateFilename:u=>{a=u}});s=JSON.stringify({clientUploadContext:c,collectionSlug:o,filename:a,mimeType:s.type,size:s.size})}',
+    replace: 'if(s&&delete n.file,s&&typeof r=="function"&&!(typeof s.type=="string"&&s.type.startsWith("image/"))){let a=s.name,c=await r({docPrefix:typeof n?.prefix=="string"?n.prefix:void 0,file:s,updateFilename:u=>{a=u}});s=JSON.stringify({clientUploadContext:c,collectionSlug:o,filename:a,mimeType:s.type,size:s.size})}',
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
@@ -134,67 +176,42 @@ const patches = [
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/elements/BulkUpload/FormsManager/index.js',
-    find: `  const hasInitializedWithFiles = React.useRef(false);
-  const initialStateRef = React.useRef(null);
-  const getFormDataRef = React.useRef(() => ({}));`,
+    findStart: `  const hasInitializedWithFiles = React.useRef(false);
+`,
+    findEnd: `  const baseAPIPath = formatAdminURL({`,
     replace: `  const hasInitializedWithFiles = React.useRef(false);
-  const autoSaveInitialFiles = React.useRef(false);
   const initialStateRef = React.useRef(null);
-  const getFormDataRef = React.useRef(() => ({}));`,
+  const getFormDataRef = React.useRef(() => ({}));
+  const baseAPIPath = formatAdminURL({`,
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/elements/BulkUpload/FormsManager/index.js',
-    find: `    const currentFormsData_0 = getFormDataRef.current();
-    const currentForms = [...forms];
-    currentForms[activeIndex] = {
-      errorCount: currentForms[activeIndex].errorCount,
-      formID: currentForms[activeIndex].formID,
-      formState: currentFormsData_0,
-      uploadEdits: currentForms[activeIndex].uploadEdits
-    };`,
+    findStart: `    const currentFormsData_0 = getFormDataRef.current();
+`,
+    findEnd: `    const activeFormID = currentForms[activeIndex]?.formID;`,
     replace: `    const currentFormsData_0 = getFormDataRef.current();
     const currentForms = [...forms];
     if (currentForms[activeIndex]) {
-      const currentFormState = Object.keys(currentFormsData_0).length ? currentFormsData_0 : currentForms[activeIndex].formState;
+      const existingFormState = currentForms[activeIndex].formState;
       currentForms[activeIndex] = {
         errorCount: currentForms[activeIndex].errorCount,
         formID: currentForms[activeIndex].formID,
-        formState: currentFormState,
+        formState: {
+          ...existingFormState,
+          ...currentFormsData_0,
+          file: currentFormsData_0.file?.value ? currentFormsData_0.file : existingFormState.file
+        },
         uploadEdits: currentForms[activeIndex].uploadEdits
       };
-    }`,
+    }
+    const activeFormID = currentForms[activeIndex]?.formID;`,
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/elements/BulkUpload/FormsManager/index.js',
-    find: `  React.useEffect(() => {
+    findStart: `  React.useEffect(() => {
     if (!collectionSlug) {
-      return;
-    }
-    if (!hasInitializedState) {
-      void initializeSharedFormState();
-    }
-    if (!hasInitializedDocPermissions) {
-      void initializeSharedDocPermissions();
-    }
-    if (initialFiles || initialForms) {
-      if (!hasInitializedState || !hasInitializedDocPermissions) {
-        setIsInitializing(true);
-      } else {
-        setIsInitializing(false);
-      }
-    }
-    if (hasInitializedState && (initialForms?.length || initialFiles?.length) && !hasInitializedWithFiles.current) {
-      if (initialForms?.length) {
-        void addInitialForms(initialForms);
-      }
-      if (initialFiles?.length) {
-        void addFilesEffectEvent(initialFiles);
-      }
-      hasInitializedWithFiles.current = true;
-    }
-    return;
-  }, [initialFiles, initializeSharedFormState, initializeSharedDocPermissions, collectionSlug, hasInitializedState, hasInitializedDocPermissions, initialForms]);
-  return /*#__PURE__*/_jsxs(Context, {`,
+`,
+    findEnd: `  return /*#__PURE__*/_jsxs(Context, {`,
     replace: `  React.useEffect(() => {
     if (!collectionSlug) {
       return;
@@ -223,30 +240,67 @@ const patches = [
     }
     return;
   }, [initialFiles, initializeSharedFormState, initializeSharedDocPermissions, collectionSlug, hasInitializedState, hasInitializedDocPermissions, initialForms]);
-  React.useEffect(() => {
-    if (!initialFiles?.length || isInitializing || !hasSavePermission || !forms.length || autoSaveInitialFiles.current) {
-      return;
-    }
-    autoSaveInitialFiles.current = true;
-    void saveAllDocs();
-  }, [forms.length, hasSavePermission, initialFiles, isInitializing, saveAllDocs]);
   return /*#__PURE__*/_jsxs(Context, {`,
   },
   {
-    file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
-    find: ',{collectionSlug:$,drawerSlug:B,folderID:M,initialFiles:N,initialForms:j,onSuccess:O,setInitialFiles:V,setInitialForms:z,setSuccessfullyUploaded:Z}=Ho(),[G,te]=wt.useState(!1),[U,J]=wt.useState(""),de=wt.useRef(!1),Q=wt.useRef(null),q=wt.useRef(()=>({})),X=bW({apiRoute:o,path:""}),ae=`${X}/${$}`',
-    replace: ',{collectionSlug:$,drawerSlug:B,folderID:M,initialFiles:N,initialForms:j,onSuccess:O,setInitialFiles:V,setInitialForms:z,setSuccessfullyUploaded:Z}=Ho(),[G,te]=wt.useState(!1),[U,J]=wt.useState(""),de=wt.useRef(!1),autoSaveInitialFiles=wt.useRef(!1),Q=wt.useRef(null),q=wt.useRef(()=>({})),X=bW({apiRoute:o,path:""}),ae=`${X}/${$}`',
+    file: 'node_modules/@payloadcms/ui/dist/elements/BulkUpload/ActionsBar/index.js',
+    find: `import { EditManyBulkUploads } from '../EditMany/index.js';
+import { useFormsManager } from '../FormsManager/index.js';`,
+    replace: `import { EditManyBulkUploads } from '../EditMany/index.js';
+import { useFormsManager } from '../FormsManager/index.js';
+import { useBulkUpload } from '../index.js';`,
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/elements/BulkUpload/ActionsBar/index.js',
+    find: `  const {
+    collectionSlug,
+    hasPublishPermission,
+    hasSavePermission,
+    saveAllDocs
+  } = useFormsManager();
+  let t1;`,
+    replace: `  const {
+    collectionSlug,
+    hasPublishPermission,
+    hasSavePermission,
+    saveAllDocs
+  } = useFormsManager();
+  const {
+    initialFiles
+  } = useBulkUpload();
+  const autoSaveInitialFiles = React.useRef(false);
+  React.useEffect(() => {
+    if (!initialFiles?.length || !hasSavePermission || autoSaveInitialFiles.current) {
+      return;
+    }
+    autoSaveInitialFiles.current = true;
+    const autoSaveTimeout = window.setTimeout(() => void saveAllDocs(), 0);
+    return () => window.clearTimeout(autoSaveTimeout);
+  }, [hasSavePermission, initialFiles, saveAllDocs]);
+  let t1;`,
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
-    find: ',Ie=wt.useCallback(async({overrides:ie}={})=>{let le=q.current(),Y=[..._];Y[T]={errorCount:Y[T].errorCount,formID:Y[T].formID,formState:le,uploadEdits:Y[T].uploadEdits};let K=Y[T]?.formID,ge=[];',
-    replace: ',Ie=wt.useCallback(async({overrides:ie}={})=>{let le=q.current(),Y=[..._];if(Y[T]){let autoFormState=Object.keys(le).length?le:Y[T].formState;Y[T]={errorCount:Y[T].errorCount,formID:Y[T].formID,formState:autoFormState,uploadEdits:Y[T].uploadEdits}}let K=Y[T]?.formID,ge=[];',
+    findStart: ',{collectionSlug:$,drawerSlug:B,folderID:M,initialFiles:N,initialForms:j,onSuccess:O,setInitialFiles:V,setInitialForms:z,setSuccessfullyUploaded:Z}=Ho(),[G,te]=wt.useState(!1),[U,J]=wt.useState(""),de=wt.useRef(!1)',
+    findEnd: ',Q=wt.useRef(null),q=wt.useRef(()=>({})),X=bW',
+    replace: ',{collectionSlug:$,drawerSlug:B,folderID:M,initialFiles:N,initialForms:j,onSuccess:O,setInitialFiles:V,setInitialForms:z,setSuccessfullyUploaded:Z}=Ho(),[G,te]=wt.useState(!1),[U,J]=wt.useState(""),de=wt.useRef(!1),Q=wt.useRef(null),q=wt.useRef(()=>({})),X=bW',
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
+    findStart: ',Ie=wt.useCallback(async({overrides:ie}={})=>{let le=q.current(),Y=[..._];',
+    findEnd: 'let K=Y[T]?.formID,ge=[];',
+    replace: ',Ie=wt.useCallback(async({overrides:ie}={})=>{let le=q.current(),Y=[..._];if(Y[T]){let existingFormState=Y[T].formState;Y[T]={errorCount:Y[T].errorCount,formID:Y[T].formID,formState:{...existingFormState,...le,file:le.file?.value?le.file:existingFormState.file},uploadEdits:Y[T].uploadEdits}}let K=Y[T]?.formID,ge=[];',
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
     findStart: 'fe=wt.useCallback(()=>{D({type:"REPLACE",state:{forms:_.map(ie=>({...ie,uploadEdits:{}}))}})},[_]);return wt.useEffect(()=>{',
     findEnd: 'gW(uR',
-    replace: 'fe=wt.useCallback(()=>{D({type:"REPLACE",state:{forms:_.map(ie=>({...ie,uploadEdits:{}}))}})},[_]);return wt.useEffect(()=>{$&&(v||xe(),S||ve(),(N||j)&&I(!v||!S),v&&(j?.length||N?.length)&&!de.current&&(j?.length&&Ge(j),N?.length&&he(N),de.current=!0))},[N,xe,ve,$,v,S,j]),wt.useEffect(()=>{N?.length&&!F&&g&&_.length&&!autoSaveInitialFiles.current&&(autoSaveInitialFiles.current=!0,void Ie())},[_.length,g,N,F,Ie]),gW(uR',
+    replace: 'fe=wt.useCallback(()=>{D({type:"REPLACE",state:{forms:_.map(ie=>({...ie,uploadEdits:{}}))}})},[_]);return wt.useEffect(()=>{$&&(v||xe(),S||ve(),(N||j)&&I(!v||!S),v&&(j?.length||N?.length)&&!de.current&&(j?.length&&Ge(j),N?.length&&he(N),de.current=!0))},[N,xe,ve,$,v,S,j]),gW(uR',
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
+    find: 'function ry(t){let e=xR(12),{className:o}=t,{getEntityConfig:r}=W(),{t:n}=E(),{collectionSlug:s,hasPublishPermission:i,hasSavePermission:l,saveAllDocs:a}=Wo(),c;',
+    replace: 'function ry(t){let e=xR(12),{className:o}=t,{getEntityConfig:r}=W(),{t:n}=E(),{collectionSlug:s,hasPublishPermission:i,hasSavePermission:l,saveAllDocs:a}=Wo(),{initialFiles:autoInitialFiles}=Ho(),autoSaveInitialFiles=RW.useRef(!1);RW.useEffect(()=>{if(!autoInitialFiles?.length||!l||autoSaveInitialFiles.current)return;autoSaveInitialFiles.current=!0;let autoSaveTimeout=window.setTimeout(()=>{void a()},0);return()=>window.clearTimeout(autoSaveTimeout)},[autoInitialFiles,l,a]);let c;',
   },
   {
     file: 'node_modules/@payloadcms/storage-s3/dist/client/S3ClientUploadHandler.js',
