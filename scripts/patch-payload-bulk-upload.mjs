@@ -114,11 +114,18 @@ import { normalizeRelationshipValue } from '../../utilities/normalizeRelationshi
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/fields/Upload/Input.js',
-    find: `  const [populatedDocs, setPopulatedDocs] = React.useState();
-  const [activeRelationTo] = React.useState(Array.isArray(relationTo) ? relationTo[0] : relationTo);`,
+    findStart: `  const [populatedDocs, setPopulatedDocs] = React.useState();
+`,
+    findEnd: `  const {
+    openModal
+  } = useModal();`,
     replace: `  const [populatedDocs, setPopulatedDocs] = React.useState();
   const [isInlineUploading, setIsInlineUploading] = React.useState(false);
-  const [activeRelationTo] = React.useState(Array.isArray(relationTo) ? relationTo[0] : relationTo);`,
+  const [inlineUploadProgress, setInlineUploadProgress] = React.useState(0);
+  const [activeRelationTo] = React.useState(Array.isArray(relationTo) ? relationTo[0] : relationTo);
+  const {
+    openModal
+  } = useModal();`,
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/fields/Upload/Input.js',
@@ -150,28 +157,9 @@ import { normalizeRelationshipValue } from '../../utilities/normalizeRelationshi
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/fields/Upload/Input.js',
-    find: `  const onLocalFileSelection = React.useCallback(fileList => {
-    let fileListToUse = fileList;
-    if (!hasMany && fileList && fileList.length > 1) {
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(fileList[0]);
-      fileListToUse = dataTransfer.files;
-    }
-    if (fileListToUse) {
-      setInitialFiles(fileListToUse);
-    }
-    // Use activeRelationTo for poly uploads, or relationTo as string for single collection
-    const collectionToUse = Array.isArray(relationTo) ? activeRelationTo : relationTo;
-    setCollectionSlug(collectionToUse);
-    if (Array.isArray(collectionSlugsWithCreatePermission)) {
-      setSelectableCollections(collectionSlugsWithCreatePermission);
-    }
-    if (typeof maxRows === 'number') {
-      setMaxFiles(maxRows);
-    }
-    openModal(drawerSlug);
-  }, [hasMany, relationTo, activeRelationTo, setCollectionSlug, collectionSlugsWithCreatePermission, maxRows, openModal, drawerSlug, setInitialFiles, setSelectableCollections, setMaxFiles]);`,
-    replace: `  const createInlineUploadFormData = React.useCallback(async (file, collectionToUse) => {
+    optional: true,
+    always: true,
+    findStart: `  const createInlineUploadFormData = React.useCallback(async (file, collectionToUse) => {
     let fileToUpload = file;
     const uploadHandler = getUploadHandler({
       collectionSlug: collectionToUse
@@ -201,6 +189,64 @@ import { normalizeRelationshipValue } from '../../utilities/normalizeRelationshi
     return formData;
   }, [getUploadHandler]);
   const uploadFilesInline = React.useCallback(async fileList => {
+`,
+    findEnd: `  // only hasMany can bulk select`,
+    replace: `  const createInlineUploadFormData = React.useCallback(async (file, collectionToUse) => {
+    let fileToUpload = file;
+    const uploadHandler = getUploadHandler({
+      collectionSlug: collectionToUse
+    });
+    if (fileToUpload && typeof uploadHandler === 'function' && !fileToUpload.type?.startsWith('image/')) {
+      let filename = fileToUpload.name;
+      const clientUploadContext = await uploadHandler({
+        docPrefix: undefined,
+        file: fileToUpload,
+        updateFilename: newFilename => {
+          filename = newFilename;
+        }
+      });
+      fileToUpload = JSON.stringify({
+        clientUploadContext,
+        collectionSlug: collectionToUse,
+        filename,
+        mimeType: file.type,
+        size: file.size
+      });
+    }
+    const formData = new FormData();
+    formData.append('_payload', JSON.stringify({}));
+    if (fileToUpload) {
+      formData.append('file', fileToUpload);
+    }
+    return formData;
+  }, [getUploadHandler]);
+  const submitInlineUpload = React.useCallback((actionURL, formData, progressStart, progressEnd) => new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('POST', actionURL);
+    request.withCredentials = true;
+    request.setRequestHeader('Accept-Language', i18n.language);
+    request.upload.onprogress = event => {
+      if (event.lengthComputable) {
+        setInlineUploadProgress(Math.round(progressStart + event.loaded / event.total * (progressEnd - progressStart)));
+      }
+    };
+    request.onload = () => {
+      let json = null;
+      try {
+        json = request.responseText ? JSON.parse(request.responseText) : null;
+      } catch {
+        // Ignore invalid JSON and surface the status failure below.
+      }
+      resolve({
+        json,
+        status: request.status
+      });
+    };
+    request.onerror = () => reject(new Error('Upload failed'));
+    request.onabort = () => reject(new Error('Upload canceled'));
+    request.send(formData);
+  }), [i18n.language]);
+  const uploadFilesInline = React.useCallback(async fileList => {
     let fileListToUse = fileList;
     if (!hasMany && fileList && fileList.length > 1) {
       const dataTransfer = new DataTransfer();
@@ -216,9 +262,14 @@ import { normalizeRelationshipValue } from '../../utilities/normalizeRelationshi
       return;
     }
     setIsInlineUploading(true);
+    setInlineUploadProgress(0);
     const uploadedForms = [];
     try {
-      for (const file of filesToUpload) {
+      for (let fileIndex = 0; fileIndex < filesToUpload.length; fileIndex += 1) {
+        const file = filesToUpload[fileIndex];
+        const progressStart = Math.round(fileIndex / filesToUpload.length * 100);
+        const progressEnd = Math.round((fileIndex + 1) / filesToUpload.length * 100);
+        setInlineUploadProgress(Math.max(5, progressStart));
         try {
           const actionURL = formatAdminURL({
             apiRoute: api,
@@ -228,20 +279,16 @@ import { normalizeRelationshipValue } from '../../utilities/normalizeRelationshi
           }, {
             addQueryPrefix: true
           });
-          const response = await fetch(actionURL, {
-            body: await createInlineUploadFormData(file, collectionToUse),
-            credentials: 'include',
-            headers: {
-              'Accept-Language': i18n.language
-            },
-            method: 'POST'
-          });
-          const json = await response.json().catch(() => null);
-          if (response.status === 201 && json?.doc) {
+          const {
+            json,
+            status
+          } = await submitInlineUpload(actionURL, await createInlineUploadFormData(file, collectionToUse), progressStart, progressEnd);
+          if (status === 201 && json?.doc) {
             uploadedForms.push({
               collectionSlug: collectionToUse,
               doc: json.doc
             });
+            setInlineUploadProgress(progressEnd);
           } else {
             toast.error(json?.errors?.[0]?.message || json?.message || 'Upload failed');
           }
@@ -254,8 +301,9 @@ import { normalizeRelationshipValue } from '../../utilities/normalizeRelationshi
       }
     } finally {
       setIsInlineUploading(false);
+      setInlineUploadProgress(0);
     }
-  }, [activeRelationTo, api, code, createInlineUploadFormData, hasMany, i18n.language, maxRows, onUploadSuccess, relationTo, value]);
+  }, [activeRelationTo, api, code, createInlineUploadFormData, hasMany, maxRows, onUploadSuccess, relationTo, submitInlineUpload, value]);
   const onLocalFileSelection = React.useCallback(fileList => {
     if (fileList?.length) {
       void uploadFilesInline(fileList);
@@ -271,7 +319,144 @@ import { normalizeRelationshipValue } from '../../utilities/normalizeRelationshi
       setMaxFiles(maxRows);
     }
     openModal(drawerSlug);
-  }, [relationTo, activeRelationTo, setCollectionSlug, collectionSlugsWithCreatePermission, maxRows, openModal, drawerSlug, setSelectableCollections, setMaxFiles, uploadFilesInline]);`,
+  }, [relationTo, activeRelationTo, setCollectionSlug, collectionSlugsWithCreatePermission, maxRows, openModal, drawerSlug, setSelectableCollections, setMaxFiles, uploadFilesInline]);
+  // only hasMany can bulk select`,
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/fields/Upload/Input.js',
+    findStart: `  const onLocalFileSelection = React.useCallback(fileList => {
+`,
+    findEnd: `  // only hasMany can bulk select`,
+    replace: `  const createInlineUploadFormData = React.useCallback(async (file, collectionToUse) => {
+    let fileToUpload = file;
+    const uploadHandler = getUploadHandler({
+      collectionSlug: collectionToUse
+    });
+    if (fileToUpload && typeof uploadHandler === 'function' && !fileToUpload.type?.startsWith('image/')) {
+      let filename = fileToUpload.name;
+      const clientUploadContext = await uploadHandler({
+        docPrefix: undefined,
+        file: fileToUpload,
+        updateFilename: newFilename => {
+          filename = newFilename;
+        }
+      });
+      fileToUpload = JSON.stringify({
+        clientUploadContext,
+        collectionSlug: collectionToUse,
+        filename,
+        mimeType: file.type,
+        size: file.size
+      });
+    }
+    const formData = new FormData();
+    formData.append('_payload', JSON.stringify({}));
+    if (fileToUpload) {
+      formData.append('file', fileToUpload);
+    }
+    return formData;
+  }, [getUploadHandler]);
+  const submitInlineUpload = React.useCallback((actionURL, formData, progressStart, progressEnd) => new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('POST', actionURL);
+    request.withCredentials = true;
+    request.setRequestHeader('Accept-Language', i18n.language);
+    request.upload.onprogress = event => {
+      if (event.lengthComputable) {
+        setInlineUploadProgress(Math.round(progressStart + event.loaded / event.total * (progressEnd - progressStart)));
+      }
+    };
+    request.onload = () => {
+      let json = null;
+      try {
+        json = request.responseText ? JSON.parse(request.responseText) : null;
+      } catch {
+        // Ignore invalid JSON and surface the status failure below.
+      }
+      resolve({
+        json,
+        status: request.status
+      });
+    };
+    request.onerror = () => reject(new Error('Upload failed'));
+    request.onabort = () => reject(new Error('Upload canceled'));
+    request.send(formData);
+  }), [i18n.language]);
+  const uploadFilesInline = React.useCallback(async fileList => {
+    let fileListToUse = fileList;
+    if (!hasMany && fileList && fileList.length > 1) {
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(fileList[0]);
+      fileListToUse = dataTransfer.files;
+    }
+    const collectionToUse = Array.isArray(relationTo) ? activeRelationTo : relationTo;
+    let filesToUpload = Array.from(fileListToUse || []);
+    if (typeof maxRows === 'number' && hasMany && Array.isArray(value)) {
+      filesToUpload = filesToUpload.slice(0, Math.max(maxRows - value.length, 0));
+    }
+    if (!collectionToUse || filesToUpload.length === 0) {
+      return;
+    }
+    setIsInlineUploading(true);
+    setInlineUploadProgress(0);
+    const uploadedForms = [];
+    try {
+      for (let fileIndex = 0; fileIndex < filesToUpload.length; fileIndex += 1) {
+        const file = filesToUpload[fileIndex];
+        const progressStart = Math.round(fileIndex / filesToUpload.length * 100);
+        const progressEnd = Math.round((fileIndex + 1) / filesToUpload.length * 100);
+        setInlineUploadProgress(Math.max(5, progressStart));
+        try {
+          const actionURL = formatAdminURL({
+            apiRoute: api,
+            path: '/' + collectionToUse
+          }) + qs.stringify({
+            locale: code
+          }, {
+            addQueryPrefix: true
+          });
+          const {
+            json,
+            status
+          } = await submitInlineUpload(actionURL, await createInlineUploadFormData(file, collectionToUse), progressStart, progressEnd);
+          if (status === 201 && json?.doc) {
+            uploadedForms.push({
+              collectionSlug: collectionToUse,
+              doc: json.doc
+            });
+            setInlineUploadProgress(progressEnd);
+          } else {
+            toast.error(json?.errors?.[0]?.message || json?.message || 'Upload failed');
+          }
+        } catch (error) {
+          toast.error(error instanceof Error ? error.message : 'Upload failed');
+        }
+      }
+      if (uploadedForms.length) {
+        onUploadSuccess(uploadedForms);
+      }
+    } finally {
+      setIsInlineUploading(false);
+      setInlineUploadProgress(0);
+    }
+  }, [activeRelationTo, api, code, createInlineUploadFormData, hasMany, maxRows, onUploadSuccess, relationTo, submitInlineUpload, value]);
+  const onLocalFileSelection = React.useCallback(fileList => {
+    if (fileList?.length) {
+      void uploadFilesInline(fileList);
+      return;
+    }
+    // Keep the drawer fallback for manual create actions that do not provide files.
+    const collectionToUse = Array.isArray(relationTo) ? activeRelationTo : relationTo;
+    setCollectionSlug(collectionToUse);
+    if (Array.isArray(collectionSlugsWithCreatePermission)) {
+      setSelectableCollections(collectionSlugsWithCreatePermission);
+    }
+    if (typeof maxRows === 'number') {
+      setMaxFiles(maxRows);
+    }
+    openModal(drawerSlug);
+  }, [relationTo, activeRelationTo, setCollectionSlug, collectionSlugsWithCreatePermission, maxRows, openModal, drawerSlug, setSelectableCollections, setMaxFiles, uploadFilesInline]);
+  // only hasMany can bulk select`,
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/fields/Upload/Input.js',
@@ -295,9 +480,185 @@ import { normalizeRelationshipValue } from '../../utilities/normalizeRelationshi
               onClick: openListDrawer,`,
   },
   {
+    file: 'node_modules/@payloadcms/ui/dist/fields/Upload/Input.js',
+    find: `  const [isInlineUploading, setIsInlineUploading] = React.useState(false);
+  const [activeRelationTo] = React.useState(Array.isArray(relationTo) ? relationTo[0] : relationTo);`,
+    replace: `  const [isInlineUploading, setIsInlineUploading] = React.useState(false);
+  const [inlineUploadProgress, setInlineUploadProgress] = React.useState(0);
+  const [activeRelationTo] = React.useState(Array.isArray(relationTo) ? relationTo[0] : relationTo);`,
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/fields/Upload/Input.js',
+    find: `  const uploadFilesInline = React.useCallback(async fileList => {`,
+    replace: `  const submitInlineUpload = React.useCallback((actionURL, formData, progressStart, progressEnd) => new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('POST', actionURL);
+    request.withCredentials = true;
+    request.setRequestHeader('Accept-Language', i18n.language);
+    request.upload.onprogress = event => {
+      if (event.lengthComputable) {
+        setInlineUploadProgress(Math.round(progressStart + event.loaded / event.total * (progressEnd - progressStart)));
+      }
+    };
+    request.onload = () => {
+      let json = null;
+      try {
+        json = request.responseText ? JSON.parse(request.responseText) : null;
+      } catch {
+        // Ignore invalid JSON and surface the status failure below.
+      }
+      resolve({
+        json,
+        status: request.status
+      });
+    };
+    request.onerror = () => reject(new Error('Upload failed'));
+    request.onabort = () => reject(new Error('Upload canceled'));
+    request.send(formData);
+  }), [i18n.language]);
+  const uploadFilesInline = React.useCallback(async fileList => {`,
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/fields/Upload/Input.js',
+    find: `    setIsInlineUploading(true);
+    const uploadedForms = [];`,
+    replace: `    setIsInlineUploading(true);
+    setInlineUploadProgress(0);
+    const uploadedForms = [];`,
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/fields/Upload/Input.js',
+    find: `      for (const file of filesToUpload) {
+        try {`,
+    replace: `      for (let fileIndex = 0; fileIndex < filesToUpload.length; fileIndex += 1) {
+        const file = filesToUpload[fileIndex];
+        const progressStart = Math.round(fileIndex / filesToUpload.length * 100);
+        const progressEnd = Math.round((fileIndex + 1) / filesToUpload.length * 100);
+        setInlineUploadProgress(Math.max(5, progressStart));
+        try {`,
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/fields/Upload/Input.js',
+    find: `          const response = await fetch(actionURL, {
+            body: await createInlineUploadFormData(file, collectionToUse),
+            credentials: 'include',
+            headers: {
+              'Accept-Language': i18n.language
+            },
+            method: 'POST'
+          });
+          const json = await response.json().catch(() => null);
+          if (response.status === 201 && json?.doc) {`,
+    replace: `          const {
+            json,
+            status
+          } = await submitInlineUpload(actionURL, await createInlineUploadFormData(file, collectionToUse), progressStart, progressEnd);
+          if (status === 201 && json?.doc) {`,
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/fields/Upload/Input.js',
+    find: `              collectionSlug: collectionToUse,
+              doc: json.doc
+            });
+          } else {`,
+    replace: `              collectionSlug: collectionToUse,
+              doc: json.doc
+            });
+            setInlineUploadProgress(progressEnd);
+          } else {`,
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/fields/Upload/Input.js',
+    find: `    } finally {
+      setIsInlineUploading(false);
+    }
+  }, [activeRelationTo, api, code, createInlineUploadFormData, hasMany, i18n.language, maxRows, onUploadSuccess, relationTo, value]);`,
+    replace: `    } finally {
+      setIsInlineUploading(false);
+      setInlineUploadProgress(0);
+    }
+  }, [activeRelationTo, api, code, createInlineUploadFormData, hasMany, maxRows, onUploadSuccess, relationTo, submitInlineUpload, value]);`,
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/fields/Upload/Input.js',
+    find: `        children: /*#__PURE__*/_jsxs("div", {
+          className: \`\${baseClass}__dropzoneContent\`,`,
+    replace: `        children: isInlineUploading ? /*#__PURE__*/_jsxs("div", {
+          className: \`\${baseClass}__inlineUpload\`,
+          children: [/*#__PURE__*/_jsx("div", {
+            className: \`\${baseClass}__inlineUploadText\`,
+            children: "Uploading..."
+          }), /*#__PURE__*/_jsx("div", {
+            "aria-label": "Upload progress",
+            "aria-valuemax": 100,
+            "aria-valuemin": 0,
+            "aria-valuenow": inlineUploadProgress,
+            className: \`\${baseClass}__inlineUploadTrack\`,
+            role: "progressbar",
+            children: /*#__PURE__*/_jsx("div", {
+              className: \`\${baseClass}__inlineUploadBar\`,
+              style: {
+                width: \`\${inlineUploadProgress}%\`
+              }
+            })
+          })]
+        }) : /*#__PURE__*/_jsxs("div", {
+          className: \`\${baseClass}__dropzoneContent\`,`,
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/fields/Upload/index.scss',
+    find: `    &__dragAndDropText {
+      flex-shrink: 0;
+      margin: 0;
+      text-transform: lowercase;
+      align-self: center;
+      color: var(--theme-elevation-500);
+    }
+
+    &__loadingRows {`,
+    replace: `    &__dragAndDropText {
+      flex-shrink: 0;
+      margin: 0;
+      text-transform: lowercase;
+      align-self: center;
+      color: var(--theme-elevation-500);
+    }
+
+    &__inlineUpload {
+      display: flex;
+      flex-direction: column;
+      gap: calc(var(--base) / 3);
+      width: 100%;
+    }
+
+    &__inlineUploadText {
+      color: var(--theme-elevation-600);
+      font-size: 13px;
+      line-height: 1;
+    }
+
+    &__inlineUploadTrack {
+      background: var(--theme-elevation-150);
+      border-radius: 999px;
+      height: 6px;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    &__inlineUploadBar {
+      background: var(--theme-elevation-900);
+      border-radius: inherit;
+      height: 100%;
+      transition: width 160ms ease;
+    }
+
+    &__loadingRows {`,
+  },
+  {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
-    find: '}=t,[R,D]=Fn.useState(),[T]=Fn.useState(Array.isArray(v)?v[0]:v),{openModal:_}=ne(),',
-    replace: '}=t,[R,D]=Fn.useState(),[inlineUploading,setInlineUploading]=Fn.useState(!1),[T]=Fn.useState(Array.isArray(v)?v[0]:v),{openModal:_}=ne(),',
+    findStart: 'function Vh(t){let{AfterInput:e,allowCreate:o,api:r,BeforeInput:n,className:s,Description:i,description:l,displayPreview:a,Error:c,filterOptions:u,hasMany:d,isSortable:f,Label:m,label:p,localized:h,maxRows:g,onChange:b,path:C,readOnly:y,relationTo:v,required:x,serverURL:S,showError:w,style:F,value:I}=t,[R,D]=Fn.useState(),',
+    findEnd: ',[T]=Fn.useState(Array.isArray(v)?v[0]:v),{openModal:_}=ne(),',
+    replace: 'function Vh(t){let{AfterInput:e,allowCreate:o,api:r,BeforeInput:n,className:s,Description:i,description:l,displayPreview:a,Error:c,filterOptions:u,hasMany:d,isSortable:f,Label:m,label:p,localized:h,maxRows:g,onChange:b,path:C,readOnly:y,relationTo:v,required:x,serverURL:S,showError:w,style:F,value:I}=t,[R,D]=Fn.useState(),[inlineUploading,setInlineUploading]=Fn.useState(!1),[inlineUploadProgress,setInlineUploadProgress]=Fn.useState(0),[T]=Fn.useState(Array.isArray(v)?v[0]:v),{openModal:_}=ne(),',
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
@@ -306,8 +667,16 @@ import { normalizeRelationshipValue } from '../../utilities/normalizeRelationshi
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
-    find: 'Oe=Fn.useCallback(H=>{let ce=H;if(!d&&H&&H.length>1){let ie=new DataTransfer;ie.items.add(H[0]),ce=ie.files}ce&&P(ce);let fe=Array.isArray(v)?T:v;k(fe),Array.isArray(V)&&B(V),typeof g=="number"&&L(g),_(A)},[d,v,T,k,V,g,_,A,P,B,L]),',
-    replace: 'Oe=Fn.useCallback(async H=>{if(H?.length){let ce=H;if(!d&&H.length>1){let le=new DataTransfer;le.items.add(H[0]),ce=le.files}let fe=Array.from(ce),ie=Array.isArray(v)?T:v;if(typeof g=="number"&&d&&Array.isArray(I)&&(fe=fe.slice(0,Math.max(g-I.length,0))),!ie||!fe.length)return;setInlineUploading(!0);let le=[];try{for(let Y of fe)try{let K=Y,ge=inlineGetUploadHandler({collectionSlug:ie});if(K&&typeof ge=="function"&&!(typeof K.type=="string"&&K.type.startsWith("image/"))){let re=K.name,pe=await ge({docPrefix:void 0,file:K,updateFilename:Te=>{re=Te}});K=JSON.stringify({clientUploadContext:pe,collectionSlug:ie,filename:re,mimeType:Y.type,size:Y.size})}let pe=new FormData;pe.append("_payload",JSON.stringify({})),K&&pe.append("file",K);let Te=await fetch(NU({apiRoute:r,path:"/"+ie})+kA.stringify({locale:N},{addQueryPrefix:!0}),{body:pe,credentials:"include",headers:{"Accept-Language":j.language},method:"POST"}),je=await Te.json().catch(()=>null);Te.status===201&&je?.doc?le.push({collectionSlug:ie,doc:je.doc}):ee.error(je?.errors?.[0]?.message||je?.message||"Upload failed")}catch(K){ee.error(K instanceof Error?K.message:"Upload failed")}le.length&&xe(le)}finally{setInlineUploading(!1)}return}let ce=H,fe=Array.isArray(v)?T:v;ce&&P(ce),k(fe),Array.isArray(V)&&B(V),typeof g=="number"&&L(g),_(A)},[d,v,T,g,I,inlineGetUploadHandler,r,N,j.language,xe,k,V,_,A,P,B,L]),',
+    optional: true,
+    findStart: 'D([{relationTo:fe.collectionSlug,value:fe.doc}])}},[I,X,d,v,ve]),Oe=Fn.useCallback(',
+    findEnd: ',Be=Fn.useCallback',
+    replace: 'D([{relationTo:fe.collectionSlug,value:fe.doc}])}},[I,X,d,v,ve]),Oe=Fn.useCallback(async H=>{if(H?.length){let ce=H;if(!d&&H.length>1){let le=new DataTransfer;le.items.add(H[0]),ce=le.files}let fe=Array.from(ce),ie=Array.isArray(v)?T:v;if(typeof g=="number"&&d&&Array.isArray(I)&&(fe=fe.slice(0,Math.max(g-I.length,0))),!ie||!fe.length)return;setInlineUploading(!0),setInlineUploadProgress(0);let le=[];try{for(let Y=0;Y<fe.length;Y+=1){let K=fe[Y],ge=Math.round(Y/fe.length*100),re=Math.round((Y+1)/fe.length*100);setInlineUploadProgress(Math.max(5,ge));try{let pe=K,Te=inlineGetUploadHandler({collectionSlug:ie});if(pe&&typeof Te=="function"&&!(typeof pe.type=="string"&&pe.type.startsWith("image/"))){let je=pe.name,Re=await Te({docPrefix:void 0,file:pe,updateFilename:We=>{je=We}});pe=JSON.stringify({clientUploadContext:Re,collectionSlug:ie,filename:je,mimeType:K.type,size:K.size})}let je=new FormData;je.append("_payload",JSON.stringify({})),pe&&je.append("file",pe);let Re=await new Promise((We,Lt)=>{let kt=new XMLHttpRequest;kt.open("POST",NU({apiRoute:r,path:"/"+ie})+kA.stringify({locale:N},{addQueryPrefix:!0})),kt.withCredentials=!0,kt.setRequestHeader("Accept-Language",j.language),kt.upload.onprogress=wo=>{wo.lengthComputable&&setInlineUploadProgress(Math.round(ge+wo.loaded/wo.total*(re-ge)))},kt.onload=()=>{let wo=null;try{wo=kt.responseText?JSON.parse(kt.responseText):null}catch{}We({json:wo,status:kt.status})},kt.onerror=()=>Lt(new Error("Upload failed")),kt.onabort=()=>Lt(new Error("Upload canceled")),kt.send(je)});Re.status===201&&Re.json?.doc?(le.push({collectionSlug:ie,doc:Re.json.doc}),setInlineUploadProgress(re)):ee.error(Re.json?.errors?.[0]?.message||Re.json?.message||"Upload failed")}catch(pe){ee.error(pe instanceof Error?pe.message:"Upload failed")}}le.length&&xe(le)}finally{setInlineUploading(!1),setInlineUploadProgress(0)}return}let ce=H,fe=Array.isArray(v)?T:v;ce&&P(ce),k(fe),Array.isArray(V)&&B(V),typeof g=="number"&&L(g),_(A)},[d,v,T,g,I,inlineGetUploadHandler,r,N,j.language,xe,k,V,_,A,P,B,L]),Be=Fn.useCallback',
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
+    optional: true,
+    find: '},[d,v,T,g,I,inlineGetUploadHandler,r,N,j.language,xe,k,V,_,A,P,B,L])(async(H,ce)=>',
+    replace: '},[d,v,T,g,I,inlineGetUploadHandler,r,N,j.language,xe,k,V,_,A,P,B,L]),Be=Fn.useCallback(async(H,ce)=>',
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
@@ -323,6 +692,11 @@ import { normalizeRelationshipValue } from '../../utilities/normalizeRelationshi
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
     find: 'className:`${Un}__listToggler`,disabled:y,onClick:te,',
     replace: 'className:`${Un}__listToggler`,disabled:y||inlineUploading,onClick:te,',
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
+    find: 'Ie?oo(xa,{disabled:y||!q||inlineUploading,multipleFiles:d,onChange:Oe,children:Fa("div",{className:`${Un}__dropzoneContent`,children:[Fa("div",{className:`${Un}__dropzoneContent__buttons`,children:[q&&Fa(Md,{children:[oo(oe,{buttonStyle:"pill",className:`${Un}__createNewToggler`,disabled:y||!q||inlineUploading,onClick:()=>{y||(d?Oe():de())},size:"small",children:O("general:createNew")}),oo("span",{className:`${Un}__dropzoneContent__orText`,children:O("general:or")})]}),oo(oe,{buttonStyle:"pill",className:`${Un}__listToggler`,disabled:y||inlineUploading,onClick:te,size:"small",children:O("fields:chooseFromExisting")}),oo(U,{onSave:Xe}),oo(Z,{allowCreate:q,enableRowSelections:d,onBulkSelect:Be,onSelect:he})]}),q&&!y&&Fa("p",{className:`${Un}__dragAndDropText`,children:[O("general:or")," ",O("upload:dragAndDrop")]})]})})',
+    replace: 'Ie?oo(xa,{disabled:y||!q||inlineUploading,multipleFiles:d,onChange:Oe,children:inlineUploading?Fa("div",{className:`${Un}__inlineUpload`,children:[oo("div",{className:`${Un}__inlineUploadText`,children:"Uploading..."}),oo("div",{"aria-label":"Upload progress","aria-valuemax":100,"aria-valuemin":0,"aria-valuenow":inlineUploadProgress,className:`${Un}__inlineUploadTrack`,role:"progressbar",children:oo("div",{className:`${Un}__inlineUploadBar`,style:{width:`${inlineUploadProgress}%`}})})]}):Fa("div",{className:`${Un}__dropzoneContent`,children:[Fa("div",{className:`${Un}__dropzoneContent__buttons`,children:[q&&Fa(Md,{children:[oo(oe,{buttonStyle:"pill",className:`${Un}__createNewToggler`,disabled:y||!q||inlineUploading,onClick:()=>{y||(d?Oe():de())},size:"small",children:O("general:createNew")}),oo("span",{className:`${Un}__dropzoneContent__orText`,children:O("general:or")})]}),oo(oe,{buttonStyle:"pill",className:`${Un}__listToggler`,disabled:y||inlineUploading,onClick:te,size:"small",children:O("fields:chooseFromExisting")}),oo(U,{onSave:Xe}),oo(Z,{allowCreate:q,enableRowSelections:d,onBulkSelect:Be,onSelect:he})]}),q&&!y&&Fa("p",{className:`${Un}__dragAndDropText`,children:[O("general:or")," ",O("upload:dragAndDrop")]})]})})',
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/elements/BulkUpload/FormsManager/index.js',
@@ -601,7 +975,7 @@ for (const patch of patches) {
 
   const source = fs.readFileSync(filePath, 'utf8')
 
-  if (source.includes(patch.replace)) {
+  if (!patch.always && source.includes(patch.replace)) {
     continue
   }
 
@@ -612,12 +986,18 @@ for (const patch of patches) {
     const endIndex = startIndex === -1 ? -1 : source.indexOf(patch.findEnd, startIndex + patch.findStart.length)
 
     if (startIndex === -1 || endIndex === -1) {
+      if (patch.optional) {
+        continue
+      }
       throw new Error(`[patch-payload-bulk-upload] Could not find expected code in ${patch.file}`)
     }
 
     patchedSource = `${source.slice(0, startIndex)}${patch.replace}${source.slice(endIndex + patch.findEnd.length)}`
   } else {
     if (!source.includes(patch.find)) {
+      if (patch.optional) {
+        continue
+      }
       throw new Error(`[patch-payload-bulk-upload] Could not find expected code in ${patch.file}`)
     }
 
