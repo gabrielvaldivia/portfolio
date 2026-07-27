@@ -32,7 +32,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react'
-import type { ListViewClientProps } from 'payload'
+import type { Data, ListViewClientProps } from 'payload'
 import { AdminHugeIcon } from './Hugeicons'
 
 type MediaSize = {
@@ -457,7 +457,7 @@ export function MediaMasonryListView(props: ListViewClientProps) {
   } = useConfig()
   const router = useRouter()
   const { data, isGroupingBy, query } = useListQuery()
-  const { allowCreate, onBulkSelect } = useListDrawerContext()
+  const { allowCreate, drawerSlug, onBulkSelect, onSelect } = useListDrawerContext()
   const { drawerSlug: bulkUploadDrawerSlug, setCollectionSlug, setOnSuccess } = useBulkUpload()
   const { openModal } = useModal()
   const { i18n } = useTranslation()
@@ -501,6 +501,7 @@ export function MediaMasonryListView(props: ListViewClientProps) {
       collectionConfig.upload.bulkUpload &&
       !collectionConfig.upload.hideFileInputOnCreate,
   )
+  const shouldSelectFromDrawer = Boolean(drawerSlug && typeof onSelect === 'function')
   const isTrashEnabled = Boolean(collectionConfig?.trash)
   const listControlActions =
     enableRowSelections && typeof onBulkSelect === 'function'
@@ -529,6 +530,22 @@ export function MediaMasonryListView(props: ListViewClientProps) {
     setMediaDraft(getMediaDraft(item))
     setCopyURLLabel('Copy URL')
   }, [])
+
+  const handleMediaCardClick = useCallback(
+    (item: MediaDoc) => {
+      if (shouldSelectFromDrawer && typeof onSelect === 'function') {
+        onSelect({
+          collectionSlug,
+          doc: item as unknown as Data,
+          docID: getMediaID(item),
+        })
+        return
+      }
+
+      openMediaViewer(item)
+    },
+    [collectionSlug, onSelect, openMediaViewer, shouldSelectFromDrawer],
+  )
 
   const closeMediaViewer = useCallback(() => {
     setSelectedMedia(null)
@@ -814,10 +831,10 @@ export function MediaMasonryListView(props: ListViewClientProps) {
 
                   return (
                     <button
-                      aria-label={`Preview ${title}`}
+                      aria-label={`${shouldSelectFromDrawer ? 'Select' : 'Preview'} ${title}`}
                       className="media-masonry-card"
                       key={item.id}
-                      onClick={() => openMediaViewer(item)}
+                      onClick={() => handleMediaCardClick(item)}
                       type="button"
                     >
                       <span className="media-masonry-card__preview" style={getPreviewStyle(item)}>

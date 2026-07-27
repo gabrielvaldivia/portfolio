@@ -6,7 +6,6 @@ type DashboardPage = {
   id: number | string
   order?: number | null
   slug?: string | null
-  status?: string | null
   title?: string | null
 }
 
@@ -34,7 +33,6 @@ export async function PageDashboard({ permissions, req }: WidgetServerProps) {
     select: {
       order: true,
       slug: true,
-      status: true,
       title: true,
     },
     sort: 'order',
@@ -68,7 +66,6 @@ export async function PageDashboard({ permissions, req }: WidgetServerProps) {
                       </span>
                       <span className="page-dashboard__meta">
                         {slug ? <span>{slug}</span> : null}
-                        {page.status ? <span>{page.status}</span> : null}
                       </span>
                     </a>
                   </li>

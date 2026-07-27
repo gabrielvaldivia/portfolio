@@ -5,6 +5,7 @@ import { getPayload, isPayloadUnavailable } from '@/lib/payload'
 import {
   getModuleLikeAnchorId,
   getModuleLikeTargetId,
+  getPhotoLikeTargetId,
   isLikeableModuleBlock,
   SUPER_MODULE_LIKE_AMOUNT,
   parseModuleLikeTargetId,
@@ -13,6 +14,7 @@ import {
   MODULE_LIKE_ACTIVITY_PAGE_SIZE,
   MODULE_LIKE_FEED_PAGE_SIZE,
 } from '@/lib/moduleLikeActivityPagination'
+import { getPhotos, type Photo, type PhotoExif } from '@/lib/photos'
 
 type ModuleLikeActivityRow = {
   id: number | string
@@ -60,6 +62,11 @@ type ActivityTarget = {
   label: string
   noun: string
   block?: any
+  photoInfo?: {
+    dateLabel?: string
+    exif?: PhotoExif
+  } | null
+  zoomablePhoto?: boolean
   thumbnail: {
     type: 'image' | 'video'
     url: string
@@ -136,6 +143,13 @@ const feedPaddingScale: Record<string, string> = {
   '60': '7.5%',
   '80': '9.5%',
 }
+
+const photoActivityDateFormatter = new Intl.DateTimeFormat('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  timeZone: 'UTC',
+})
 
 export function readRows<T>(result: unknown): T[] {
   if (Array.isArray(result)) return result as T[]
@@ -485,17 +499,63 @@ function indexDocumentTargets(index: Map<string, ActivityTarget>, doc: any, sour
   })
 }
 
+function getPhotoActivityDateLabel(photo: Photo) {
+  const date = new Date(photo.datePublished)
+  return Number.isNaN(date.getTime()) ? '' : photoActivityDateFormatter.format(date)
+}
+
+function indexPhotoTargets(index: Map<string, ActivityTarget>, photos: Photo[]) {
+  photos.forEach((photo) => {
+    if (!photo.slug || !photo.src) return
+
+    const dateLabel = getPhotoActivityDateLabel(photo)
+    const label = photo.alt.trim() || (dateLabel ? `Photo from ${dateLabel}` : 'Photo')
+
+    index.set(getPhotoLikeTargetId(photo.slug), {
+      href: `/photo/${photo.slug}`,
+      sourceTitle: 'Photos',
+      label,
+      noun: 'photo',
+      block: {
+        blockType: 'image',
+        image: {
+          url: photo.src,
+          width: photo.width,
+          height: photo.height,
+          alt: photo.alt,
+        },
+        fit: 'contain',
+      },
+      photoInfo: {
+        dateLabel,
+        exif: photo.exif,
+      },
+      zoomablePhoto: true,
+      thumbnail: {
+        type: 'image',
+        url: photo.src,
+        alt: photo.alt || label,
+        width: photo.width,
+        height: photo.height,
+        fit: 'cover',
+      },
+    })
+  })
+}
+
 const getActivityTargetIndex = cache(async function getActivityTargetIndex() {
   const payload = await getPayload()
   if (isPayloadUnavailable(payload)) throw new Error('Activity target data is temporarily unavailable')
-  const [projects, sideProjects] = await Promise.all([
+  const [projects, sideProjects, photos] = await Promise.all([
     payload.find({ collection: 'projects', limit: 200, depth: 1, select: { title: true, slug: true, content: true } }),
     payload.find({ collection: 'side-projects', limit: 200, depth: 1, select: { title: true, slug: true, content: true } }),
+    getPhotos(),
   ])
   const index = new Map<string, ActivityTarget>()
 
   projects.docs.forEach((project: any) => indexDocumentTargets(index, project, 'project'))
   sideProjects.docs.forEach((project: any) => indexDocumentTargets(index, project, 'side-project'))
+  indexPhotoTargets(index, photos)
 
   return index
 })
@@ -507,6 +567,8 @@ function getFallbackTarget(targetId: string): ActivityTarget {
     ? `/work/${parsed.slug}`
     : parsed?.sourceType === 'side-project'
       ? `/playground/${parsed.slug}`
+      : parsed?.sourceType === 'photo'
+        ? `/photo/${parsed.slug}`
       : '#'
 
   return {

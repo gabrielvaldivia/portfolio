@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { normalizeCloudUploadBuffers } from '../lib/payloadUploadBuffers'
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -12,6 +13,12 @@ export const Media: CollectionConfig = {
           data.alt = data.filename.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ')
         }
         return data
+      },
+    ],
+    afterChange: [
+      ({ doc, req }) => {
+        normalizeCloudUploadBuffers(req)
+        return doc
       },
     ],
   },

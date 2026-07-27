@@ -1,13 +1,16 @@
 'use client'
 
-import { Button, toast, useConfig, useRouteTransition } from '@payloadcms/ui'
+import { Button, toast, useConfig, useListQuery, useRouteTransition } from '@payloadcms/ui'
 import { useRouter } from 'next/navigation'
 import { formatAdminURL } from 'payload/shared'
-import { useEffect, useRef, useState, type ChangeEvent, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type CSSProperties } from 'react'
 
 const uploadEventName = 'photos-list-upload'
 
 type UploadItem = {
+  createdAt: number
+  docID?: number | string
+  filename?: string | null
   id: string
   name: string
   progress: number
@@ -17,13 +20,32 @@ type UploadItem = {
 
 type UploadEventDetail =
   | { type: 'add'; items: UploadItem[] }
-  | { type: 'update'; id: string; progress?: number; status?: UploadItem['status'] }
+  | {
+      type: 'update'
+      doc?: UploadedPhotoDoc
+      filename?: string | null
+      id: string
+      progress?: number
+      status?: UploadItem['status']
+    }
   | { type: 'remove'; ids: string[] }
 
 type SignedUploadResponse = {
   docPrefix?: string
   filename: string
   url: string
+}
+
+type StorageUploadResult = {
+  filename: string
+  payload: string
+}
+
+type UploadedPhotoDoc = {
+  createdAt?: string | null
+  filename?: string | null
+  id?: number | string
+  updatedAt?: string | null
 }
 
 function emitUploadEvent(detail: UploadEventDetail) {
@@ -106,8 +128,12 @@ function getNextUploadItems(current: UploadItem[], detail: Extract<UploadEventDe
   return current.map((item) => {
     if (item.id !== detail.id) return item
 
+    const docFields = detail.doc ? getUploadDocFields(detail.doc) : {}
+
     return {
       ...item,
+      ...docFields,
+      ...(detail.filename !== undefined ? { filename: detail.filename } : {}),
       ...(typeof detail.progress === 'number' ? { progress: clampProgress(detail.progress) } : {}),
       ...(detail.status ? { status: detail.status } : {}),
     }
@@ -135,12 +161,82 @@ function getUploadErrorMessage(error: unknown, fallback: string) {
 
 function getUploadItem(file: File, index: number): UploadItem {
   return {
+    createdAt: Date.now(),
     id: createUploadID(file, index),
     name: file.name,
     progress: 0,
     previewURL: URL.createObjectURL(file),
     status: 'uploading',
   }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object'
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0
+}
+
+function getPhotoDocID(doc?: UploadedPhotoDoc) {
+  if (doc?.id === undefined || doc.id === null) return undefined
+  return String(doc.id)
+}
+
+function getUploadDocFields(doc: UploadedPhotoDoc): Pick<UploadItem, 'docID' | 'filename'> {
+  return {
+    docID: doc.id,
+    filename: doc.filename,
+  }
+}
+
+function getUploadedPhotoDoc(data: unknown): UploadedPhotoDoc | undefined {
+  if (!isRecord(data)) return undefined
+
+  const candidate = isRecord(data.doc) ? data.doc : isRecord(data.result) ? data.result : data
+  if (!isRecord(candidate)) return undefined
+
+  if (!('id' in candidate) && !('filename' in candidate)) {
+    return undefined
+  }
+
+  return candidate as UploadedPhotoDoc
+}
+
+async function getJSON(response: Response) {
+  try {
+    return await response.json()
+  } catch {
+    return undefined
+  }
+}
+
+function wasPhotoCreatedForUpload(photo: UploadedPhotoDoc, item: UploadItem) {
+  const timestamp = Date.parse(photo.createdAt || photo.updatedAt || '')
+
+  if (!Number.isFinite(timestamp)) {
+    return true
+  }
+
+  return timestamp >= item.createdAt - 1000
+}
+
+function doesPhotoMatchUploadItem(photo: UploadedPhotoDoc, item: UploadItem) {
+  const uploadDocID = item.docID === undefined || item.docID === null ? undefined : String(item.docID)
+
+  if (uploadDocID && getPhotoDocID(photo) === uploadDocID) {
+    return true
+  }
+
+  if (!wasPhotoCreatedForUpload(photo, item)) {
+    return false
+  }
+
+  return isNonEmptyString(item.filename) && photo.filename === item.filename
+}
+
+function isUploadRepresentedInPhotos(item: UploadItem, photos: UploadedPhotoDoc[]) {
+  return item.status === 'done' && photos.some((photo) => doesPhotoMatchUploadItem(photo, item))
 }
 
 export function PhotosListAddAction() {
@@ -154,7 +250,10 @@ export function PhotosListAddAction() {
   } = useConfig()
   const [uploading, setUploading] = useState(false)
 
-  const uploadToStorage = async (file: File, onProgress: (progress: number) => void) => {
+  const uploadToStorage = async (
+    file: File,
+    onProgress: (progress: number) => void,
+  ): Promise<StorageUploadResult> => {
     const signedURLResponse = await fetch(
       formatAdminURL({
         apiRoute,
@@ -194,21 +293,24 @@ export function PhotosListAddAction() {
       throw new Error(getUploadErrorMessage(error, `Storage upload failed for ${file.name}`))
     }
 
-    return getPhotoRecordPayload({
-      file,
+    return {
       filename,
-      prefix: docPrefix,
-    })
+      payload: getPhotoRecordPayload({
+        file,
+        filename,
+        prefix: docPrefix,
+      }),
+    }
   }
 
   const uploadFile = async (file: File, id: string) => {
     const body = new FormData()
     body.append('_payload', JSON.stringify({}))
-    body.append(
-      'file',
-      await uploadToStorage(file, (progress) => emitUploadEvent({ id, progress, type: 'update' })),
+    const uploadResult = await uploadToStorage(file, (progress) =>
+      emitUploadEvent({ id, progress, type: 'update' }),
     )
-    emitUploadEvent({ id, progress: 0.94, type: 'update' })
+    body.append('file', uploadResult.payload)
+    emitUploadEvent({ filename: uploadResult.filename, id, progress: 0.94, type: 'update' })
 
     const response = await fetch(
       formatAdminURL({
@@ -234,7 +336,15 @@ export function PhotosListAddAction() {
       )
     }
 
-    emitUploadEvent({ id, progress: 1, status: 'done', type: 'update' })
+    const uploadedDoc = getUploadedPhotoDoc(await getJSON(response))
+    emitUploadEvent({
+      doc: uploadedDoc,
+      filename: uploadedDoc?.filename || uploadResult.filename,
+      id,
+      progress: 1,
+      status: 'done',
+      type: 'update',
+    })
   }
 
   const handleFiles = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -304,7 +414,37 @@ export function PhotosListAddAction() {
 }
 
 export function PhotosListUploadStatus() {
+  const { data } = useListQuery()
   const [items, setItems] = useState<UploadItem[]>([])
+  const photos = useMemo(() => ((data?.docs || []) as UploadedPhotoDoc[]).filter(Boolean), [data?.docs])
+  const visibleItems = useMemo(
+    () => items.filter((item) => !isUploadRepresentedInPhotos(item, photos)),
+    [items, photos],
+  )
+
+  useEffect(() => {
+    const representedItems = items.filter((item) => isUploadRepresentedInPhotos(item, photos))
+
+    if (!representedItems.length) {
+      return
+    }
+
+    const timeoutID = window.setTimeout(() => {
+      setItems((current) =>
+        current.filter((item) => {
+          const isRepresented = isUploadRepresentedInPhotos(item, photos)
+
+          if (isRepresented) {
+            URL.revokeObjectURL(item.previewURL)
+          }
+
+          return !isRepresented
+        }),
+      )
+    }, 0)
+
+    return () => window.clearTimeout(timeoutID)
+  }, [items, photos])
 
   useEffect(() => {
     const handleEvent = (event: Event) => {
@@ -327,13 +467,13 @@ export function PhotosListUploadStatus() {
     return () => window.removeEventListener(uploadEventName, handleEvent)
   }, [])
 
-  if (!items.length) {
+  if (!visibleItems.length) {
     return null
   }
 
   return (
     <div className="photos-upload-status" aria-live="polite">
-      {items.map((item) => (
+      {visibleItems.map((item) => (
         <div
           aria-label={`${item.name} ${getUploadProgressLabel(item)}`}
           className={`photos-upload-status__item photos-upload-status__item--${item.status}`}

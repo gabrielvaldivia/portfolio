@@ -385,19 +385,19 @@ function PhotoInfoPopover({
 
   return (
     <motion.div
-      className="pointer-events-none absolute inset-x-5 bottom-[calc(1.125rem+env(safe-area-inset-bottom))] z-30 mx-auto w-[calc(100dvw-40px)] max-w-[452px] origin-bottom tablet:inset-x-10 tablet:bottom-[calc(1.5rem+env(safe-area-inset-bottom))]"
+      className="pointer-events-none absolute bottom-[calc(1.125rem+env(safe-area-inset-bottom))] right-5 z-30 w-[calc(100dvw-40px)] max-w-[452px] origin-bottom-right tablet:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] tablet:right-10 tablet:w-[calc(100dvw-80px)]"
       initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.68, y: 14 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.68, y: 14 }}
       transition={{ duration: prefersReducedMotion ? 0 : 0.18, ease: [0.2, 0, 0, 1] }}
-      style={{ transformOrigin: 'bottom center' }}
+      style={{ transformOrigin: 'bottom right' }}
     >
       <motion.div
         className="pointer-events-auto cursor-grab touch-none rounded-[24px] bg-[#181818]/[0.96] p-3 text-white/[0.92] shadow-[0_8px_30px_rgba(0,0,0,0.24)] active:cursor-grabbing"
         style={{
           opacity: dragOpacity,
           scale: dragScale,
-          transformOrigin: 'bottom center',
+          transformOrigin: 'bottom right',
           willChange: 'transform, opacity',
           x: dragX,
           y: dragY,
@@ -460,14 +460,14 @@ function PhotoLightboxMeta({
 
   return (
     <>
-      <div className="pointer-events-none absolute inset-x-0 bottom-[calc(1.125rem+env(safe-area-inset-bottom))] z-20 flex justify-center px-5 tablet:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] tablet:px-10">
+      <div className="pointer-events-none absolute bottom-[calc(1.125rem+env(safe-area-inset-bottom))] right-5 z-20 flex justify-end tablet:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] tablet:right-10">
         <button
           type="button"
           aria-label="Show photo information"
           aria-expanded={infoOpen}
           title="Photo information"
           className={cn(
-            'flex h-8 items-center justify-center rounded-full px-1 font-mono text-[12px] uppercase leading-none text-black/45 transition-[color,opacity] duration-150 hover:text-black/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current dark:text-white/45 dark:hover:text-white/70',
+            'inline-flex h-8 touch-manipulation select-none items-center gap-1.5 rounded-full bg-elevated px-2.5 text-caption font-medium text-muted shadow-sm outline outline-1 outline-offset-0 outline-gray-400/40 transition-[color,opacity,background-color] duration-150 hover:text-content focus-visible:ring-2 focus-visible:ring-content/30',
             infoOpen ? 'pointer-events-none opacity-0' : 'pointer-events-auto opacity-100',
           )}
           onClick={(event) => {
@@ -475,7 +475,7 @@ function PhotoLightboxMeta({
             onToggleInfo()
           }}
         >
-          INFO
+          Info
         </button>
       </div>
 
@@ -2310,7 +2310,14 @@ export function ModuleLightboxOverlay({
           )}
 
           {activeSlide.likeTargetId && (
-            <div className="pointer-events-none absolute inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 flex justify-center px-4 tablet:bottom-6">
+            <div
+              className={cn(
+                'pointer-events-none absolute z-20 flex',
+                activeSlideIsZoomablePhoto
+                  ? 'bottom-[calc(1.125rem+env(safe-area-inset-bottom))] left-0 justify-start px-5 tablet:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] tablet:px-10'
+                  : 'inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] justify-center px-4 tablet:bottom-6',
+              )}
+            >
               <div className="pointer-events-auto text-black dark:text-white">
                 <ModuleLikeButton targetId={activeSlide.likeTargetId} />
               </div>

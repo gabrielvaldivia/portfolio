@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import {
   createContext,
   useCallback,
+  useEffect,
   useContext,
   useLayoutEffect,
   useMemo,
@@ -137,14 +138,17 @@ function getSurfacePaddingRatios(element: HTMLElement) {
 
 export function ModuleLightboxProvider({
   slides,
+  initialSlideId,
   children,
 }: {
   slides: ModuleLightboxSlide[]
+  initialSlideId?: string | null
   children: ReactNode
 }) {
   const [openState, setOpenState] = useState<OpenLightboxState | null>(null)
   const [hiddenSlideId, setHiddenSlideId] = useState<string | null>(null)
   const openKeyRef = useRef(0)
+  const initialSlideOpenedRef = useRef<string | null>(null)
   const sourceAspectRatiosRef = useRef(new Map<string, number>())
   const sourceElementsRef = useRef(new Map<string, HTMLElement>())
   const sourceRectsRef = useRef(new Map<string, LightboxRect>())
@@ -258,6 +262,14 @@ export function ModuleLightboxProvider({
     registerSlideElement,
     registerMovableSurface,
   }), [hiddenSlideId, openSlide, registerMovableSurface, registerSlideAspectRatio, registerSlideElement])
+
+  useEffect(() => {
+    if (!initialSlideId || initialSlideOpenedRef.current === initialSlideId) return
+
+    initialSlideOpenedRef.current = initialSlideId
+    const frame = requestAnimationFrame(() => openSlide(initialSlideId))
+    return () => cancelAnimationFrame(frame)
+  }, [initialSlideId, openSlide])
 
   return (
     <ModuleLightboxContext.Provider value={contextValue}>

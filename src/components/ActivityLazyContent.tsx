@@ -191,7 +191,7 @@ function getLikePhrase(noun: string, isSuperlike: boolean) {
 
 function getActivitySentenceParts(item: ActivityDisplayItem) {
   const location = item.location ? ` from ${item.location}` : ''
-  const source = item.target.sourceTitle
+  const source = item.target.noun === 'photo' ? '' : item.target.sourceTitle
   const repetitions = item.count > 1 ? ` ${item.count} times` : ''
   const isSuperlike = item.amount > 1
 
@@ -521,6 +521,8 @@ function getFeedLightboxSlides(items: ModuleLikeFeedItem[]): ModuleLightboxSlide
       block,
       label: `Open ${item.target.label} fullscreen`,
       likeTargetId: item.targetId,
+      photoInfo: item.target.photoInfo,
+      zoomablePhoto: item.target.zoomablePhoto,
       movableSurface: false,
     })
   })

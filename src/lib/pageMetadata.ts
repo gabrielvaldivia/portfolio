@@ -24,6 +24,19 @@ type BuildPageMetadataOptions = {
   appendSiteName?: boolean
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object')
+}
+
+function getString(value: unknown): string | undefined {
+  return typeof value === 'string' && value ? value : undefined
+}
+
+function getPageMeta(page: unknown): Record<string, unknown> | undefined {
+  if (!isRecord(page) || !isRecord(page.meta)) return undefined
+  return page.meta
+}
+
 function resolveMetaImage(image: unknown): MetaImage | undefined {
   if (!image || typeof image !== 'object') return undefined
 
@@ -32,17 +45,18 @@ function resolveMetaImage(image: unknown): MetaImage | undefined {
 }
 
 export function buildPageMetadata(
-  page: PageLike | null | undefined,
+  page: unknown,
   {
     fallbackTitle,
     fallbackDescription = '',
     appendSiteName = true,
   }: BuildPageMetadataOptions,
 ): Metadata {
-  const titleText = page?.meta?.title || fallbackTitle
+  const meta = getPageMeta(page)
+  const titleText = getString(meta?.title) || fallbackTitle
   const title = appendSiteName ? `${titleText} — ${SITE_NAME}` : titleText
-  const description = page?.meta?.description || fallbackDescription
-  const image = resolveMetaImage(page?.meta?.image)
+  const description = getString(meta?.description) || fallbackDescription
+  const image = resolveMetaImage(meta?.image)
 
   const openGraphImage = image?.url
     ? {

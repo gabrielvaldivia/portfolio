@@ -23,6 +23,10 @@ export function getModuleLikeTargetId(namespace: string, block: any, index: numb
   return `${namespace}:${block?.blockType || 'module'}:${blockId}`
 }
 
+export function getPhotoLikeTargetId(slug: string) {
+  return `photo:${slug}:image:${slug}`
+}
+
 export function getModuleLikeAnchorId(targetId: string) {
   return `module-${targetId.replace(/[^a-z0-9_-]+/gi, '-')}`
 }
@@ -32,7 +36,7 @@ export function parseModuleLikeTargetId(targetId: string) {
   const blockId = blockIdParts.join(':')
 
   if (!sourceType || !slug || !blockType || !blockId) return null
-  if (sourceType !== 'project' && sourceType !== 'side-project') return null
+  if (sourceType !== 'project' && sourceType !== 'side-project' && sourceType !== 'photo') return null
 
   return { sourceType, slug, blockType, blockId }
 }
