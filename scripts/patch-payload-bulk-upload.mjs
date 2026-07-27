@@ -97,6 +97,234 @@ const patches = [
     replace: 'let i={...n,...e},l=new FormData;return l.append("_payload",JSON.stringify(i)),s&&l.append("file",s),l',
   },
   {
+    file: 'node_modules/@payloadcms/ui/dist/fields/Upload/Input.js',
+    find: `import React, { useCallback, useEffect, useMemo } from 'react';
+import { useBulkUpload } from '../../elements/BulkUpload/index.js';`,
+    replace: `import React, { useCallback, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
+import { useBulkUpload } from '../../elements/BulkUpload/index.js';`,
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/fields/Upload/Input.js',
+    find: `import { useTranslation } from '../../providers/Translation/index.js';
+import { normalizeRelationshipValue } from '../../utilities/normalizeRelationshipValue.js';`,
+    replace: `import { useTranslation } from '../../providers/Translation/index.js';
+import { useUploadHandlers } from '../../providers/UploadHandlers/index.js';
+import { normalizeRelationshipValue } from '../../utilities/normalizeRelationshipValue.js';`,
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/fields/Upload/Input.js',
+    find: `  const [populatedDocs, setPopulatedDocs] = React.useState();
+  const [activeRelationTo] = React.useState(Array.isArray(relationTo) ? relationTo[0] : relationTo);`,
+    replace: `  const [populatedDocs, setPopulatedDocs] = React.useState();
+  const [isInlineUploading, setIsInlineUploading] = React.useState(false);
+  const [activeRelationTo] = React.useState(Array.isArray(relationTo) ? relationTo[0] : relationTo);`,
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/fields/Upload/Input.js',
+    find: `  const {
+    drawerSlug,
+    setCollectionSlug,
+    setInitialFiles,
+    setMaxFiles,
+    setOnSuccess,
+    setSelectableCollections
+  } = useBulkUpload();
+  const {
+    permissions
+  } = useAuth();`,
+    replace: `  const {
+    drawerSlug,
+    setCollectionSlug,
+    setInitialFiles,
+    setMaxFiles,
+    setOnSuccess,
+    setSelectableCollections
+  } = useBulkUpload();
+  const {
+    getUploadHandler
+  } = useUploadHandlers();
+  const {
+    permissions
+  } = useAuth();`,
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/fields/Upload/Input.js',
+    find: `  const onLocalFileSelection = React.useCallback(fileList => {
+    let fileListToUse = fileList;
+    if (!hasMany && fileList && fileList.length > 1) {
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(fileList[0]);
+      fileListToUse = dataTransfer.files;
+    }
+    if (fileListToUse) {
+      setInitialFiles(fileListToUse);
+    }
+    // Use activeRelationTo for poly uploads, or relationTo as string for single collection
+    const collectionToUse = Array.isArray(relationTo) ? activeRelationTo : relationTo;
+    setCollectionSlug(collectionToUse);
+    if (Array.isArray(collectionSlugsWithCreatePermission)) {
+      setSelectableCollections(collectionSlugsWithCreatePermission);
+    }
+    if (typeof maxRows === 'number') {
+      setMaxFiles(maxRows);
+    }
+    openModal(drawerSlug);
+  }, [hasMany, relationTo, activeRelationTo, setCollectionSlug, collectionSlugsWithCreatePermission, maxRows, openModal, drawerSlug, setInitialFiles, setSelectableCollections, setMaxFiles]);`,
+    replace: `  const createInlineUploadFormData = React.useCallback(async (file, collectionToUse) => {
+    let fileToUpload = file;
+    const uploadHandler = getUploadHandler({
+      collectionSlug: collectionToUse
+    });
+    if (fileToUpload && typeof uploadHandler === 'function' && !fileToUpload.type?.startsWith('image/')) {
+      let filename = fileToUpload.name;
+      const clientUploadContext = await uploadHandler({
+        docPrefix: undefined,
+        file: fileToUpload,
+        updateFilename: newFilename => {
+          filename = newFilename;
+        }
+      });
+      fileToUpload = JSON.stringify({
+        clientUploadContext,
+        collectionSlug: collectionToUse,
+        filename,
+        mimeType: file.type,
+        size: file.size
+      });
+    }
+    const formData = new FormData();
+    formData.append('_payload', JSON.stringify({}));
+    if (fileToUpload) {
+      formData.append('file', fileToUpload);
+    }
+    return formData;
+  }, [getUploadHandler]);
+  const uploadFilesInline = React.useCallback(async fileList => {
+    let fileListToUse = fileList;
+    if (!hasMany && fileList && fileList.length > 1) {
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(fileList[0]);
+      fileListToUse = dataTransfer.files;
+    }
+    const collectionToUse = Array.isArray(relationTo) ? activeRelationTo : relationTo;
+    let filesToUpload = Array.from(fileListToUse || []);
+    if (typeof maxRows === 'number' && hasMany && Array.isArray(value)) {
+      filesToUpload = filesToUpload.slice(0, Math.max(maxRows - value.length, 0));
+    }
+    if (!collectionToUse || filesToUpload.length === 0) {
+      return;
+    }
+    setIsInlineUploading(true);
+    const uploadedForms = [];
+    try {
+      for (const file of filesToUpload) {
+        try {
+          const actionURL = formatAdminURL({
+            apiRoute: api,
+            path: '/' + collectionToUse
+          }) + qs.stringify({
+            locale: code
+          }, {
+            addQueryPrefix: true
+          });
+          const response = await fetch(actionURL, {
+            body: await createInlineUploadFormData(file, collectionToUse),
+            credentials: 'include',
+            headers: {
+              'Accept-Language': i18n.language
+            },
+            method: 'POST'
+          });
+          const json = await response.json().catch(() => null);
+          if (response.status === 201 && json?.doc) {
+            uploadedForms.push({
+              collectionSlug: collectionToUse,
+              doc: json.doc
+            });
+          } else {
+            toast.error(json?.errors?.[0]?.message || json?.message || 'Upload failed');
+          }
+        } catch (error) {
+          toast.error(error instanceof Error ? error.message : 'Upload failed');
+        }
+      }
+      if (uploadedForms.length) {
+        onUploadSuccess(uploadedForms);
+      }
+    } finally {
+      setIsInlineUploading(false);
+    }
+  }, [activeRelationTo, api, code, createInlineUploadFormData, hasMany, i18n.language, maxRows, onUploadSuccess, relationTo, value]);
+  const onLocalFileSelection = React.useCallback(fileList => {
+    if (fileList?.length) {
+      void uploadFilesInline(fileList);
+      return;
+    }
+    // Keep the drawer fallback for manual create actions that do not provide files.
+    const collectionToUse = Array.isArray(relationTo) ? activeRelationTo : relationTo;
+    setCollectionSlug(collectionToUse);
+    if (Array.isArray(collectionSlugsWithCreatePermission)) {
+      setSelectableCollections(collectionSlugsWithCreatePermission);
+    }
+    if (typeof maxRows === 'number') {
+      setMaxFiles(maxRows);
+    }
+    openModal(drawerSlug);
+  }, [relationTo, activeRelationTo, setCollectionSlug, collectionSlugsWithCreatePermission, maxRows, openModal, drawerSlug, setSelectableCollections, setMaxFiles, uploadFilesInline]);`,
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/fields/Upload/Input.js',
+    find: `        disabled: readOnly || !canCreate,
+        multipleFiles: hasMany,`,
+    replace: `        disabled: readOnly || !canCreate || isInlineUploading,
+        multipleFiles: hasMany,`,
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/fields/Upload/Input.js',
+    find: `                disabled: readOnly || !canCreate,
+                onClick: () => {`,
+    replace: `                disabled: readOnly || !canCreate || isInlineUploading,
+                onClick: () => {`,
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/fields/Upload/Input.js',
+    find: `              disabled: readOnly,
+              onClick: openListDrawer,`,
+    replace: `              disabled: readOnly || isInlineUploading,
+              onClick: openListDrawer,`,
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
+    find: '}=t,[R,D]=Fn.useState(),[T]=Fn.useState(Array.isArray(v)?v[0]:v),{openModal:_}=ne(),',
+    replace: '}=t,[R,D]=Fn.useState(),[inlineUploading,setInlineUploading]=Fn.useState(!1),[T]=Fn.useState(Array.isArray(v)?v[0]:v),{openModal:_}=ne(),',
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
+    find: '{drawerSlug:A,setCollectionSlug:k,setInitialFiles:P,setMaxFiles:L,setOnSuccess:$,setSelectableCollections:B}=Ho(),{permissions:M}=_e(),',
+    replace: '{drawerSlug:A,setCollectionSlug:k,setInitialFiles:P,setMaxFiles:L,setOnSuccess:$,setSelectableCollections:B}=Ho(),{getUploadHandler:inlineGetUploadHandler}=dd(),{permissions:M}=_e(),',
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
+    find: 'Oe=Fn.useCallback(H=>{let ce=H;if(!d&&H&&H.length>1){let ie=new DataTransfer;ie.items.add(H[0]),ce=ie.files}ce&&P(ce);let fe=Array.isArray(v)?T:v;k(fe),Array.isArray(V)&&B(V),typeof g=="number"&&L(g),_(A)},[d,v,T,k,V,g,_,A,P,B,L]),',
+    replace: 'Oe=Fn.useCallback(async H=>{if(H?.length){let ce=H;if(!d&&H.length>1){let le=new DataTransfer;le.items.add(H[0]),ce=le.files}let fe=Array.from(ce),ie=Array.isArray(v)?T:v;if(typeof g=="number"&&d&&Array.isArray(I)&&(fe=fe.slice(0,Math.max(g-I.length,0))),!ie||!fe.length)return;setInlineUploading(!0);let le=[];try{for(let Y of fe)try{let K=Y,ge=inlineGetUploadHandler({collectionSlug:ie});if(K&&typeof ge=="function"&&!(typeof K.type=="string"&&K.type.startsWith("image/"))){let re=K.name,pe=await ge({docPrefix:void 0,file:K,updateFilename:Te=>{re=Te}});K=JSON.stringify({clientUploadContext:pe,collectionSlug:ie,filename:re,mimeType:Y.type,size:Y.size})}let pe=new FormData;pe.append("_payload",JSON.stringify({})),K&&pe.append("file",K);let Te=await fetch(NU({apiRoute:r,path:"/"+ie})+kA.stringify({locale:N},{addQueryPrefix:!0}),{body:pe,credentials:"include",headers:{"Accept-Language":j.language},method:"POST"}),je=await Te.json().catch(()=>null);Te.status===201&&je?.doc?le.push({collectionSlug:ie,doc:je.doc}):ee.error(je?.errors?.[0]?.message||je?.message||"Upload failed")}catch(K){ee.error(K instanceof Error?K.message:"Upload failed")}le.length&&xe(le)}finally{setInlineUploading(!1)}return}let ce=H,fe=Array.isArray(v)?T:v;ce&&P(ce),k(fe),Array.isArray(V)&&B(V),typeof g=="number"&&L(g),_(A)},[d,v,T,g,I,inlineGetUploadHandler,r,N,j.language,xe,k,V,_,A,P,B,L]),',
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
+    find: 'Ie?oo(xa,{disabled:y||!q,multipleFiles:d,onChange:Oe,',
+    replace: 'Ie?oo(xa,{disabled:y||!q||inlineUploading,multipleFiles:d,onChange:Oe,',
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
+    find: 'className:`${Un}__createNewToggler`,disabled:y||!q,onClick:()=>{y||(d?Oe():de())},',
+    replace: 'className:`${Un}__createNewToggler`,disabled:y||!q||inlineUploading,onClick:()=>{y||(d?Oe():de())},',
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
+    find: 'className:`${Un}__listToggler`,disabled:y,onClick:te,',
+    replace: 'className:`${Un}__listToggler`,disabled:y||inlineUploading,onClick:te,',
+  },
+  {
     file: 'node_modules/@payloadcms/ui/dist/elements/BulkUpload/FormsManager/index.js',
     find: `    if (successCount) {
       toast.success(\`Successfully saved \${successCount} files\`);
