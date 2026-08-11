@@ -56,7 +56,7 @@ export async function PhotoGallery({ initialPhotoSlug }: { initialPhotoSlug?: st
         <p className="px-5 text-muted tablet:px-10">No photos yet.</p>
       ) : (
         <ModuleLightboxProvider slides={getPhotoSlides(photos)} initialSlideId={initialSlideId}>
-          <div className="columns-1 gap-[10px] tablet:columns-2 desktop:columns-3">
+          <div className="columns-[350px] gap-[10px] px-[10px]">
             {photos.map((photo) => (
               <div key={photo.slug} className="group/photo relative mb-[10px] inline-block w-full break-inside-avoid">
                 <ModuleLightboxTrigger
