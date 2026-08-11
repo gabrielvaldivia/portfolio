@@ -632,7 +632,7 @@ import { normalizeRelationshipValue } from '../../utilities/normalizeRelationshi
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
-    findStart: 'function Vh(t){let{AfterInput:e,allowCreate:o,api:r,BeforeInput:n,className:s,Description:i,description:l,displayPreview:a,Error:c,filterOptions:u,hasMany:d,isSortable:f,Label:m,label:p,localized:h,maxRows:g,onChange:b,path:C,readOnly:y,relationTo:v,required:x,serverURL:S,showError:w,style:F,value:I}=t,[R,D]=Fn.useState(),',
+    findStart: 'function Vh(t){let{AfterInput:e,allowCreate:o,api:r,BeforeInput:n,className:s,Description:i,description:l,displayPreview:a,Error:c,filterOptions:u,hasMany:d,isSortable:f,Label:m,label:p,localized:h,maxRows:g,onChange:b,path:C,readOnly:y,relationTo:v,required:x,serverURL:S,showError:w,style:F,value:I}=t,[R,D]=Fn.useState()',
     findEnd: ',[T]=Fn.useState(Array.isArray(v)?v[0]:v),{openModal:_}=ne(),',
     replace: 'function Vh(t){let{AfterInput:e,allowCreate:o,api:r,BeforeInput:n,className:s,Description:i,description:l,displayPreview:a,Error:c,filterOptions:u,hasMany:d,isSortable:f,Label:m,label:p,localized:h,maxRows:g,onChange:b,path:C,readOnly:y,relationTo:v,required:x,serverURL:S,showError:w,style:F,value:I}=t,[R,D]=Fn.useState(),[inlineUploading,setInlineUploading]=Fn.useState(!1),[inlineUploadProgress,setInlineUploadProgress]=Fn.useState(0),[T]=Fn.useState(Array.isArray(v)?v[0]:v),{openModal:_}=ne(),',
   },
@@ -882,7 +882,14 @@ import { useBulkUpload } from '../index.js';`,
   },
   {
     file: 'node_modules/@payloadcms/storage-s3/dist/client/S3ClientUploadHandler.js',
-    find: `        // upload the file directly to S3 using the signed URL
+    find: `import { formatAdminURL } from 'payload/shared';`,
+    replace: `import { formatAdminURL } from 'payload/shared';
+import { toast } from 'sonner';`,
+  },
+  {
+    file: 'node_modules/@payloadcms/storage-s3/dist/client/S3ClientUploadHandler.js',
+    find: [
+      `        // upload the file directly to S3 using the signed URL
         await fetch(url, {
             body: file,
             headers: {
@@ -892,7 +899,7 @@ import { useBulkUpload } from '../index.js';`,
             method: 'PUT'
         });
         // return the docPrefix so the client can update the field value accordingly`,
-    replace: `        // upload the file directly to S3 using the signed URL
+      `        // upload the file directly to S3 using the signed URL
         const uploadResponse = await fetch(url, {
             body: file,
             headers: {
@@ -902,6 +909,70 @@ import { useBulkUpload } from '../index.js';`,
         });
         if (!uploadResponse.ok) {
             throw new Error(\`Failed to upload file to storage: \${uploadResponse.status} \${uploadResponse.statusText}\`);
+        }
+        // return the docPrefix so the client can update the field value accordingly`,
+      `        // XMLHttpRequest is more reliable than fetch for large, direct uploads
+        // from Mobile Safari, where fetch can remain pending after R2 has stored
+        // the complete object.
+        const toastId = toast.loading(\`Uploading \${file.name}…\`);
+        try {
+            await new Promise((resolve, reject)=>{
+                const request = new XMLHttpRequest();
+                request.open('PUT', url, true);
+                request.timeout = 120000;
+                request.setRequestHeader('Content-Type', file.type);
+                request.onload = ()=>{
+                    if (request.status >= 200 && request.status < 300) {
+                        resolve();
+                    } else {
+                        reject(new Error(\`Failed to upload file to storage: \${request.status} \${request.statusText}\`));
+                    }
+                };
+                request.onerror = ()=>reject(new Error('The photo upload lost its network connection.'));
+                request.ontimeout = ()=>reject(new Error('The photo upload timed out after two minutes.'));
+                request.send(file);
+            });
+            toast.success('Upload complete. Saving photo…', {
+                id: toastId
+            });
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Photo upload failed.', {
+                id: toastId
+            });
+            throw error;
+        }
+        // return the docPrefix so the client can update the field value accordingly`,
+    ],
+    replace: `        // XMLHttpRequest is more reliable than fetch for large, direct uploads
+        // from Mobile Safari, where fetch can remain pending after R2 has stored
+        // the complete object.
+        const toastId = toast.loading(\`Uploading \${file.name}…\`);
+        try {
+            await new Promise((resolve, reject)=>{
+                const request = new XMLHttpRequest();
+                request.open('PUT', url, true);
+                request.timeout = 120000;
+                request.setRequestHeader('Content-Type', file.type);
+                request.onload = ()=>{
+                    if (request.status >= 200 && request.status < 300) {
+                        resolve();
+                    } else {
+                        reject(new Error(\`Failed to upload file to storage: \${request.status} \${request.statusText}\`));
+                    }
+                };
+                request.onerror = ()=>reject(new Error('The photo upload lost its network connection.'));
+                request.ontimeout = ()=>reject(new Error('The photo upload timed out after two minutes.'));
+                request.send(file);
+            });
+            toast.success('Upload complete. Saving photo…', {
+                duration: 15000,
+                id: toastId
+            });
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Photo upload failed.', {
+                id: toastId
+            });
+            throw error;
         }
         // return the docPrefix so the client can update the field value accordingly`,
   },
@@ -941,7 +1012,7 @@ import { useBulkUpload } from '../index.js';`,
 
 let applied = 0
 
-for (const patch of patches) {
+for (const [patchIndex, patch] of patches.entries()) {
   const filePath = path.join(root, patch.file)
 
   if (!fs.existsSync(filePath)) {
@@ -965,19 +1036,22 @@ for (const patch of patches) {
       if (patch.optional) {
         continue
       }
-      throw new Error(`[patch-payload-bulk-upload] Could not find expected code in ${patch.file}`)
+      throw new Error(`[patch-payload-bulk-upload] Patch ${patchIndex + 1} could not find expected code in ${patch.file}`)
     }
 
     patchedSource = `${source.slice(0, startIndex)}${patch.replace}${source.slice(endIndex + patch.findEnd.length)}`
   } else {
-    if (!source.includes(patch.find)) {
+    const candidates = Array.isArray(patch.find) ? patch.find : [patch.find]
+    const matchedSource = candidates.find((candidate) => source.includes(candidate))
+
+    if (!matchedSource) {
       if (patch.optional) {
         continue
       }
-      throw new Error(`[patch-payload-bulk-upload] Could not find expected code in ${patch.file}`)
+      throw new Error(`[patch-payload-bulk-upload] Patch ${patchIndex + 1} could not find expected code in ${patch.file}`)
     }
 
-    patchedSource = source.replace(patch.find, () => patch.replace)
+    patchedSource = source.replace(matchedSource, () => patch.replace)
   }
 
   fs.writeFileSync(filePath, patchedSource)
