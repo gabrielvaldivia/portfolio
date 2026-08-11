@@ -1,5 +1,4 @@
 import Image from 'next/image'
-import { Container } from '@/components/Container'
 import { LazyModuleLikeButton } from '@/components/LazyModuleLikeButton'
 import { ModuleLightboxProvider, ModuleLightboxTrigger, type ModuleLightboxSlide } from '@/components/ModuleLightbox'
 import { getPhotoLikeTargetId } from '@/lib/moduleLikes'
@@ -53,38 +52,36 @@ export async function PhotoGallery({ initialPhotoSlug }: { initialPhotoSlug?: st
 
   return (
     <section className="pb-20 tablet:pb-40">
-      <Container>
-        {photos.length === 0 ? (
-          <p className="text-muted">No photos yet.</p>
-        ) : (
-          <ModuleLightboxProvider slides={getPhotoSlides(photos)} initialSlideId={initialSlideId}>
-            <div className="columns-1 gap-5 tablet:columns-2 desktop:columns-3">
-              {photos.map((photo) => (
-                <div key={photo.slug} className="group/photo relative mb-5 inline-block w-full break-inside-avoid tablet:mb-10">
-                  <ModuleLightboxTrigger
-                    slideId={getPhotoSlideId(photo)}
-                    label="Open photo fullscreen"
-                    fallbackAspectRatio={photo.width && photo.height ? photo.width / photo.height : undefined}
-                    className="overflow-hidden rounded-md border border-border bg-background-alt"
-                  >
-                    <Image
-                      src={photo.src}
-                      alt={photo.alt}
-                      width={photo.width}
-                      height={photo.height}
-                      className="h-auto w-full"
-                      sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
-                    />
-                  </ModuleLightboxTrigger>
-                  <div className="absolute bottom-3 left-3 z-20 opacity-100 transition-opacity duration-150 desktop:pointer-events-none desktop:opacity-0 desktop:group-hover/photo:pointer-events-auto desktop:group-hover/photo:opacity-100 desktop:group-focus-within/photo:pointer-events-auto desktop:group-focus-within/photo:opacity-100">
-                    <LazyModuleLikeButton targetId={getPhotoLikeTargetId(photo.slug)} />
-                  </div>
+      {photos.length === 0 ? (
+        <p className="px-5 text-muted tablet:px-10">No photos yet.</p>
+      ) : (
+        <ModuleLightboxProvider slides={getPhotoSlides(photos)} initialSlideId={initialSlideId}>
+          <div className="columns-1 gap-[10px] tablet:columns-2 desktop:columns-3">
+            {photos.map((photo) => (
+              <div key={photo.slug} className="group/photo relative mb-[10px] inline-block w-full break-inside-avoid">
+                <ModuleLightboxTrigger
+                  slideId={getPhotoSlideId(photo)}
+                  label="Open photo fullscreen"
+                  fallbackAspectRatio={photo.width && photo.height ? photo.width / photo.height : undefined}
+                  className="overflow-hidden rounded-md border border-border bg-background-alt"
+                >
+                  <Image
+                    src={photo.src}
+                    alt={photo.alt}
+                    width={photo.width}
+                    height={photo.height}
+                    className="h-auto w-full"
+                    sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
+                  />
+                </ModuleLightboxTrigger>
+                <div className="absolute bottom-3 left-3 z-20 opacity-100 transition-opacity duration-150 desktop:pointer-events-none desktop:opacity-0 desktop:group-hover/photo:pointer-events-auto desktop:group-hover/photo:opacity-100 desktop:group-focus-within/photo:pointer-events-auto desktop:group-focus-within/photo:opacity-100">
+                  <LazyModuleLikeButton targetId={getPhotoLikeTargetId(photo.slug)} />
                 </div>
-              ))}
-            </div>
-          </ModuleLightboxProvider>
-        )}
-      </Container>
+              </div>
+            ))}
+          </div>
+        </ModuleLightboxProvider>
+      )}
     </section>
   )
 }
