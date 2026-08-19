@@ -384,6 +384,7 @@ export function TimelineExperience() {
   const isBeforeBirthday = contentDate.getUTCMonth() < 2
     || (contentDate.getUTCMonth() === 2 && contentDate.getUTCDate() < 23)
   const contentAge = contentYear - BIRTH_YEAR - (isBeforeBirthday ? 1 : 0)
+  const contentAgeLabel = contentAge === 0 ? 'Newborn' : contentAge
   const contentDateLabel = FULL_DATE_FORMATTER.format(contentDate)
   const contentDateTime = contentDate.toISOString().slice(0, 10)
   const pillTimestamp = Math.round(
@@ -907,7 +908,7 @@ export function TimelineExperience() {
           aria-valuemin={BIRTH_YEAR}
           aria-valuemax={PRESENT_YEAR}
           aria-valuenow={contentYear}
-          aria-valuetext={`${contentDateLabel}. Age ${contentAge}. Location: ${locationDetails}.${educationDetails !== '—' ? ` Education: ${educationDetails}.` : ''}${workDetails !== '—' ? ` Work: ${workDetails}.` : ''}`}
+          aria-valuetext={`${contentDateLabel}. Age ${contentAgeLabel}. Location: ${locationDetails}.${educationDetails !== '—' ? ` Education: ${educationDetails}.` : ''}${workDetails !== '—' ? ` Work: ${workDetails}.` : ''}`}
           onKeyDown={handleKeyDown}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
@@ -1140,7 +1141,7 @@ export function TimelineExperience() {
               <dl className={styles.details}>
                 <div className={styles.ageDetail}>
                   <dt>Age</dt>
-                  <dd>{contentAge}</dd>
+                  <dd>{contentAgeLabel}</dd>
                 </div>
                 <div className={styles.whereDetail}>
                   <dt>Where</dt>
@@ -1181,7 +1182,7 @@ export function TimelineExperience() {
             </div>
             <div>
               <dt>Age</dt>
-              <dd>{contentAge}</dd>
+              <dd>{contentAgeLabel}</dd>
             </div>
             <div>
               <dt>Where</dt>
