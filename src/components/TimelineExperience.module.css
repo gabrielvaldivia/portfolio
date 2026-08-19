@@ -836,13 +836,13 @@
   }
 
   .mobilePreviousChapterCue {
-    top: calc(40px - var(--mobile-experience-offset));
+    top: calc(100px - var(--mobile-experience-offset));
     bottom: auto;
   }
 
   .mobileNextChapterCue {
     top: auto;
-    bottom: calc(40px + var(--browser-bottom-inset));
+    bottom: calc(100px + var(--browser-bottom-inset));
   }
 
   .timelineRail {
