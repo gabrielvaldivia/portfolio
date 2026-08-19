@@ -15,7 +15,9 @@ const BIRTH_TIMESTAMP = Date.UTC(1987, 2, 23)
 const PRESENT_TIMESTAMP = Date.UTC(2026, 7, 19)
 const TICKS_PER_YEAR = 1
 const CHAPTER_PULL_THRESHOLD = 80
-const MOBILE_CHAPTER_PULL_THRESHOLD = 140
+const MOBILE_NEXT_CHAPTER_PULL_THRESHOLD = 140
+const MOBILE_PREVIOUS_CHAPTER_PULL_THRESHOLD = 220
+const MOBILE_PREVIOUS_CHAPTER_CUE_DELAY = 100
 const CHAPTER_PULL_MAX_OFFSET = 52
 const CHAPTER_PULL_DAMPING = 140
 const CHAPTER_CUE_PULL_MAX_OFFSET = 12
@@ -835,13 +837,19 @@ export function TimelineExperience() {
     }
 
     chapterPullDistanceRef.current += Math.abs(deltaY)
-    const pullThreshold = window.matchMedia('(max-width: 809px)').matches
-      ? MOBILE_CHAPTER_PULL_THRESHOLD
+    const isMobile = window.matchMedia('(max-width: 809px)').matches
+    const pullThreshold = isMobile
+      ? direction < 0
+        ? MOBILE_PREVIOUS_CHAPTER_PULL_THRESHOLD
+        : MOBILE_NEXT_CHAPTER_PULL_THRESHOLD
       : CHAPTER_PULL_THRESHOLD
-    const pullProgress = Math.min(
+    const cueDelay = isMobile && direction < 0
+      ? MOBILE_PREVIOUS_CHAPTER_CUE_DELAY
+      : 0
+    const cueProgress = Math.max(0, Math.min(
       1,
-      chapterPullDistanceRef.current / pullThreshold,
-    )
+      (chapterPullDistanceRef.current - cueDelay) / (pullThreshold - cueDelay),
+    ))
     const signedPull = chapterPullDistanceRef.current * direction
     const elasticOffset = CHAPTER_PULL_MAX_OFFSET
       * Math.sign(signedPull)
@@ -861,7 +869,7 @@ export function TimelineExperience() {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
     activeCues.forEach((cue) => {
-      if (cue) cue.style.opacity = `${pullProgress}`
+      if (cue) cue.style.opacity = `${cueProgress}`
     })
     inactiveCues.forEach((cue) => {
       cue?.style.removeProperty('opacity')
@@ -888,7 +896,7 @@ export function TimelineExperience() {
       chapterPullDirectionRef.current = 0
       chapterPullIdleTimerRef.current = null
       releaseChapterMotion()
-    }, 260)
+    }, isMobile && direction < 0 ? 420 : 260)
 
     if (chapterPullDistanceRef.current < pullThreshold) return
 
