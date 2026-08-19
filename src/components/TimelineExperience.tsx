@@ -19,8 +19,7 @@ const MOBILE_CHAPTER_PULL_THRESHOLD = 200
 const MOBILE_PREVIOUS_CHAPTER_CUE_DELAY = 100
 const CHAPTER_PULL_MAX_OFFSET = 52
 const CHAPTER_PULL_DAMPING = 140
-const CHAPTER_CUE_PULL_MAX_OFFSET = 12
-const CHAPTER_CUE_PULL_DAMPING = 56
+const CHAPTER_CUE_PULL_FACTOR = 0.06
 const CHAPTER_MOTION_EASE = 'cubic-bezier(0.22, 0.61, 0.24, 1)'
 const CHAPTER_WHEEL_QUIET_MS = 80
 const CHAPTER_BACKWARD_WHEEL_QUIET_MS = 220
@@ -863,8 +862,7 @@ export function TimelineExperience() {
     const mobileActiveCue = direction < 0
       ? mobilePreviousChapterCueRef.current
       : mobileNextChapterCueRef.current
-    const cueOffset = -direction * CHAPTER_CUE_PULL_MAX_OFFSET
-      * (1 - Math.exp(-Math.abs(signedPull) / CHAPTER_CUE_PULL_DAMPING))
+    const cueOffset = -signedPull * CHAPTER_CUE_PULL_FACTOR
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
     activeCues.forEach((cue) => {

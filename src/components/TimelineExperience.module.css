@@ -686,7 +686,8 @@
       env(safe-area-inset-bottom, 0px),
       clamp(0px, calc(100lvh - 100dvh), 120px)
     );
-    height: calc(100svh - 94px);
+    --mobile-experience-offset: 94px;
+    height: calc(100svh - var(--mobile-experience-offset));
     min-height: 600px;
     margin: 0 16px;
     overflow: visible;
@@ -835,13 +836,13 @@
   }
 
   .mobilePreviousChapterCue {
-    top: 104px;
+    top: calc(40px - var(--mobile-experience-offset));
     bottom: auto;
   }
 
   .mobileNextChapterCue {
     top: auto;
-    bottom: calc(110px + var(--browser-bottom-inset));
+    bottom: calc(40px + var(--browser-bottom-inset));
   }
 
   .timelineRail {
