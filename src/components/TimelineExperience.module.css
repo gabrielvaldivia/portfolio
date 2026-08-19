@@ -211,6 +211,10 @@
   min-height: calc(100% + 100px);
 }
 
+.chapterContent {
+  position: relative;
+}
+
 .chapterBoundaryCue {
   position: absolute;
   left: 50%;
@@ -225,13 +229,13 @@
 }
 
 .previousChapterCue {
-  top: 0;
-  transform: translate(-50%, calc(-100% - 12px));
+  top: -40px;
+  transform: translate(-50%, -100%);
 }
 
 .nextChapterCue {
-  bottom: 0;
-  transform: translate(-50%, calc(100% + 12px));
+  bottom: -40px;
+  transform: translate(-50%, 100%);
 }
 
 .story h1 {
@@ -272,6 +276,13 @@
   color: var(--color-muted);
   font-size: 14px;
   line-height: 1;
+}
+
+.chapterEyebrowLabel {
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+  white-space: nowrap;
 }
 
 .chapterEyebrow button:first-of-type {
@@ -429,6 +440,10 @@
 }
 
 @media (min-width: 810px) and (max-width: 1279px) {
+  .chapterHeader {
+    min-height: calc(100% + 100px);
+  }
+
   .activeDate {
     display: none;
   }
@@ -651,12 +666,13 @@
     right: auto;
     bottom: auto;
     left: auto;
-    min-height: 100%;
+    min-height: calc(100% + 100px);
     padding: 26px 24px 164px;
   }
 
   .stage {
     overflow-y: auto;
+    overscroll-behavior: contain;
     scrollbar-width: none;
   }
 

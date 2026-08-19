@@ -14,7 +14,7 @@ const PRESENT_YEAR = 2026
 const BIRTH_TIMESTAMP = Date.UTC(1987, 2, 23)
 const PRESENT_TIMESTAMP = Date.UTC(2026, 7, 19)
 const TICKS_PER_YEAR = 1
-const CHAPTER_PULL_THRESHOLD = 280
+const CHAPTER_PULL_THRESHOLD = 80
 const CHAPTER_PULL_MAX_OFFSET = 52
 const CHAPTER_PULL_DAMPING = 140
 const CHAPTER_MOTION_EASE = 'cubic-bezier(0.22, 0.61, 0.24, 1)'
@@ -30,6 +30,15 @@ const FULL_DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
 })
 const PILL_DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
   day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  timeZone: 'UTC',
+})
+const MONTH_FORMATTER = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  timeZone: 'UTC',
+})
+const MONTH_YEAR_FORMATTER = new Intl.DateTimeFormat('en-US', {
   month: 'short',
   year: 'numeric',
   timeZone: 'UTC',
@@ -129,6 +138,22 @@ const getChapterIndex = (timestamp: number) => {
 }
 
 const CHAPTER_BOUNDARIES = [BIRTH_TIMESTAMP, ...CHAPTER_STARTS]
+
+const getChapterRangeLabel = (chapterIndex: number) => {
+  const startDate = new Date(CHAPTER_BOUNDARIES[chapterIndex])
+  const isCurrentChapter = chapterIndex === CHAPTER_BOUNDARIES.length - 1
+
+  if (isCurrentChapter) {
+    return `${MONTH_YEAR_FORMATTER.format(startDate)} – Present`
+  }
+
+  const endDate = new Date(CHAPTER_BOUNDARIES[chapterIndex + 1] - 1)
+  const sameYear = startDate.getUTCFullYear() === endDate.getUTCFullYear()
+
+  return sameYear
+    ? `${MONTH_FORMATTER.format(startDate)} – ${MONTH_YEAR_FORMATTER.format(endDate)}`
+    : `${MONTH_YEAR_FORMATTER.format(startDate)} – ${MONTH_YEAR_FORMATTER.format(endDate)}`
+}
 const CHAPTER_CONTENT = [
   {
     title: 'Early Influences',
@@ -276,6 +301,8 @@ export function TimelineExperience() {
   const animationRef = useRef<number | null>(null)
   const experienceRef = useRef<HTMLElement | null>(null)
   const railRef = useRef<HTMLDivElement | null>(null)
+  const stageRef = useRef<HTMLDivElement | null>(null)
+  const storyRef = useRef<HTMLElement | null>(null)
   const chapterScrollRef = useRef<HTMLDivElement | null>(null)
   const chapterMotionRef = useRef<HTMLDivElement | null>(null)
   const dateInputRef = useRef<HTMLInputElement | null>(null)
@@ -294,9 +321,27 @@ export function TimelineExperience() {
   const chapterTransitionMinimumEndRef = useRef(0)
   const chapterWheelUnlockTimerRef = useRef<number | null>(null)
   const chapterWheelHandlerRef = useRef<(event: WheelEvent) => void>(() => {})
+  const chapterDeltaHandlerRef = useRef<(
+    deltaY: number,
+    preventDefault: () => void,
+  ) => void>(() => {})
   const previousChapterCueRef = useRef<HTMLDivElement | null>(null)
   const nextChapterCueRef = useRef<HTMLDivElement | null>(null)
   const pendingChapterScrollRef = useRef<{ index: number; ratio: number } | null>(null)
+  const urlDateReadyRef = useRef(false)
+  const pendingUrlDateRef = useRef<string | null>(null)
+  const urlSyncTimerRef = useRef<number | null>(null)
+
+  const getChapterScrollElement = () => {
+    if (typeof window === 'undefined') return chapterScrollRef.current
+    if (window.matchMedia('(min-width: 1280px)').matches) {
+      return chapterScrollRef.current
+    }
+    if (window.matchMedia('(min-width: 810px)').matches) {
+      return storyRef.current
+    }
+    return stageRef.current
+  }
 
   const prepareHapticPosition = useCallback((position: number) => {
     hapticTickRef.current = getNearestTickIndex(position)
@@ -373,6 +418,9 @@ export function TimelineExperience() {
       if (chapterWheelUnlockTimerRef.current !== null) {
         window.clearTimeout(chapterWheelUnlockTimerRef.current)
       }
+      if (urlSyncTimerRef.current !== null) {
+        window.clearTimeout(urlSyncTimerRef.current)
+      }
     }
   }, [])
 
@@ -400,6 +448,7 @@ export function TimelineExperience() {
   const contentChapterLabel = contentChapterIndex === 0
     ? 'Prologue'
     : `Chapter ${contentChapterIndex}`
+  const contentChapterRangeLabel = getChapterRangeLabel(contentChapterIndex)
   const contentTitle = CHAPTER_CONTENT[contentChapterIndex].title
   const contentParagraphs = CHAPTER_CONTENT[contentChapterIndex].paragraphs
   const worldContext = LOCATION_CONTEXT?.[locationDetails]?.[contentYear]
@@ -438,7 +487,7 @@ export function TimelineExperience() {
       chapterTransitionMinimumEndRef.current - performance.now(),
     )
     chapterWheelUnlockTimerRef.current = window.setTimeout(() => {
-      chapterScrollRef.current?.style.removeProperty('overflow-y')
+      getChapterScrollElement()?.style.removeProperty('overflow-y')
       chapterTransitioningRef.current = false
       chapterTransitionDirectionRef.current = 0
       chapterWheelUnlockTimerRef.current = null
@@ -464,8 +513,8 @@ export function TimelineExperience() {
   }
 
   useEffect(() => {
-    const element = chapterScrollRef.current
-    if (!element || !window.matchMedia('(min-width: 1280px)').matches) return
+    const element = getChapterScrollElement()
+    if (!element) return
 
     const maxScroll = Math.max(0, element.scrollHeight - element.clientHeight)
     const pendingScroll = pendingChapterScrollRef.current
@@ -547,7 +596,7 @@ export function TimelineExperience() {
       index: nextChapterIndex,
       ratio: clampedScrollRatio,
     }
-    const chapterScroll = chapterScrollRef.current
+    const chapterScroll = getChapterScrollElement()
     if (chapterScroll && clampedScrollRatio === 0) {
       scrollSyncLockRef.current = true
       chapterScroll.scrollTop = 0
@@ -598,7 +647,7 @@ export function TimelineExperience() {
 
     if (nextChapterIndex === contentChapterIndex) {
       pendingChapterScrollRef.current = null
-      const chapterScroll = chapterScrollRef.current
+      const chapterScroll = getChapterScrollElement()
       if (chapterScroll) {
         const maxScroll = Math.max(0, chapterScroll.scrollHeight - chapterScroll.clientHeight)
         scrollSyncLockRef.current = true
@@ -626,12 +675,69 @@ export function TimelineExperience() {
     navigator.vibrate?.(12)
   }
 
-  const handleChapterScroll = (event: React.UIEvent<HTMLDivElement>) => {
-    if (!window.matchMedia('(min-width: 1280px)').matches) {
+  useEffect(() => {
+    const requestedDate = new URL(window.location.href).searchParams.get('date')
+    if (!requestedDate) {
+      urlDateReadyRef.current = true
       return
     }
 
+    const [year, month, day] = requestedDate.split('-').map(Number)
+    if (!year || !month || !day) {
+      urlDateReadyRef.current = true
+      return
+    }
+
+    const requestedTimestamp = Date.UTC(year, month - 1, day)
+    if (new Date(requestedTimestamp).toISOString().slice(0, 10) !== requestedDate) {
+      urlDateReadyRef.current = true
+      return
+    }
+
+    const timestamp = Math.max(
+      BIRTH_TIMESTAMP,
+      Math.min(PRESENT_TIMESTAMP, requestedTimestamp),
+    )
+    const normalizedDate = new Date(timestamp).toISOString().slice(0, 10)
+    pendingUrlDateRef.current = normalizedDate
+    navigateToDate(normalizedDate)
+  }, [])
+
+  useEffect(() => {
+    const pendingDate = pendingUrlDateRef.current
+    if (pendingDate && contentDateTime !== pendingDate) return
+
+    if (pendingDate) {
+      pendingUrlDateRef.current = null
+      urlDateReadyRef.current = true
+    }
+    if (!urlDateReadyRef.current) return
+
+    if (urlSyncTimerRef.current !== null) {
+      window.clearTimeout(urlSyncTimerRef.current)
+    }
+    urlSyncTimerRef.current = window.setTimeout(() => {
+      const url = new URL(window.location.href)
+      if (url.searchParams.get('date') === contentDateTime) {
+        urlSyncTimerRef.current = null
+        return
+      }
+      url.searchParams.set('date', contentDateTime)
+      window.history.replaceState(window.history.state, '', url)
+      urlSyncTimerRef.current = null
+    }, 80)
+
+    return () => {
+      if (urlSyncTimerRef.current !== null) {
+        window.clearTimeout(urlSyncTimerRef.current)
+        urlSyncTimerRef.current = null
+      }
+    }
+  }, [contentDateTime])
+
+  const handleChapterScroll = (event: React.UIEvent<HTMLElement>) => {
     const element = event.currentTarget
+    if (element !== getChapterScrollElement()) return
     if (chapterTransitioningRef.current) return
 
     if (scrollSyncLockRef.current) return
@@ -666,20 +772,20 @@ export function TimelineExperience() {
     }
   }
 
-  const handleChapterWheel = (event: WheelEvent) => {
-    if (!window.matchMedia('(min-width: 1280px)').matches || event.deltaY === 0) return
+  const handleChapterDelta = (deltaY: number, preventDefault: () => void) => {
+    if (deltaY === 0) return
     if (chapterTransitioningRef.current) {
-      event.preventDefault()
+      preventDefault()
       if (chapterTransitionDirectionRef.current < 0) {
         scheduleChapterWheelUnlock(CHAPTER_BACKWARD_WHEEL_QUIET_MS)
       }
       return
     }
 
-    const element = chapterScrollRef.current
+    const element = getChapterScrollElement()
     if (!element) return
     const maxScroll = Math.max(0, element.scrollHeight - element.clientHeight)
-    const direction = Math.sign(event.deltaY)
+    const direction = Math.sign(deltaY)
     const atStart = element.scrollTop <= 1
     const atEnd = element.scrollTop >= maxScroll - 1
     const pullingPastEdge = direction < 0 ? atStart : atEnd
@@ -696,14 +802,14 @@ export function TimelineExperience() {
       return
     }
 
-    event.preventDefault()
+    preventDefault()
 
     if (chapterPullDirectionRef.current !== direction) {
       chapterPullDistanceRef.current = 0
       chapterPullDirectionRef.current = direction
     }
 
-    chapterPullDistanceRef.current += Math.abs(event.deltaY)
+    chapterPullDistanceRef.current += Math.abs(deltaY)
     const pullProgress = Math.min(
       1,
       chapterPullDistanceRef.current / CHAPTER_PULL_THRESHOLD,
@@ -783,15 +889,64 @@ export function TimelineExperience() {
     }, CHAPTER_EXIT_DURATION)
   }
 
+  const handleChapterWheel = (event: WheelEvent) => {
+    handleChapterDelta(event.deltaY, () => event.preventDefault())
+  }
+
   chapterWheelHandlerRef.current = handleChapterWheel
+  chapterDeltaHandlerRef.current = handleChapterDelta
 
   useEffect(() => {
-    const element = chapterScrollRef.current
-    if (!element) return
-
     const handleWheel = (event: WheelEvent) => chapterWheelHandlerRef.current(event)
-    element.addEventListener('wheel', handleWheel, { passive: false })
-    return () => element.removeEventListener('wheel', handleWheel)
+    let previousTouchY: number | null = null
+    const handleTouchStart = (event: TouchEvent) => {
+      previousTouchY = event.touches[0]?.clientY ?? null
+    }
+    const handleTouchMove = (event: TouchEvent) => {
+      const nextTouchY = event.touches[0]?.clientY
+      if (previousTouchY === null || nextTouchY === undefined) return
+      const deltaY = previousTouchY - nextTouchY
+      previousTouchY = nextTouchY
+      chapterDeltaHandlerRef.current(deltaY, () => event.preventDefault())
+    }
+    const handleTouchEnd = () => {
+      previousTouchY = null
+    }
+    const wideQuery = window.matchMedia('(min-width: 1280px)')
+    const compactQuery = window.matchMedia('(min-width: 810px) and (max-width: 1279px)')
+    let element: HTMLElement | null = null
+
+    const bindScrollInput = () => {
+      if (element) {
+        element.removeEventListener('wheel', handleWheel)
+        element.removeEventListener('touchstart', handleTouchStart)
+        element.removeEventListener('touchmove', handleTouchMove)
+        element.removeEventListener('touchend', handleTouchEnd)
+        element.removeEventListener('touchcancel', handleTouchEnd)
+      }
+
+      element = getChapterScrollElement()
+      element?.addEventListener('wheel', handleWheel, { passive: false })
+      element?.addEventListener('touchstart', handleTouchStart, { passive: true })
+      element?.addEventListener('touchmove', handleTouchMove, { passive: false })
+      element?.addEventListener('touchend', handleTouchEnd, { passive: true })
+      element?.addEventListener('touchcancel', handleTouchEnd, { passive: true })
+    }
+
+    bindScrollInput()
+    wideQuery.addEventListener('change', bindScrollInput)
+    compactQuery.addEventListener('change', bindScrollInput)
+
+    return () => {
+      wideQuery.removeEventListener('change', bindScrollInput)
+      compactQuery.removeEventListener('change', bindScrollInput)
+      if (!element) return
+      element.removeEventListener('wheel', handleWheel)
+      element.removeEventListener('touchstart', handleTouchStart)
+      element.removeEventListener('touchmove', handleTouchMove)
+      element.removeEventListener('touchend', handleTouchEnd)
+      element.removeEventListener('touchcancel', handleTouchEnd)
+    }
   }, [])
 
   const getPointerRatio = (clientX: number, clientY: number) => {
@@ -1014,57 +1169,69 @@ export function TimelineExperience() {
         </div>
       </aside>
 
-      <div className={styles.stage} aria-live="polite" aria-atomic="true">
-        <article className={styles.story}>
+      <div
+        ref={stageRef}
+        className={styles.stage}
+        aria-live="polite"
+        aria-atomic="true"
+        onScroll={handleChapterScroll}
+      >
+        <article ref={storyRef} className={styles.story} onScroll={handleChapterScroll}>
           <div
             ref={chapterScrollRef}
             className={styles.chapterHeader}
             onScroll={handleChapterScroll}
           >
             <div ref={chapterMotionRef} className={styles.chapterMotion}>
-              {contentChapterIndex > 0 && (
-                <div
-                  ref={previousChapterCueRef}
-                  className={`${styles.chapterBoundaryCue} ${styles.previousChapterCue}`}
-                  aria-hidden="true"
-                >
-                  Back to {previousChapterLabel}
+              <div className={styles.chapterContent}>
+                {contentChapterIndex > 0 && (
+                  <div
+                    ref={previousChapterCueRef}
+                    className={`${styles.chapterBoundaryCue} ${styles.previousChapterCue}`}
+                    aria-hidden="true"
+                  >
+                    Back to {previousChapterLabel}
+                  </div>
+                )}
+                <div className={styles.chapterEyebrow}>
+                  <span className={styles.chapterEyebrowLabel}>
+                    <span>{contentChapterLabel}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>{contentChapterRangeLabel}</span>
+                  </span>
+                  <button
+                    type="button"
+                    aria-label="Previous chapter"
+                    disabled={contentChapterIndex === 0}
+                    onClick={() => moveToChapter(contentChapterIndex - 1)}
+                  >
+                    <span aria-hidden="true">‹</span>
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Next chapter"
+                    disabled={contentChapterIndex === CHAPTER_BOUNDARIES.length - 1}
+                    onClick={() => moveToChapter(contentChapterIndex + 1)}
+                  >
+                    <span aria-hidden="true">›</span>
+                  </button>
                 </div>
-              )}
-              <div className={styles.chapterEyebrow}>
-                <span>{contentChapterLabel}</span>
-                <button
-                  type="button"
-                  aria-label="Previous chapter"
-                  disabled={contentChapterIndex === 0}
-                  onClick={() => moveToChapter(contentChapterIndex - 1)}
-                >
-                  <span aria-hidden="true">‹</span>
-                </button>
-                <button
-                  type="button"
-                  aria-label="Next chapter"
-                  disabled={contentChapterIndex === CHAPTER_BOUNDARIES.length - 1}
-                  onClick={() => moveToChapter(contentChapterIndex + 1)}
-                >
-                  <span aria-hidden="true">›</span>
-                </button>
-              </div>
-              <h1>{contentTitle}</h1>
-              <div className={styles.chapterDescription}>
-                {contentParagraphs.map((paragraph) => (
-                  <p key={paragraph}>{paragraph}</p>
-                ))}
-              </div>
-              {contentChapterIndex < CHAPTER_BOUNDARIES.length - 1 && (
-                <div
-                  ref={nextChapterCueRef}
-                  className={`${styles.chapterBoundaryCue} ${styles.nextChapterCue}`}
-                  aria-hidden="true"
-                >
-                  Continue to {nextChapterLabel}
+                <h1>{contentTitle}</h1>
+                <div className={styles.chapterDescription}>
+                  {contentParagraphs.map((paragraph) => (
+                    <p key={paragraph}>{paragraph}</p>
+                  ))}
                 </div>
-              )}
+                {contentChapterIndex < CHAPTER_BOUNDARIES.length - 1 && (
+                  <div
+                    ref={nextChapterCueRef}
+                    className={`${styles.chapterBoundaryCue} ${styles.nextChapterCue}`}
+                    aria-hidden="true"
+                  >
+                    Continue to {nextChapterLabel}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           <aside className={styles.detailsColumn}>
