@@ -1148,7 +1148,7 @@ export function TimelineExperience() {
                   <dd>{contentAgeLabel}</dd>
                 </div>
                 <div className={styles.whereDetail}>
-                  <dt>Where</dt>
+                  <dt>Location</dt>
                   <dd>{locationDetails}</dd>
                 </div>
                 {educationDetails !== '—' && (
@@ -1201,7 +1201,7 @@ export function TimelineExperience() {
               <dd>{contentAgeLabel}</dd>
             </div>
             <div>
-              <dt>Where</dt>
+              <dt>Location</dt>
               <dd>{locationDetails}</dd>
             </div>
             {educationDetails !== '—' && (
