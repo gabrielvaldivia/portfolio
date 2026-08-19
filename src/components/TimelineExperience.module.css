@@ -777,6 +777,42 @@
     height: 84px;
   }
 
+  .timelineShell::before {
+    position: absolute;
+    top: -32px;
+    right: -16px;
+    bottom: calc(-16px - var(--browser-bottom-inset));
+    left: -16px;
+    z-index: 0;
+    background: var(--color-elevated);
+    content: '';
+    pointer-events: none;
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      rgb(0 0 0 / 0.04) 12px,
+      rgb(0 0 0 / 0.14) 24px,
+      rgb(0 0 0 / 0.32) 36px,
+      rgb(0 0 0 / 0.56) 48px,
+      rgb(0 0 0 / 0.78) 60px,
+      rgb(0 0 0 / 0.92) 72px,
+      rgb(0 0 0 / 0.98) 84px,
+      rgb(0 0 0) 96px
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      rgb(0 0 0 / 0.04) 12px,
+      rgb(0 0 0 / 0.14) 24px,
+      rgb(0 0 0 / 0.32) 36px,
+      rgb(0 0 0 / 0.56) 48px,
+      rgb(0 0 0 / 0.78) 60px,
+      rgb(0 0 0 / 0.92) 72px,
+      rgb(0 0 0 / 0.98) 84px,
+      rgb(0 0 0) 96px
+    );
+  }
+
   .chapterContent .chapterBoundaryCue {
     display: none;
   }
@@ -809,6 +845,7 @@
   }
 
   .timelineRail {
+    z-index: 1;
     cursor: ew-resize;
   }
 

@@ -15,8 +15,7 @@ const BIRTH_TIMESTAMP = Date.UTC(1987, 2, 23)
 const PRESENT_TIMESTAMP = Date.UTC(2026, 7, 19)
 const TICKS_PER_YEAR = 1
 const CHAPTER_PULL_THRESHOLD = 80
-const MOBILE_NEXT_CHAPTER_PULL_THRESHOLD = 140
-const MOBILE_PREVIOUS_CHAPTER_PULL_THRESHOLD = 220
+const MOBILE_CHAPTER_PULL_THRESHOLD = 200
 const MOBILE_PREVIOUS_CHAPTER_CUE_DELAY = 100
 const CHAPTER_PULL_MAX_OFFSET = 52
 const CHAPTER_PULL_DAMPING = 140
@@ -839,9 +838,7 @@ export function TimelineExperience() {
     chapterPullDistanceRef.current += Math.abs(deltaY)
     const isMobile = window.matchMedia('(max-width: 809px)').matches
     const pullThreshold = isMobile
-      ? direction < 0
-        ? MOBILE_PREVIOUS_CHAPTER_PULL_THRESHOLD
-        : MOBILE_NEXT_CHAPTER_PULL_THRESHOLD
+      ? MOBILE_CHAPTER_PULL_THRESHOLD
       : CHAPTER_PULL_THRESHOLD
     const cueDelay = isMobile && direction < 0
       ? MOBILE_PREVIOUS_CHAPTER_CUE_DELAY
@@ -851,9 +848,11 @@ export function TimelineExperience() {
       (chapterPullDistanceRef.current - cueDelay) / (pullThreshold - cueDelay),
     ))
     const signedPull = chapterPullDistanceRef.current * direction
-    const elasticOffset = CHAPTER_PULL_MAX_OFFSET
-      * Math.sign(signedPull)
-      * (1 - Math.exp(-Math.abs(signedPull) / CHAPTER_PULL_DAMPING))
+    const chapterOffset = isMobile
+      ? Math.sign(signedPull) * Math.min(Math.abs(signedPull), pullThreshold)
+      : CHAPTER_PULL_MAX_OFFSET
+        * Math.sign(signedPull)
+        * (1 - Math.exp(-Math.abs(signedPull) / CHAPTER_PULL_DAMPING))
     const motion = chapterMotionRef.current
     const activeCues = direction < 0
       ? [previousChapterCueRef.current, mobilePreviousChapterCueRef.current]
@@ -864,7 +863,7 @@ export function TimelineExperience() {
     const mobileActiveCue = direction < 0
       ? mobilePreviousChapterCueRef.current
       : mobileNextChapterCueRef.current
-    const cueOffset = -CHAPTER_CUE_PULL_MAX_OFFSET
+    const cueOffset = -direction * CHAPTER_CUE_PULL_MAX_OFFSET
       * (1 - Math.exp(-Math.abs(signedPull) / CHAPTER_CUE_PULL_DAMPING))
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -884,8 +883,8 @@ export function TimelineExperience() {
     if (motion && !prefersReducedMotion) {
       clearChapterMotionCleanup()
       motion.style.willChange = 'transform'
-      motion.style.transition = 'transform 80ms linear'
-      motion.style.transform = `translate3d(0, ${-elasticOffset}px, 0)`
+      motion.style.transition = isMobile ? 'none' : 'transform 80ms linear'
+      motion.style.transform = `translate3d(0, ${-chapterOffset}px, 0)`
     }
 
     if (chapterPullIdleTimerRef.current !== null) {
@@ -896,7 +895,7 @@ export function TimelineExperience() {
       chapterPullDirectionRef.current = 0
       chapterPullIdleTimerRef.current = null
       releaseChapterMotion()
-    }, isMobile && direction < 0 ? 420 : 260)
+    }, isMobile ? 360 : 260)
 
     if (chapterPullDistanceRef.current < pullThreshold) return
 
@@ -933,7 +932,7 @@ export function TimelineExperience() {
     motion.style.willChange = 'transform, opacity'
     motion.style.transition = `transform ${CHAPTER_EXIT_DURATION}ms ${CHAPTER_MOTION_EASE}, opacity 160ms ease-out`
     motion.style.opacity = '0'
-    motion.style.transform = `translate3d(0, ${-direction * 64}px, 0)`
+    motion.style.transform = `translate3d(0, ${-direction * (isMobile ? pullThreshold : 64)}px, 0)`
     chapterTransitionTimerRef.current = window.setTimeout(() => {
       chapterTransitionTimerRef.current = null
       moveToChapter(nextChapterIndex, 0)
