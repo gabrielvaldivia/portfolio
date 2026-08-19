@@ -678,6 +678,11 @@
 
 @media (max-width: 809px) {
   .experience {
+    --browser-bottom-inset: max(
+      env(safe-area-inset-bottom, 0px),
+      clamp(0px, calc(100lvh - 100dvh), 120px),
+      72px
+    );
     height: calc(100svh - 94px);
     min-height: 600px;
     margin: 0 16px;
@@ -685,7 +690,7 @@
   }
 
   .stage {
-    inset: 0 0 16px;
+    inset: 0 0 calc(16px + var(--browser-bottom-inset));
     -webkit-mask-image: linear-gradient(
       to bottom,
       rgb(0 0 0) 0,
@@ -762,7 +767,7 @@
   .timelineShell {
     top: auto;
     right: 0;
-    bottom: 16px;
+    bottom: calc(16px + var(--browser-bottom-inset));
     left: 0;
     width: auto;
     height: 84px;
@@ -801,7 +806,7 @@
     bottom: auto;
     left: auto;
     min-height: calc(100% + 100px);
-    padding: 26px 0 164px;
+    padding: 10px 0 calc(164px + var(--browser-bottom-inset));
   }
 
   .stage {
@@ -822,7 +827,7 @@
   .mobileSidebarPopover {
     position: absolute;
     right: 0;
-    bottom: 60px;
+    bottom: calc(60px + var(--browser-bottom-inset));
     left: 0;
     z-index: 30;
     display: block;
