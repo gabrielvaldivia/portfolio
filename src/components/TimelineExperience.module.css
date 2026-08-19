@@ -682,11 +682,7 @@
 
 @media (max-width: 809px) {
   .experience {
-    --browser-bottom-inset: max(
-      env(safe-area-inset-bottom, 0px),
-      clamp(0px, calc(100lvh - 100dvh), 120px),
-      72px
-    );
+    --browser-bottom-inset: env(safe-area-inset-bottom, 0px);
     height: calc(100svh - 94px);
     min-height: 600px;
     margin: 0 16px;

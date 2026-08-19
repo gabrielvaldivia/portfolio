@@ -15,6 +15,7 @@ const BIRTH_TIMESTAMP = Date.UTC(1987, 2, 23)
 const PRESENT_TIMESTAMP = Date.UTC(2026, 7, 19)
 const TICKS_PER_YEAR = 1
 const CHAPTER_PULL_THRESHOLD = 80
+const MOBILE_CHAPTER_PULL_THRESHOLD = 140
 const CHAPTER_PULL_MAX_OFFSET = 52
 const CHAPTER_PULL_DAMPING = 140
 const CHAPTER_CUE_PULL_MAX_OFFSET = 12
@@ -498,7 +499,7 @@ export function TimelineExperience() {
     }, Math.max(quietTime, animationTimeRemaining))
   }
 
-  const releaseChapterMotion = () => {
+  const resetChapterCues = () => {
     ;[
       previousChapterCueRef.current,
       nextChapterCueRef.current,
@@ -509,6 +510,10 @@ export function TimelineExperience() {
       cue?.style.removeProperty('transform')
       cue?.style.removeProperty('will-change')
     })
+  }
+
+  const releaseChapterMotion = () => {
+    resetChapterCues()
 
     const motion = chapterMotionRef.current
     if (!motion) return
@@ -526,6 +531,8 @@ export function TimelineExperience() {
   }
 
   useEffect(() => {
+    resetChapterCues()
+
     const element = getChapterScrollElement()
     if (!element) return
 
@@ -828,9 +835,12 @@ export function TimelineExperience() {
     }
 
     chapterPullDistanceRef.current += Math.abs(deltaY)
+    const pullThreshold = window.matchMedia('(max-width: 809px)').matches
+      ? MOBILE_CHAPTER_PULL_THRESHOLD
+      : CHAPTER_PULL_THRESHOLD
     const pullProgress = Math.min(
       1,
-      chapterPullDistanceRef.current / CHAPTER_PULL_THRESHOLD,
+      chapterPullDistanceRef.current / pullThreshold,
     )
     const signedPull = chapterPullDistanceRef.current * direction
     const elasticOffset = CHAPTER_PULL_MAX_OFFSET
@@ -880,7 +890,7 @@ export function TimelineExperience() {
       releaseChapterMotion()
     }, 260)
 
-    if (chapterPullDistanceRef.current < CHAPTER_PULL_THRESHOLD) return
+    if (chapterPullDistanceRef.current < pullThreshold) return
 
     chapterPullDistanceRef.current = 0
     chapterPullDirectionRef.current = 0
@@ -1410,6 +1420,7 @@ export function TimelineExperience() {
 
       {contentChapterIndex > 0 && (
         <div
+          key={`mobile-previous-${contentChapterIndex}`}
           ref={mobilePreviousChapterCueRef}
           className={`${styles.mobileChapterBoundaryCue} ${styles.mobilePreviousChapterCue}`}
           aria-hidden="true"
@@ -1419,6 +1430,7 @@ export function TimelineExperience() {
       )}
       {contentChapterIndex < CHAPTER_BOUNDARIES.length - 1 && (
         <div
+          key={`mobile-next-${contentChapterIndex}`}
           ref={mobileNextChapterCueRef}
           className={`${styles.mobileChapterBoundaryCue} ${styles.mobileNextChapterCue}`}
           aria-hidden="true"
