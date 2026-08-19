@@ -784,7 +784,6 @@
   .mobileChapterBoundaryCue {
     position: fixed;
     right: auto;
-    bottom: calc(116px + var(--browser-bottom-inset));
     left: 50%;
     z-index: 35;
     display: block;
@@ -797,6 +796,16 @@
     transform: translate3d(-50%, 0, 0);
     transition: opacity 80ms linear, transform 160ms cubic-bezier(0.22, 0.61, 0.24, 1);
     white-space: nowrap;
+  }
+
+  .mobilePreviousChapterCue {
+    top: 104px;
+    bottom: auto;
+  }
+
+  .mobileNextChapterCue {
+    top: auto;
+    bottom: calc(110px + var(--browser-bottom-inset));
   }
 
   .timelineRail {

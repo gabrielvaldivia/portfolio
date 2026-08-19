@@ -846,8 +846,7 @@ export function TimelineExperience() {
     const mobileActiveCue = direction < 0
       ? mobilePreviousChapterCueRef.current
       : mobileNextChapterCueRef.current
-    const cueOffset = CHAPTER_CUE_PULL_MAX_OFFSET
-      * Math.sign(signedPull)
+    const cueOffset = -CHAPTER_CUE_PULL_MAX_OFFSET
       * (1 - Math.exp(-Math.abs(signedPull) / CHAPTER_CUE_PULL_DAMPING))
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -1412,7 +1411,7 @@ export function TimelineExperience() {
       {contentChapterIndex > 0 && (
         <div
           ref={mobilePreviousChapterCueRef}
-          className={styles.mobileChapterBoundaryCue}
+          className={`${styles.mobileChapterBoundaryCue} ${styles.mobilePreviousChapterCue}`}
           aria-hidden="true"
         >
           Back to {previousChapterLabel}
@@ -1421,7 +1420,7 @@ export function TimelineExperience() {
       {contentChapterIndex < CHAPTER_BOUNDARIES.length - 1 && (
         <div
           ref={mobileNextChapterCueRef}
-          className={styles.mobileChapterBoundaryCue}
+          className={`${styles.mobileChapterBoundaryCue} ${styles.mobileNextChapterCue}`}
           aria-hidden="true"
         >
           Continue to {nextChapterLabel}
