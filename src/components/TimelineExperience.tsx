@@ -1,6 +1,6 @@
 'use client'
 
-import { Calendar04Icon } from '@hugeicons/core-free-icons'
+import { ArrowUpRight01Icon, Calendar04Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { LOCATION_CONTEXT } from '../data/timelineWorldContext'
@@ -1174,7 +1174,14 @@ export function TimelineExperience() {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    {worldContext.summary}
+                    <span className={styles.newsLinkText}>{worldContext.summary}</span>
+                    <HugeiconsIcon
+                      className={styles.newsLinkIcon}
+                      icon={ArrowUpRight01Icon}
+                      size={15}
+                      strokeWidth={1.5}
+                      aria-hidden="true"
+                    />
                   </a>
                 ) : 'The story of this year is still being written.'}
               </p>
@@ -1222,7 +1229,14 @@ export function TimelineExperience() {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    {worldContext.summary}
+                    <span className={styles.newsLinkText}>{worldContext.summary}</span>
+                    <HugeiconsIcon
+                      className={styles.newsLinkIcon}
+                      icon={ArrowUpRight01Icon}
+                      size={15}
+                      strokeWidth={1.5}
+                      aria-hidden="true"
+                    />
                   </a>
                 ) : 'The story of this year is still being written.'}
               </dd>
