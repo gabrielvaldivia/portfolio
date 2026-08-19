@@ -17,6 +17,8 @@ const TICKS_PER_YEAR = 1
 const CHAPTER_PULL_THRESHOLD = 80
 const CHAPTER_PULL_MAX_OFFSET = 52
 const CHAPTER_PULL_DAMPING = 140
+const CHAPTER_CUE_PULL_MAX_OFFSET = 12
+const CHAPTER_CUE_PULL_DAMPING = 56
 const CHAPTER_MOTION_EASE = 'cubic-bezier(0.22, 0.61, 0.24, 1)'
 const CHAPTER_WHEEL_QUIET_MS = 80
 const CHAPTER_BACKWARD_WHEEL_QUIET_MS = 220
@@ -327,6 +329,8 @@ export function TimelineExperience() {
   ) => void>(() => {})
   const previousChapterCueRef = useRef<HTMLDivElement | null>(null)
   const nextChapterCueRef = useRef<HTMLDivElement | null>(null)
+  const mobilePreviousChapterCueRef = useRef<HTMLDivElement | null>(null)
+  const mobileNextChapterCueRef = useRef<HTMLDivElement | null>(null)
   const pendingChapterScrollRef = useRef<{ index: number; ratio: number } | null>(null)
   const urlDateReadyRef = useRef(false)
   const pendingUrlDateRef = useRef<string | null>(null)
@@ -495,11 +499,20 @@ export function TimelineExperience() {
   }
 
   const releaseChapterMotion = () => {
+    ;[
+      previousChapterCueRef.current,
+      nextChapterCueRef.current,
+      mobilePreviousChapterCueRef.current,
+      mobileNextChapterCueRef.current,
+    ].forEach((cue) => {
+      cue?.style.removeProperty('opacity')
+      cue?.style.removeProperty('transform')
+      cue?.style.removeProperty('will-change')
+    })
+
     const motion = chapterMotionRef.current
     if (!motion) return
 
-    previousChapterCueRef.current?.style.removeProperty('opacity')
-    nextChapterCueRef.current?.style.removeProperty('opacity')
     clearChapterMotionCleanup()
     motion.style.willChange = 'transform'
     motion.style.transition = `transform 360ms ${CHAPTER_MOTION_EASE}`
@@ -824,16 +837,32 @@ export function TimelineExperience() {
       * Math.sign(signedPull)
       * (1 - Math.exp(-Math.abs(signedPull) / CHAPTER_PULL_DAMPING))
     const motion = chapterMotionRef.current
-    const activeCue = direction < 0
-      ? previousChapterCueRef.current
-      : nextChapterCueRef.current
-    const inactiveCue = direction < 0
-      ? nextChapterCueRef.current
-      : previousChapterCueRef.current
+    const activeCues = direction < 0
+      ? [previousChapterCueRef.current, mobilePreviousChapterCueRef.current]
+      : [nextChapterCueRef.current, mobileNextChapterCueRef.current]
+    const inactiveCues = direction < 0
+      ? [nextChapterCueRef.current, mobileNextChapterCueRef.current]
+      : [previousChapterCueRef.current, mobilePreviousChapterCueRef.current]
+    const mobileActiveCue = direction < 0
+      ? mobilePreviousChapterCueRef.current
+      : mobileNextChapterCueRef.current
+    const cueOffset = CHAPTER_CUE_PULL_MAX_OFFSET
+      * Math.sign(signedPull)
+      * (1 - Math.exp(-Math.abs(signedPull) / CHAPTER_CUE_PULL_DAMPING))
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-    if (activeCue) activeCue.style.opacity = `${pullProgress}`
-    inactiveCue?.style.removeProperty('opacity')
+    activeCues.forEach((cue) => {
+      if (cue) cue.style.opacity = `${pullProgress}`
+    })
+    inactiveCues.forEach((cue) => {
+      cue?.style.removeProperty('opacity')
+      cue?.style.removeProperty('transform')
+      cue?.style.removeProperty('will-change')
+    })
+    if (mobileActiveCue && !prefersReducedMotion) {
+      mobileActiveCue.style.willChange = 'transform, opacity'
+      mobileActiveCue.style.transform = `translate3d(-50%, ${cueOffset}px, 0)`
+    }
 
     if (motion && !prefersReducedMotion) {
       clearChapterMotionCleanup()
@@ -1379,6 +1408,25 @@ export function TimelineExperience() {
           </aside>
         </article>
       </div>
+
+      {contentChapterIndex > 0 && (
+        <div
+          ref={mobilePreviousChapterCueRef}
+          className={styles.mobileChapterBoundaryCue}
+          aria-hidden="true"
+        >
+          Back to {previousChapterLabel}
+        </div>
+      )}
+      {contentChapterIndex < CHAPTER_BOUNDARIES.length - 1 && (
+        <div
+          ref={mobileNextChapterCueRef}
+          className={styles.mobileChapterBoundaryCue}
+          aria-hidden="true"
+        >
+          Continue to {nextChapterLabel}
+        </div>
+      )}
 
       {(isTimelineDragging || hoverProgress !== null) && (
         <aside className={styles.mobileSidebarPopover} aria-label="Timeline details">

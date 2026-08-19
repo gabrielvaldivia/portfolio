@@ -238,6 +238,10 @@
   transform: translate(-50%, 100%);
 }
 
+.mobileChapterBoundaryCue {
+  display: none;
+}
+
 .story h1 {
   max-width: 900px;
   margin: 0;
@@ -771,6 +775,28 @@
     left: 0;
     width: auto;
     height: 84px;
+  }
+
+  .chapterContent .chapterBoundaryCue {
+    display: none;
+  }
+
+  .mobileChapterBoundaryCue {
+    position: fixed;
+    right: auto;
+    bottom: calc(116px + var(--browser-bottom-inset));
+    left: 50%;
+    z-index: 35;
+    display: block;
+    color: var(--color-muted);
+    font-size: 13px;
+    line-height: 20px;
+    opacity: 0;
+    pointer-events: none;
+    text-align: center;
+    transform: translate3d(-50%, 0, 0);
+    transition: opacity 80ms linear, transform 160ms cubic-bezier(0.22, 0.61, 0.24, 1);
+    white-space: nowrap;
   }
 
   .timelineRail {
