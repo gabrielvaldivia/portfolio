@@ -738,6 +738,7 @@ export function TimelineExperience() {
   const handleChapterScroll = (event: React.UIEvent<HTMLElement>) => {
     const element = event.currentTarget
     if (element !== getChapterScrollElement()) return
+    element.dataset.scrolled = element.scrollTop > 1 ? 'true' : 'false'
     if (chapterTransitioningRef.current) return
 
     if (scrollSyncLockRef.current) return

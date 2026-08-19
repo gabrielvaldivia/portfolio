@@ -440,6 +440,62 @@
 }
 
 @media (min-width: 810px) and (max-width: 1279px) {
+  .story {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      rgb(0 0 0) 0,
+      rgb(0 0 0) calc(100% - 56px),
+      rgb(0 0 0 / 0.96) calc(100% - 44px),
+      rgb(0 0 0 / 0.78) calc(100% - 32px),
+      rgb(0 0 0 / 0.42) calc(100% - 20px),
+      rgb(0 0 0 / 0.12) calc(100% - 8px),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      rgb(0 0 0) 0,
+      rgb(0 0 0) calc(100% - 56px),
+      rgb(0 0 0 / 0.96) calc(100% - 44px),
+      rgb(0 0 0 / 0.78) calc(100% - 32px),
+      rgb(0 0 0 / 0.42) calc(100% - 20px),
+      rgb(0 0 0 / 0.12) calc(100% - 8px),
+      transparent 100%
+    );
+  }
+
+  .story[data-scrolled='true'] {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      rgb(0 0 0 / 0.12) 8px,
+      rgb(0 0 0 / 0.42) 20px,
+      rgb(0 0 0 / 0.78) 32px,
+      rgb(0 0 0 / 0.96) 44px,
+      rgb(0 0 0) 56px,
+      rgb(0 0 0) calc(100% - 56px),
+      rgb(0 0 0 / 0.96) calc(100% - 44px),
+      rgb(0 0 0 / 0.78) calc(100% - 32px),
+      rgb(0 0 0 / 0.42) calc(100% - 20px),
+      rgb(0 0 0 / 0.12) calc(100% - 8px),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      rgb(0 0 0 / 0.12) 8px,
+      rgb(0 0 0 / 0.42) 20px,
+      rgb(0 0 0 / 0.78) 32px,
+      rgb(0 0 0 / 0.96) 44px,
+      rgb(0 0 0) 56px,
+      rgb(0 0 0) calc(100% - 56px),
+      rgb(0 0 0 / 0.96) calc(100% - 44px),
+      rgb(0 0 0 / 0.78) calc(100% - 32px),
+      rgb(0 0 0 / 0.42) calc(100% - 20px),
+      rgb(0 0 0 / 0.12) calc(100% - 8px),
+      transparent 100%
+    );
+  }
+
   .chapterHeader {
     min-height: calc(100% + 100px);
   }
@@ -562,6 +618,39 @@
     );
   }
 
+  .chapterHeader[data-scrolled='true'] {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      rgb(0 0 0 / 0.12) 8px,
+      rgb(0 0 0 / 0.42) 20px,
+      rgb(0 0 0 / 0.78) 32px,
+      rgb(0 0 0 / 0.96) 44px,
+      rgb(0 0 0) 56px,
+      rgb(0 0 0) calc(100% - 56px),
+      rgb(0 0 0 / 0.96) calc(100% - 44px),
+      rgb(0 0 0 / 0.78) calc(100% - 32px),
+      rgb(0 0 0 / 0.42) calc(100% - 20px),
+      rgb(0 0 0 / 0.12) calc(100% - 8px),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      rgb(0 0 0 / 0.12) 8px,
+      rgb(0 0 0 / 0.42) 20px,
+      rgb(0 0 0 / 0.78) 32px,
+      rgb(0 0 0 / 0.96) 44px,
+      rgb(0 0 0) 56px,
+      rgb(0 0 0) calc(100% - 56px),
+      rgb(0 0 0 / 0.96) calc(100% - 44px),
+      rgb(0 0 0 / 0.78) calc(100% - 32px),
+      rgb(0 0 0 / 0.42) calc(100% - 20px),
+      rgb(0 0 0 / 0.12) calc(100% - 8px),
+      transparent 100%
+    );
+  }
+
   .chapterHeader::-webkit-scrollbar {
     display: none;
   }
@@ -625,6 +714,51 @@
     );
   }
 
+  .stage[data-scrolled='true'] {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      rgb(0 0 0 / 0.04) 20px,
+      rgb(0 0 0 / 0.14) 32px,
+      rgb(0 0 0 / 0.32) 44px,
+      rgb(0 0 0 / 0.56) 56px,
+      rgb(0 0 0 / 0.78) 68px,
+      rgb(0 0 0 / 0.92) 80px,
+      rgb(0 0 0 / 0.98) 92px,
+      rgb(0 0 0) 104px,
+      rgb(0 0 0) calc(100% - 104px),
+      rgb(0 0 0 / 0.98) calc(100% - 92px),
+      rgb(0 0 0 / 0.92) calc(100% - 80px),
+      rgb(0 0 0 / 0.78) calc(100% - 68px),
+      rgb(0 0 0 / 0.56) calc(100% - 56px),
+      rgb(0 0 0 / 0.32) calc(100% - 44px),
+      rgb(0 0 0 / 0.14) calc(100% - 32px),
+      rgb(0 0 0 / 0.04) calc(100% - 20px),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      rgb(0 0 0 / 0.04) 20px,
+      rgb(0 0 0 / 0.14) 32px,
+      rgb(0 0 0 / 0.32) 44px,
+      rgb(0 0 0 / 0.56) 56px,
+      rgb(0 0 0 / 0.78) 68px,
+      rgb(0 0 0 / 0.92) 80px,
+      rgb(0 0 0 / 0.98) 92px,
+      rgb(0 0 0) 104px,
+      rgb(0 0 0) calc(100% - 104px),
+      rgb(0 0 0 / 0.98) calc(100% - 92px),
+      rgb(0 0 0 / 0.92) calc(100% - 80px),
+      rgb(0 0 0 / 0.78) calc(100% - 68px),
+      rgb(0 0 0 / 0.56) calc(100% - 56px),
+      rgb(0 0 0 / 0.32) calc(100% - 44px),
+      rgb(0 0 0 / 0.14) calc(100% - 32px),
+      rgb(0 0 0 / 0.04) calc(100% - 20px),
+      transparent 100%
+    );
+  }
+
   .timelineShell {
     top: auto;
     right: 0;
@@ -667,7 +801,7 @@
     bottom: auto;
     left: auto;
     min-height: calc(100% + 100px);
-    padding: 26px 24px 164px;
+    padding: 26px 0 164px;
   }
 
   .stage {
