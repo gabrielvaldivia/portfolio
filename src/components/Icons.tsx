@@ -56,6 +56,27 @@ export function HoverChevron() {
   )
 }
 
+export function HoverArrow({
+  className = 'inline-block ml-2 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[0px]',
+}: {
+  className?: string
+}) {
+  return (
+    <svg
+      className={className}
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      aria-hidden="true"
+    >
+      <path d="M7 17L17 7M17 7H9M17 7V15" />
+    </svg>
+  )
+}
+
 export function SocialIcon({ platform, className }: { platform: string; className?: string }) {
   const key = platform.toLowerCase().replace(/[^a-z]/g, '')
   const Icon = socialIcons[key]

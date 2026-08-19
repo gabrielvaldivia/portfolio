@@ -1,9 +1,10 @@
 'use client'
 
-import { ArrowUpRight01Icon, Calendar04Icon } from '@hugeicons/core-free-icons'
+import { Calendar04Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { LOCATION_CONTEXT } from '../data/timelineWorldContext'
+import { HoverArrow } from './Icons'
 import { Calendar } from './ui/Calendar'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/Popover'
 import styles from './TimelineExperience.module.css'
@@ -1175,12 +1176,8 @@ export function TimelineExperience() {
                     rel="noopener noreferrer"
                   >
                     <span className={styles.newsLinkText}>{worldContext.summary}</span>
-                    <HugeiconsIcon
+                    <HoverArrow
                       className={styles.newsLinkIcon}
-                      icon={ArrowUpRight01Icon}
-                      size={15}
-                      strokeWidth={1.5}
-                      aria-hidden="true"
                     />
                   </a>
                 ) : 'The story of this year is still being written.'}
@@ -1230,12 +1227,8 @@ export function TimelineExperience() {
                     rel="noopener noreferrer"
                   >
                     <span className={styles.newsLinkText}>{worldContext.summary}</span>
-                    <HugeiconsIcon
+                    <HoverArrow
                       className={styles.newsLinkIcon}
-                      icon={ArrowUpRight01Icon}
-                      size={15}
-                      strokeWidth={1.5}
-                      aria-hidden="true"
                     />
                   </a>
                 ) : 'The story of this year is still being written.'}

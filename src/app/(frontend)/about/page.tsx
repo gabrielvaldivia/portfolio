@@ -7,14 +7,8 @@ import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { HoverChevron } from '@/components/Icons'
+import { HoverArrow, HoverChevron } from '@/components/Icons'
 import { cn } from '@/lib/cn'
-
-function HoverArrow() {
-  return (
-    <svg className="inline-block ml-2 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[0px]" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 17L17 7M17 7H9M17 7V15" /></svg>
-  )
-}
 
 function AboutSection({
   title,
