@@ -526,9 +526,13 @@ export function TimelineExperience() {
     const selectedRatio = end === start
       ? 0
       : Math.max(0, Math.min(1, (selectedTimestamp - start) / (end - start)))
-    const scrollRatio = pendingScroll?.index === contentChapterIndex
-      ? pendingScroll.ratio
-      : selectedRatio
+    const resetMobileChapter = hoverProgressRef.current !== null
+      && window.matchMedia('(max-width: 809px)').matches
+    const scrollRatio = resetMobileChapter
+      ? 0
+      : pendingScroll?.index === contentChapterIndex
+        ? pendingScroll.ratio
+        : selectedRatio
 
     if (pendingScroll?.index === contentChapterIndex) {
       pendingChapterScrollRef.current = null
