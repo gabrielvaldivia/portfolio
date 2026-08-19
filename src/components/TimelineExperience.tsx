@@ -401,6 +401,9 @@ export function TimelineExperience() {
   const contentTitle = CHAPTER_CONTENT[contentChapterIndex].title
   const contentParagraphs = CHAPTER_CONTENT[contentChapterIndex].paragraphs
   const worldContext = LOCATION_CONTEXT?.[locationDetails]?.[contentYear]
+  const worldContextWikipediaHref = worldContext
+    ? `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(worldContext.summary)}`
+    : null
   const previousChapterLabel = contentChapterIndex === 1
     ? 'Prologue'
     : `Chapter ${contentChapterIndex - 1}`
@@ -1164,7 +1167,16 @@ export function TimelineExperience() {
             <div className={styles.newsBlock}>
               <span className={styles.contextHeading}>News</span>
               <p className={styles.note}>
-                {worldContext?.summary ?? 'The story of this year is still being written.'}
+                {worldContext && worldContextWikipediaHref ? (
+                  <a
+                    className={styles.newsLink}
+                    href={worldContextWikipediaHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {worldContext.summary}
+                  </a>
+                ) : 'The story of this year is still being written.'}
               </p>
             </div>
           </aside>
@@ -1203,7 +1215,16 @@ export function TimelineExperience() {
             <div className={styles.mobileNews}>
               <dt>News</dt>
               <dd>
-                {worldContext?.summary ?? 'The story of this year is still being written.'}
+                {worldContext && worldContextWikipediaHref ? (
+                  <a
+                    className={styles.newsLink}
+                    href={worldContextWikipediaHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {worldContext.summary}
+                  </a>
+                ) : 'The story of this year is still being written.'}
               </dd>
             </div>
           </dl>
