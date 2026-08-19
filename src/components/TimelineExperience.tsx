@@ -804,14 +804,10 @@ export function TimelineExperience() {
       : Math.max(0, Math.min(1, (clientY - rect.top) / rect.height))
   }
 
-  const positionHoverPopover = (clientX: number, clientY: number) => {
+  const positionHoverPopover = (clientY: number) => {
     const rect = experienceRef.current?.getBoundingClientRect()
     if (!rect) return
 
-    experienceRef.current?.style.setProperty(
-      '--popover-x',
-      `${clientX - rect.left + 10}px`,
-    )
     experienceRef.current?.style.setProperty(
       '--popover-y',
       `${clientY - rect.top}px`,
@@ -826,7 +822,7 @@ export function TimelineExperience() {
 
     event.currentTarget.setPointerCapture(event.pointerId)
     setIsTimelineDragging(true)
-    positionHoverPopover(event.clientX, event.clientY)
+    positionHoverPopover(event.clientY)
     prepareHapticPosition(ratio)
     hoverProgressRef.current = ratio
     setHoverProgress(ratio)
@@ -851,7 +847,7 @@ export function TimelineExperience() {
     const ratio = getPointerRatio(event.clientX, event.clientY)
     if (ratio === null) return
     if (showsHoverPopover) {
-      positionHoverPopover(event.clientX, event.clientY)
+      positionHoverPopover(event.clientY)
     }
     hoverProgressRef.current = ratio
     setHoverProgress(ratio)
