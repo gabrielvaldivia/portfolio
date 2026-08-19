@@ -105,7 +105,7 @@ export function Footer({
     animationFrameRef.current = requestAnimationFrame(scramble)
   }
 
-  if (pathname.startsWith('/chat')) return null
+  if (pathname.startsWith('/chat') || pathname === '/timeline') return null
 
   return (
     <footer className="pt-5 pb-24 tablet:pb-20">
