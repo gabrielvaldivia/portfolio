@@ -274,6 +274,7 @@ export function TimelineExperience() {
   const targetRef = useRef(lastIndex)
   const positionRef = useRef(lastIndex)
   const animationRef = useRef<number | null>(null)
+  const experienceRef = useRef<HTMLElement | null>(null)
   const railRef = useRef<HTMLDivElement | null>(null)
   const chapterScrollRef = useRef<HTMLDivElement | null>(null)
   const chapterMotionRef = useRef<HTMLDivElement | null>(null)
@@ -803,6 +804,20 @@ export function TimelineExperience() {
       : Math.max(0, Math.min(1, (clientY - rect.top) / rect.height))
   }
 
+  const positionHoverPopover = (clientX: number, clientY: number) => {
+    const rect = experienceRef.current?.getBoundingClientRect()
+    if (!rect) return
+
+    experienceRef.current?.style.setProperty(
+      '--popover-x',
+      `${clientX - rect.left + 10}px`,
+    )
+    experienceRef.current?.style.setProperty(
+      '--popover-y',
+      `${clientY - rect.top}px`,
+    )
+  }
+
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     const ratio = getPointerRatio(event.clientX, event.clientY)
     if (ratio === null) return
@@ -811,6 +826,7 @@ export function TimelineExperience() {
 
     event.currentTarget.setPointerCapture(event.pointerId)
     setIsTimelineDragging(true)
+    positionHoverPopover(event.clientX, event.clientY)
     prepareHapticPosition(ratio)
     hoverProgressRef.current = ratio
     setHoverProgress(ratio)
@@ -825,16 +841,24 @@ export function TimelineExperience() {
     const rect = railRef.current?.getBoundingClientRect()
     const isHorizontal = rect ? rect.width > rect.height : false
     const isDragging = event.currentTarget.hasPointerCapture(event.pointerId)
+    const showsHoverPopover = window.matchMedia(
+      '(min-width: 810px) and (max-width: 1279px)',
+    ).matches
 
     if (isHorizontal && !isDragging) return
-    if (!isHorizontal && hoverLockRef.current && !isDragging) return
+    if (!isHorizontal && hoverLockRef.current && !isDragging && !showsHoverPopover) return
 
     const ratio = getPointerRatio(event.clientX, event.clientY)
     if (ratio === null) return
+    if (showsHoverPopover) {
+      positionHoverPopover(event.clientX, event.clientY)
+    }
     hoverProgressRef.current = ratio
     setHoverProgress(ratio)
 
-    if (isDragging) {
+    if (showsHoverPopover) {
+      snapTo(ratio * lastIndex)
+    } else if (isDragging) {
       if (isHorizontal) {
         moveTo(ratio * lastIndex)
       } else {
@@ -892,6 +916,7 @@ export function TimelineExperience() {
 
   return (
     <section
+      ref={experienceRef}
       className={styles.experience}
       style={{
         '--timeline-progress': progress,
@@ -1187,7 +1212,7 @@ export function TimelineExperience() {
         </article>
       </div>
 
-      {isTimelineDragging && (
+      {(isTimelineDragging || hoverProgress !== null) && (
         <aside className={styles.mobileSidebarPopover} aria-label="Timeline details">
           <dl className={styles.mobileSidebarGrid}>
             <div>
