@@ -19,18 +19,18 @@ const PRESENT_YEAR = 2026
 const BIRTH_TIMESTAMP = Date.UTC(1987, 2, 23)
 const PRESENT_TIMESTAMP = Date.UTC(2026, 7, 19)
 const TICKS_PER_YEAR = 1
-const CHAPTER_PULL_THRESHOLD = 80
-const MOBILE_CHAPTER_PULL_THRESHOLD = 200
-const MOBILE_PREVIOUS_CHAPTER_CUE_DELAY = 100
-const MOBILE_CHAPTER_CUE_FADE_PORTION = 0.75
-const CHAPTER_PULL_MAX_OFFSET = 52
-const CHAPTER_PULL_DAMPING = 140
+const CHAPTER_PULL_THRESHOLD = 200
+const PREVIOUS_CHAPTER_CUE_DELAY = 100
+const CHAPTER_CUE_FADE_PORTION = 0.75
 const CHAPTER_CUE_PULL_FACTOR = 0.5
 const CHAPTER_MOTION_EASE = 'cubic-bezier(0.22, 0.61, 0.24, 1)'
 const CHAPTER_WHEEL_QUIET_MS = 80
 const CHAPTER_BACKWARD_WHEEL_QUIET_MS = 220
 const CHAPTER_EXIT_DURATION = 200
 const CHAPTER_ENTER_DURATION = 420
+const METADATA_SCRUB_PIXELS_PER_YEAR = 16
+const METADATA_SCRUB_PIXELS_PER_STOP = 28
+const METADATA_SCRUB_DRAG_THRESHOLD = 4
 const FULL_DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
   day: 'numeric',
   month: 'short',
@@ -65,17 +65,31 @@ type DatedTimelinePeriod = {
   label: string
 }
 
-const monthStart = (year: number, month: number) => Date.UTC(year, month - 1, 1)
+type MetadataScrubSource = 'date' | 'age' | 'location' | 'education' | 'work'
 
-const LOCATION_HISTORY: TimelinePeriod[] = [
-  { startYear: 1987, endYear: 1994, label: 'Cuba' },
-  { startYear: 1995, endYear: 2002, label: 'Costa Rica' },
-  { startYear: 2003, endYear: 2011, label: 'Tampa' },
-  { startYear: 2012, endYear: 2012, label: 'Los Angeles' },
-  { startYear: 2013, endYear: 2014, label: 'San Francisco' },
-  { startYear: 2015, endYear: 2015, label: 'London, England' },
-  { startYear: 2016, endYear: 2017, label: 'San Francisco' },
-  { startYear: 2018, endYear: PRESENT_YEAR, label: 'New York City' },
+type MetadataScrubSession = {
+  pointerId: number
+  source: MetadataScrubSource
+  startX: number
+  startPosition: number
+  startStopIndex: number | null
+  didDrag: boolean
+}
+
+const monthStart = (year: number, month: number) => Date.UTC(year, month - 1, 1)
+const dayStart = (year: number, month: number, day: number) => (
+  Date.UTC(year, month - 1, day)
+)
+
+const LOCATION_HISTORY: DatedTimelinePeriod[] = [
+  { start: BIRTH_TIMESTAMP, end: dayStart(1995, 7, 25), label: 'Cuba' },
+  { start: dayStart(1995, 7, 25), end: dayStart(2003, 10, 30), label: 'Costa Rica' },
+  { start: dayStart(2003, 10, 30), end: monthStart(2012, 3), label: 'Tampa' },
+  { start: monthStart(2012, 3), end: monthStart(2012, 11), label: 'Los Angeles' },
+  { start: monthStart(2012, 11), end: monthStart(2015, 2), label: 'San Francisco' },
+  { start: monthStart(2015, 2), end: monthStart(2016, 1), label: 'London, England' },
+  { start: monthStart(2016, 1), end: dayStart(2017, 11, 17), label: 'San Francisco' },
+  { start: dayStart(2017, 11, 17), end: PRESENT_TIMESTAMP + 1, label: 'New York City' },
 ]
 
 const EDUCATION_HISTORY: TimelinePeriod[] = [
@@ -114,6 +128,25 @@ const WORK_HISTORY: DatedTimelinePeriod[] = [
   { start: monthStart(2021, 3), end: monthStart(2023, 9), label: 'Patreon' },
   { start: monthStart(2023, 9), end: PRESENT_TIMESTAMP + 1, label: 'Valdivia Works' },
 ]
+
+const getMetadataScrubStops = (source: MetadataScrubSource) => {
+  if (source === 'location') {
+    return LOCATION_HISTORY.map((period) => period.start)
+  }
+  if (source === 'education') {
+    return EDUCATION_HISTORY.map((period) => Date.UTC(period.startYear, 0, 1))
+  }
+  if (source === 'work') {
+    return WORK_HISTORY.map((period) => period.start)
+  }
+  return null
+}
+
+const getScrubStopIndex = (stops: readonly number[], timestamp: number) => {
+  const firstFutureIndex = stops.findIndex((stop) => stop > timestamp)
+  if (firstFutureIndex === -1) return stops.length - 1
+  return Math.max(0, firstFutureIndex - 1)
+}
 
 const CHAPTER_STARTS = [
   monthStart(2001, 1), // Don Bosco, Leto, HCC, and Art Institute
@@ -212,6 +245,7 @@ export function TimelineExperience({
   const [isTimelineDragging, setIsTimelineDragging] = useState(false)
   const [isDateEditing, setIsDateEditing] = useState(false)
   const [dateDraft, setDateDraft] = useState('')
+  const [metadataScrubSource, setMetadataScrubSource] = useState<MetadataScrubSource | null>(null)
   const hoverProgressRef = useRef<number | null>(null)
   const targetRef = useRef(lastIndex)
   const positionRef = useRef(lastIndex)
@@ -252,6 +286,11 @@ export function TimelineExperience({
   const urlDateReadyRef = useRef(false)
   const pendingUrlDateRef = useRef<string | null>(null)
   const urlSyncTimerRef = useRef<number | null>(null)
+  const metadataScrubSessionRef = useRef<MetadataScrubSession | null>(null)
+  const metadataScrubFrameRef = useRef<number | null>(null)
+  const pendingMetadataPositionRef = useRef<number | null>(null)
+  const suppressDateClickRef = useRef(false)
+  const suppressDateClickTimerRef = useRef<number | null>(null)
 
   const getChapterScrollElement = () => {
     if (typeof window === 'undefined') return chapterScrollRef.current
@@ -342,6 +381,12 @@ export function TimelineExperience({
       if (urlSyncTimerRef.current !== null) {
         window.clearTimeout(urlSyncTimerRef.current)
       }
+      if (metadataScrubFrameRef.current !== null) {
+        cancelAnimationFrame(metadataScrubFrameRef.current)
+      }
+      if (suppressDateClickTimerRef.current !== null) {
+        window.clearTimeout(suppressDateClickTimerRef.current)
+      }
     }
   }, [])
 
@@ -361,8 +406,23 @@ export function TimelineExperience({
   const pillTimestamp = Math.round(
     BIRTH_TIMESTAMP + pillProgress * (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP),
   )
-  const pillLabel = PILL_DATE_FORMATTER.format(new Date(pillTimestamp))
-  const locationDetails = getPeriodLabel(LOCATION_HISTORY, contentYear)
+  const pillDate = new Date(pillTimestamp)
+  const pillLabel = PILL_DATE_FORMATTER.format(pillDate)
+  const previewYear = pillDate.getUTCFullYear()
+  const previewIsBeforeBirthday = pillDate.getUTCMonth() < 2
+    || (pillDate.getUTCMonth() === 2 && pillDate.getUTCDate() < 23)
+  const previewAge = previewYear - BIRTH_YEAR - (previewIsBeforeBirthday ? 1 : 0)
+  const previewAgeLabel = previewAge === 0 ? 'Newborn' : previewAge
+  const previewDateLabel = FULL_DATE_FORMATTER.format(pillDate)
+  const previewDateTime = pillDate.toISOString().slice(0, 10)
+  const previewLocationDetails = getDatedPeriodLabel(LOCATION_HISTORY, pillTimestamp)
+  const previewEducationDetails = getPeriodLabel(EDUCATION_HISTORY, previewYear)
+  const previewWorkDetails = getDatedPeriodLabel(WORK_HISTORY, pillTimestamp)
+  const previewWorldContext = LOCATION_CONTEXT?.[previewLocationDetails]?.[previewYear]
+  const previewWorldContextWikipediaHref = previewWorldContext
+    ? `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(previewWorldContext.summary)}`
+    : null
+  const locationDetails = getDatedPeriodLabel(LOCATION_HISTORY, contentTimestamp)
   const educationDetails = getPeriodLabel(EDUCATION_HISTORY, contentYear)
   const workDetails = getDatedPeriodLabel(WORK_HISTORY, contentDate.getTime())
   const contentChapterIndex = getChapterIndex(contentDate.getTime())
@@ -791,25 +851,20 @@ export function TimelineExperience({
     }
 
     chapterPullDistanceRef.current += Math.abs(deltaY)
-    const pullThreshold = isMobile
-      ? MOBILE_CHAPTER_PULL_THRESHOLD
-      : CHAPTER_PULL_THRESHOLD
-    const cueDelay = isMobile && direction < 0
-      ? MOBILE_PREVIOUS_CHAPTER_CUE_DELAY
+    const pullThreshold = CHAPTER_PULL_THRESHOLD
+    const cueDelay = direction < 0
+      ? PREVIOUS_CHAPTER_CUE_DELAY
       : 0
-    const cueFadeDistance = isMobile
-      ? (pullThreshold - cueDelay) * MOBILE_CHAPTER_CUE_FADE_PORTION
-      : pullThreshold - cueDelay
+    const cueFadeDistance = (pullThreshold - cueDelay) * CHAPTER_CUE_FADE_PORTION
     const cueProgress = Math.max(0, Math.min(
       1,
       (chapterPullDistanceRef.current - cueDelay) / cueFadeDistance,
     ))
     const signedPull = chapterPullDistanceRef.current * direction
-    const chapterOffset = isMobile
-      ? Math.sign(signedPull) * Math.min(Math.abs(signedPull), pullThreshold)
-      : CHAPTER_PULL_MAX_OFFSET
-        * Math.sign(signedPull)
-        * (1 - Math.exp(-Math.abs(signedPull) / CHAPTER_PULL_DAMPING))
+    const chapterOffset = Math.sign(signedPull) * Math.min(
+      Math.abs(signedPull),
+      pullThreshold,
+    )
     const motion = chapterMotionRef.current
     const activeCues = direction < 0
       ? [previousChapterCueRef.current, mobilePreviousChapterCueRef.current]
@@ -840,7 +895,7 @@ export function TimelineExperience({
     if (motion && !prefersReducedMotion) {
       clearChapterMotionCleanup()
       motion.style.willChange = 'transform'
-      motion.style.transition = isMobile ? 'none' : 'transform 80ms linear'
+      motion.style.transition = 'none'
       motion.style.transform = `translate3d(0, ${-chapterOffset}px, 0)`
     }
 
@@ -852,7 +907,7 @@ export function TimelineExperience({
       chapterPullDirectionRef.current = 0
       chapterPullIdleTimerRef.current = null
       releaseChapterMotion()
-    }, isMobile ? 360 : 260)
+    }, 360)
 
     if (chapterPullDistanceRef.current < pullThreshold) return
 
@@ -889,7 +944,7 @@ export function TimelineExperience({
     motion.style.willChange = 'transform, opacity'
     motion.style.transition = `transform ${CHAPTER_EXIT_DURATION}ms ${CHAPTER_MOTION_EASE}, opacity 160ms ease-out`
     motion.style.opacity = '0'
-    motion.style.transform = `translate3d(0, ${-direction * (isMobile ? pullThreshold : 64)}px, 0)`
+    motion.style.transform = `translate3d(0, ${-direction * pullThreshold}px, 0)`
     chapterTransitionTimerRef.current = window.setTimeout(() => {
       chapterTransitionTimerRef.current = null
       moveToChapter(nextChapterIndex, 0)
@@ -1014,9 +1069,7 @@ export function TimelineExperience({
     hoverProgressRef.current = ratio
     setHoverProgress(ratio)
 
-    if (showsHoverPopover) {
-      snapTo(ratio * lastIndex)
-    } else if (isDragging) {
+    if (isDragging) {
       if (isHorizontal) {
         moveTo(ratio * lastIndex)
       } else {
@@ -1071,6 +1124,196 @@ export function TimelineExperience({
       pulseHapticAt(1)
     }
   }
+
+  const flushMetadataScrub = () => {
+    const nextPosition = pendingMetadataPositionRef.current
+    metadataScrubFrameRef.current = null
+    pendingMetadataPositionRef.current = null
+    if (nextPosition === null) return
+
+    snapTo(nextPosition)
+    pulseHapticAt(nextPosition / lastIndex)
+  }
+
+  const scheduleMetadataScrub = (nextPosition: number) => {
+    pendingMetadataPositionRef.current = nextPosition
+    if (metadataScrubFrameRef.current === null) {
+      metadataScrubFrameRef.current = requestAnimationFrame(flushMetadataScrub)
+    }
+  }
+
+  const handleMetadataPointerDown = (
+    event: React.PointerEvent<HTMLElement>,
+    source: MetadataScrubSource,
+  ) => {
+    if (event.button !== 0) return
+
+    if (animationRef.current !== null) {
+      cancelAnimationFrame(animationRef.current)
+      animationRef.current = null
+    }
+
+    const scrubStops = getMetadataScrubStops(source)
+    const startTimestamp = Math.round(
+      BIRTH_TIMESTAMP
+        + (positionRef.current / lastIndex) * (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP),
+    )
+
+    metadataScrubSessionRef.current = {
+      pointerId: event.pointerId,
+      source,
+      startX: event.clientX,
+      startPosition: positionRef.current,
+      startStopIndex: scrubStops
+        ? getScrubStopIndex(scrubStops, startTimestamp)
+        : null,
+      didDrag: false,
+    }
+    setMetadataScrubSource(source)
+    prepareHapticPosition(positionRef.current / lastIndex)
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+
+  const handleMetadataPointerMove = (event: React.PointerEvent<HTMLElement>) => {
+    const session = metadataScrubSessionRef.current
+    if (!session || session.pointerId !== event.pointerId) return
+
+    const deltaX = event.clientX - session.startX
+    if (!session.didDrag && Math.abs(deltaX) < METADATA_SCRUB_DRAG_THRESHOLD) return
+
+    if (!session.didDrag) {
+      session.didDrag = true
+      if (session.source === 'date') {
+        suppressDateClickRef.current = true
+        setIsDateEditing(false)
+        setDateDraft('')
+      }
+    }
+
+    event.preventDefault()
+    const scrubStops = getMetadataScrubStops(session.source)
+    if (scrubStops && session.startStopIndex !== null) {
+      const stopOffset = Math.round(deltaX / METADATA_SCRUB_PIXELS_PER_STOP)
+      const stopIndex = Math.max(
+        0,
+        Math.min(scrubStops.length - 1, session.startStopIndex + stopOffset),
+      )
+      const stopPosition = ((scrubStops[stopIndex] - BIRTH_TIMESTAMP)
+        / (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP)) * lastIndex
+      scheduleMetadataScrub(stopPosition)
+      return
+    }
+
+    scheduleMetadataScrub(Math.max(
+      0,
+      Math.min(
+        lastIndex,
+        session.startPosition + deltaX / METADATA_SCRUB_PIXELS_PER_YEAR,
+      ),
+    ))
+  }
+
+  const finishMetadataScrub = () => {
+    const session = metadataScrubSessionRef.current
+    if (!session) return
+
+    metadataScrubSessionRef.current = null
+    setMetadataScrubSource(null)
+
+    if (metadataScrubFrameRef.current !== null) {
+      cancelAnimationFrame(metadataScrubFrameRef.current)
+      flushMetadataScrub()
+    }
+    if (session.didDrag && session.source === 'date') {
+      if (suppressDateClickTimerRef.current !== null) {
+        window.clearTimeout(suppressDateClickTimerRef.current)
+      }
+      suppressDateClickTimerRef.current = window.setTimeout(() => {
+        suppressDateClickRef.current = false
+        suppressDateClickTimerRef.current = null
+      }, 0)
+    }
+
+    hapticTickRef.current = null
+  }
+
+  const endMetadataScrub = (event: React.PointerEvent<HTMLElement>) => {
+    const session = metadataScrubSessionRef.current
+    if (!session || session.pointerId !== event.pointerId) return
+
+    finishMetadataScrub()
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+  }
+
+  const handleMetadataKeyDown = (
+    event: React.KeyboardEvent<HTMLElement>,
+    step: number,
+  ) => {
+    const offsets: Record<string, number> = {
+      ArrowLeft: -step,
+      ArrowDown: -step,
+      ArrowRight: step,
+      ArrowUp: step,
+      PageDown: -step * 5,
+      PageUp: step * 5,
+    }
+
+    if (event.key in offsets) {
+      event.preventDefault()
+      snapTo(targetRef.current + offsets[event.key])
+    } else if (event.key === 'Home') {
+      event.preventDefault()
+      snapTo(0)
+    } else if (event.key === 'End') {
+      event.preventDefault()
+      snapTo(lastIndex)
+    }
+  }
+
+  const handleDiscreteMetadataKeyDown = (
+    event: React.KeyboardEvent<HTMLElement>,
+    source: MetadataScrubSource,
+  ) => {
+    const scrubStops = getMetadataScrubStops(source)
+    if (!scrubStops) return
+
+    const timestamp = Math.round(
+      BIRTH_TIMESTAMP
+        + (positionRef.current / lastIndex) * (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP),
+    )
+    const currentIndex = getScrubStopIndex(scrubStops, timestamp)
+    const direction = event.key === 'ArrowLeft' || event.key === 'ArrowDown'
+      ? -1
+      : event.key === 'ArrowRight' || event.key === 'ArrowUp'
+        ? 1
+        : event.key === 'Home'
+          ? -currentIndex
+          : event.key === 'End'
+            ? scrubStops.length - 1 - currentIndex
+            : null
+    if (direction === null) return
+
+    event.preventDefault()
+    const stopIndex = Math.max(0, Math.min(scrubStops.length - 1, currentIndex + direction))
+    const stopPosition = ((scrubStops[stopIndex] - BIRTH_TIMESTAMP)
+      / (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP)) * lastIndex
+    snapTo(stopPosition)
+  }
+
+  useEffect(() => {
+    if (metadataScrubSource === null) return
+
+    const handleWindowPointerEnd = () => finishMetadataScrub()
+    window.addEventListener('pointerup', handleWindowPointerEnd)
+    window.addEventListener('pointercancel', handleWindowPointerEnd)
+
+    return () => {
+      window.removeEventListener('pointerup', handleWindowPointerEnd)
+      window.removeEventListener('pointercancel', handleWindowPointerEnd)
+    }
+  }, [metadataScrubSource])
 
   return (
     <section
@@ -1257,7 +1500,19 @@ export function TimelineExperience({
                     <button
                       type="button"
                       className={styles.dateButton}
-                      aria-label={`Change date. Current date: ${contentDateLabel}`}
+                      aria-label={`Date: ${contentDateLabel}. Drag horizontally to scrub, or click to open the calendar.`}
+                      onClickCapture={(event) => {
+                        if (!suppressDateClickRef.current) return
+                        event.preventDefault()
+                        event.stopPropagation()
+                        suppressDateClickRef.current = false
+                      }}
+                      onKeyDown={(event) => handleMetadataKeyDown(event, 1 / 12)}
+                      onPointerDown={(event) => handleMetadataPointerDown(event, 'date')}
+                      onPointerMove={handleMetadataPointerMove}
+                      onPointerUp={endMetadataScrub}
+                      onPointerCancel={endMetadataScrub}
+                      onLostPointerCapture={endMetadataScrub}
                     >
                       <time dateTime={contentDateTime}>{contentDateLabel}</time>
                       <HugeiconsIcon
@@ -1341,22 +1596,98 @@ export function TimelineExperience({
               <dl className={styles.details}>
                 <div className={styles.ageDetail}>
                   <dt>Age</dt>
-                  <dd>{contentAgeLabel}</dd>
+                  <dd>
+                    <span
+                      className={styles.metadataScrubber}
+                      role="slider"
+                      tabIndex={0}
+                      aria-label="Age"
+                      aria-valuemin={0}
+                      aria-valuemax={PRESENT_YEAR - BIRTH_YEAR}
+                      aria-valuenow={contentAge}
+                      aria-valuetext={String(contentAgeLabel)}
+                      onKeyDown={(event) => handleMetadataKeyDown(event, 1)}
+                      onPointerDown={(event) => handleMetadataPointerDown(event, 'age')}
+                      onPointerMove={handleMetadataPointerMove}
+                      onPointerUp={endMetadataScrub}
+                      onPointerCancel={endMetadataScrub}
+                      onLostPointerCapture={endMetadataScrub}
+                    >
+                      {contentAgeLabel}
+                    </span>
+                  </dd>
                 </div>
                 <div className={styles.whereDetail}>
                   <dt>Location</dt>
-                  <dd>{locationDetails}</dd>
+                  <dd>
+                    <span
+                      className={styles.metadataScrubber}
+                      role="slider"
+                      tabIndex={0}
+                      aria-label="Location"
+                      aria-valuemin={BIRTH_TIMESTAMP}
+                      aria-valuemax={PRESENT_TIMESTAMP}
+                      aria-valuenow={contentTimestamp}
+                      aria-valuetext={`${locationDetails}, ${contentDateLabel}`}
+                      onKeyDown={(event) => handleDiscreteMetadataKeyDown(event, 'location')}
+                      onPointerDown={(event) => handleMetadataPointerDown(event, 'location')}
+                      onPointerMove={handleMetadataPointerMove}
+                      onPointerUp={endMetadataScrub}
+                      onPointerCancel={endMetadataScrub}
+                      onLostPointerCapture={endMetadataScrub}
+                    >
+                      {locationDetails}
+                    </span>
+                  </dd>
                 </div>
-                {educationDetails !== '—' && (
+                {(educationDetails !== '—' || metadataScrubSource === 'education') && (
                   <div className={styles.educationDetail}>
                     <dt>Education</dt>
-                    <dd>{educationDetails}</dd>
+                    <dd>
+                      <span
+                        className={styles.metadataScrubber}
+                        role="slider"
+                        tabIndex={0}
+                        aria-label="Education"
+                        aria-valuemin={BIRTH_TIMESTAMP}
+                        aria-valuemax={PRESENT_TIMESTAMP}
+                        aria-valuenow={contentTimestamp}
+                        aria-valuetext={`${educationDetails}, ${contentDateLabel}`}
+                        onKeyDown={(event) => handleDiscreteMetadataKeyDown(event, 'education')}
+                        onPointerDown={(event) => handleMetadataPointerDown(event, 'education')}
+                        onPointerMove={handleMetadataPointerMove}
+                        onPointerUp={endMetadataScrub}
+                        onPointerCancel={endMetadataScrub}
+                        onLostPointerCapture={endMetadataScrub}
+                      >
+                        {educationDetails}
+                      </span>
+                    </dd>
                   </div>
                 )}
-                {workDetails !== '—' && (
+                {(workDetails !== '—' || metadataScrubSource === 'work') && (
                   <div className={styles.workDetail}>
                     <dt>Work</dt>
-                    <dd>{workDetails}</dd>
+                    <dd>
+                      <span
+                        className={styles.metadataScrubber}
+                        role="slider"
+                        tabIndex={0}
+                        aria-label="Work"
+                        aria-valuemin={BIRTH_TIMESTAMP}
+                        aria-valuemax={PRESENT_TIMESTAMP}
+                        aria-valuenow={contentTimestamp}
+                        aria-valuetext={`${workDetails}, ${contentDateLabel}`}
+                        onKeyDown={(event) => handleDiscreteMetadataKeyDown(event, 'work')}
+                        onPointerDown={(event) => handleMetadataPointerDown(event, 'work')}
+                        onPointerMove={handleMetadataPointerMove}
+                        onPointerUp={endMetadataScrub}
+                        onPointerCancel={endMetadataScrub}
+                        onLostPointerCapture={endMetadataScrub}
+                      >
+                        {workDetails}
+                      </span>
+                    </dd>
                   </div>
                 )}
               </dl>
@@ -1410,40 +1741,40 @@ export function TimelineExperience({
             <div>
               <dt>Date</dt>
               <dd>
-                <time dateTime={contentDateTime}>{contentDateLabel}</time>
+                <time dateTime={previewDateTime}>{previewDateLabel}</time>
               </dd>
             </div>
             <div>
               <dt>Age</dt>
-              <dd>{contentAgeLabel}</dd>
+              <dd>{previewAgeLabel}</dd>
             </div>
             <div>
               <dt>Location</dt>
-              <dd>{locationDetails}</dd>
+              <dd>{previewLocationDetails}</dd>
             </div>
-            {educationDetails !== '—' && (
+            {previewEducationDetails !== '—' && (
               <div>
                 <dt>Education</dt>
-                <dd>{educationDetails}</dd>
+                <dd>{previewEducationDetails}</dd>
               </div>
             )}
-            {workDetails !== '—' && (
+            {previewWorkDetails !== '—' && (
               <div>
                 <dt>Work</dt>
-                <dd>{workDetails}</dd>
+                <dd>{previewWorkDetails}</dd>
               </div>
             )}
             <div className={styles.mobileNews}>
               <dt>News</dt>
               <dd>
-                {worldContext && worldContextWikipediaHref ? (
+                {previewWorldContext && previewWorldContextWikipediaHref ? (
                   <a
                     className={styles.newsLink}
-                    href={worldContextWikipediaHref}
+                    href={previewWorldContextWikipediaHref}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <span className={styles.newsLinkText}>{worldContext.summary}</span>
+                    <span className={styles.newsLinkText}>{previewWorldContext.summary}</span>
                     <HoverArrow
                       className={styles.newsLinkIcon}
                     />
