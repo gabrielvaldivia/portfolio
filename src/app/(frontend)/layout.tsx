@@ -60,7 +60,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     .slice(0, 4)
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
         <style dangerouslySetInnerHTML={{ __html: `
           .page-transition { opacity: 0; transform: translateY(12px); }

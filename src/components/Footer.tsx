@@ -158,6 +158,7 @@ export function Footer({
               <Link
                 key={link.href}
                 href={link.href}
+                scroll={link.href === '/timeline' ? false : undefined}
                 className={FOOTER_TEXT_LINK_CLASS}
               >
                 {link.label}
