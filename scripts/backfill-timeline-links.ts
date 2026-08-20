@@ -40,13 +40,47 @@ const countLinks = (content: TimelineRichText): number => {
   return count
 }
 
+const opensExternally = (url: unknown): url is string => (
+  typeof url === 'string'
+  && (/^https?:\/\//i.test(url) || url.startsWith('//'))
+)
+
+const enableExternalLinksInNewTabs = (content: TimelineRichText): TimelineRichText => {
+  const visit = (node: unknown): unknown => {
+    if (!node || typeof node !== 'object') return node
+
+    const candidate = node as Record<string, unknown>
+    const fields = candidate.fields && typeof candidate.fields === 'object'
+      ? candidate.fields as Record<string, unknown>
+      : null
+    const children = Array.isArray(candidate.children)
+      ? candidate.children.map(visit)
+      : candidate.children
+
+    if (candidate.type !== 'link' || !fields || !opensExternally(fields.url)) {
+      return children === candidate.children ? candidate : { ...candidate, children }
+    }
+
+    return {
+      ...candidate,
+      children,
+      fields: {
+        ...fields,
+        newTab: true,
+      },
+    }
+  }
+
+  return visit(content) as TimelineRichText
+}
+
 let linksBefore = 0
 let linksAfter = 0
 let chaptersChanged = 0
 
 const chapters = timeline.chapters.map((chapter) => {
   const content = chapter.content as TimelineRichText
-  const enrichedContent = enrichTimelineRichText(content)
+  const enrichedContent = enableExternalLinksInNewTabs(enrichTimelineRichText(content))
 
   linksBefore += countLinks(content)
   linksAfter += countLinks(enrichedContent)

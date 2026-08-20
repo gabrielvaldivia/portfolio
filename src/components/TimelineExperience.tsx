@@ -250,15 +250,15 @@ export function TimelineExperience({
   chapters?: readonly TimelineChapter[]
 }) {
   const lastIndex = PRESENT_YEAR - BIRTH_YEAR
-  const [displayPosition, setDisplayPosition] = useState(lastIndex)
+  const [displayPosition, setDisplayPosition] = useState(0)
   const [hoverProgress, setHoverProgress] = useState<number | null>(null)
   const [isTimelineDragging, setIsTimelineDragging] = useState(false)
   const [isDateEditing, setIsDateEditing] = useState(false)
   const [dateDraft, setDateDraft] = useState('')
   const [metadataScrubSource, setMetadataScrubSource] = useState<MetadataScrubSource | null>(null)
   const hoverProgressRef = useRef<number | null>(null)
-  const targetRef = useRef(lastIndex)
-  const positionRef = useRef(lastIndex)
+  const targetRef = useRef(0)
+  const positionRef = useRef(0)
   const animationRef = useRef<number | null>(null)
   const experienceRef = useRef<HTMLElement | null>(null)
   const railRef = useRef<HTMLDivElement | null>(null)
