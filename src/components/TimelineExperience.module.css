@@ -269,6 +269,10 @@
   margin-top: 1em;
 }
 
+.chapterDescription :global(.rich-text) {
+  color: inherit;
+}
+
 .chapterEyebrow {
   position: relative;
   display: flex;

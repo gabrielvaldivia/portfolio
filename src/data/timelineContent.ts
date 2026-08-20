@@ -1,11 +1,27 @@
+export type TimelineRichText = {
+  root: {
+    children: Record<string, unknown>[]
+    direction: 'ltr' | 'rtl' | null
+    format: string
+    indent: number
+    type: 'root'
+    version: number
+  }
+}
+
 export type TimelineChapter = {
+  content: TimelineRichText
+  title: string
+}
+
+type TimelineChapterSource = {
   paragraphs: string[]
   title: string
 }
 
 export const TIMELINE_CHAPTER_COUNT = 11
 
-export const DEFAULT_TIMELINE_CHAPTERS: readonly TimelineChapter[] = [
+const DEFAULT_TIMELINE_CHAPTER_SOURCES: readonly TimelineChapterSource[] = [
   {
     title: 'Early Influences',
     paragraphs: [
@@ -119,37 +135,93 @@ export const DEFAULT_TIMELINE_CHAPTERS: readonly TimelineChapter[] = [
   },
 ]
 
+export function paragraphsToTimelineRichText(paragraphs: readonly string[]): TimelineRichText {
+  return {
+    root: {
+      children: paragraphs.map((text) => ({
+        children: [
+          {
+            detail: 0,
+            format: 0,
+            mode: 'normal',
+            style: '',
+            text,
+            type: 'text',
+            version: 1,
+          },
+        ],
+        direction: null,
+        format: '',
+        indent: 0,
+        textFormat: 0,
+        textStyle: '',
+        type: 'paragraph',
+        version: 1,
+      })),
+      direction: null,
+      format: '',
+      indent: 0,
+      type: 'root',
+      version: 1,
+    },
+  }
+}
+
+export const DEFAULT_TIMELINE_CHAPTERS: readonly TimelineChapter[] =
+  DEFAULT_TIMELINE_CHAPTER_SOURCES.map(({ paragraphs, title }) => ({
+    content: paragraphsToTimelineRichText(paragraphs),
+    title,
+  }))
+
+function isTimelineRichText(value: unknown): value is TimelineRichText {
+  if (!value || typeof value !== 'object') return false
+
+  const root = (value as { root?: unknown }).root
+  return Boolean(
+    root
+      && typeof root === 'object'
+      && (root as { type?: unknown }).type === 'root'
+      && Array.isArray((root as { children?: unknown }).children),
+  )
+}
+
+function cloneTimelineChapter(chapter: TimelineChapter): TimelineChapter {
+  return {
+    content: JSON.parse(JSON.stringify(chapter.content)) as TimelineRichText,
+    title: chapter.title,
+  }
+}
+
 export function normalizeTimelineChapters(
   value: unknown,
   fallback: readonly TimelineChapter[],
 ): TimelineChapter[] {
   if (!Array.isArray(value) || value.length !== TIMELINE_CHAPTER_COUNT) {
-    return fallback.map((chapter) => ({
-      paragraphs: [...chapter.paragraphs],
-      title: chapter.title,
-    }))
+    return fallback.map(cloneTimelineChapter)
   }
 
   const chapters = value.map((chapter) => {
     if (!chapter || typeof chapter !== 'object') return null
 
-    const candidate = chapter as Partial<TimelineChapter>
+    const candidate = chapter as Partial<TimelineChapter> & { paragraphs?: unknown }
     const title = typeof candidate.title === 'string' ? candidate.title.trim() : ''
-    const paragraphs = Array.isArray(candidate.paragraphs)
+    const legacyParagraphs = Array.isArray(candidate.paragraphs)
       ? candidate.paragraphs.filter(
           (paragraph): paragraph is string =>
             typeof paragraph === 'string' && paragraph.trim().length > 0,
         )
       : []
+    const content = isTimelineRichText(candidate.content)
+      ? candidate.content
+      : legacyParagraphs.length > 0
+        ? paragraphsToTimelineRichText(legacyParagraphs)
+        : null
 
-    return title && paragraphs.length > 0 ? { paragraphs, title } : null
+    return title && content ? { content, title } : null
   })
 
   if (chapters.some((chapter) => chapter === null)) {
-    return fallback.map((chapter) => ({
-      paragraphs: [...chapter.paragraphs],
-      title: chapter.title,
-    }))
+    return fallback.map(cloneTimelineChapter)
   }
 
   return chapters as TimelineChapter[]

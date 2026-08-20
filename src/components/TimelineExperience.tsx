@@ -9,6 +9,7 @@ import {
 } from '../data/timelineContent'
 import { LOCATION_CONTEXT } from '../data/timelineWorldContext'
 import { HoverArrow } from './Icons'
+import { RichText } from './RichText'
 import { Calendar } from './ui/Calendar'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/Popover'
 import styles from './TimelineExperience.module.css'
@@ -370,7 +371,7 @@ export function TimelineExperience({
     : `Chapter ${contentChapterIndex} of ${CHAPTER_BOUNDARIES.length}`
   const contentChapterRangeLabel = getChapterRangeLabel(contentChapterIndex)
   const contentTitle = chapters[contentChapterIndex].title
-  const contentParagraphs = chapters[contentChapterIndex].paragraphs
+  const contentRichText = chapters[contentChapterIndex].content
   const worldContext = LOCATION_CONTEXT?.[locationDetails]?.[contentYear]
   const worldContextWikipediaHref = worldContext
     ? `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(worldContext.summary)}`
@@ -1227,9 +1228,7 @@ export function TimelineExperience({
                   ref={chapterDescriptionRef}
                   className={styles.chapterDescription}
                 >
-                  {contentParagraphs.map((paragraph) => (
-                    <p key={paragraph}>{paragraph}</p>
-                  ))}
+                  <RichText data={contentRichText} />
                 </div>
                 {contentChapterIndex < CHAPTER_BOUNDARIES.length - 1 && (
                   <div
