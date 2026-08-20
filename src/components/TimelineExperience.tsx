@@ -20,6 +20,7 @@ const BIRTH_TIMESTAMP = Date.UTC(1987, 2, 23)
 const PRESENT_TIMESTAMP = Date.UTC(2026, 7, 19)
 const TICKS_PER_YEAR = 1
 const CHAPTER_PULL_THRESHOLD = 200
+const DESKTOP_CHAPTER_PULL_INPUT_FACTOR = 0.5
 const PREVIOUS_CHAPTER_CUE_DELAY = 100
 const CHAPTER_CUE_FADE_PORTION = 0.75
 const CHAPTER_CUE_PULL_FACTOR = 0.5
@@ -931,7 +932,8 @@ export function TimelineExperience({
         : 0
     }
 
-    chapterPullDistanceRef.current += Math.abs(deltaY)
+    const pullInputFactor = isMobile ? 1 : DESKTOP_CHAPTER_PULL_INPUT_FACTOR
+    chapterPullDistanceRef.current += Math.abs(deltaY) * pullInputFactor
     const pullThreshold = CHAPTER_PULL_THRESHOLD
     const cueDelay = direction < 0
       ? PREVIOUS_CHAPTER_CUE_DELAY
