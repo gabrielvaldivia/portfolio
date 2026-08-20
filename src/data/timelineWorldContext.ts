@@ -36,6 +36,7 @@ export const LOCATION_CONTEXT: LocationContext = {
     2009: { href: 'https://en.wikipedia.org/wiki/Super_Bowl_XLIII', summary: 'Tampa hosted Super Bowl XLIII at Raymond James Stadium.' },
     2010: { href: 'https://en.wikipedia.org/wiki/Deepwater_Horizon_oil_spill', summary: 'The Deepwater Horizon spill spread across the Gulf, disrupting Florida’s coast and tourism economy.' },
     2011: { href: 'https://en.wikipedia.org/wiki/STS-135', summary: 'Space shuttle Atlantis returned to Florida, ending NASA’s 30-year Space Shuttle program.' },
+    2012: { href: 'https://en.wikipedia.org/wiki/2012_Republican_National_Convention', summary: 'Tampa hosted the Republican National Convention, where Mitt Romney and Paul Ryan were nominated for president and vice president.' },
   },
   'Los Angeles': {
     2012: { href: 'https://en.wikipedia.org/wiki/Space_Shuttle_Endeavour', summary: 'Space shuttle Endeavour traveled through Los Angeles streets to its new home at the California Science Center.' },
