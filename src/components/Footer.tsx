@@ -16,6 +16,7 @@ const FOOTER_LINKS = [
   { label: 'Photo', href: '/photo' },
   { label: 'Activity', href: '/activity' },
   { label: 'Chat', href: '/chat' },
+  { label: 'Timeline', href: '/timeline' },
 ]
 
 type FooterSocialLink = {
@@ -132,7 +133,7 @@ export function Footer({
             </button>
           </div>
 
-          <div className="flex items-center gap-4 tablet:justify-self-center">
+          <div className="order-3 flex items-center gap-4 tablet:order-none tablet:justify-self-center">
             {footerSocialLinks.map((link) => (
               <a
                 key={`${link.platform}:${link.url}`}
@@ -151,7 +152,7 @@ export function Footer({
 
           <nav
             aria-label="Footer"
-            className="flex items-center gap-4 tablet:justify-self-end"
+            className="order-2 flex items-center gap-4 tablet:order-none tablet:justify-self-end"
           >
             {FOOTER_LINKS.map((link) => (
               <Link
