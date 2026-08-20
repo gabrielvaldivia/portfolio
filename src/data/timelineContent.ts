@@ -19,6 +19,97 @@ type TimelineChapterSource = {
   title: string
 }
 
+type TimelineLinkTarget = {
+  href: string
+  text: string
+}
+
+// Prefer Gabriel's own case studies, then official sites, then durable reference pages.
+// Longer labels win when entries overlap (for example, "Facebook 360" before "Facebook").
+const TIMELINE_LINK_TARGETS: readonly TimelineLinkTarget[] = [
+  { text: 'Colegio Técnico Don Bosco', href: 'https://cedesdonbosco.ed.cr/admision/ctpdb.php' },
+  { text: 'Hillsborough Community College', href: 'https://www.hcfl.edu/' },
+  { text: 'The Art Institute', href: 'https://en.wikipedia.org/wiki/Art_Institute_of_Tampa' },
+  { text: 'Art Institute', href: 'https://en.wikipedia.org/wiki/Art_Institute_of_Tampa' },
+  { text: 'Alejandro Valdivia', href: '/people' },
+  { text: 'Don Bosco', href: 'https://cedesdonbosco.ed.cr/admision/ctpdb.php' },
+  { text: 'HCC', href: 'https://www.hcfl.edu/' },
+  { text: 'iPhone', href: 'https://www.apple.com/iphone/' },
+  { text: 'Momentum Mobile', href: 'https://www.linkedin.com/company/momentum-mobile/' },
+  { text: 'Mad Mobile', href: 'https://www.madmobile.com/' },
+  { text: 'SparkNotes', href: 'https://www.sparknotes.com/' },
+  { text: 'Sleep Number', href: 'https://www.sleepnumber.com/' },
+  { text: 'CafePress', href: 'https://www.cafepress.com/' },
+  { text: 'Imagemedia', href: 'https://imagemedia.com/' },
+  { text: 'Cefco', href: 'https://cefco.com/' },
+  { text: 'WD', href: 'https://www.westerndigital.com/' },
+  { text: 'Mattel', href: 'https://www.mattel.com/' },
+  { text: 'Google Voice', href: 'https://voice.google.com/' },
+  { text: 'AngelList', href: 'https://www.angellist.com/' },
+  { text: 'Mohawk Digital', href: 'https://www.mohawkdigital.com/' },
+  { text: 'Mopro', href: 'https://www.mopro.com/' },
+  { text: 'The Economist', href: 'https://www.economist.com/' },
+  { text: 'QVC', href: 'https://www.qvc.com/' },
+  { text: 'Diesel', href: 'https://www.diesel.com/' },
+  { text: 'Automatic', href: '/work/automatic' },
+  { text: 'Apple Stores', href: 'https://www.apple.com/retail/' },
+  { text: 'Amazon', href: 'https://www.amazon.com/' },
+  { text: 'Lightweight Interfaces', href: '/work/fb-pages' },
+  { text: 'Boost Your Post', href: '/work/fb-pages' },
+  { text: 'Promote Page', href: '/work/fb-pages' },
+  { text: 'Facebook Ads', href: '/work/fb-pages' },
+  { text: 'Facebook Pages', href: '/work/fb-pages' },
+  { text: 'Pages', href: '/work/fb-pages' },
+  { text: 'Keynote', href: 'https://www.apple.com/keynote/' },
+  { text: 'Origami', href: 'https://origami.design/' },
+  { text: 'Multi-Post Stories', href: '/work/fb-sharing' },
+  { text: 'Instagram Stories', href: '/work/fb-sharing' },
+  { text: 'Facebook Stories', href: '/work/fb-sharing' },
+  { text: 'Friend Sharing', href: '/work/fb-sharing' },
+  { text: 'composer interface', href: '/work/fb-sharing' },
+  { text: 'Stories', href: '/work/fb-sharing' },
+  { text: 'Instagram', href: 'https://www.instagram.com/' },
+  { text: 'Mark Zuckerberg', href: 'https://en.wikipedia.org/wiki/Mark_Zuckerberg' },
+  { text: "Facebook's VR team", href: '/work/fb-360' },
+  { text: 'Facebook 360', href: '/work/fb-360' },
+  { text: '360 Photos', href: '/work/fb-360' },
+  { text: 'Facebook Spaces', href: '/work/fb-360' },
+  { text: 'VR Resources', href: '/work/fb-360' },
+  { text: 'Facebook', href: 'https://www.facebook.com/' },
+  { text: 'Unity', href: 'https://unity.com/' },
+  { text: 'Netflix', href: 'https://www.netflix.com/' },
+  { text: 'Daydream', href: 'https://en.wikipedia.org/wiki/Google_Daydream' },
+  { text: 'Blocks', href: 'https://blog.google/products-and-platforms/products/google-ar-vr/blocks-easily-create-3d-objects-vr/' },
+  { text: 'Digital Domain', href: 'https://digitaldomain.com/' },
+  { text: 'Project Shield', href: '/about' },
+  { text: 'Trainer', href: '/about' },
+  { text: 'Spotlight', href: 'https://jigsaw.google.com/issues/' },
+  { text: 'Jigsaw', href: 'https://jigsaw.google.com/' },
+  { text: 'NYPD', href: 'https://www.nyc.gov/site/nypd/index.page' },
+  { text: 'WhatsApp', href: 'https://www.whatsapp.com/' },
+  { text: 'Android', href: 'https://www.android.com/' },
+  { text: 'Assembler', href: '/work/assembler' },
+  { text: 'The New York Times', href: 'https://www.nytimes.com/' },
+  { text: 'Google', href: 'https://about.google/' },
+  { text: 'Canopy', href: '/work/tonic' },
+  { text: 'Tonic', href: '/work/tonic' },
+  { text: 'Casts', href: '/about' },
+  { text: 'Cast', href: '/about' },
+  { text: 'NewsCo', href: '/about' },
+  { text: 'CNN+', href: 'https://en.wikipedia.org/wiki/CNN%2B' },
+  { text: 'CNN', href: 'https://www.cnn.com/' },
+  { text: 'Patreon 2.0', href: '/work/patreon' },
+  { text: 'Patreon', href: '/work/patreon' },
+  { text: 'Studio', href: '/work/patreon' },
+  { text: 'Communities', href: '/work/patreon' },
+  { text: 'Valdivia Works', href: '/about' },
+  { text: 'Daylight', href: '/work/daylight' },
+  { text: 'Dex', href: '/work/dex' },
+  { text: 'Daso', href: '/clients' },
+]
+  .slice()
+  .sort((a, b) => b.text.length - a.text.length)
+
 export const TIMELINE_CHAPTER_COUNT = 11
 
 const DEFAULT_TIMELINE_CHAPTER_SOURCES: readonly TimelineChapterSource[] = [
@@ -135,8 +226,112 @@ const DEFAULT_TIMELINE_CHAPTER_SOURCES: readonly TimelineChapterSource[] = [
   },
 ]
 
-export function paragraphsToTimelineRichText(paragraphs: readonly string[]): TimelineRichText {
+function isWordCharacter(character: string | undefined): boolean {
+  return Boolean(character && /[\p{L}\p{N}]/u.test(character))
+}
+
+function isWholeMention(text: string, index: number, mention: string): boolean {
+  const precedingCharacter = index > 0 ? text[index - 1] : undefined
+  const followingCharacter = text[index + mention.length]
+
+  return !isWordCharacter(precedingCharacter) && !isWordCharacter(followingCharacter)
+}
+
+function findNextTimelineLink(
+  text: string,
+  startIndex: number,
+): { index: number; target: TimelineLinkTarget } | null {
+  let closestMatch: { index: number; target: TimelineLinkTarget } | null = null
+
+  for (const target of TIMELINE_LINK_TARGETS) {
+    let index = text.indexOf(target.text, startIndex)
+
+    while (index !== -1 && !isWholeMention(text, index, target.text)) {
+      index = text.indexOf(target.text, index + 1)
+    }
+
+    if (
+      index !== -1
+      && (
+        closestMatch === null
+        || index < closestMatch.index
+        || (index === closestMatch.index && target.text.length > closestMatch.target.text.length)
+      )
+    ) {
+      closestMatch = { index, target }
+    }
+  }
+
+  return closestMatch
+}
+
+function linkifyTimelineTextNode(node: Record<string, unknown>): Record<string, unknown>[] {
+  const text = typeof node.text === 'string' ? node.text : ''
+  const nodes: Record<string, unknown>[] = []
+  let cursor = 0
+
+  while (cursor < text.length) {
+    const match = findNextTimelineLink(text, cursor)
+
+    if (!match) {
+      nodes.push({ ...node, text: text.slice(cursor) })
+      break
+    }
+
+    if (match.index > cursor) {
+      nodes.push({ ...node, text: text.slice(cursor, match.index) })
+    }
+
+    nodes.push({
+      children: [{ ...node, text: match.target.text }],
+      direction: null,
+      fields: {
+        linkType: 'custom',
+        newTab: match.target.href.startsWith('http'),
+        url: match.target.href,
+      },
+      format: '',
+      indent: 0,
+      type: 'link',
+      version: 3,
+    })
+
+    cursor = match.index + match.target.text.length
+  }
+
+  return nodes.length > 0 ? nodes : [node]
+}
+
+function linkifyTimelineNode(node: Record<string, unknown>): Record<string, unknown>[] {
+  if (node.type === 'link') return [node]
+  if (node.type === 'text') return linkifyTimelineTextNode(node)
+
+  if (Array.isArray(node.children)) {
+    return [{
+      ...node,
+      children: node.children.flatMap((child) =>
+        child && typeof child === 'object'
+          ? linkifyTimelineNode(child as Record<string, unknown>)
+          : [child],
+      ),
+    }]
+  }
+
+  return [node]
+}
+
+export function enrichTimelineRichText(content: TimelineRichText): TimelineRichText {
   return {
+    ...content,
+    root: {
+      ...content.root,
+      children: content.root.children.flatMap(linkifyTimelineNode),
+    },
+  }
+}
+
+export function paragraphsToTimelineRichText(paragraphs: readonly string[]): TimelineRichText {
+  return enrichTimelineRichText({
     root: {
       children: paragraphs.map((text) => ({
         children: [
@@ -164,7 +359,7 @@ export function paragraphsToTimelineRichText(paragraphs: readonly string[]): Tim
       type: 'root',
       version: 1,
     },
-  }
+  })
 }
 
 export const DEFAULT_TIMELINE_CHAPTERS: readonly TimelineChapter[] =
@@ -187,7 +382,9 @@ function isTimelineRichText(value: unknown): value is TimelineRichText {
 
 function cloneTimelineChapter(chapter: TimelineChapter): TimelineChapter {
   return {
-    content: JSON.parse(JSON.stringify(chapter.content)) as TimelineRichText,
+    content: enrichTimelineRichText(
+      JSON.parse(JSON.stringify(chapter.content)) as TimelineRichText,
+    ),
     title: chapter.title,
   }
 }
@@ -217,7 +414,7 @@ export function normalizeTimelineChapters(
         ? paragraphsToTimelineRichText(legacyParagraphs)
         : null
 
-    return title && content ? { content, title } : null
+    return title && content ? { content: enrichTimelineRichText(content), title } : null
   })
 
   if (chapters.some((chapter) => chapter === null)) {
