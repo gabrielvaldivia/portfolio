@@ -810,7 +810,7 @@
     bottom: -16px;
     left: -16px;
     z-index: 0;
-    background: var(--color-elevated);
+    background: var(--color-background);
     content: '';
     pointer-events: none;
     -webkit-mask-image: linear-gradient(
