@@ -390,6 +390,45 @@ export function TimelineExperience({
     }
   }, [])
 
+  useEffect(() => {
+    const experience = experienceRef.current
+    if (!experience) return
+
+    const visualViewport = window.visualViewport
+    let frame: number | null = null
+
+    const updateVisibleViewport = () => {
+      frame = null
+      experience.style.setProperty(
+        '--mobile-visible-viewport-height',
+        `${visualViewport?.height ?? window.innerHeight}px`,
+      )
+      experience.style.setProperty(
+        '--mobile-visible-viewport-offset-top',
+        `${visualViewport?.offsetTop ?? 0}px`,
+      )
+    }
+
+    const scheduleVisibleViewportUpdate = () => {
+      if (frame !== null) return
+      frame = requestAnimationFrame(updateVisibleViewport)
+    }
+
+    updateVisibleViewport()
+    window.addEventListener('resize', scheduleVisibleViewportUpdate)
+    window.addEventListener('orientationchange', scheduleVisibleViewportUpdate)
+    visualViewport?.addEventListener('resize', scheduleVisibleViewportUpdate)
+    visualViewport?.addEventListener('scroll', scheduleVisibleViewportUpdate)
+
+    return () => {
+      if (frame !== null) cancelAnimationFrame(frame)
+      window.removeEventListener('resize', scheduleVisibleViewportUpdate)
+      window.removeEventListener('orientationchange', scheduleVisibleViewportUpdate)
+      visualViewport?.removeEventListener('resize', scheduleVisibleViewportUpdate)
+      visualViewport?.removeEventListener('scroll', scheduleVisibleViewportUpdate)
+    }
+  }, [])
+
   const progress = displayPosition / lastIndex
   const pillProgress = hoverProgress ?? progress
   const contentTimestamp = Math.round(

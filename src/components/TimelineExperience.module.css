@@ -704,6 +704,8 @@
 @media (max-width: 809px) {
   .experience {
     --mobile-experience-offset: 94px;
+    --mobile-visible-viewport-height: 100dvh;
+    --mobile-visible-viewport-offset-top: 0px;
     height: calc(100svh - var(--mobile-experience-offset));
     min-height: 600px;
     margin: 0 16px;
@@ -787,7 +789,13 @@
 
   .timelineShell {
     position: fixed;
-    top: calc(100svh - 100px - var(--mobile-experience-offset));
+    top: calc(
+      var(--mobile-visible-viewport-offset-top)
+      + var(--mobile-visible-viewport-height)
+      - var(--mobile-experience-offset)
+      - 84px
+      - max(16px, env(safe-area-inset-bottom, 0px))
+    );
     right: 16px;
     bottom: auto;
     left: 16px;
