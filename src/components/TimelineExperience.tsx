@@ -64,6 +64,7 @@ type DatedTimelinePeriod = {
   start: number
   end: number
   label: string
+  contextLabel?: string
 }
 
 type MetadataScrubSource = 'date' | 'age' | 'location' | 'education' | 'work'
@@ -92,14 +93,20 @@ const dayStart = (year: number, month: number, day: number) => (
 )
 
 const LOCATION_HISTORY: DatedTimelinePeriod[] = [
-  { start: BIRTH_TIMESTAMP, end: dayStart(1995, 7, 25), label: 'Cuba' },
-  { start: dayStart(1995, 7, 25), end: dayStart(2003, 10, 30), label: 'Costa Rica' },
-  { start: dayStart(2003, 10, 30), end: monthStart(2012, 3), label: 'Tampa' },
-  { start: monthStart(2012, 3), end: monthStart(2012, 11), label: 'Los Angeles' },
-  { start: monthStart(2012, 11), end: monthStart(2015, 2), label: 'San Francisco' },
+  { start: BIRTH_TIMESTAMP, end: dayStart(1989, 3, 23), label: 'Fomento, Cuba', contextLabel: 'Cuba' },
+  { start: dayStart(1989, 3, 23), end: dayStart(1992, 3, 23), label: 'Colón, Cuba', contextLabel: 'Cuba' },
+  { start: dayStart(1992, 3, 23), end: dayStart(1995, 7, 25), label: 'Marcos García, Cuba', contextLabel: 'Cuba' },
+  { start: dayStart(1995, 7, 25), end: monthStart(1995, 10), label: 'Uruca, Costa Rica', contextLabel: 'Costa Rica' },
+  { start: monthStart(1995, 10), end: monthStart(1996, 1), label: 'Tibás, Costa Rica', contextLabel: 'Costa Rica' },
+  { start: monthStart(1996, 1), end: monthStart(1998, 1), label: 'Ciudad Quesada, Costa Rica', contextLabel: 'Costa Rica' },
+  { start: monthStart(1998, 1), end: monthStart(2000, 1), label: 'Rohrmoser, Costa Rica', contextLabel: 'Costa Rica' },
+  { start: monthStart(2000, 1), end: dayStart(2003, 10, 30), label: 'Uruca, Costa Rica', contextLabel: 'Costa Rica' },
+  { start: dayStart(2003, 10, 30), end: monthStart(2012, 3), label: 'Tampa, FL', contextLabel: 'Tampa' },
+  { start: monthStart(2012, 3), end: monthStart(2012, 11), label: 'Los Angeles, CA', contextLabel: 'Los Angeles' },
+  { start: monthStart(2012, 11), end: monthStart(2015, 2), label: 'San Francisco, CA', contextLabel: 'San Francisco' },
   { start: monthStart(2015, 2), end: monthStart(2016, 1), label: 'London, England' },
-  { start: monthStart(2016, 1), end: dayStart(2017, 11, 17), label: 'San Francisco' },
-  { start: dayStart(2017, 11, 17), end: PRESENT_TIMESTAMP + 1, label: 'New York City' },
+  { start: monthStart(2016, 1), end: dayStart(2017, 11, 17), label: 'San Francisco, CA', contextLabel: 'San Francisco' },
+  { start: dayStart(2017, 11, 17), end: PRESENT_TIMESTAMP + 1, label: 'New York, NY', contextLabel: 'New York City' },
 ]
 
 const EDUCATION_HISTORY: TimelinePeriod[] = [
@@ -178,6 +185,12 @@ const getPeriodLabel = (periods: TimelinePeriod[], year: number) => periods.find
 const getDatedPeriodLabel = (periods: DatedTimelinePeriod[], timestamp: number) => periods.find(
   ({ start, end }) => timestamp >= start && timestamp < end,
 )?.label ?? '—'
+
+const getDatedPeriodContextLabel = (periods: DatedTimelinePeriod[], timestamp: number) => {
+  const period = periods.find(({ start, end }) => timestamp >= start && timestamp < end)
+
+  return period?.contextLabel ?? period?.label ?? '—'
+}
 
 const getChapterIndex = (timestamp: number) => {
   for (let index = CHAPTER_STARTS.length - 1; index >= 0; index -= 1) {
@@ -487,10 +500,12 @@ export function TimelineExperience({
   const previewDateLabel = FULL_DATE_FORMATTER.format(pillDate)
   const previewDateTime = pillDate.toISOString().slice(0, 10)
   const previewLocationDetails = getDatedPeriodLabel(LOCATION_HISTORY, pillTimestamp)
+  const previewLocationContextLabel = getDatedPeriodContextLabel(LOCATION_HISTORY, pillTimestamp)
   const previewEducationDetails = getPeriodLabel(EDUCATION_HISTORY, previewYear)
   const previewWorkDetails = getDatedPeriodLabel(WORK_HISTORY, pillTimestamp)
-  const previewWorldContext = LOCATION_CONTEXT?.[previewLocationDetails]?.[previewYear]
+  const previewWorldContext = LOCATION_CONTEXT?.[previewLocationContextLabel]?.[previewYear]
   const locationDetails = getDatedPeriodLabel(LOCATION_HISTORY, contentTimestamp)
+  const locationContextLabel = getDatedPeriodContextLabel(LOCATION_HISTORY, contentTimestamp)
   const educationDetails = getPeriodLabel(EDUCATION_HISTORY, contentYear)
   const workDetails = getDatedPeriodLabel(WORK_HISTORY, contentDate.getTime())
   const contentChapterIndex = getChapterIndex(contentDate.getTime())
@@ -500,7 +515,7 @@ export function TimelineExperience({
   const contentChapterRangeLabel = getChapterRangeLabel(contentChapterIndex)
   const contentTitle = chapters[contentChapterIndex].title
   const contentRichText = chapters[contentChapterIndex].content
-  const worldContext = LOCATION_CONTEXT?.[locationDetails]?.[contentYear]
+  const worldContext = LOCATION_CONTEXT?.[locationContextLabel]?.[contentYear]
   const previousChapterLabel = contentChapterIndex === 1
     ? 'Prologue'
     : `Chapter ${contentChapterIndex - 1}`
