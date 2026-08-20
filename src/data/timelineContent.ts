@@ -382,9 +382,7 @@ function isTimelineRichText(value: unknown): value is TimelineRichText {
 
 function cloneTimelineChapter(chapter: TimelineChapter): TimelineChapter {
   return {
-    content: enrichTimelineRichText(
-      JSON.parse(JSON.stringify(chapter.content)) as TimelineRichText,
-    ),
+    content: JSON.parse(JSON.stringify(chapter.content)) as TimelineRichText,
     title: chapter.title,
   }
 }
@@ -414,7 +412,7 @@ export function normalizeTimelineChapters(
         ? paragraphsToTimelineRichText(legacyParagraphs)
         : null
 
-    return title && content ? { content: enrichTimelineRichText(content), title } : null
+    return title && content ? { content, title } : null
   })
 
   if (chapters.some((chapter) => chapter === null)) {
