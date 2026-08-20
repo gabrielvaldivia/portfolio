@@ -106,7 +106,8 @@ const LOCATION_HISTORY: DatedTimelinePeriod[] = [
   { start: monthStart(2012, 11), end: monthStart(2015, 2), label: 'San Francisco, CA', contextLabel: 'San Francisco' },
   { start: monthStart(2015, 2), end: monthStart(2016, 1), label: 'London, England' },
   { start: monthStart(2016, 1), end: dayStart(2017, 11, 17), label: 'San Francisco, CA', contextLabel: 'San Francisco' },
-  { start: dayStart(2017, 11, 17), end: PRESENT_TIMESTAMP + 1, label: 'New York, NY', contextLabel: 'New York City' },
+  { start: dayStart(2017, 11, 17), end: monthStart(2021, 3), label: 'New York, NY', contextLabel: 'New York City' },
+  { start: monthStart(2021, 3), end: PRESENT_TIMESTAMP + 1, label: 'Brooklyn, NY', contextLabel: 'New York City' },
 ]
 
 const EDUCATION_HISTORY: TimelinePeriod[] = [
