@@ -766,9 +766,9 @@
 
   .timelineShell {
     position: fixed;
-    top: auto;
+    top: calc(100svh - 100px - var(--mobile-experience-offset));
     right: 16px;
-    bottom: 16px;
+    bottom: auto;
     left: 16px;
     width: auto;
     height: 84px;
