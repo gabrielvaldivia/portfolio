@@ -276,6 +276,10 @@
   color: inherit;
 }
 
+.chapterDescription :global(.rich-text a) {
+  font-weight: 600;
+}
+
 .chapterEyebrow {
   position: relative;
   display: flex;
