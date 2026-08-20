@@ -31,6 +31,7 @@ const CHAPTER_ENTER_DURATION = 420
 const METADATA_SCRUB_PIXELS_PER_YEAR = 16
 const METADATA_SCRUB_PIXELS_PER_STOP = 28
 const METADATA_SCRUB_DRAG_THRESHOLD = 4
+const TIMELINE_TAP_DRAG_THRESHOLD = 8
 const FULL_DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
   day: 'numeric',
   month: 'short',
@@ -73,6 +74,15 @@ type MetadataScrubSession = {
   startX: number
   startPosition: number
   startStopIndex: number | null
+  didDrag: boolean
+}
+
+type TimelinePointerSession = {
+  pointerId: number
+  startX: number
+  startY: number
+  startRatio: number
+  isHorizontal: boolean
   didDrag: boolean
 }
 
@@ -291,6 +301,7 @@ export function TimelineExperience({
   const pendingMetadataPositionRef = useRef<number | null>(null)
   const suppressDateClickRef = useRef(false)
   const suppressDateClickTimerRef = useRef<number | null>(null)
+  const timelinePointerSessionRef = useRef<TimelinePointerSession | null>(null)
 
   const getChapterScrollElement = () => {
     if (typeof window === 'undefined') return chapterScrollRef.current
@@ -1071,10 +1082,21 @@ export function TimelineExperience({
   }
 
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return
+
     const ratio = getPointerRatio(event.clientX, event.clientY)
     if (ratio === null) return
     const rect = railRef.current?.getBoundingClientRect()
     const isHorizontal = rect ? rect.width > rect.height : false
+
+    timelinePointerSessionRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      startRatio: ratio,
+      isHorizontal,
+      didDrag: false,
+    }
 
     event.currentTarget.setPointerCapture(event.pointerId)
     setIsTimelineDragging(true)
@@ -1093,6 +1115,7 @@ export function TimelineExperience({
     const rect = railRef.current?.getBoundingClientRect()
     const isHorizontal = rect ? rect.width > rect.height : false
     const isDragging = event.currentTarget.hasPointerCapture(event.pointerId)
+    const pointerSession = timelinePointerSessionRef.current
     const showsHoverPopover = window.matchMedia(
       '(min-width: 810px) and (max-width: 1279px)',
     ).matches
@@ -1102,13 +1125,25 @@ export function TimelineExperience({
 
     const ratio = getPointerRatio(event.clientX, event.clientY)
     if (ratio === null) return
+
+    if (
+      isDragging
+      && pointerSession?.pointerId === event.pointerId
+      && !pointerSession.didDrag
+      && Math.hypot(
+        event.clientX - pointerSession.startX,
+        event.clientY - pointerSession.startY,
+      ) >= TIMELINE_TAP_DRAG_THRESHOLD
+    ) {
+      pointerSession.didDrag = true
+    }
     if (showsHoverPopover) {
       positionHoverPopover(event.clientY)
     }
     hoverProgressRef.current = ratio
     setHoverProgress(ratio)
 
-    if (isDragging) {
+    if (isDragging && (!isHorizontal || pointerSession?.didDrag)) {
       if (isHorizontal) {
         moveTo(ratio * lastIndex)
       } else {
@@ -1119,9 +1154,35 @@ export function TimelineExperience({
   }
 
   const handlePointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+    const pointerSession = timelinePointerSessionRef.current
+    const isMobileTap = pointerSession?.pointerId === event.pointerId
+      && pointerSession.isHorizontal
+      && !pointerSession.didDrag
+      && window.matchMedia('(max-width: 809px)').matches
+
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId)
     }
+    timelinePointerSessionRef.current = null
+    hoverProgressRef.current = null
+    hapticTickRef.current = null
+    setIsTimelineDragging(false)
+    setHoverProgress(null)
+
+    if (isMobileTap && pointerSession) {
+      const timestamp = Math.round(
+        BIRTH_TIMESTAMP
+          + pointerSession.startRatio * (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP),
+      )
+      moveToChapter(getChapterIndex(timestamp), 0)
+    }
+  }
+
+  const handlePointerCancel = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+    timelinePointerSessionRef.current = null
     hoverProgressRef.current = null
     hapticTickRef.current = null
     setIsTimelineDragging(false)
@@ -1382,7 +1443,7 @@ export function TimelineExperience({
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerEnd}
-          onPointerCancel={handlePointerEnd}
+          onPointerCancel={handlePointerCancel}
           onPointerLeave={handlePointerLeave}
         >
           <div className={styles.ticks} aria-hidden="true">
