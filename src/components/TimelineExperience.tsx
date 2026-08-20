@@ -490,9 +490,6 @@ export function TimelineExperience({
   const previewEducationDetails = getPeriodLabel(EDUCATION_HISTORY, previewYear)
   const previewWorkDetails = getDatedPeriodLabel(WORK_HISTORY, pillTimestamp)
   const previewWorldContext = LOCATION_CONTEXT?.[previewLocationDetails]?.[previewYear]
-  const previewWorldContextWikipediaHref = previewWorldContext
-    ? `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(previewWorldContext.summary)}`
-    : null
   const locationDetails = getDatedPeriodLabel(LOCATION_HISTORY, contentTimestamp)
   const educationDetails = getPeriodLabel(EDUCATION_HISTORY, contentYear)
   const workDetails = getDatedPeriodLabel(WORK_HISTORY, contentDate.getTime())
@@ -504,9 +501,6 @@ export function TimelineExperience({
   const contentTitle = chapters[contentChapterIndex].title
   const contentRichText = chapters[contentChapterIndex].content
   const worldContext = LOCATION_CONTEXT?.[locationDetails]?.[contentYear]
-  const worldContextWikipediaHref = worldContext
-    ? `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(worldContext.summary)}`
-    : null
   const previousChapterLabel = contentChapterIndex === 1
     ? 'Prologue'
     : `Chapter ${contentChapterIndex - 1}`
@@ -1816,10 +1810,10 @@ export function TimelineExperience({
             <div className={styles.newsBlock}>
               <span className={styles.contextHeading}>News</span>
               <p className={styles.note}>
-                {worldContext && worldContextWikipediaHref ? (
+                {worldContext ? (
                   <a
                     className={styles.newsLink}
-                    href={worldContextWikipediaHref}
+                    href={worldContext.href}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -1888,10 +1882,10 @@ export function TimelineExperience({
             <div className={styles.mobileNews}>
               <dt>News</dt>
               <dd>
-                {previewWorldContext && previewWorldContextWikipediaHref ? (
+                {previewWorldContext ? (
                   <a
                     className={styles.newsLink}
-                    href={previewWorldContextWikipediaHref}
+                    href={previewWorldContext.href}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
