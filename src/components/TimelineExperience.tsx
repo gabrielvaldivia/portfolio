@@ -2,7 +2,7 @@
 
 import { Calendar04Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import {
   DEFAULT_TIMELINE_CHAPTERS,
   type TimelineChapter,
@@ -302,6 +302,27 @@ export function TimelineExperience({
   const suppressDateClickRef = useRef(false)
   const suppressDateClickTimerRef = useRef<number | null>(null)
   const timelinePointerSessionRef = useRef<TimelinePointerSession | null>(null)
+
+  useLayoutEffect(() => {
+    const root = document.documentElement
+    const body = document.body
+    const previousRootOverflow = root.style.overflow
+    const previousBodyOverflow = body.style.overflow
+    const previousScrollRestoration = window.history.scrollRestoration
+
+    window.history.scrollRestoration = 'manual'
+    root.scrollTop = 0
+    body.scrollTop = 0
+    window.scrollTo(0, 0)
+    root.style.overflow = 'hidden'
+    body.style.overflow = 'hidden'
+
+    return () => {
+      root.style.overflow = previousRootOverflow
+      body.style.overflow = previousBodyOverflow
+      window.history.scrollRestoration = previousScrollRestoration
+    }
+  }, [])
 
   const getChapterScrollElement = () => {
     if (typeof window === 'undefined') return chapterScrollRef.current
