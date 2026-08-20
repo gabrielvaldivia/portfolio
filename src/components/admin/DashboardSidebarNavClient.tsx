@@ -37,6 +37,7 @@ export type DashboardSidebarIconKey =
   | 'services'
   | 'settings'
   | 'sideProjects'
+  | 'timeline'
   | 'users'
 
 export type DashboardSidebarNavItem = {
@@ -67,6 +68,7 @@ const icons: Record<DashboardSidebarIconKey, IconSvgElement> = {
   services: CustomerService01Icon,
   settings: Setting06Icon,
   sideProjects: Layers01Icon,
+  timeline: File02Icon,
   users: User03Icon,
 }
 

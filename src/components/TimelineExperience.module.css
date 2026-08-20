@@ -858,7 +858,7 @@
 
   .activeTick {
     top: 84px !important;
-    left: clamp(47px, var(--active-tick-position), calc(100% - 47px));
+    left: var(--active-tick-position);
     width: 1px;
     height: 34px;
     transform: translate(-50%, -100%);
@@ -936,7 +936,6 @@
   .mobileNews dd {
     font-size: 16px;
     line-height: 1.4;
-    text-wrap: balance;
   }
 
   .eyebrow {

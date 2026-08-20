@@ -18,6 +18,7 @@ import { Conversations } from './collections/Conversations'
 import { Photos } from './collections/Photos'
 
 import { SiteSettings } from './globals/SiteSettings'
+import { Timeline } from './globals/Timeline'
 import { getPayloadSecret } from './lib/payloadSecret'
 
 const dashboardDefaultLayout = [
@@ -124,7 +125,7 @@ export default buildConfig({
     },
   },
   collections: [Pages, Projects, SideProjects, Clients, People, Services, Conversations, Photos, Users, Media],
-  globals: [SiteSettings],
+  globals: [SiteSettings, Timeline],
   editor: lexicalEditor(),
   secret: getPayloadSecret(),
   cors: {

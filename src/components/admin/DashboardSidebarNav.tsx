@@ -40,6 +40,10 @@ function canCreateCollection(permissions: SanitizedPermissions | undefined, slug
   return Boolean(permissions?.collections?.[slug]?.create)
 }
 
+function canReadGlobal(permissions: SanitizedPermissions | undefined, slug: string) {
+  return Boolean(permissions?.globals?.[slug]?.read)
+}
+
 function collectionItem(adminRoute: string, item: CollectionNavItem): DashboardSidebarNavItem {
   return {
     href: formatAdminURL({
@@ -105,6 +109,18 @@ export async function DashboardSidebarNav({ payload, permissions }: ServerProps)
       id: `page-${page.id}`,
       label: page.title || page.slug || 'Untitled page',
     }))
+
+    if (canReadGlobal(permissions, 'timeline')) {
+      pageChildren.push({
+        href: formatAdminURL({
+          adminRoute,
+          path: '/globals/timeline',
+        }),
+        icon: 'timeline',
+        id: 'global-timeline',
+        label: 'Timeline',
+      })
+    }
 
     if (pageChildren.length === 0 && canCreateCollection(permissions, 'pages')) {
       pageChildren.push({
