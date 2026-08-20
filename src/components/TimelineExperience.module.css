@@ -927,10 +927,18 @@
   }
 
   .mobileSidebarPopover {
-    position: absolute;
-    right: 0;
-    bottom: 60px;
-    left: 0;
+    position: fixed;
+    top: calc(
+      var(--mobile-visible-viewport-offset-top)
+      + var(--mobile-visible-viewport-height)
+      - var(--mobile-experience-offset)
+      - 84px
+      - max(16px, env(safe-area-inset-bottom, 0px))
+      - 10px
+    );
+    right: 16px;
+    bottom: auto;
+    left: 16px;
     z-index: 30;
     display: block;
     padding: 16px;
@@ -939,6 +947,7 @@
     background: var(--color-elevated);
     box-shadow: 0 16px 48px rgb(0 0 0 / 0.12);
     pointer-events: none;
+    transform: translateY(-100%);
   }
 
   .mobileSidebarGrid {
