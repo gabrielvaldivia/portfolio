@@ -17,6 +17,7 @@ const TICKS_PER_YEAR = 1
 const CHAPTER_PULL_THRESHOLD = 80
 const MOBILE_CHAPTER_PULL_THRESHOLD = 200
 const MOBILE_PREVIOUS_CHAPTER_CUE_DELAY = 100
+const MOBILE_CHAPTER_CUE_FADE_PORTION = 0.75
 const CHAPTER_PULL_MAX_OFFSET = 52
 const CHAPTER_PULL_DAMPING = 140
 const CHAPTER_CUE_PULL_FACTOR = 0.5
@@ -308,6 +309,7 @@ export function TimelineExperience() {
   const storyRef = useRef<HTMLElement | null>(null)
   const chapterScrollRef = useRef<HTMLDivElement | null>(null)
   const chapterMotionRef = useRef<HTMLDivElement | null>(null)
+  const chapterDescriptionRef = useRef<HTMLDivElement | null>(null)
   const dateInputRef = useRef<HTMLInputElement | null>(null)
   const hoverLockRef = useRef(false)
   const hapticTickRef = useRef<number | null>(null)
@@ -332,6 +334,7 @@ export function TimelineExperience() {
   const nextChapterCueRef = useRef<HTMLDivElement | null>(null)
   const mobilePreviousChapterCueRef = useRef<HTMLDivElement | null>(null)
   const mobileNextChapterCueRef = useRef<HTMLDivElement | null>(null)
+  const mobileChapterCueBaseOffsetRef = useRef(0)
   const pendingChapterScrollRef = useRef<{ index: number; ratio: number } | null>(null)
   const urlDateReadyRef = useRef(false)
   const pendingUrlDateRef = useRef<string | null>(null)
@@ -500,6 +503,7 @@ export function TimelineExperience() {
   }
 
   const resetChapterCues = () => {
+    mobileChapterCueBaseOffsetRef.current = 0
     ;[
       previousChapterCueRef.current,
       nextChapterCueRef.current,
@@ -510,6 +514,40 @@ export function TimelineExperience() {
       cue?.style.removeProperty('transform')
       cue?.style.removeProperty('will-change')
     })
+  }
+
+  const measureMobileChapterCueOffset = (direction: number) => {
+    const cue = direction < 0
+      ? mobilePreviousChapterCueRef.current
+      : mobileNextChapterCueRef.current
+    const experience = experienceRef.current
+    const motion = chapterMotionRef.current
+
+    if (!cue || !experience || !motion) return 0
+
+    const cueRect = cue.getBoundingClientRect()
+    const experienceRect = experience.getBoundingClientRect()
+
+    if (direction < 0) {
+      const contentTop = motion
+        .querySelector<HTMLElement>(`.${styles.chapterEyebrow}`)
+        ?.getBoundingClientRect().top ?? motion.getBoundingClientRect().top
+      const midpoint = experienceRect.top + (contentTop - experienceRect.top) / 2
+
+      return midpoint - (cueRect.top + cueRect.height / 2)
+    }
+
+    const contentBottom = chapterDescriptionRef.current?.getBoundingClientRect().bottom
+      ?? motion.getBoundingClientRect().bottom
+    const timelineTop = railRef.current
+      ?.querySelector<HTMLElement>(`.${styles.activeTick}`)
+      ?.getBoundingClientRect().top
+
+    if (timelineTop === undefined) return 0
+
+    const midpoint = contentBottom + (timelineTop - contentBottom) / 2
+
+    return midpoint - (cueRect.top + cueRect.height / 2)
   }
 
   const releaseChapterMotion = () => {
@@ -829,22 +867,29 @@ export function TimelineExperience() {
 
     preventDefault()
 
+    const isMobile = window.matchMedia('(max-width: 809px)').matches
+
     if (chapterPullDirectionRef.current !== direction) {
       chapterPullDistanceRef.current = 0
       chapterPullDirectionRef.current = direction
+      mobileChapterCueBaseOffsetRef.current = isMobile
+        ? measureMobileChapterCueOffset(direction)
+        : 0
     }
 
     chapterPullDistanceRef.current += Math.abs(deltaY)
-    const isMobile = window.matchMedia('(max-width: 809px)').matches
     const pullThreshold = isMobile
       ? MOBILE_CHAPTER_PULL_THRESHOLD
       : CHAPTER_PULL_THRESHOLD
     const cueDelay = isMobile && direction < 0
       ? MOBILE_PREVIOUS_CHAPTER_CUE_DELAY
       : 0
+    const cueFadeDistance = isMobile
+      ? (pullThreshold - cueDelay) * MOBILE_CHAPTER_CUE_FADE_PORTION
+      : pullThreshold - cueDelay
     const cueProgress = Math.max(0, Math.min(
       1,
-      (chapterPullDistanceRef.current - cueDelay) / (pullThreshold - cueDelay),
+      (chapterPullDistanceRef.current - cueDelay) / cueFadeDistance,
     ))
     const signedPull = chapterPullDistanceRef.current * direction
     const chapterOffset = isMobile
@@ -875,7 +920,8 @@ export function TimelineExperience() {
     })
     if (mobileActiveCue && !prefersReducedMotion) {
       mobileActiveCue.style.willChange = 'transform, opacity'
-      mobileActiveCue.style.transform = `translate3d(-50%, ${cueOffset}px, 0)`
+      const mobileCueOffset = mobileChapterCueBaseOffsetRef.current + cueOffset
+      mobileActiveCue.style.transform = `translate3d(-50%, ${mobileCueOffset}px, 0)`
     }
 
     if (motion && !prefersReducedMotion) {
@@ -1265,7 +1311,10 @@ export function TimelineExperience() {
                   </button>
                 </div>
                 <h1>{contentTitle}</h1>
-                <div className={styles.chapterDescription}>
+                <div
+                  ref={chapterDescriptionRef}
+                  className={styles.chapterDescription}
+                >
                   {contentParagraphs.map((paragraph) => (
                     <p key={paragraph}>{paragraph}</p>
                   ))}
