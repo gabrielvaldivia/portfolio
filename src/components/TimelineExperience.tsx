@@ -304,6 +304,7 @@ export function TimelineExperience() {
   const positionRef = useRef(lastIndex)
   const animationRef = useRef<number | null>(null)
   const experienceRef = useRef<HTMLElement | null>(null)
+  const timelineShellRef = useRef<HTMLElement | null>(null)
   const railRef = useRef<HTMLDivElement | null>(null)
   const stageRef = useRef<HTMLDivElement | null>(null)
   const storyRef = useRef<HTMLElement | null>(null)
@@ -429,6 +430,48 @@ export function TimelineExperience() {
       if (urlSyncTimerRef.current !== null) {
         window.clearTimeout(urlSyncTimerRef.current)
       }
+    }
+  }, [])
+
+  useEffect(() => {
+    const timeline = timelineShellRef.current
+    const visualViewport = window.visualViewport
+    const mobileQuery = window.matchMedia('(max-width: 809px)')
+    let updateFrame: number | null = null
+
+    if (!timeline || !visualViewport) return
+
+    const updateTimelinePosition = () => {
+      if (updateFrame !== null) return
+
+      updateFrame = requestAnimationFrame(() => {
+        updateFrame = null
+
+        if (!mobileQuery.matches) {
+          timeline.style.removeProperty('transform')
+          return
+        }
+
+        const layoutViewportHeight = document.documentElement.clientHeight
+        const visualViewportOffset = visualViewport.height
+          - layoutViewportHeight
+          + visualViewport.offsetTop
+
+        timeline.style.transform = `translate3d(0, ${visualViewportOffset}px, 0)`
+      })
+    }
+
+    updateTimelinePosition()
+    visualViewport.addEventListener('resize', updateTimelinePosition)
+    visualViewport.addEventListener('scroll', updateTimelinePosition)
+    mobileQuery.addEventListener('change', updateTimelinePosition)
+
+    return () => {
+      visualViewport.removeEventListener('resize', updateTimelinePosition)
+      visualViewport.removeEventListener('scroll', updateTimelinePosition)
+      mobileQuery.removeEventListener('change', updateTimelinePosition)
+      if (updateFrame !== null) cancelAnimationFrame(updateFrame)
+      timeline.style.removeProperty('transform')
     }
   }, [])
 
@@ -1171,7 +1214,11 @@ export function TimelineExperience() {
       } as React.CSSProperties}
       aria-label="Gabriel Valdivia life timeline"
     >
-      <aside className={styles.timelineShell} aria-label="Life timeline">
+      <aside
+        ref={timelineShellRef}
+        className={styles.timelineShell}
+        aria-label="Life timeline"
+      >
         <div
           ref={railRef}
           className={styles.timelineRail}
