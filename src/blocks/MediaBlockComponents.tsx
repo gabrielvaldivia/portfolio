@@ -35,6 +35,7 @@ const paddingClasses: Record<string, string> = {
 const ROW_HEIGHT = 200
 const ROW_GAP = 40
 const VIDEO_LIGHTBOX_VERTICAL_OFFSET = 72
+const BROWSER_REFERENCE_WIDTH = 1280
 
 export function ModuleLikeOverlay({ targetId }: { targetId: string }) {
   return (
@@ -253,13 +254,17 @@ export function BrowserBlockComponent({
   const isContainedLightbox = isLightbox && _containedInLightbox
   const scaledLength = (pixels: number) => isContainedLightbox && _sourceContentWidth
     ? `${(pixels / _sourceContentWidth) * 100}cqw`
-    : undefined
-  const scaledToolbarPadding = isContainedLightbox && _sourceContentWidth
-    ? `${scaledLength(8)} ${scaledLength(16)}`
-    : undefined
+    : `min(${pixels}px, ${(pixels / BROWSER_REFERENCE_WIDTH) * 100}cqw)`
+  const scaledToolbarPadding = `${scaledLength(8)} ${scaledLength(16)}`
 
   return (
-    <div className={cn('w-full', isLightbox ? 'mx-auto' : '')} style={isLightbox && !isContainedLightbox ? { width: getConstrainedWidth(aspectRatio) } : undefined}>
+    <div
+      className={cn('w-full', isLightbox ? 'mx-auto' : '')}
+      style={{
+        containerType: 'inline-size',
+        ...(isLightbox && !isContainedLightbox ? { width: getConstrainedWidth(aspectRatio) } : {}),
+      }}
+    >
       <div className={cn('relative w-full', isLightbox && !isContainedLightbox ? 'bg-background-alt p-5 tablet:p-8 desktop:p-10' : '')}>
         <div
           className={cn(
