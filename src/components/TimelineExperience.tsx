@@ -3,6 +3,7 @@
 import { Calendar04Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   DEFAULT_TIMELINE_CHAPTERS,
   type TimelineChapter,
@@ -10,6 +11,10 @@ import {
 import { LOCATION_CONTEXT } from '../data/timelineWorldContext'
 import { HoverArrow } from './Icons'
 import { RichText } from './RichText'
+import {
+  TimelineCursorGlobe,
+  type GlobeLocation,
+} from './TimelineCursorGlobe'
 import { Calendar } from './ui/Calendar'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/Popover'
 import styles from './TimelineExperience.module.css'
@@ -20,6 +25,7 @@ const BIRTH_TIMESTAMP = Date.UTC(1987, 2, 23)
 const PRESENT_TIMESTAMP = Date.UTC(2026, 7, 19)
 const TICKS_PER_YEAR = 1
 const CHAPTER_PULL_THRESHOLD = 200
+const DESKTOP_CHAPTER_PULL_INPUT_FACTOR = 0.5
 const PREVIOUS_CHAPTER_CUE_DELAY = 100
 const CHAPTER_CUE_FADE_PORTION = 0.75
 const CHAPTER_CUE_PULL_FACTOR = 0.5
@@ -31,6 +37,7 @@ const CHAPTER_ENTER_DURATION = 420
 const METADATA_SCRUB_PIXELS_PER_YEAR = 16
 const METADATA_SCRUB_PIXELS_PER_STOP = 28
 const METADATA_SCRUB_DRAG_THRESHOLD = 4
+const LOCATION_GLOBE_RUBBER_BAND_FACTOR = 0.25
 const TIMELINE_TAP_DRAG_THRESHOLD = 8
 const FULL_DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
   day: 'numeric',
@@ -65,6 +72,7 @@ type DatedTimelinePeriod = {
   end: number
   label: string
   contextLabel?: string
+  globeLocation?: GlobeLocation
 }
 
 type MetadataScrubSource = 'date' | 'age' | 'location' | 'education' | 'work'
@@ -93,22 +101,29 @@ const dayStart = (year: number, month: number, day: number) => (
 )
 
 const LOCATION_HISTORY: DatedTimelinePeriod[] = [
-  { start: BIRTH_TIMESTAMP, end: dayStart(1989, 3, 23), label: 'Fomento, Cuba', contextLabel: 'Cuba' },
-  { start: dayStart(1989, 3, 23), end: dayStart(1992, 3, 23), label: 'Colón, Cuba', contextLabel: 'Cuba' },
-  { start: dayStart(1992, 3, 23), end: dayStart(1995, 7, 25), label: 'Marcos García, Cuba', contextLabel: 'Cuba' },
-  { start: dayStart(1995, 7, 25), end: monthStart(1995, 10), label: 'Uruca, Costa Rica', contextLabel: 'Costa Rica' },
-  { start: monthStart(1995, 10), end: monthStart(1996, 1), label: 'Tibás, Costa Rica', contextLabel: 'Costa Rica' },
-  { start: monthStart(1996, 1), end: monthStart(1998, 1), label: 'Ciudad Quesada, Costa Rica', contextLabel: 'Costa Rica' },
-  { start: monthStart(1998, 1), end: monthStart(2000, 1), label: 'Rohrmoser, Costa Rica', contextLabel: 'Costa Rica' },
-  { start: monthStart(2000, 1), end: dayStart(2003, 10, 30), label: 'Uruca, Costa Rica', contextLabel: 'Costa Rica' },
-  { start: dayStart(2003, 10, 30), end: monthStart(2012, 3), label: 'Tampa, FL', contextLabel: 'Tampa' },
-  { start: monthStart(2012, 3), end: monthStart(2012, 11), label: 'Los Angeles, CA', contextLabel: 'Los Angeles' },
-  { start: monthStart(2012, 11), end: monthStart(2015, 2), label: 'San Francisco, CA', contextLabel: 'San Francisco' },
-  { start: monthStart(2015, 2), end: monthStart(2016, 1), label: 'London, England' },
-  { start: monthStart(2016, 1), end: dayStart(2017, 11, 17), label: 'San Francisco, CA', contextLabel: 'San Francisco' },
-  { start: dayStart(2017, 11, 17), end: monthStart(2021, 3), label: 'New York, NY', contextLabel: 'New York City' },
-  { start: monthStart(2021, 3), end: PRESENT_TIMESTAMP + 1, label: 'Brooklyn, NY', contextLabel: 'New York City' },
+  { start: BIRTH_TIMESTAMP, end: dayStart(1989, 3, 23), label: 'Fomento, Cuba', contextLabel: 'Cuba', globeLocation: [22.1, -79.72] },
+  { start: dayStart(1989, 3, 23), end: dayStart(1992, 3, 23), label: 'Colón, Cuba', contextLabel: 'Cuba', globeLocation: [22.72, -80.91] },
+  { start: dayStart(1992, 3, 23), end: dayStart(1995, 7, 25), label: 'Marcos García, Cuba', contextLabel: 'Cuba', globeLocation: [21.93, -79.44] },
+  { start: dayStart(1995, 7, 25), end: monthStart(1995, 10), label: 'Uruca, Costa Rica', contextLabel: 'Costa Rica', globeLocation: [9.95, -84.11] },
+  { start: monthStart(1995, 10), end: monthStart(1996, 1), label: 'Tibás, Costa Rica', contextLabel: 'Costa Rica', globeLocation: [9.96, -84.08] },
+  { start: monthStart(1996, 1), end: monthStart(1998, 1), label: 'Ciudad Quesada, Costa Rica', contextLabel: 'Costa Rica', globeLocation: [10.32, -84.43] },
+  { start: monthStart(1998, 1), end: monthStart(2000, 1), label: 'Rohrmoser, Costa Rica', contextLabel: 'Costa Rica', globeLocation: [9.94, -84.12] },
+  { start: monthStart(2000, 1), end: dayStart(2003, 10, 30), label: 'Uruca, Costa Rica', contextLabel: 'Costa Rica', globeLocation: [9.95, -84.11] },
+  { start: dayStart(2003, 10, 30), end: monthStart(2012, 3), label: 'Tampa, FL', contextLabel: 'Tampa', globeLocation: [27.95, -82.46] },
+  { start: monthStart(2012, 3), end: monthStart(2012, 11), label: 'Los Angeles, CA', contextLabel: 'Los Angeles', globeLocation: [34.05, -118.24] },
+  { start: monthStart(2012, 11), end: monthStart(2015, 2), label: 'San Francisco, CA', contextLabel: 'San Francisco', globeLocation: [37.77, -122.42] },
+  { start: monthStart(2015, 2), end: monthStart(2016, 1), label: 'London, England', globeLocation: [51.51, -0.13] },
+  { start: monthStart(2016, 1), end: dayStart(2017, 11, 17), label: 'San Francisco, CA', contextLabel: 'San Francisco', globeLocation: [37.77, -122.42] },
+  { start: dayStart(2017, 11, 17), end: monthStart(2021, 3), label: 'New York, NY', contextLabel: 'New York City', globeLocation: [40.71, -74.01] },
+  { start: monthStart(2021, 3), end: PRESENT_TIMESTAMP + 1, label: 'Brooklyn, NY', contextLabel: 'New York City', globeLocation: [40.68, -73.94] },
 ]
+
+const getDatedPeriodGlobeLocation = (
+  periods: DatedTimelinePeriod[],
+  timestamp: number,
+) => periods.find(
+  ({ start, end }) => timestamp >= start && timestamp < end,
+)?.globeLocation ?? [21.52, -77.78]
 
 const EDUCATION_HISTORY: TimelinePeriod[] = [
   { startYear: 1988, endYear: 1991, label: 'Los Muñequitos' },
@@ -270,6 +285,8 @@ export function TimelineExperience({
   const [isDateEditing, setIsDateEditing] = useState(false)
   const [dateDraft, setDateDraft] = useState('')
   const [metadataScrubSource, setMetadataScrubSource] = useState<MetadataScrubSource | null>(null)
+  const [isLocationGlobeVisible, setIsLocationGlobeVisible] = useState(false)
+  const [locationGlobePortalRoot, setLocationGlobePortalRoot] = useState<HTMLElement | null>(null)
   const hoverProgressRef = useRef<number | null>(null)
   const targetRef = useRef(0)
   const positionRef = useRef(0)
@@ -316,6 +333,11 @@ export function TimelineExperience({
   const suppressDateClickRef = useRef(false)
   const suppressDateClickTimerRef = useRef<number | null>(null)
   const timelinePointerSessionRef = useRef<TimelinePointerSession | null>(null)
+  const locationGlobeRef = useRef<HTMLDivElement | null>(null)
+  const locationGlobeFrameRef = useRef<number | null>(null)
+  const pendingLocationGlobePositionRef = useRef<{ x: number; y: number } | null>(null)
+  const locationGlobeAnchorXRef = useRef<number | null>(null)
+  const locationGlobeAnchorYRef = useRef<number | null>(null)
 
   useLayoutEffect(() => {
     const root = document.documentElement
@@ -336,6 +358,10 @@ export function TimelineExperience({
       body.style.overflow = previousBodyOverflow
       window.history.scrollRestoration = previousScrollRestoration
     }
+  }, [])
+
+  useEffect(() => {
+    setLocationGlobePortalRoot(document.body)
   }, [])
 
   const getChapterScrollElement = () => {
@@ -433,6 +459,9 @@ export function TimelineExperience({
       if (suppressDateClickTimerRef.current !== null) {
         window.clearTimeout(suppressDateClickTimerRef.current)
       }
+      if (locationGlobeFrameRef.current !== null) {
+        cancelAnimationFrame(locationGlobeFrameRef.current)
+      }
     }
   }, [])
 
@@ -506,6 +535,7 @@ export function TimelineExperience({
   const previewWorkDetails = getDatedPeriodLabel(WORK_HISTORY, pillTimestamp)
   const previewWorldContext = LOCATION_CONTEXT?.[previewLocationContextLabel]?.[previewYear]
   const locationDetails = getDatedPeriodLabel(LOCATION_HISTORY, contentTimestamp)
+  const locationGlobe = getDatedPeriodGlobeLocation(LOCATION_HISTORY, contentTimestamp)
   const locationContextLabel = getDatedPeriodContextLabel(LOCATION_HISTORY, contentTimestamp)
   const educationDetails = getPeriodLabel(EDUCATION_HISTORY, contentYear)
   const workDetails = getDatedPeriodLabel(WORK_HISTORY, contentDate.getTime())
@@ -931,7 +961,8 @@ export function TimelineExperience({
         : 0
     }
 
-    chapterPullDistanceRef.current += Math.abs(deltaY)
+    const pullInputFactor = isMobile ? 1 : DESKTOP_CHAPTER_PULL_INPUT_FACTOR
+    chapterPullDistanceRef.current += Math.abs(deltaY) * pullInputFactor
     const pullThreshold = CHAPTER_PULL_THRESHOLD
     const cueDelay = direction < 0
       ? PREVIOUS_CHAPTER_CUE_DELAY
@@ -1342,6 +1373,53 @@ export function TimelineExperience({
         session.startPosition + deltaX / METADATA_SCRUB_PIXELS_PER_YEAR,
       ),
     ))
+  }
+
+  const scheduleLocationGlobePosition = (clientX: number) => {
+    const anchorX = locationGlobeAnchorXRef.current
+    const anchorY = locationGlobeAnchorYRef.current
+    if (anchorX === null || anchorY === null) return
+
+    const rubberBandedX = anchorX
+      + (clientX - anchorX) * LOCATION_GLOBE_RUBBER_BAND_FACTOR
+    pendingLocationGlobePositionRef.current = { x: rubberBandedX, y: anchorY }
+    if (locationGlobeFrameRef.current !== null) return
+
+    locationGlobeFrameRef.current = requestAnimationFrame(() => {
+      const position = pendingLocationGlobePositionRef.current
+      const globe = locationGlobeRef.current
+      locationGlobeFrameRef.current = null
+      pendingLocationGlobePositionRef.current = null
+      if (!position || !globe) return
+
+      globe.style.transform = `translate3d(${position.x}px, ${position.y}px, 0) translate(-50%, calc(-100% - 10px))`
+    })
+  }
+
+  const handleLocationPointerEnter = (event: React.PointerEvent<HTMLElement>) => {
+    if (
+      event.pointerType !== 'mouse'
+      || !window.matchMedia('(min-width: 1280px) and (hover: hover)').matches
+    ) return
+
+    const locationBounds = event.currentTarget.getBoundingClientRect()
+    locationGlobeAnchorXRef.current = locationBounds.left + locationBounds.width / 2
+    locationGlobeAnchorYRef.current = locationBounds.top
+    scheduleLocationGlobePosition(event.clientX)
+    setIsLocationGlobeVisible(true)
+  }
+
+  const handleLocationPointerMove = (event: React.PointerEvent<HTMLElement>) => {
+    if (event.pointerType === 'mouse') {
+      scheduleLocationGlobePosition(event.clientX)
+    }
+    handleMetadataPointerMove(event)
+  }
+
+  const handleLocationPointerLeave = (event: React.PointerEvent<HTMLElement>) => {
+    if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
+      setIsLocationGlobeVisible(false)
+    }
   }
 
   const finishMetadataScrub = () => {
@@ -1761,11 +1839,26 @@ export function TimelineExperience({
                       aria-valuenow={contentTimestamp}
                       aria-valuetext={`${locationDetails}, ${contentDateLabel}`}
                       onKeyDown={(event) => handleDiscreteMetadataKeyDown(event, 'location')}
+                      onPointerEnter={handleLocationPointerEnter}
                       onPointerDown={(event) => handleMetadataPointerDown(event, 'location')}
-                      onPointerMove={handleMetadataPointerMove}
-                      onPointerUp={endMetadataScrub}
-                      onPointerCancel={endMetadataScrub}
-                      onLostPointerCapture={endMetadataScrub}
+                      onPointerMove={handleLocationPointerMove}
+                      onPointerUp={(event) => {
+                        endMetadataScrub(event)
+                        if (!event.currentTarget.matches(':hover')) {
+                          setIsLocationGlobeVisible(false)
+                        }
+                      }}
+                      onPointerLeave={handleLocationPointerLeave}
+                      onPointerCancel={(event) => {
+                        endMetadataScrub(event)
+                        setIsLocationGlobeVisible(false)
+                      }}
+                      onLostPointerCapture={(event) => {
+                        endMetadataScrub(event)
+                        if (!event.currentTarget.matches(':hover')) {
+                          setIsLocationGlobeVisible(false)
+                        }
+                      }}
                     >
                       {locationDetails}
                     </span>
@@ -1915,6 +2008,21 @@ export function TimelineExperience({
             </div>
           </dl>
         </aside>
+      )}
+
+      {locationGlobePortalRoot && createPortal(
+        <div
+          ref={locationGlobeRef}
+          className={styles.locationCursorGlobe}
+          data-visible={isLocationGlobeVisible}
+          aria-hidden="true"
+        >
+          <TimelineCursorGlobe
+            active={isLocationGlobeVisible}
+            location={locationGlobe}
+          />
+        </div>,
+        locationGlobePortalRoot,
       )}
     </section>
   )
