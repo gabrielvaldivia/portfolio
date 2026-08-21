@@ -28,7 +28,7 @@
     "@payloadcms/storage-s3": "^3.86.0",
     "@payloadcms/ui": "^3.86.0",
     "@radix-ui/react-popover": "^1.1.23",
-    "cobe": "^2.0.1",
+    "d3-geo": "^3.1.1",
     "date-fns": "^4.4.0",
     "exif-reader": "^2.0.3",
     "graphql": "^16.14.2",
@@ -42,13 +42,17 @@
     "react-dom": "^19.2.7",
     "resend": "^6.17.2",
     "sharp": "^0.35.3",
-    "tz-lookup": "^6.1.25"
+    "topojson-client": "^3.1.0",
+    "tz-lookup": "^6.1.25",
+    "world-atlas": "^2.0.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.2",
+    "@types/d3-geo": "^3.1.1",
     "@types/node": "^26.1.1",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "@types/topojson-client": "^3.1.5",
     "agentation": "^3.0.2",
     "dotenv": "^17.4.2",
     "postcss": "^8.5.17",

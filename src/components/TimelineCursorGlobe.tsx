@@ -1,21 +1,32 @@
 'use client'
 
+import {
+  geoOrthographic,
+  geoPath,
+  type GeoPermissibleObjects,
+  type GeoSphere,
+} from 'd3-geo'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import type { Globe } from 'cobe'
+import { feature } from 'topojson-client'
+import type { Topology } from 'topojson-specification'
+import landAtlas from 'world-atlas/land-110m.json'
 
 export type GlobeLocation = readonly [latitude: number, longitude: number]
 
 const GLOBE_SIZE = 168
+const GLOBE_SCALE = GLOBE_SIZE * 0.44
+const LIGHT_ACCENT_COLOR = 'rgb(0 31 235)'
+const DARK_ACCENT_COLOR = 'rgb(0 157 255)'
+const SPHERE: GeoSphere = { type: 'Sphere' }
 
-function locationToAngles([latitude, longitude]: GlobeLocation) {
-  return [
-    Math.PI - ((longitude * Math.PI) / 180 - Math.PI / 2),
-    (latitude * Math.PI) / 180,
-  ] as const
-}
+const landTopology = landAtlas as unknown as Topology
+const LAND = feature(
+  landTopology,
+  landTopology.objects.land,
+) as GeoPermissibleObjects
 
-function shortestAngleDistance(from: number, to: number) {
-  return Math.atan2(Math.sin(to - from), Math.cos(to - from))
+function shortestLongitudeDistance(from: number, to: number) {
+  return ((to - from + 540) % 360) - 180
 }
 
 export function TimelineCursorGlobe({
@@ -26,9 +37,8 @@ export function TimelineCursorGlobe({
   location: GlobeLocation
 }) {
   const hostRef = useRef<HTMLDivElement | null>(null)
-  const currentAnglesRef = useRef(locationToAngles(location))
-  const targetAnglesRef = useRef(locationToAngles(location))
-  const locationRef = useRef(location)
+  const currentLocationRef = useRef<GlobeLocation>(location)
+  const targetLocationRef = useRef<GlobeLocation>(location)
   const [isDark, setIsDark] = useState(() => (
     typeof window !== 'undefined'
       && window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -44,8 +54,7 @@ export function TimelineCursorGlobe({
   }, [])
 
   useEffect(() => {
-    locationRef.current = location
-    targetAnglesRef.current = locationToAngles(location)
+    targetLocationRef.current = location
   }, [location])
 
   useLayoutEffect(() => {
@@ -53,76 +62,105 @@ export function TimelineCursorGlobe({
     if (!host || !active) return
 
     const canvas = document.createElement('canvas')
-    canvas.width = GLOBE_SIZE
-    canvas.height = GLOBE_SIZE
+    const devicePixelRatio = Math.min(window.devicePixelRatio || 1, 2)
+    canvas.width = GLOBE_SIZE * devicePixelRatio
+    canvas.height = GLOBE_SIZE * devicePixelRatio
     canvas.setAttribute('aria-hidden', 'true')
     host.appendChild(canvas)
-    const devicePixelRatio = Math.min(window.devicePixelRatio || 1, 2)
-    const [phi, theta] = currentAnglesRef.current
-    let disposed = false
-    let animationFrame: number | null = null
-    let globe: Globe | null = null
-    let destroyGlobe: (() => void) | null = null
 
-    void import('cobe').then(({ default: createGlobe }) => {
+    const context = canvas.getContext('2d')
+    if (!context) {
+      host.replaceChildren()
+      return
+    }
+
+    const projection = geoOrthographic()
+      .clipAngle(90)
+      .precision(0.35)
+      .scale(GLOBE_SCALE)
+      .translate([GLOBE_SIZE / 2, GLOBE_SIZE / 2])
+    const path = geoPath(projection, context)
+    let animationFrame: number | null = null
+    let disposed = false
+
+    const draw = () => {
       if (disposed) return
 
-      const createdGlobe = createGlobe(canvas, {
-        width: GLOBE_SIZE * devicePixelRatio,
-        height: GLOBE_SIZE * devicePixelRatio,
-        devicePixelRatio,
-        phi,
-        theta,
-        dark: isDark ? 1 : 0,
-        diffuse: 1.15,
-        mapSamples: 12000,
-        mapBrightness: isDark ? 3 : 1.6,
-        baseColor: isDark ? [0.28, 0.28, 0.28] : [1, 1, 1],
-        markerColor: [0, 0.12, 0.92],
-        glowColor: isDark ? [0.08, 0.08, 0.08] : [1, 1, 1],
-        markers: [{ location: [locationRef.current[0], locationRef.current[1]], size: 0.09 }],
-      })
-      globe = createdGlobe
-      destroyGlobe = () => createdGlobe.destroy()
+      const [currentLatitude, currentLongitude] = currentLocationRef.current
+      const [targetLatitude, targetLongitude] = targetLocationRef.current
+      const longitudeDistance = shortestLongitudeDistance(currentLongitude, targetLongitude)
+      const latitudeDistance = targetLatitude - currentLatitude
+      const nextLatitude = Math.abs(latitudeDistance) < 0.01
+        ? targetLatitude
+        : currentLatitude + latitudeDistance * 0.1
+      const nextLongitude = Math.abs(longitudeDistance) < 0.01
+        ? targetLongitude
+        : currentLongitude + longitudeDistance * 0.1
 
-      const animate = () => {
-        if (!globe || disposed) return
+      currentLocationRef.current = [nextLatitude, nextLongitude]
+      projection.rotate([-nextLongitude, -nextLatitude, 0])
 
-        const [currentPhi, currentTheta] = currentAnglesRef.current
-        const [targetPhi, targetTheta] = targetAnglesRef.current
-        const phiDistance = shortestAngleDistance(currentPhi, targetPhi)
-        const thetaDistance = targetTheta - currentTheta
-        const nextPhi = Math.abs(phiDistance) < 0.001
-          ? targetPhi
-          : currentPhi + phiDistance * 0.1
-        const nextTheta = Math.abs(thetaDistance) < 0.001
-          ? targetTheta
-          : currentTheta + thetaDistance * 0.1
+      context.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0)
+      context.clearRect(0, 0, GLOBE_SIZE, GLOBE_SIZE)
 
-        currentAnglesRef.current = [nextPhi, nextTheta]
-        globe.update({
-          phi: nextPhi,
-          theta: nextTheta,
-          markers: [{
-            location: [locationRef.current[0], locationRef.current[1]],
-            size: 0.09,
-          }],
-        })
-        animationFrame = requestAnimationFrame(animate)
+      const sphereFill = context.createRadialGradient(
+        GLOBE_SIZE * 0.36,
+        GLOBE_SIZE * 0.3,
+        GLOBE_SIZE * 0.04,
+        GLOBE_SIZE * 0.52,
+        GLOBE_SIZE * 0.52,
+        GLOBE_SIZE * 0.52,
+      )
+      if (isDark) {
+        sphereFill.addColorStop(0, '#5b5b5b')
+        sphereFill.addColorStop(1, '#292929')
+      } else {
+        sphereFill.addColorStop(0, '#ffffff')
+        sphereFill.addColorStop(1, '#eeeeee')
       }
 
-      animationFrame = requestAnimationFrame(animate)
-    }).catch(() => {})
+      context.save()
+      context.beginPath()
+      path(SPHERE)
+      context.shadowBlur = 18
+      context.shadowColor = isDark ? 'rgb(0 0 0 / 0.45)' : 'rgb(0 0 0 / 0.16)'
+      context.fillStyle = sphereFill
+      context.fill()
+      context.restore()
+
+      context.beginPath()
+      path(LAND)
+      context.fillStyle = isDark ? 'rgb(225 225 225)' : 'rgb(145 145 145)'
+      context.fill()
+
+      context.beginPath()
+      path(SPHERE)
+      context.strokeStyle = isDark ? 'rgb(255 255 255 / 0.12)' : 'rgb(0 0 0 / 0.08)'
+      context.lineWidth = 1
+      context.stroke()
+
+      const marker = projection([targetLongitude, targetLatitude])
+      if (marker) {
+        context.beginPath()
+        context.arc(marker[0], marker[1], 5.5, 0, Math.PI * 2)
+        context.fillStyle = isDark ? DARK_ACCENT_COLOR : LIGHT_ACCENT_COLOR
+        context.fill()
+        context.strokeStyle = isDark ? '#292929' : '#ffffff'
+        context.lineWidth = 2
+        context.stroke()
+      }
+
+      animationFrame = requestAnimationFrame(draw)
+    }
+
+    animationFrame = requestAnimationFrame(draw)
 
     return () => {
       disposed = true
       if (animationFrame !== null) cancelAnimationFrame(animationFrame)
-      destroyGlobe?.()
       host.replaceChildren()
     }
   }, [active, isDark])
 
-  return (
-    <div ref={hostRef} aria-hidden="true" />
-  )
+  return <div ref={hostRef} aria-hidden="true" />
 }
