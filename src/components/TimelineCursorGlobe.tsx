@@ -6,7 +6,7 @@ import {
   type GeoPermissibleObjects,
   type GeoSphere,
 } from 'd3-geo'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react'
 import { feature } from 'topojson-client'
 import type { Topology } from 'topojson-specification'
 import landAtlas from 'world-atlas/land-110m.json'
@@ -32,9 +32,11 @@ function shortestLongitudeDistance(from: number, to: number) {
 export function TimelineCursorGlobe({
   active,
   location,
+  longitudeOffsetRef,
 }: {
   active: boolean
   location: GlobeLocation
+  longitudeOffsetRef?: RefObject<number>
 }) {
   const hostRef = useRef<HTMLDivElement | null>(null)
   const currentLocationRef = useRef<GlobeLocation>(location)
@@ -82,6 +84,7 @@ export function TimelineCursorGlobe({
     const path = geoPath(projection, context)
     let animationFrame: number | null = null
     let disposed = false
+    let currentLongitudeOffset = longitudeOffsetRef?.current ?? 0
 
     const draw = () => {
       if (disposed) return
@@ -98,7 +101,13 @@ export function TimelineCursorGlobe({
         : currentLongitude + longitudeDistance * 0.1
 
       currentLocationRef.current = [nextLatitude, nextLongitude]
-      projection.rotate([-nextLongitude, -nextLatitude, 0])
+      const targetLongitudeOffset = longitudeOffsetRef?.current ?? 0
+      currentLongitudeOffset += (targetLongitudeOffset - currentLongitudeOffset) * 0.12
+      projection.rotate([
+        -nextLongitude + currentLongitudeOffset,
+        -nextLatitude,
+        0,
+      ])
 
       context.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0)
       context.clearRect(0, 0, GLOBE_SIZE, GLOBE_SIZE)
@@ -130,7 +139,7 @@ export function TimelineCursorGlobe({
 
       context.beginPath()
       path(LAND)
-      context.fillStyle = isDark ? 'rgb(225 225 225)' : 'rgb(145 145 145)'
+      context.fillStyle = isDark ? 'rgb(238 238 238)' : 'rgb(168 168 168)'
       context.fill()
 
       context.beginPath()

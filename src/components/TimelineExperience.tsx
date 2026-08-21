@@ -38,6 +38,8 @@ const METADATA_SCRUB_PIXELS_PER_YEAR = 16
 const METADATA_SCRUB_PIXELS_PER_STOP = 28
 const METADATA_SCRUB_DRAG_THRESHOLD = 4
 const LOCATION_GLOBE_RUBBER_BAND_FACTOR = 0.25
+const LOCATION_GLOBE_MAX_LONGITUDE_OFFSET = 8
+const LOCATION_GLOBE_ROTATION_DISTANCE = 120
 const TIMELINE_TAP_DRAG_THRESHOLD = 8
 const FULL_DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
   day: 'numeric',
@@ -338,6 +340,7 @@ export function TimelineExperience({
   const pendingLocationGlobePositionRef = useRef<{ x: number; y: number } | null>(null)
   const locationGlobeAnchorXRef = useRef<number | null>(null)
   const locationGlobeAnchorYRef = useRef<number | null>(null)
+  const locationGlobeLongitudeOffsetRef = useRef(0)
 
   useLayoutEffect(() => {
     const root = document.documentElement
@@ -1382,6 +1385,14 @@ export function TimelineExperience({
 
     const rubberBandedX = anchorX
       + (clientX - anchorX) * LOCATION_GLOBE_RUBBER_BAND_FACTOR
+    locationGlobeLongitudeOffsetRef.current = Math.max(
+      -LOCATION_GLOBE_MAX_LONGITUDE_OFFSET,
+      Math.min(
+        LOCATION_GLOBE_MAX_LONGITUDE_OFFSET,
+        ((clientX - anchorX) / LOCATION_GLOBE_ROTATION_DISTANCE)
+          * LOCATION_GLOBE_MAX_LONGITUDE_OFFSET,
+      ),
+    )
     pendingLocationGlobePositionRef.current = { x: rubberBandedX, y: anchorY }
     if (locationGlobeFrameRef.current !== null) return
 
@@ -1418,6 +1429,7 @@ export function TimelineExperience({
 
   const handleLocationPointerLeave = (event: React.PointerEvent<HTMLElement>) => {
     if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
+      locationGlobeLongitudeOffsetRef.current = 0
       setIsLocationGlobeVisible(false)
     }
   }
@@ -1845,17 +1857,20 @@ export function TimelineExperience({
                       onPointerUp={(event) => {
                         endMetadataScrub(event)
                         if (!event.currentTarget.matches(':hover')) {
+                          locationGlobeLongitudeOffsetRef.current = 0
                           setIsLocationGlobeVisible(false)
                         }
                       }}
                       onPointerLeave={handleLocationPointerLeave}
                       onPointerCancel={(event) => {
                         endMetadataScrub(event)
+                        locationGlobeLongitudeOffsetRef.current = 0
                         setIsLocationGlobeVisible(false)
                       }}
                       onLostPointerCapture={(event) => {
                         endMetadataScrub(event)
                         if (!event.currentTarget.matches(':hover')) {
+                          locationGlobeLongitudeOffsetRef.current = 0
                           setIsLocationGlobeVisible(false)
                         }
                       }}
@@ -2020,6 +2035,7 @@ export function TimelineExperience({
           <TimelineCursorGlobe
             active={isLocationGlobeVisible}
             location={locationGlobe}
+            longitudeOffsetRef={locationGlobeLongitudeOffsetRef}
           />
         </div>,
         locationGlobePortalRoot,
