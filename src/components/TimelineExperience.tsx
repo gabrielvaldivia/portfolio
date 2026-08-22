@@ -35,6 +35,7 @@ const CHAPTER_BACKWARD_WHEEL_QUIET_MS = 220
 const CHAPTER_EXIT_DURATION = 200
 const CHAPTER_ENTER_DURATION = 420
 const METADATA_SCRUB_PIXELS_PER_YEAR = 16
+const AGE_SCRUB_PIXELS_PER_YEAR = 6
 const METADATA_SCRUB_PIXELS_PER_STOP = 28
 const METADATA_SCRUB_DRAG_THRESHOLD = 4
 const LOCATION_GLOBE_MAX_LONGITUDE_OFFSET = 16
@@ -1434,11 +1435,14 @@ export function TimelineExperience({
       return
     }
 
+    const pixelsPerYear = session.source === 'age'
+      ? AGE_SCRUB_PIXELS_PER_YEAR
+      : METADATA_SCRUB_PIXELS_PER_YEAR
     scheduleMetadataScrub(Math.max(
       0,
       Math.min(
         lastIndex,
-        session.startPosition + deltaX / METADATA_SCRUB_PIXELS_PER_YEAR,
+        session.startPosition + deltaX / pixelsPerYear,
       ),
     ))
   }
@@ -1644,7 +1648,7 @@ export function TimelineExperience({
         0,
         Math.min(
           lastIndex,
-          session.position + horizontalDelta / METADATA_SCRUB_PIXELS_PER_YEAR,
+          session.position + horizontalDelta / AGE_SCRUB_PIXELS_PER_YEAR,
         ),
       )
       scheduleMetadataScrub(session.position)
