@@ -110,8 +110,7 @@ const dayStart = (year: number, month: number, day: number) => (
 
 const LOCATION_HISTORY: DatedTimelinePeriod[] = [
   { start: BIRTH_TIMESTAMP, end: dayStart(1989, 3, 23), label: 'Fomento, Cuba', contextLabel: 'Cuba', globeLocation: [22.1, -79.72] },
-  { start: dayStart(1989, 3, 23), end: dayStart(1992, 3, 23), label: 'Colón, Cuba', contextLabel: 'Cuba', globeLocation: [22.72, -80.91] },
-  { start: dayStart(1992, 3, 23), end: dayStart(1995, 7, 25), label: 'Marcos García, Cuba', contextLabel: 'Cuba', globeLocation: [21.93, -79.44] },
+  { start: dayStart(1989, 3, 23), end: dayStart(1995, 7, 25), label: 'Sancti Spíritus, Cuba', contextLabel: 'Cuba', globeLocation: [21.93, -79.44] },
   { start: dayStart(1995, 7, 25), end: monthStart(1995, 10), label: 'Uruca, Costa Rica', contextLabel: 'Costa Rica', globeLocation: [9.95, -84.11] },
   { start: monthStart(1995, 10), end: monthStart(1996, 1), label: 'Tibás, Costa Rica', contextLabel: 'Costa Rica', globeLocation: [9.96, -84.08] },
   { start: monthStart(1996, 1), end: monthStart(1998, 1), label: 'Ciudad Quesada, Costa Rica', contextLabel: 'Costa Rica', globeLocation: [10.32, -84.43] },
