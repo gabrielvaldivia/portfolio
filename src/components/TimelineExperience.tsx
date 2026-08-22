@@ -1928,7 +1928,7 @@ export function TimelineExperience({
                   <dt>Age</dt>
                   <dd>
                     <span
-                      className={styles.metadataScrubber}
+                      className={`${styles.metadataScrubber} ${styles.ageScrubber}`}
                       role="slider"
                       tabIndex={0}
                       aria-label="Age"

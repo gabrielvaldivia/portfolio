@@ -412,6 +412,11 @@
   user-select: none;
 }
 
+.ageScrubber {
+  display: block;
+  width: 100%;
+}
+
 .metadataScrubber:focus-visible {
   border-radius: 2px;
   outline: 1px solid var(--color-border);
