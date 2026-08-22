@@ -1979,7 +1979,9 @@ export function TimelineExperience({
                         }
                       }}
                     >
-                      <span ref={ageValueRef}>{contentAgeLabel}</span>
+                      <span ref={ageValueRef}>
+                        {isBeyondPresentPreview ? '??' : contentAgeLabel}
+                      </span>
                     </span>
                   </dd>
                 </div>
@@ -1994,7 +1996,7 @@ export function TimelineExperience({
                       aria-valuemin={BIRTH_TIMESTAMP}
                       aria-valuemax={PRESENT_TIMESTAMP}
                       aria-valuenow={contentTimestamp}
-                      aria-valuetext={`${locationDetails}, ${contentDateLabel}`}
+                      aria-valuetext={isBeyondPresentPreview ? 'Unknown' : `${locationDetails}, ${contentDateLabel}`}
                       onKeyDown={(event) => handleDiscreteMetadataKeyDown(event, 'location')}
                       onPointerEnter={handleLocationPointerEnter}
                       onWheel={(event) => handleMetadataWheel(event, 'location')}
@@ -2021,7 +2023,7 @@ export function TimelineExperience({
                         }
                       }}
                     >
-                      {locationDetails}
+                      {isBeyondPresentPreview ? '??' : locationDetails}
                     </span>
                   </dd>
                 </div>
@@ -2062,7 +2064,7 @@ export function TimelineExperience({
                         aria-valuemin={BIRTH_TIMESTAMP}
                         aria-valuemax={PRESENT_TIMESTAMP}
                         aria-valuenow={contentTimestamp}
-                        aria-valuetext={`${workDetails}, ${contentDateLabel}`}
+                        aria-valuetext={isBeyondPresentPreview ? 'Unknown' : `${workDetails}, ${contentDateLabel}`}
                         onKeyDown={(event) => handleDiscreteMetadataKeyDown(event, 'work')}
                         onPointerDown={(event) => handleMetadataPointerDown(event, 'work')}
                         onPointerMove={handleMetadataPointerMove}
@@ -2070,7 +2072,7 @@ export function TimelineExperience({
                         onPointerCancel={endMetadataScrub}
                         onLostPointerCapture={endMetadataScrub}
                       >
-                        {workDetails}
+                        {isBeyondPresentPreview ? '??' : workDetails}
                       </span>
                     </dd>
                   </div>
