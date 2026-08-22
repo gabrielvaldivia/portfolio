@@ -1442,11 +1442,20 @@ export function TimelineExperience({
     const pixelsPerYear = session.source === 'age'
       ? AGE_SCRUB_PIXELS_PER_YEAR
       : METADATA_SCRUB_PIXELS_PER_YEAR
+    const requestedPosition = session.startPosition + deltaX / pixelsPerYear
+    if (session.source === 'age' && requestedPosition > lastIndex) {
+      snapTo(lastIndex)
+      pulseHapticAt(1)
+      setIsBeyondPresentPreview(true)
+      setIsAgePortraitVisible(true)
+      return
+    }
+
     scheduleMetadataScrub(Math.max(
       0,
       Math.min(
         lastIndex,
-        session.startPosition + deltaX / pixelsPerYear,
+        requestedPosition,
       ),
     ))
   }
@@ -1651,7 +1660,7 @@ export function TimelineExperience({
       const requestedPosition = session.position
         + horizontalDelta / AGE_SCRUB_PIXELS_PER_YEAR
 
-      if (event.altKey && requestedPosition > lastIndex) {
+      if (requestedPosition > lastIndex) {
         session.position = lastIndex
         snapTo(lastIndex)
         pulseHapticAt(1)
