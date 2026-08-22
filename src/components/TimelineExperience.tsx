@@ -345,6 +345,7 @@ export function TimelineExperience({
   const suppressDateClickRef = useRef(false)
   const suppressDateClickTimerRef = useRef<number | null>(null)
   const timelinePointerSessionRef = useRef<TimelinePointerSession | null>(null)
+  const ageValueRef = useRef<HTMLSpanElement | null>(null)
   const agePortraitRef = useRef<HTMLDivElement | null>(null)
   const agePortraitFrameRef = useRef<number | null>(null)
   const pendingAgePortraitPositionRef = useRef<{ x: number; y: number } | null>(null)
@@ -1351,7 +1352,7 @@ export function TimelineExperience({
       || !window.matchMedia('(min-width: 1280px) and (hover: hover)').matches
     ) return
 
-    const ageBounds = event.currentTarget.getBoundingClientRect()
+    const ageBounds = (ageValueRef.current ?? event.currentTarget).getBoundingClientRect()
     agePortraitAnchorXRef.current = ageBounds.left + ageBounds.width / 2
     agePortraitAnchorYRef.current = ageBounds.top
     scheduleAgePortraitPosition(event.clientX)
@@ -1959,7 +1960,7 @@ export function TimelineExperience({
                         }
                       }}
                     >
-                      {contentAgeLabel}
+                      <span ref={ageValueRef}>{contentAgeLabel}</span>
                     </span>
                   </dd>
                 </div>
