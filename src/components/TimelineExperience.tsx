@@ -2182,7 +2182,7 @@ export function TimelineExperience({
           {isBeyondPresentPreview ? (
             <img
               className={styles.ageCursorSkeleton}
-              src="/timeline-faces/skeleton.png"
+              src="/timeline-faces/skeleton.webp"
               alt=""
             />
           ) : (
