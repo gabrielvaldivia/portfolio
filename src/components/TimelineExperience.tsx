@@ -1592,11 +1592,11 @@ export function TimelineExperience({
     event: React.WheelEvent<HTMLElement>,
     source: MetadataWheelSource,
   ) => {
-    const horizontalDelta = event.deltaMode === 1
+    const horizontalDelta = -(event.deltaMode === 1
       ? event.deltaX * 16
       : event.deltaMode === 2
         ? event.deltaX * window.innerWidth
-        : event.deltaX
+        : event.deltaX)
     const verticalDelta = event.deltaMode === 1
       ? event.deltaY * 16
       : event.deltaMode === 2
