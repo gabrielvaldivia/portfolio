@@ -2088,24 +2088,26 @@ export function TimelineExperience({
                 )}
               </dl>
             </div>
-            <div className={styles.newsBlock}>
-              <span className={styles.contextHeading}>News</span>
-              <p className={styles.note}>
-                {worldContext ? (
-                  <a
-                    className={styles.newsLink}
-                    href={worldContext.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <span className={styles.newsLinkText}>{worldContext.summary}</span>
-                    <HoverArrow
-                      className={styles.newsLinkIcon}
-                    />
-                  </a>
-                ) : 'The story of this year is still being written.'}
-              </p>
-            </div>
+            {!isBeyondPresentPreview && (
+              <div className={styles.newsBlock}>
+                <span className={styles.contextHeading}>News</span>
+                <p className={styles.note}>
+                  {worldContext ? (
+                    <a
+                      className={styles.newsLink}
+                      href={worldContext.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <span className={styles.newsLinkText}>{worldContext.summary}</span>
+                      <HoverArrow
+                        className={styles.newsLinkIcon}
+                      />
+                    </a>
+                  ) : 'The story of this year is still being written.'}
+                </p>
+              </div>
+            )}
           </aside>
         </article>
       </div>
@@ -2160,24 +2162,26 @@ export function TimelineExperience({
                 <dd>{previewWorkDetails}</dd>
               </div>
             )}
-            <div className={styles.mobileNews}>
-              <dt>News</dt>
-              <dd>
-                {previewWorldContext ? (
-                  <a
-                    className={styles.newsLink}
-                    href={previewWorldContext.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <span className={styles.newsLinkText}>{previewWorldContext.summary}</span>
-                    <HoverArrow
-                      className={styles.newsLinkIcon}
-                    />
-                  </a>
-                ) : 'The story of this year is still being written.'}
-              </dd>
-            </div>
+            {!isBeyondPresentPreview && (
+              <div className={styles.mobileNews}>
+                <dt>News</dt>
+                <dd>
+                  {previewWorldContext ? (
+                    <a
+                      className={styles.newsLink}
+                      href={previewWorldContext.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <span className={styles.newsLinkText}>{previewWorldContext.summary}</span>
+                      <HoverArrow
+                        className={styles.newsLinkIcon}
+                      />
+                    </a>
+                  ) : 'The story of this year is still being written.'}
+                </dd>
+              </div>
+            )}
           </dl>
         </aside>
       )}
