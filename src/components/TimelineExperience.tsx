@@ -37,7 +37,6 @@ const CHAPTER_ENTER_DURATION = 420
 const METADATA_SCRUB_PIXELS_PER_YEAR = 16
 const METADATA_SCRUB_PIXELS_PER_STOP = 28
 const METADATA_SCRUB_DRAG_THRESHOLD = 4
-const LOCATION_GLOBE_RUBBER_BAND_FACTOR = 0.25
 const LOCATION_GLOBE_MAX_LONGITUDE_OFFSET = 16
 const LOCATION_GLOBE_ROTATION_DISTANCE = 90
 const TIMELINE_TAP_DRAG_THRESHOLD = 8
@@ -287,6 +286,7 @@ export function TimelineExperience({
   const [isDateEditing, setIsDateEditing] = useState(false)
   const [dateDraft, setDateDraft] = useState('')
   const [metadataScrubSource, setMetadataScrubSource] = useState<MetadataScrubSource | null>(null)
+  const [isAgePortraitVisible, setIsAgePortraitVisible] = useState(false)
   const [isLocationGlobeVisible, setIsLocationGlobeVisible] = useState(false)
   const [locationGlobePortalRoot, setLocationGlobePortalRoot] = useState<HTMLElement | null>(null)
   const hoverProgressRef = useRef<number | null>(null)
@@ -335,6 +335,11 @@ export function TimelineExperience({
   const suppressDateClickRef = useRef(false)
   const suppressDateClickTimerRef = useRef<number | null>(null)
   const timelinePointerSessionRef = useRef<TimelinePointerSession | null>(null)
+  const agePortraitRef = useRef<HTMLDivElement | null>(null)
+  const agePortraitFrameRef = useRef<number | null>(null)
+  const pendingAgePortraitPositionRef = useRef<{ x: number; y: number } | null>(null)
+  const agePortraitAnchorXRef = useRef<number | null>(null)
+  const agePortraitAnchorYRef = useRef<number | null>(null)
   const locationGlobeRef = useRef<HTMLDivElement | null>(null)
   const locationGlobeFrameRef = useRef<number | null>(null)
   const pendingLocationGlobePositionRef = useRef<{ x: number; y: number } | null>(null)
@@ -462,6 +467,9 @@ export function TimelineExperience({
       if (suppressDateClickTimerRef.current !== null) {
         window.clearTimeout(suppressDateClickTimerRef.current)
       }
+      if (agePortraitFrameRef.current !== null) {
+        cancelAnimationFrame(agePortraitFrameRef.current)
+      }
       if (locationGlobeFrameRef.current !== null) {
         cancelAnimationFrame(locationGlobeFrameRef.current)
       }
@@ -518,6 +526,7 @@ export function TimelineExperience({
     || (contentDate.getUTCMonth() === 2 && contentDate.getUTCDate() < 23)
   const contentAge = contentYear - BIRTH_YEAR - (isBeforeBirthday ? 1 : 0)
   const contentAgeLabel = contentAge === 0 ? 'Newborn' : contentAge
+  const contentAgePortrait = `/timeline-faces/age-${String(contentAge).padStart(2, '0')}.webp`
   const contentDateLabel = FULL_DATE_FORMATTER.format(contentDate)
   const contentDateTime = contentDate.toISOString().slice(0, 10)
   const pillTimestamp = Math.round(
@@ -1307,6 +1316,55 @@ export function TimelineExperience({
     }
   }
 
+  const scheduleAgePortraitPosition = (clientX: number) => {
+    const anchorX = agePortraitAnchorXRef.current
+    const anchorY = agePortraitAnchorYRef.current
+    if (anchorX === null || anchorY === null) return
+
+    pendingAgePortraitPositionRef.current = {
+      x: anchorX,
+      y: anchorY,
+    }
+    if (agePortraitFrameRef.current !== null) return
+
+    agePortraitFrameRef.current = requestAnimationFrame(() => {
+      const position = pendingAgePortraitPositionRef.current
+      const portrait = agePortraitRef.current
+      agePortraitFrameRef.current = null
+      pendingAgePortraitPositionRef.current = null
+      if (!position || !portrait) return
+
+      portrait.style.transform = `translate3d(${position.x}px, ${position.y}px, 0) translate(-50%, calc(-100% - 10px))`
+    })
+  }
+
+  const handleAgePointerEnter = (event: React.PointerEvent<HTMLElement>) => {
+    if (
+      event.pointerType !== 'mouse'
+      || !window.matchMedia('(min-width: 1280px) and (hover: hover)').matches
+    ) return
+
+    const ageBounds = event.currentTarget.getBoundingClientRect()
+    agePortraitAnchorXRef.current = ageBounds.left + ageBounds.width / 2
+    agePortraitAnchorYRef.current = ageBounds.top
+    scheduleAgePortraitPosition(event.clientX)
+    setIsLocationGlobeVisible(false)
+    setIsAgePortraitVisible(true)
+  }
+
+  const handleAgePointerMove = (event: React.PointerEvent<HTMLElement>) => {
+    if (event.pointerType === 'mouse') {
+      scheduleAgePortraitPosition(event.clientX)
+    }
+    handleMetadataPointerMove(event)
+  }
+
+  const handleAgePointerLeave = (event: React.PointerEvent<HTMLElement>) => {
+    if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
+      setIsAgePortraitVisible(false)
+    }
+  }
+
   const handleMetadataPointerDown = (
     event: React.PointerEvent<HTMLElement>,
     source: MetadataScrubSource,
@@ -1384,7 +1442,6 @@ export function TimelineExperience({
     if (anchorX === null || anchorY === null) return
 
     const rubberBandedX = anchorX
-      + (clientX - anchorX) * LOCATION_GLOBE_RUBBER_BAND_FACTOR
     locationGlobeLongitudeOffsetRef.current = Math.max(
       -LOCATION_GLOBE_MAX_LONGITUDE_OFFSET,
       Math.min(
@@ -1417,6 +1474,7 @@ export function TimelineExperience({
     locationGlobeAnchorXRef.current = locationBounds.left + locationBounds.width / 2
     locationGlobeAnchorYRef.current = locationBounds.top
     scheduleLocationGlobePosition(event.clientX)
+    setIsAgePortraitVisible(false)
     setIsLocationGlobeVisible(true)
   }
 
@@ -1828,11 +1886,26 @@ export function TimelineExperience({
                       aria-valuenow={contentAge}
                       aria-valuetext={String(contentAgeLabel)}
                       onKeyDown={(event) => handleMetadataKeyDown(event, 1)}
+                      onPointerEnter={handleAgePointerEnter}
                       onPointerDown={(event) => handleMetadataPointerDown(event, 'age')}
-                      onPointerMove={handleMetadataPointerMove}
-                      onPointerUp={endMetadataScrub}
-                      onPointerCancel={endMetadataScrub}
-                      onLostPointerCapture={endMetadataScrub}
+                      onPointerMove={handleAgePointerMove}
+                      onPointerUp={(event) => {
+                        endMetadataScrub(event)
+                        if (!event.currentTarget.matches(':hover')) {
+                          setIsAgePortraitVisible(false)
+                        }
+                      }}
+                      onPointerLeave={handleAgePointerLeave}
+                      onPointerCancel={(event) => {
+                        endMetadataScrub(event)
+                        setIsAgePortraitVisible(false)
+                      }}
+                      onLostPointerCapture={(event) => {
+                        endMetadataScrub(event)
+                        if (!event.currentTarget.matches(':hover')) {
+                          setIsAgePortraitVisible(false)
+                        }
+                      }}
                     >
                       {contentAgeLabel}
                     </span>
@@ -2023,6 +2096,18 @@ export function TimelineExperience({
             </div>
           </dl>
         </aside>
+      )}
+
+      {locationGlobePortalRoot && createPortal(
+        <div
+          ref={agePortraitRef}
+          className={styles.ageCursorPortrait}
+          data-visible={isAgePortraitVisible}
+          aria-hidden="true"
+        >
+          <img src={contentAgePortrait} alt="" />
+        </div>,
+        locationGlobePortalRoot,
       )}
 
       {locationGlobePortalRoot && createPortal(
