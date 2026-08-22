@@ -293,6 +293,7 @@ export function TimelineExperience({
   const [isDateEditing, setIsDateEditing] = useState(false)
   const [metadataScrubSource, setMetadataScrubSource] = useState<MetadataScrubSource | null>(null)
   const [isAgePortraitVisible, setIsAgePortraitVisible] = useState(false)
+  const [isBeyondPresentPreview, setIsBeyondPresentPreview] = useState(false)
   const [isLocationGlobeVisible, setIsLocationGlobeVisible] = useState(false)
   const [locationGlobePortalRoot, setLocationGlobePortalRoot] = useState<HTMLElement | null>(null)
   const hoverProgressRef = useRef<number | null>(null)
@@ -437,6 +438,7 @@ export function TimelineExperience({
   }, [])
 
   const moveTo = useCallback((next: number) => {
+    setIsBeyondPresentPreview(false)
     targetRef.current = Math.max(0, Math.min(lastIndex, next))
 
     if (animationRef.current === null) {
@@ -445,6 +447,7 @@ export function TimelineExperience({
   }, [animate, lastIndex])
 
   const snapTo = useCallback((next: number) => {
+    setIsBeyondPresentPreview(false)
     const clamped = Math.max(0, Math.min(lastIndex, next))
     if (animationRef.current !== null) {
       cancelAnimationFrame(animationRef.current)
@@ -1319,6 +1322,7 @@ export function TimelineExperience({
   }
 
   const scheduleMetadataScrub = (nextPosition: number) => {
+    setIsBeyondPresentPreview(false)
     pendingMetadataPositionRef.current = nextPosition
     if (metadataScrubFrameRef.current === null) {
       metadataScrubFrameRef.current = requestAnimationFrame(flushMetadataScrub)
@@ -1644,14 +1648,19 @@ export function TimelineExperience({
         scheduleMetadataScrub(session.position)
       }
     } else {
-      session.position = Math.max(
-        0,
-        Math.min(
-          lastIndex,
-          session.position + horizontalDelta / AGE_SCRUB_PIXELS_PER_YEAR,
-        ),
-      )
-      scheduleMetadataScrub(session.position)
+      const requestedPosition = session.position
+        + horizontalDelta / AGE_SCRUB_PIXELS_PER_YEAR
+
+      if (event.altKey && requestedPosition > lastIndex) {
+        session.position = lastIndex
+        snapTo(lastIndex)
+        pulseHapticAt(1)
+        setIsBeyondPresentPreview(true)
+        setIsAgePortraitVisible(true)
+      } else {
+        session.position = Math.max(0, Math.min(lastIndex, requestedPosition))
+        scheduleMetadataScrub(session.position)
+      }
     }
 
     if (metadataWheelResetTimerRef.current !== null) {
@@ -1780,7 +1789,7 @@ export function TimelineExperience({
             style={{ top: `${pillProgress * 100}%` }}
             aria-hidden="true"
           >
-            {pillLabel}
+            {isBeyondPresentPreview ? '??' : pillLabel}
           </span>
         </div>
       </aside>
@@ -1863,7 +1872,7 @@ export function TimelineExperience({
                     <button
                       type="button"
                       className={styles.dateButton}
-                      aria-label={`Date: ${contentDateLabel}. Drag horizontally to scrub, or click to open the calendar.`}
+                      aria-label={`Date: ${isBeyondPresentPreview ? 'unknown' : contentDateLabel}. Drag horizontally to scrub, or click to open the calendar.`}
                       onClickCapture={(event) => {
                         if (!suppressDateClickRef.current) return
                         event.preventDefault()
@@ -1877,14 +1886,20 @@ export function TimelineExperience({
                       onPointerCancel={endMetadataScrub}
                       onLostPointerCapture={endMetadataScrub}
                     >
-                      <time dateTime={contentDateTime}>{contentDateLabel}</time>
-                      <HugeiconsIcon
-                        className={styles.dateCalendarIcon}
-                        icon={Calendar04Icon}
-                        size={20}
-                        strokeWidth={1.5}
-                        aria-hidden="true"
-                      />
+                      {isBeyondPresentPreview ? (
+                        <span className={styles.unknownDate}>??</span>
+                      ) : (
+                        <>
+                          <time dateTime={contentDateTime}>{contentDateLabel}</time>
+                          <HugeiconsIcon
+                            className={styles.dateCalendarIcon}
+                            icon={Calendar04Icon}
+                            size={20}
+                            strokeWidth={1.5}
+                            aria-hidden="true"
+                          />
+                        </>
+                      )}
                     </button>
                   </PopoverTrigger>
                   <PopoverContent
@@ -1940,7 +1955,7 @@ export function TimelineExperience({
                       aria-valuemin={0}
                       aria-valuemax={PRESENT_YEAR - BIRTH_YEAR}
                       aria-valuenow={contentAge}
-                      aria-valuetext={String(contentAgeLabel)}
+                      aria-valuetext={isBeyondPresentPreview ? 'Beyond the present' : String(contentAgeLabel)}
                       onKeyDown={(event) => handleMetadataKeyDown(event, 1)}
                       onPointerEnter={handleAgePointerEnter}
                       onWheel={(event) => handleMetadataWheel(event, 'age')}
@@ -2161,9 +2176,18 @@ export function TimelineExperience({
           ref={agePortraitRef}
           className={styles.ageCursorPortrait}
           data-visible={isAgePortraitVisible}
+          data-beyond-present={isBeyondPresentPreview}
           aria-hidden="true"
         >
-          <img src={contentAgePortrait} alt="" />
+          {isBeyondPresentPreview ? (
+            <img
+              className={styles.ageCursorSkeleton}
+              src="/timeline-faces/skeleton.png"
+              alt=""
+            />
+          ) : (
+            <img src={contentAgePortrait} alt="" />
+          )}
         </div>,
         locationGlobePortalRoot,
       )}
