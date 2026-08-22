@@ -117,16 +117,14 @@
   line-height: 1;
 }
 
-.dateButton,
-.dateInput {
+.dateButton {
   margin: 0;
   color: var(--color-content);
   font: inherit;
   line-height: inherit;
 }
 
-.dateButton,
-.dateEditor {
+.dateButton {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 20px;
   width: 168px;
@@ -160,26 +158,10 @@
   transform: translateX(0);
 }
 
-.dateEditorIcon {
-  color: var(--color-muted);
-  opacity: 0.65;
-}
-
 .dateButton:focus-visible {
   border-radius: 2px;
   outline: 1px solid var(--color-border);
   outline-offset: 3px;
-}
-
-.dateInput {
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  outline: none;
 }
 
 .datePopoverContent {
@@ -192,12 +174,6 @@
   box-shadow: 0 14px 38px rgb(0 0 0 / 0.14);
   color: var(--color-content);
   outline: none;
-}
-
-.datePopoverContent .dateEditor {
-  width: 100%;
-  min-height: 34px;
-  padding: 0 10px;
 }
 
 .metaGrid {

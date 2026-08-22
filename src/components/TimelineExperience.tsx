@@ -77,6 +77,7 @@ type DatedTimelinePeriod = {
 }
 
 type MetadataScrubSource = 'date' | 'age' | 'location' | 'education' | 'work'
+type MetadataWheelSource = Extract<MetadataScrubSource, 'age' | 'location'>
 
 type MetadataScrubSession = {
   pointerId: number
@@ -85,6 +86,12 @@ type MetadataScrubSession = {
   startPosition: number
   startStopIndex: number | null
   didDrag: boolean
+}
+
+type MetadataWheelSession = {
+  source: MetadataWheelSource | null
+  accumulatedDelta: number
+  position: number
 }
 
 type TimelinePointerSession = {
@@ -284,7 +291,6 @@ export function TimelineExperience({
   const [hoverProgress, setHoverProgress] = useState<number | null>(null)
   const [isTimelineDragging, setIsTimelineDragging] = useState(false)
   const [isDateEditing, setIsDateEditing] = useState(false)
-  const [dateDraft, setDateDraft] = useState('')
   const [metadataScrubSource, setMetadataScrubSource] = useState<MetadataScrubSource | null>(null)
   const [isAgePortraitVisible, setIsAgePortraitVisible] = useState(false)
   const [isLocationGlobeVisible, setIsLocationGlobeVisible] = useState(false)
@@ -300,7 +306,6 @@ export function TimelineExperience({
   const chapterScrollRef = useRef<HTMLDivElement | null>(null)
   const chapterMotionRef = useRef<HTMLDivElement | null>(null)
   const chapterDescriptionRef = useRef<HTMLDivElement | null>(null)
-  const dateInputRef = useRef<HTMLInputElement | null>(null)
   const hoverLockRef = useRef(false)
   const hapticTickRef = useRef<number | null>(null)
   const scrollSyncLockRef = useRef(false)
@@ -330,6 +335,12 @@ export function TimelineExperience({
   const pendingUrlDateRef = useRef<string | null>(null)
   const urlSyncTimerRef = useRef<number | null>(null)
   const metadataScrubSessionRef = useRef<MetadataScrubSession | null>(null)
+  const metadataWheelSessionRef = useRef<MetadataWheelSession>({
+    source: null,
+    accumulatedDelta: 0,
+    position: 0,
+  })
+  const metadataWheelResetTimerRef = useRef<number | null>(null)
   const metadataScrubFrameRef = useRef<number | null>(null)
   const pendingMetadataPositionRef = useRef<number | null>(null)
   const suppressDateClickRef = useRef(false)
@@ -463,6 +474,9 @@ export function TimelineExperience({
       }
       if (metadataScrubFrameRef.current !== null) {
         cancelAnimationFrame(metadataScrubFrameRef.current)
+      }
+      if (metadataWheelResetTimerRef.current !== null) {
+        window.clearTimeout(metadataWheelResetTimerRef.current)
       }
       if (suppressDateClickTimerRef.current !== null) {
         window.clearTimeout(suppressDateClickTimerRef.current)
@@ -773,21 +787,16 @@ export function TimelineExperience({
     navigator.vibrate?.(12)
   }
 
-  const cancelDateEdit = () => {
-    setIsDateEditing(false)
-    setDateDraft('')
-  }
-
-  const navigateToDate = (dateValue = dateDraft) => {
+  const navigateToDate = (dateValue: string) => {
     const [year, month, day] = dateValue.split('-').map(Number)
     if (!year || !month || !day) {
-      cancelDateEdit()
+      setIsDateEditing(false)
       return
     }
 
     const requestedTimestamp = Date.UTC(year, month - 1, day)
     if (new Date(requestedTimestamp).toISOString().slice(0, 10) !== dateValue) {
-      cancelDateEdit()
+      setIsDateEditing(false)
       return
     }
 
@@ -826,10 +835,9 @@ export function TimelineExperience({
     }
 
     setIsDateEditing(false)
-    setDateDraft('')
     hoverProgressRef.current = null
     setHoverProgress(null)
-    moveTo(nextProgress * lastIndex)
+    snapTo(nextProgress * lastIndex)
     navigator.vibrate?.(12)
   }
 
@@ -1409,7 +1417,6 @@ export function TimelineExperience({
       if (session.source === 'date') {
         suppressDateClickRef.current = true
         setIsDateEditing(false)
-        setDateDraft('')
       }
     }
 
@@ -1579,6 +1586,82 @@ export function TimelineExperience({
     const stopPosition = ((scrubStops[stopIndex] - BIRTH_TIMESTAMP)
       / (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP)) * lastIndex
     snapTo(stopPosition)
+  }
+
+  const handleMetadataWheel = (
+    event: React.WheelEvent<HTMLElement>,
+    source: MetadataWheelSource,
+  ) => {
+    const horizontalDelta = event.deltaMode === 1
+      ? event.deltaX * 16
+      : event.deltaMode === 2
+        ? event.deltaX * window.innerWidth
+        : event.deltaX
+    const verticalDelta = event.deltaMode === 1
+      ? event.deltaY * 16
+      : event.deltaMode === 2
+        ? event.deltaY * window.innerHeight
+        : event.deltaY
+
+    if (Math.abs(horizontalDelta) < 1 || Math.abs(horizontalDelta) <= Math.abs(verticalDelta)) {
+      return
+    }
+
+    event.preventDefault()
+    event.stopPropagation()
+
+    const session = metadataWheelSessionRef.current
+    if (session.source !== source) {
+      session.source = source
+      session.accumulatedDelta = 0
+      session.position = positionRef.current
+      prepareHapticPosition(positionRef.current / lastIndex)
+    }
+
+    const scrubStops = getMetadataScrubStops(source)
+    if (scrubStops) {
+      session.accumulatedDelta += horizontalDelta
+      const stopOffset = Math.trunc(
+        session.accumulatedDelta / METADATA_SCRUB_PIXELS_PER_STOP,
+      )
+      if (stopOffset !== 0) {
+        const timestamp = Math.round(
+          BIRTH_TIMESTAMP
+            + (session.position / lastIndex) * (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP),
+        )
+        const currentIndex = getScrubStopIndex(scrubStops, timestamp)
+        const stopIndex = Math.max(
+          0,
+          Math.min(scrubStops.length - 1, currentIndex + stopOffset),
+        )
+        session.position = ((scrubStops[stopIndex] - BIRTH_TIMESTAMP)
+          / (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP)) * lastIndex
+        session.accumulatedDelta -= stopOffset * METADATA_SCRUB_PIXELS_PER_STOP
+        scheduleMetadataScrub(session.position)
+      }
+    } else {
+      session.position = Math.max(
+        0,
+        Math.min(
+          lastIndex,
+          session.position + horizontalDelta / METADATA_SCRUB_PIXELS_PER_YEAR,
+        ),
+      )
+      scheduleMetadataScrub(session.position)
+    }
+
+    if (metadataWheelResetTimerRef.current !== null) {
+      window.clearTimeout(metadataWheelResetTimerRef.current)
+    }
+    metadataWheelResetTimerRef.current = window.setTimeout(() => {
+      metadataWheelSessionRef.current = {
+        source: null,
+        accumulatedDelta: 0,
+        position: positionRef.current,
+      }
+      metadataWheelResetTimerRef.current = null
+      hapticTickRef.current = null
+    }, 180)
   }
 
   useEffect(() => {
@@ -1770,10 +1853,7 @@ export function TimelineExperience({
                 <span className={styles.contextHeading}>Date</span>
                 <Popover
                   open={isDateEditing}
-                  onOpenChange={(open) => {
-                    setIsDateEditing(open)
-                    setDateDraft(open ? contentDateTime : '')
-                  }}
+                  onOpenChange={setIsDateEditing}
                 >
                   <PopoverTrigger asChild>
                     <button
@@ -1809,39 +1889,11 @@ export function TimelineExperience({
                     sideOffset={8}
                     onOpenAutoFocus={(event) => {
                       event.preventDefault()
-                      dateInputRef.current?.focus()
                     }}
                   >
-                    <div className={styles.dateEditor}>
-                    <input
-                      ref={dateInputRef}
-                      className={styles.dateInput}
-                      type="text"
-                      inputMode="numeric"
-                      value={dateDraft}
-                      aria-label="Go to date"
-                      placeholder="YYYY-MM-DD"
-                      onChange={(event) => setDateDraft(event.currentTarget.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter') {
-                          event.preventDefault()
-                          navigateToDate()
-                        } else if (event.key === 'Escape') {
-                          event.preventDefault()
-                          cancelDateEdit()
-                        }
-                      }}
-                    />
-                      <HugeiconsIcon
-                        className={styles.dateEditorIcon}
-                        icon={Calendar04Icon}
-                        size={20}
-                        strokeWidth={1.5}
-                        aria-hidden="true"
-                      />
-                    </div>
                     <Calendar
                       mode="single"
+                      captionLayout="dropdown"
                       defaultMonth={new Date(
                         contentDate.getUTCFullYear(),
                         contentDate.getUTCMonth(),
@@ -1887,6 +1939,7 @@ export function TimelineExperience({
                       aria-valuetext={String(contentAgeLabel)}
                       onKeyDown={(event) => handleMetadataKeyDown(event, 1)}
                       onPointerEnter={handleAgePointerEnter}
+                      onWheel={(event) => handleMetadataWheel(event, 'age')}
                       onPointerDown={(event) => handleMetadataPointerDown(event, 'age')}
                       onPointerMove={handleAgePointerMove}
                       onPointerUp={(event) => {
@@ -1925,6 +1978,7 @@ export function TimelineExperience({
                       aria-valuetext={`${locationDetails}, ${contentDateLabel}`}
                       onKeyDown={(event) => handleDiscreteMetadataKeyDown(event, 'location')}
                       onPointerEnter={handleLocationPointerEnter}
+                      onWheel={(event) => handleMetadataWheel(event, 'location')}
                       onPointerDown={(event) => handleMetadataPointerDown(event, 'location')}
                       onPointerMove={handleLocationPointerMove}
                       onPointerUp={(event) => {
