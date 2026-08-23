@@ -241,7 +241,7 @@ function AssistantMessage({
         {visible.map((block, blockIndex) => (
           <div
             key={`${block.type}-${blockIndex}`}
-            className="w-fit px-4 py-2.5 text-body rounded-[23px] bg-background dark:bg-white/10 text-content chat-bubble"
+            className="w-fit px-4 py-2.5 text-body rounded-[23px] bg-background-alt text-content chat-bubble"
             style={animate ? { animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both' } : undefined}
           >
             {block.type === 'paragraph' && !block.text ? (
