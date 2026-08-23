@@ -1,5 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
+const isAuthenticated = ({ req }: { req: { user?: unknown } }) => Boolean(req.user)
+
 export const Conversations: CollectionConfig = {
   slug: 'conversations',
   labels: { singular: 'Chat', plural: 'Chats' },
@@ -9,9 +11,10 @@ export const Conversations: CollectionConfig = {
     group: 'Collections',
   },
   access: {
-    read: () => true,
-    create: () => true,
-    update: () => true,
+    read: isAuthenticated,
+    create: isAuthenticated,
+    update: isAuthenticated,
+    delete: isAuthenticated,
   },
   fields: [
     { name: 'title', type: 'text', required: true },
@@ -28,6 +31,11 @@ export const Conversations: CollectionConfig = {
       admin: {
         description: 'Your answer or notes about this conversation. This will be used as context for future chats when similar questions are asked.',
       },
+    },
+    {
+      name: 'ownerHash',
+      type: 'text',
+      admin: { hidden: true },
     },
   ],
 }

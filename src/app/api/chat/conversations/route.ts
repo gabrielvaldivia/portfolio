@@ -1,5 +1,12 @@
 import { sql } from '@payloadcms/db-postgres'
 import { getPayload } from '@/lib/payload'
+import { normalizeConversationMessages } from '@/lib/chatMessages'
+import {
+  applyConversationOwnerCookie,
+  getConversationOwner,
+} from '@/lib/conversationOwnership'
+import { toPublicConversation } from '@/lib/publicConversation'
+import { NextRequest, NextResponse } from 'next/server'
 // @ts-expect-error — tz-lookup ships no types; the runtime signature is (lat, lng) => string
 import tzlookup from 'tz-lookup'
 
@@ -21,7 +28,7 @@ function readRows(result: unknown): any[] {
   return []
 }
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   const url = new URL(req.url)
   const summaryMode = url.searchParams.get('summary')
   const payload = await getPayload()
@@ -94,42 +101,48 @@ export async function GET(req: Request) {
     })
   }
 
-  const result = await payload.find({
-    collection: 'conversations',
-    sort: '-updatedAt',
-    limit: 500,
-    depth: 0,
-  })
-  const docs = (result.docs as any[]).map((document) => ({
-    ...document,
-    timezone: lookupTz(document.latitude, document.longitude),
-  }))
-  return Response.json(docs)
+  return Response.json({ error: 'A summary mode is required' }, { status: 400 })
 }
 
-export async function POST(req: Request) {
-  const { title, location, messages } = await req.json()
+export async function POST(req: NextRequest) {
+  const body = await req.json().catch(() => null)
+  const title = typeof body?.title === 'string' ? body.title.trim().slice(0, 160) : ''
+  const location = typeof body?.location === 'string' ? body.location.trim().slice(0, 160) : ''
+  const messages = normalizeConversationMessages(body?.messages)
 
   if (!title || !messages) {
-    return Response.json({ error: 'title and messages required' }, { status: 400 })
+    return Response.json({ error: 'A valid title and messages are required' }, { status: 400 })
   }
 
   const rawLat = req.headers.get('x-vercel-ip-latitude')
   const rawLng = req.headers.get('x-vercel-ip-longitude')
-  const latitude = rawLat ? Number(rawLat) : null
-  const longitude = rawLng ? Number(rawLng) : null
+  const parsedLatitude = rawLat ? Number(rawLat) : null
+  const parsedLongitude = rawLng ? Number(rawLng) : null
+  const latitude =
+    parsedLatitude !== null && Number.isFinite(parsedLatitude) && parsedLatitude >= -90 && parsedLatitude <= 90
+      ? parsedLatitude
+      : null
+  const longitude =
+    parsedLongitude !== null && Number.isFinite(parsedLongitude) && parsedLongitude >= -180 && parsedLongitude <= 180
+      ? parsedLongitude
+      : null
+  const owner = getConversationOwner(req, true)
+  if (!owner) return Response.json({ error: 'Unable to establish conversation ownership' }, { status: 500 })
 
   const payload = await getPayload()
   const doc = await payload.create({
     collection: 'conversations',
     data: {
       title,
-      location: location || '',
+      location,
       messages,
-      ...(Number.isFinite(latitude) && latitude !== null ? { latitude } : {}),
-      ...(Number.isFinite(longitude) && longitude !== null ? { longitude } : {}),
+      ownerHash: owner.hash,
+      ...(latitude !== null ? { latitude } : {}),
+      ...(longitude !== null ? { longitude } : {}),
     },
+    overrideAccess: true,
   })
 
-  return Response.json(doc)
+  const response = NextResponse.json(toPublicConversation(doc), { status: 201 })
+  return applyConversationOwnerCookie(response, owner)
 }

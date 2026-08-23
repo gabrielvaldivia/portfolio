@@ -19,7 +19,6 @@
     "generate:importmap": "payload generate:importmap"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.111.0",
     "@hugeicons/core-free-icons": "^4.2.2",
     "@hugeicons/react": "^1.1.9",
     "@payloadcms/db-postgres": "^3.86.0",
