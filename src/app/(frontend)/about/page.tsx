@@ -140,6 +140,25 @@ export default async function AboutPage() {
           <AboutSection title={section.title || 'Bio'}>
             <div className="text-body-large">
               <RichText data={bio} />
+              <Link
+                href="/timeline"
+                scroll={false}
+                className="mt-6 inline-flex items-center gap-1 text-body text-muted transition-opacity hover:opacity-50"
+              >
+                View timeline
+                <svg
+                  className="shrink-0 translate-y-[2px]"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  aria-hidden="true"
+                >
+                  <path d="M6 4l4 4-4 4" />
+                </svg>
+              </Link>
             </div>
           </AboutSection>
         )
