@@ -2,7 +2,7 @@
 
 import { Calendar04Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
   DEFAULT_TIMELINE_CHAPTERS,
@@ -20,9 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/Popover'
 import styles from './TimelineExperience.module.css'
 
 const BIRTH_YEAR = 1987
-const PRESENT_YEAR = 2026
 const BIRTH_TIMESTAMP = Date.UTC(1987, 2, 23)
-const PRESENT_TIMESTAMP = Date.UTC(2026, 7, 19)
 const TICKS_PER_YEAR = 1
 const CHAPTER_PULL_THRESHOLD = 200
 const DESKTOP_CHAPTER_PULL_INPUT_FACTOR = 0.5
@@ -123,7 +121,7 @@ const LOCATION_HISTORY: DatedTimelinePeriod[] = [
   { start: monthStart(2015, 2), end: monthStart(2016, 1), label: 'London, England', globeLocation: [51.51, -0.13] },
   { start: monthStart(2016, 1), end: dayStart(2017, 11, 17), label: 'San Francisco, CA', contextLabel: 'San Francisco', globeLocation: [37.77, -122.42] },
   { start: dayStart(2017, 11, 17), end: monthStart(2021, 3), label: 'New York, NY', contextLabel: 'New York City', globeLocation: [40.71, -74.01] },
-  { start: monthStart(2021, 3), end: PRESENT_TIMESTAMP + 1, label: 'Brooklyn, NY', contextLabel: 'New York City', globeLocation: [40.68, -73.94] },
+  { start: monthStart(2021, 3), end: Number.POSITIVE_INFINITY, label: 'Brooklyn, NY', contextLabel: 'New York City', globeLocation: [40.68, -73.94] },
 ]
 
 const getDatedPeriodGlobeLocation = (
@@ -167,7 +165,7 @@ const WORK_HISTORY: DatedTimelinePeriod[] = [
   { start: monthStart(2019, 7), end: monthStart(2020, 4), label: 'Canopy' },
   { start: monthStart(2020, 4), end: monthStart(2021, 3), label: 'CNN' },
   { start: monthStart(2021, 3), end: monthStart(2023, 9), label: 'Patreon' },
-  { start: monthStart(2023, 9), end: PRESENT_TIMESTAMP + 1, label: 'Valdivia Works' },
+  { start: monthStart(2023, 9), end: Number.POSITIVE_INFINITY, label: 'Valdivia Works' },
 ]
 
 const getMetadataScrubStops = (source: MetadataScrubSource) => {
@@ -246,47 +244,51 @@ const getChapterRangeLabel = (chapterIndex: number) => {
 const CHAPTER_YEARS = new Set(
   CHAPTER_STARTS.map((timestamp) => new Date(timestamp).getUTCFullYear()),
 )
-const YEAR_TICKS = Array.from(
-  { length: (PRESENT_YEAR - BIRTH_YEAR) * TICKS_PER_YEAR + 1 },
-  (_, index) => ({
-    id: index === 0 ? 'prologue' : `year-${BIRTH_YEAR + index}`,
-    position: index / ((PRESENT_YEAR - BIRTH_YEAR) * TICKS_PER_YEAR),
-    year: BIRTH_YEAR + index,
-    isChapter: index === 0,
-    compactIndex: index === 0 ? 0 : null,
-  }),
-).filter(({ year }) => !CHAPTER_YEARS.has(year))
-const CHAPTER_TICKS = CHAPTER_STARTS.map((timestamp, index) => ({
-  id: `chapter-${index + 1}`,
-  position: (timestamp - BIRTH_TIMESTAMP) / (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP),
-  year: new Date(timestamp).getUTCFullYear(),
-  isChapter: true,
-  compactIndex: index + 1,
-}))
-const RAIL_TICKS = [...YEAR_TICKS, ...CHAPTER_TICKS]
-  .sort((a, b) => a.position - b.position)
-
-const getNearestTickIndex = (position: number) => {
-  let nearestIndex = 0
-  let nearestDistance = Number.POSITIVE_INFINITY
-
-  RAIL_TICKS.forEach((tick, index) => {
-    const distance = Math.abs(tick.position - position)
-    if (distance < nearestDistance) {
-      nearestDistance = distance
-      nearestIndex = index
-    }
-  })
-
-  return nearestIndex
-}
-
 export function TimelineExperience({
   chapters = DEFAULT_TIMELINE_CHAPTERS,
+  presentDate,
 }: {
   chapters?: readonly TimelineChapter[]
+  presentDate: string
 }) {
-  const lastIndex = PRESENT_YEAR - BIRTH_YEAR
+  const [presentYear, presentMonth, presentDay] = presentDate.split('-').map(Number)
+  const presentTimestamp = Date.UTC(presentYear, presentMonth - 1, presentDay)
+  const lastIndex = presentYear - BIRTH_YEAR
+  const railTicks = useMemo(() => {
+    const yearTicks = Array.from(
+      { length: (presentYear - BIRTH_YEAR) * TICKS_PER_YEAR + 1 },
+      (_, index) => ({
+        id: index === 0 ? 'prologue' : `year-${BIRTH_YEAR + index}`,
+        position: index / ((presentYear - BIRTH_YEAR) * TICKS_PER_YEAR),
+        year: BIRTH_YEAR + index,
+        isChapter: index === 0,
+        compactIndex: index === 0 ? 0 : null,
+      }),
+    ).filter(({ year }) => !CHAPTER_YEARS.has(year))
+    const chapterTicks = CHAPTER_STARTS.map((timestamp, index) => ({
+      id: `chapter-${index + 1}`,
+      position: (timestamp - BIRTH_TIMESTAMP) / (presentTimestamp - BIRTH_TIMESTAMP),
+      year: new Date(timestamp).getUTCFullYear(),
+      isChapter: true,
+      compactIndex: index + 1,
+    }))
+
+    return [...yearTicks, ...chapterTicks].sort((a, b) => a.position - b.position)
+  }, [presentTimestamp, presentYear])
+  const getNearestTickIndex = useCallback((position: number) => {
+    let nearestIndex = 0
+    let nearestDistance = Number.POSITIVE_INFINITY
+
+    railTicks.forEach((tick, index) => {
+      const distance = Math.abs(tick.position - position)
+      if (distance < nearestDistance) {
+        nearestDistance = distance
+        nearestIndex = index
+      }
+    })
+
+    return nearestIndex
+  }, [railTicks])
   const [displayPosition, setDisplayPosition] = useState(0)
   const [hoverProgress, setHoverProgress] = useState<number | null>(null)
   const [isTimelineDragging, setIsTimelineDragging] = useState(false)
@@ -398,7 +400,7 @@ export function TimelineExperience({
 
   const prepareHapticPosition = useCallback((position: number) => {
     hapticTickRef.current = getNearestTickIndex(position)
-  }, [])
+  }, [getNearestTickIndex])
 
   const pulseHapticAt = useCallback((position: number) => {
     const nextTickIndex = getNearestTickIndex(position)
@@ -413,13 +415,13 @@ export function TimelineExperience({
 
     const firstCrossedIndex = Math.min(previousTickIndex, nextTickIndex)
     const lastCrossedIndex = Math.max(previousTickIndex, nextTickIndex)
-    const crossedChapter = RAIL_TICKS
+    const crossedChapter = railTicks
       .slice(firstCrossedIndex, lastCrossedIndex + 1)
       .some((tick) => tick.isChapter)
 
     hapticTickRef.current = nextTickIndex
     navigator.vibrate?.(crossedChapter ? 12 : 5)
-  }, [])
+  }, [getNearestTickIndex, railTicks])
 
   const animate = useCallback(() => {
     const distance = targetRef.current - positionRef.current
@@ -536,7 +538,7 @@ export function TimelineExperience({
   const progress = displayPosition / lastIndex
   const pillProgress = hoverProgress ?? progress
   const contentTimestamp = Math.round(
-    BIRTH_TIMESTAMP + progress * (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP),
+    BIRTH_TIMESTAMP + progress * (presentTimestamp - BIRTH_TIMESTAMP),
   )
   const contentDate = new Date(contentTimestamp)
   const contentYear = contentDate.getUTCFullYear()
@@ -548,7 +550,7 @@ export function TimelineExperience({
   const contentDateLabel = FULL_DATE_FORMATTER.format(contentDate)
   const contentDateTime = contentDate.toISOString().slice(0, 10)
   const pillTimestamp = Math.round(
-    BIRTH_TIMESTAMP + pillProgress * (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP),
+    BIRTH_TIMESTAMP + pillProgress * (presentTimestamp - BIRTH_TIMESTAMP),
   )
   const pillDate = new Date(pillTimestamp)
   const pillLabel = PILL_DATE_FORMATTER.format(pillDate)
@@ -584,7 +586,7 @@ export function TimelineExperience({
 
   const getChapterTimestampRange = (chapterIndex: number) => {
     const start = CHAPTER_BOUNDARIES[chapterIndex]
-    const boundaryEnd = CHAPTER_BOUNDARIES[chapterIndex + 1] ?? PRESENT_TIMESTAMP
+    const boundaryEnd = CHAPTER_BOUNDARIES[chapterIndex + 1] ?? presentTimestamp
     const end = chapterIndex === CHAPTER_BOUNDARIES.length - 1
       ? boundaryEnd
       : boundaryEnd - 1
@@ -693,7 +695,7 @@ export function TimelineExperience({
     const { start, end } = getChapterTimestampRange(contentChapterIndex)
     const selectedTimestamp = Math.round(
       BIRTH_TIMESTAMP
-        + (positionRef.current / lastIndex) * (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP),
+        + (positionRef.current / lastIndex) * (presentTimestamp - BIRTH_TIMESTAMP),
     )
     const selectedRatio = end === start
       ? 0
@@ -766,7 +768,7 @@ export function TimelineExperience({
     const clampedScrollRatio = Math.max(0, Math.min(1, scrollRatio))
     const timestamp = Math.round(start + (end - start) * clampedScrollRatio)
     const nextProgress = (timestamp - BIRTH_TIMESTAMP)
-      / (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP)
+      / (presentTimestamp - BIRTH_TIMESTAMP)
 
     pendingChapterScrollRef.current = {
       index: nextChapterIndex,
@@ -806,7 +808,7 @@ export function TimelineExperience({
 
     const timestamp = Math.max(
       BIRTH_TIMESTAMP,
-      Math.min(PRESENT_TIMESTAMP, requestedTimestamp),
+      Math.min(presentTimestamp, requestedTimestamp),
     )
     const nextChapterIndex = getChapterIndex(timestamp)
     const { start, end } = getChapterTimestampRange(nextChapterIndex)
@@ -814,7 +816,7 @@ export function TimelineExperience({
       ? 0
       : Math.max(0, Math.min(1, (timestamp - start) / (end - start)))
     const nextProgress = (timestamp - BIRTH_TIMESTAMP)
-      / (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP)
+      / (presentTimestamp - BIRTH_TIMESTAMP)
 
     if (nextChapterIndex === contentChapterIndex) {
       pendingChapterScrollRef.current = null
@@ -866,7 +868,7 @@ export function TimelineExperience({
 
     const timestamp = Math.max(
       BIRTH_TIMESTAMP,
-      Math.min(PRESENT_TIMESTAMP, requestedTimestamp),
+      Math.min(presentTimestamp, requestedTimestamp),
     )
     const normalizedDate = new Date(timestamp).toISOString().slice(0, 10)
     pendingUrlDateRef.current = normalizedDate
@@ -920,7 +922,7 @@ export function TimelineExperience({
     const { start, end } = getChapterTimestampRange(contentChapterIndex)
     const timestamp = Math.round(start + (end - start) * scrollRatio)
     const nextPosition = ((timestamp - BIRTH_TIMESTAMP)
-      / (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP)) * lastIndex
+      / (presentTimestamp - BIRTH_TIMESTAMP)) * lastIndex
 
     if (hoverProgressRef.current !== null) {
       hoverProgressRef.current = null
@@ -1258,7 +1260,7 @@ export function TimelineExperience({
     if (isMobileTap && pointerSession) {
       const timestamp = Math.round(
         BIRTH_TIMESTAMP
-          + pointerSession.startRatio * (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP),
+          + pointerSession.startRatio * (presentTimestamp - BIRTH_TIMESTAMP),
       )
       moveToChapter(getChapterIndex(timestamp), 0)
     }
@@ -1392,7 +1394,7 @@ export function TimelineExperience({
     const scrubStops = getMetadataScrubStops(source)
     const startTimestamp = Math.round(
       BIRTH_TIMESTAMP
-        + (positionRef.current / lastIndex) * (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP),
+        + (positionRef.current / lastIndex) * (presentTimestamp - BIRTH_TIMESTAMP),
     )
 
     metadataScrubSessionRef.current = {
@@ -1434,7 +1436,7 @@ export function TimelineExperience({
         Math.min(scrubStops.length - 1, session.startStopIndex + stopOffset),
       )
       const stopPosition = ((scrubStops[stopIndex] - BIRTH_TIMESTAMP)
-        / (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP)) * lastIndex
+        / (presentTimestamp - BIRTH_TIMESTAMP)) * lastIndex
       scheduleMetadataScrub(stopPosition)
       return
     }
@@ -1584,7 +1586,7 @@ export function TimelineExperience({
 
     const timestamp = Math.round(
       BIRTH_TIMESTAMP
-        + (positionRef.current / lastIndex) * (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP),
+        + (positionRef.current / lastIndex) * (presentTimestamp - BIRTH_TIMESTAMP),
     )
     const currentIndex = getScrubStopIndex(scrubStops, timestamp)
     const direction = event.key === 'ArrowLeft' || event.key === 'ArrowDown'
@@ -1601,7 +1603,7 @@ export function TimelineExperience({
     event.preventDefault()
     const stopIndex = Math.max(0, Math.min(scrubStops.length - 1, currentIndex + direction))
     const stopPosition = ((scrubStops[stopIndex] - BIRTH_TIMESTAMP)
-      / (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP)) * lastIndex
+      / (presentTimestamp - BIRTH_TIMESTAMP)) * lastIndex
     snapTo(stopPosition)
   }
 
@@ -1644,7 +1646,7 @@ export function TimelineExperience({
       if (stopOffset !== 0) {
         const timestamp = Math.round(
           BIRTH_TIMESTAMP
-            + (session.position / lastIndex) * (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP),
+            + (session.position / lastIndex) * (presentTimestamp - BIRTH_TIMESTAMP),
         )
         const currentIndex = getScrubStopIndex(scrubStops, timestamp)
         const stopIndex = Math.max(
@@ -1652,7 +1654,7 @@ export function TimelineExperience({
           Math.min(scrubStops.length - 1, currentIndex + stopOffset),
         )
         session.position = ((scrubStops[stopIndex] - BIRTH_TIMESTAMP)
-          / (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP)) * lastIndex
+          / (presentTimestamp - BIRTH_TIMESTAMP)) * lastIndex
         session.accumulatedDelta -= stopOffset * METADATA_SCRUB_PIXELS_PER_STOP
         scheduleMetadataScrub(session.position)
       }
@@ -1720,7 +1722,7 @@ export function TimelineExperience({
           aria-label="Timeline — scrub through Gabriel’s life"
           aria-orientation="vertical"
           aria-valuemin={BIRTH_YEAR}
-          aria-valuemax={PRESENT_YEAR}
+          aria-valuemax={presentYear}
           aria-valuenow={contentYear}
           aria-valuetext={`${contentDateLabel}. Age ${contentAgeLabel}. Location: ${locationDetails}.${educationDetails !== '—' ? ` Education: ${educationDetails}.` : ''}${workDetails !== '—' ? ` Work: ${workDetails}.` : ''}`}
           onKeyDown={handleKeyDown}
@@ -1731,7 +1733,7 @@ export function TimelineExperience({
           onPointerLeave={handlePointerLeave}
         >
           <div className={styles.ticks} aria-hidden="true">
-            {RAIL_TICKS.map((tick) => {
+            {railTicks.map((tick) => {
               const distance = hoverProgress === null ? 1 : Math.abs(tick.position - pillProgress)
               const radius = 0.05
               const influence = distance >= radius
@@ -1933,10 +1935,10 @@ export function TimelineExperience({
                         contentDate.getUTCDate(),
                       )}
                       startMonth={new Date(1987, 2, 1)}
-                      endMonth={new Date(2026, 7, 1)}
+                      endMonth={new Date(presentYear, presentMonth - 1, 1)}
                       disabled={{
                         before: new Date(1987, 2, 23),
-                        after: new Date(2026, 7, 19),
+                        after: new Date(presentYear, presentMonth - 1, presentDay),
                       }}
                       onSelect={(date) => {
                         if (!date) return
@@ -1962,7 +1964,7 @@ export function TimelineExperience({
                       tabIndex={0}
                       aria-label="Age"
                       aria-valuemin={0}
-                      aria-valuemax={PRESENT_YEAR - BIRTH_YEAR}
+                      aria-valuemax={presentYear - BIRTH_YEAR}
                       aria-valuenow={contentAge}
                       aria-valuetext={isBeyondPresentPreview ? 'Beyond the present' : String(contentAgeLabel)}
                       onKeyDown={(event) => handleMetadataKeyDown(event, 1)}
@@ -2003,7 +2005,7 @@ export function TimelineExperience({
                       tabIndex={0}
                       aria-label="Location"
                       aria-valuemin={BIRTH_TIMESTAMP}
-                      aria-valuemax={PRESENT_TIMESTAMP}
+                      aria-valuemax={presentTimestamp}
                       aria-valuenow={contentTimestamp}
                       aria-valuetext={isBeyondPresentPreview ? 'Unknown' : `${locationDetails}, ${contentDateLabel}`}
                       onKeyDown={(event) => handleDiscreteMetadataKeyDown(event, 'location')}
@@ -2046,7 +2048,7 @@ export function TimelineExperience({
                         tabIndex={0}
                         aria-label="Education"
                         aria-valuemin={BIRTH_TIMESTAMP}
-                        aria-valuemax={PRESENT_TIMESTAMP}
+                        aria-valuemax={presentTimestamp}
                         aria-valuenow={contentTimestamp}
                         aria-valuetext={`${educationDetails}, ${contentDateLabel}`}
                         onKeyDown={(event) => handleDiscreteMetadataKeyDown(event, 'education')}
@@ -2071,7 +2073,7 @@ export function TimelineExperience({
                         tabIndex={0}
                         aria-label="Work"
                         aria-valuemin={BIRTH_TIMESTAMP}
-                        aria-valuemax={PRESENT_TIMESTAMP}
+                        aria-valuemax={presentTimestamp}
                         aria-valuenow={contentTimestamp}
                         aria-valuetext={isBeyondPresentPreview ? 'Unknown' : `${workDetails}, ${contentDateLabel}`}
                         onKeyDown={(event) => handleDiscreteMetadataKeyDown(event, 'work')}
