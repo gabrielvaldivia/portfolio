@@ -29,11 +29,11 @@ function SiteHeaderFrame({
             type="button"
             onClick={onBack}
             aria-label="Go back"
-            className="absolute left-4 top-4 z-50 flex h-10 items-center gap-1 text-[13px] text-content opacity-50 transition-opacity duration-150 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content tablet:hidden"
+            className="absolute left-4 top-4 z-50 flex h-10 items-center gap-0.5 font-heading text-[22px] font-normal leading-[1.3] text-content opacity-50 [letter-spacing:-0.03em] transition-opacity duration-150 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content tablet:hidden"
           >
             <svg
               aria-hidden="true"
-              className="size-4 shrink-0"
+              className="size-[22px] shrink-0"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
