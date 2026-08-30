@@ -251,6 +251,7 @@ function ActivitySentence({ item }: { item: ActivityDisplayItem }) {
                 style={{
                   display: 'inline-block',
                   height: '0.8em',
+                  marginLeft: '0.25em',
                   marginRight: '0.25em',
                   verticalAlign: '-0.05em',
                 }}

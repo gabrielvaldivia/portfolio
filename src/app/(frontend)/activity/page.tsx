@@ -61,7 +61,7 @@ export default async function ActivityPage({
   return (
     <section className="pb-20">
       <Container>
-        <ActivityViewSwitcher view={view}>
+        <ActivityViewSwitcher>
           <ActivityLazyContent
             key={view}
             view={view}

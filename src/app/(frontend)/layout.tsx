@@ -1,7 +1,8 @@
 import './globals.css'
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { NavMenu } from '@/components/NavMenu'
-import { SiteHeader } from '@/components/SiteHeader'
+import { SiteHeader, SiteHeaderFallback } from '@/components/SiteHeader'
 import { Footer } from '@/components/Footer'
 import { AgentationToolbar } from '@/components/AgentationToolbar'
 import { OverlayManager } from '@/components/OverlayManager'
@@ -75,7 +76,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="bg-background text-content">
         <OverlayManager overlays={(s?.overlays as any[]) || []} />
         <NavMenu pages={navigationPages} />
-        <SiteHeader />
+        <Suspense fallback={<SiteHeaderFallback />}>
+          <SiteHeader />
+        </Suspense>
         <PageTransition>{children}</PageTransition>
         <Footer email={footerEmail} socialLinks={footerSocialLinks} />
         <AgentationToolbar />
