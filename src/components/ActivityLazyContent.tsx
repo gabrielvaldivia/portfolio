@@ -250,11 +250,12 @@ function ActivitySentence({ item }: { item: ActivityDisplayItem }) {
                 aria-hidden="true"
                 loading="lazy"
                 decoding="async"
+                className="ring-1 ring-inset ring-black/10 dark:ring-white/10"
                 style={{
                   display: 'inline-block',
-                  height: '1em',
+                  height: '0.8em',
                   marginRight: '0.25em',
-                  verticalAlign: '-0.1em',
+                  verticalAlign: '-0.05em',
                   width: 'auto',
                 }}
               />
