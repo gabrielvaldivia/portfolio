@@ -1,6 +1,7 @@
 import { sql } from '@payloadcms/db-postgres'
 import { isIP } from 'net'
 import { cache } from 'react'
+import { getCountryFromCoordinates } from '@/lib/coordinateCountry'
 import { getPayload, isPayloadUnavailable } from '@/lib/payload'
 import {
   getModuleLikeAnchorId,
@@ -26,6 +27,8 @@ type PortfolioActivityRow = {
   city: string | null
   region: string | null
   country: string | null
+  latitude: number | string | null
+  longitude: number | string | null
   activity_at: string | Date
 }
 
@@ -656,6 +659,8 @@ function getActivityItem(row: PortfolioActivityRow, targetIndex: Map<string, Act
   if (row.event_type === 'chat') {
     const conversationId = String(row.entity_id)
     const location = cleanLocationPart(row.location || '')
+      || getCountryFromCoordinates(row.latitude, row.longitude)
+      || 'an unknown location'
 
     return {
       id: row.activity_id,
@@ -746,6 +751,8 @@ export async function getModuleLikeActivityPage({
           "city",
           "region",
           "country",
+          NULL::numeric AS "latitude",
+          NULL::numeric AS "longitude",
           "created_at" AS "activity_at"
         FROM "module_like_events"
 
@@ -761,10 +768,12 @@ export async function getModuleLikeActivityPage({
           NULL::varchar AS "city",
           NULL::varchar AS "region",
           NULL::varchar AS "country",
+          "latitude",
+          "longitude",
           "created_at" AS "activity_at"
         FROM "conversations"
       )
-      SELECT "activity_id", "event_type", "entity_id", "target_id", "amount", "location", "city", "region", "country", "activity_at"
+      SELECT "activity_id", "event_type", "entity_id", "target_id", "amount", "location", "city", "region", "country", "latitude", "longitude", "activity_at"
       FROM "activity_rows"
       ${cursorFilter}
       ORDER BY "activity_at" DESC, "activity_id" DESC
@@ -782,6 +791,8 @@ export async function getModuleLikeActivityPage({
           "city",
           "region",
           "country",
+          NULL::numeric AS "latitude",
+          NULL::numeric AS "longitude",
           "created_at" AS "activity_at"
         FROM "module_like_events"
 
@@ -797,10 +808,12 @@ export async function getModuleLikeActivityPage({
           NULL::varchar AS "city",
           NULL::varchar AS "region",
           NULL::varchar AS "country",
+          "latitude",
+          "longitude",
           "created_at" AS "activity_at"
         FROM "conversations"
       )
-      SELECT "activity_id", "event_type", "entity_id", "target_id", "amount", "location", "city", "region", "country", "activity_at"
+      SELECT "activity_id", "event_type", "entity_id", "target_id", "amount", "location", "city", "region", "country", "latitude", "longitude", "activity_at"
       FROM "activity_rows"
       ${cursorFilter}
       ORDER BY "activity_at" DESC, "activity_id" DESC

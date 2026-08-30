@@ -1,7 +1,5 @@
 'use client'
 
-import { BubbleChatIcon } from '@hugeicons/core-free-icons'
-import { HugeiconsIcon } from '@hugeicons/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -464,17 +462,6 @@ function ActivityMediaThumbnail({
 }
 
 function ActivityThumbnail({ item }: { item: ActivityDisplayItem }) {
-  if (item.eventType === 'chat') {
-    return (
-      <div
-        className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-blue-500 text-white tablet:size-20"
-        aria-hidden="true"
-      >
-        <HugeiconsIcon icon={BubbleChatIcon} size={30} strokeWidth={1.5} />
-      </div>
-    )
-  }
-
   return (
     <ActivityMediaThumbnail
       thumbnail={item.target.thumbnail}
@@ -498,13 +485,14 @@ function ActivityText({ item, nowMs }: { item: ActivityDisplayItem; nowMs: numbe
 
 function ActivityRow({ item, nowMs, isFirst = false }: { item: ActivityDisplayItem; nowMs: number; isFirst?: boolean }) {
   const rowClassName = cn(
-    'group grid grid-cols-[1fr_auto] items-center gap-5 py-4 transition-opacity duration-150 tablet:py-5 tablet:hover:opacity-60',
+    'group py-4 transition-opacity duration-150 tablet:py-5 tablet:hover:opacity-60',
+    item.eventType === 'chat' ? 'block' : 'grid grid-cols-[1fr_auto] items-center gap-5',
     !isFirst && 'border-t border-border',
   )
   const content = (
     <>
       <ActivityText item={item} nowMs={nowMs} />
-      <ActivityThumbnail item={item} />
+      {item.eventType === 'chat' ? null : <ActivityThumbnail item={item} />}
     </>
   )
 
