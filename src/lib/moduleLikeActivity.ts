@@ -133,6 +133,32 @@ const GEO_LOOKUP_TIMEOUT_MS = 900
 const countryDisplayNames = typeof Intl.DisplayNames === 'function'
   ? new Intl.DisplayNames(['en'], { type: 'region' })
   : null
+const currentCountryCodes = `
+  AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ
+  BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ
+  CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ
+  DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR
+  GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY
+  HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP
+  KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY
+  MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ
+  NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY
+  QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ
+  TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ
+  VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW
+`.trim().split(/\s+/)
+const countryCodeByName = (() => {
+  const codes = new Map<string, string>()
+  if (!countryDisplayNames) return codes
+
+  for (const code of currentCountryCodes) {
+    const name = countryDisplayNames.of(code)
+    if (name && name !== code) codes.set(name.trim().toLocaleLowerCase('en'), code)
+  }
+
+  codes.set('united states of america', 'US')
+  return codes
+})()
 
 const DC1_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/DC1.png'
 const IPHONE15_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/iphone-15.png'
@@ -182,6 +208,14 @@ function cleanLocationPart(value: string) {
 function cleanRegionPart(value: string) {
   const region = cleanLocationPart(value)
   return /^[a-z]{2,3}$/i.test(region) ? region.toUpperCase() : region
+}
+
+function getCountryCode(value: string) {
+  const country = cleanLocationPart(value).split(',').at(-1)?.trim() || ''
+  const normalizedCode = country.toUpperCase()
+  if (/^[A-Z]{2}$/.test(normalizedCode)) return normalizedCode
+
+  return countryCodeByName.get(country.toLocaleLowerCase('en')) || ''
 }
 
 function joinLocation(parts: string[]) {
@@ -658,20 +692,21 @@ function getActivityItem(row: PortfolioActivityRow, targetIndex: Map<string, Act
 
   if (row.event_type === 'chat') {
     const conversationId = String(row.entity_id)
+    const coordinateCountry = getCountryFromCoordinates(row.latitude, row.longitude)
     const location = cleanLocationPart(row.location || '')
-      || getCountryFromCoordinates(row.latitude, row.longitude)
+      || coordinateCountry
       || 'an unknown location'
 
     return {
       id: row.activity_id,
       eventType: 'chat' as const,
       targetId: row.activity_id,
-      amount: 1,
+      amount: Math.max(1, Math.trunc(Number(row.amount) || 1)),
       createdAt: normalizedCreatedAt,
       location,
       city: '',
       region: '',
-      country: '',
+      country: getCountryCode(coordinateCountry) || getCountryCode(location),
       target: {
         href: `/chat/${encodeURIComponent(conversationId)}`,
         sourceTitle: 'Chat',
@@ -740,7 +775,51 @@ export async function getModuleLikeActivityPage({
 
   const result = rowLimit
     ? await db.execute(sql`
-      WITH "activity_rows" AS (
+      WITH "conversation_owners" AS (
+        SELECT
+          *,
+          COALESCE("owner_hash", 'conversation:' || "id"::text) AS "owner_key"
+        FROM "conversations"
+      ),
+      "ordered_conversations" AS (
+        SELECT
+          *,
+          LAG("created_at") OVER (
+            PARTITION BY "owner_key"
+            ORDER BY "created_at", "id"
+          ) AS "previous_created_at"
+        FROM "conversation_owners"
+      ),
+      "sessionized_conversations" AS (
+        SELECT
+          *,
+          SUM(
+            CASE
+              WHEN "previous_created_at" IS NULL
+                OR "created_at" - "previous_created_at" > INTERVAL '30 minutes'
+              THEN 1
+              ELSE 0
+            END
+          ) OVER (
+            PARTITION BY "owner_key"
+            ORDER BY "created_at", "id"
+            ROWS UNBOUNDED PRECEDING
+          ) AS "session_number"
+        FROM "ordered_conversations"
+      ),
+      "grouped_conversations" AS (
+        SELECT
+          *,
+          COUNT(*) OVER (
+            PARTITION BY "owner_key", "session_number"
+          )::integer AS "session_count",
+          ROW_NUMBER() OVER (
+            PARTITION BY "owner_key", "session_number"
+            ORDER BY "created_at" DESC, "id" DESC
+          ) AS "session_rank"
+        FROM "sessionized_conversations"
+      ),
+      "activity_rows" AS (
         SELECT
           'like:' || "id"::text AS "activity_id",
           'like'::text AS "event_type",
@@ -763,7 +842,7 @@ export async function getModuleLikeActivityPage({
           'chat'::text AS "event_type",
           "id" AS "entity_id",
           NULL::varchar AS "target_id",
-          1::integer AS "amount",
+          "session_count" AS "amount",
           "location",
           NULL::varchar AS "city",
           NULL::varchar AS "region",
@@ -771,7 +850,8 @@ export async function getModuleLikeActivityPage({
           "latitude",
           "longitude",
           "created_at" AS "activity_at"
-        FROM "conversations"
+        FROM "grouped_conversations"
+        WHERE "session_rank" = 1
       )
       SELECT "activity_id", "event_type", "entity_id", "target_id", "amount", "location", "city", "region", "country", "latitude", "longitude", "activity_at"
       FROM "activity_rows"
@@ -780,7 +860,51 @@ export async function getModuleLikeActivityPage({
       LIMIT ${rowLimit}
     `)
     : await db.execute(sql`
-      WITH "activity_rows" AS (
+      WITH "conversation_owners" AS (
+        SELECT
+          *,
+          COALESCE("owner_hash", 'conversation:' || "id"::text) AS "owner_key"
+        FROM "conversations"
+      ),
+      "ordered_conversations" AS (
+        SELECT
+          *,
+          LAG("created_at") OVER (
+            PARTITION BY "owner_key"
+            ORDER BY "created_at", "id"
+          ) AS "previous_created_at"
+        FROM "conversation_owners"
+      ),
+      "sessionized_conversations" AS (
+        SELECT
+          *,
+          SUM(
+            CASE
+              WHEN "previous_created_at" IS NULL
+                OR "created_at" - "previous_created_at" > INTERVAL '30 minutes'
+              THEN 1
+              ELSE 0
+            END
+          ) OVER (
+            PARTITION BY "owner_key"
+            ORDER BY "created_at", "id"
+            ROWS UNBOUNDED PRECEDING
+          ) AS "session_number"
+        FROM "ordered_conversations"
+      ),
+      "grouped_conversations" AS (
+        SELECT
+          *,
+          COUNT(*) OVER (
+            PARTITION BY "owner_key", "session_number"
+          )::integer AS "session_count",
+          ROW_NUMBER() OVER (
+            PARTITION BY "owner_key", "session_number"
+            ORDER BY "created_at" DESC, "id" DESC
+          ) AS "session_rank"
+        FROM "sessionized_conversations"
+      ),
+      "activity_rows" AS (
         SELECT
           'like:' || "id"::text AS "activity_id",
           'like'::text AS "event_type",
@@ -803,7 +927,7 @@ export async function getModuleLikeActivityPage({
           'chat'::text AS "event_type",
           "id" AS "entity_id",
           NULL::varchar AS "target_id",
-          1::integer AS "amount",
+          "session_count" AS "amount",
           "location",
           NULL::varchar AS "city",
           NULL::varchar AS "region",
@@ -811,7 +935,8 @@ export async function getModuleLikeActivityPage({
           "latitude",
           "longitude",
           "created_at" AS "activity_at"
-        FROM "conversations"
+        FROM "grouped_conversations"
+        WHERE "session_rank" = 1
       )
       SELECT "activity_id", "event_type", "entity_id", "target_id", "amount", "location", "city", "region", "country", "latitude", "longitude", "activity_at"
       FROM "activity_rows"

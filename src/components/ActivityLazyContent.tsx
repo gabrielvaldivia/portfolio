@@ -163,7 +163,11 @@ function mergeConsecutiveActivityItems(items: ModuleLikeActivityItem[]) {
       return mergedItems
     }
 
-    mergedItems.push({ ...item, count: 1, mergeKey })
+    mergedItems.push({
+      ...item,
+      count: item.eventType === 'chat' ? item.amount : 1,
+      mergeKey,
+    })
     return mergedItems
   }, [])
 }
@@ -191,10 +195,10 @@ function getLikePhrase(noun: string, isSuperlike: boolean) {
 }
 
 function getActivitySentenceParts(item: ActivityDisplayItem) {
-  const location = item.location ? ` from ${item.location}` : ''
+  const location = item.location
   if (item.eventType === 'chat') {
     return {
-      action: 'started a chat',
+      action: item.count > 1 ? `started ${item.count} chats` : 'started a chat',
       location,
       repetitions: '',
       source: '',
@@ -215,17 +219,40 @@ function getActivitySentenceParts(item: ActivityDisplayItem) {
 
 function getActivitySentence(item: ActivityDisplayItem) {
   const { action, location, repetitions, source } = getActivitySentenceParts(item)
+  const locationText = location ? ` from ${location}` : ''
   const sourceText = source ? ` in ${source}` : ''
 
-  return `Someone${location} ${action}${sourceText}${repetitions}`
+  return `Someone${locationText} ${action}${sourceText}${repetitions}`
+}
+
+function getCountryFlag(country: string) {
+  const code = country.trim().toUpperCase()
+  if (!/^[A-Z]{2}$/.test(code)) return ''
+
+  return Array.from(code, (character) => String.fromCodePoint(character.charCodeAt(0) + 127397)).join('')
 }
 
 function ActivitySentence({ item }: { item: ActivityDisplayItem }) {
   const { action, location, repetitions, source } = getActivitySentenceParts(item)
+  const countryFlag = getCountryFlag(item.country)
 
   return (
     <p className="text-body text-pretty">
-      Someone{location} {action}
+      Someone
+      {location ? (
+        <>
+          {' from '}
+          <span className="font-medium">
+            {countryFlag ? (
+              <span className="mr-1 inline-block align-[0.05em] text-[11px] leading-none" aria-hidden="true">
+                {countryFlag}
+              </span>
+            ) : null}
+            {location}
+          </span>
+        </>
+      ) : null}
+      {' '}{action}
       {source ? (
         <>
           {' in '}
@@ -371,6 +398,35 @@ function ActivityMediaThumbnail({
     const imageSizes = framedPaddingMode === 'feed'
       ? '(max-width: 810px) 100vw, (max-width: 1280px) 50vw, 33vw'
       : '80px'
+
+    if (
+      thumbnail.padding
+      && thumbnail.imageBorder
+      && thumbnail.width
+      && thumbnail.height
+    ) {
+      return (
+        <div
+          className={cn(className, 'flex items-center justify-center')}
+          style={containerStyle}
+          aria-hidden="true"
+        >
+          <Image
+            src={thumbnail.url}
+            alt=""
+            width={thumbnail.width}
+            height={thumbnail.height}
+            unoptimized
+            sizes={imageSizes}
+            quality={90}
+            className={cn(
+              'block h-auto max-h-full w-auto max-w-full border border-border object-contain object-center',
+              thumbnail.rounded ? 'rounded-md' : '',
+            )}
+          />
+        </div>
+      )
+    }
 
     if (thumbnail.padding) {
       return (
