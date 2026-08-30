@@ -225,16 +225,16 @@ function getActivitySentence(item: ActivityDisplayItem) {
   return `Someone${locationText} ${action}${sourceText}${repetitions}`
 }
 
-function getCountryFlag(country: string) {
+function getCountryFlagUrl(country: string) {
   const code = country.trim().toUpperCase()
   if (!/^[A-Z]{2}$/.test(code)) return ''
 
-  return Array.from(code, (character) => String.fromCodePoint(character.charCodeAt(0) + 127397)).join('')
+  return `https://www.worldometers.info/images/flags/w240/${code.toLowerCase()}.webp`
 }
 
 function ActivitySentence({ item }: { item: ActivityDisplayItem }) {
   const { action, location, repetitions, source } = getActivitySentenceParts(item)
-  const countryFlag = getCountryFlag(item.country)
+  const countryFlagUrl = getCountryFlagUrl(item.country)
 
   return (
     <p className="text-body text-pretty">
@@ -243,10 +243,21 @@ function ActivitySentence({ item }: { item: ActivityDisplayItem }) {
         <>
           {' from '}
           <span className="font-medium">
-            {countryFlag ? (
-              <span className="mr-1 inline-block align-[0.05em] text-[11px] leading-none" aria-hidden="true">
-                {countryFlag}
-              </span>
+            {countryFlagUrl ? (
+              <img
+                src={countryFlagUrl}
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+                decoding="async"
+                style={{
+                  display: 'inline-block',
+                  height: '1em',
+                  marginRight: '0.25em',
+                  verticalAlign: '-0.1em',
+                  width: 'auto',
+                }}
+              />
             ) : null}
             {location}
           </span>
