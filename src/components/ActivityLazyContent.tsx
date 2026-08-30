@@ -1,5 +1,7 @@
 'use client'
 
+import { BubbleChatIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -137,6 +139,7 @@ function getActivitySectionTitle(value: string, now: Date) {
 
 function getActivityMergeKey(item: ModuleLikeActivityItem) {
   return [
+    item.eventType,
     item.targetId,
     item.amount,
     item.location,
@@ -191,6 +194,15 @@ function getLikePhrase(noun: string, isSuperlike: boolean) {
 
 function getActivitySentenceParts(item: ActivityDisplayItem) {
   const location = item.location ? ` from ${item.location}` : ''
+  if (item.eventType === 'chat') {
+    return {
+      action: 'started a chat',
+      location,
+      repetitions: '',
+      source: '',
+    }
+  }
+
   const source = item.target.noun === 'photo' ? '' : item.target.sourceTitle
   const repetitions = item.count > 1 ? ` ${item.count} times` : ''
   const isSuperlike = item.amount > 1
@@ -452,6 +464,17 @@ function ActivityMediaThumbnail({
 }
 
 function ActivityThumbnail({ item }: { item: ActivityDisplayItem }) {
+  if (item.eventType === 'chat') {
+    return (
+      <div
+        className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-blue-500 text-white tablet:size-20"
+        aria-hidden="true"
+      >
+        <HugeiconsIcon icon={BubbleChatIcon} size={30} strokeWidth={1.5} />
+      </div>
+    )
+  }
+
   return (
     <ActivityMediaThumbnail
       thumbnail={item.target.thumbnail}
@@ -593,7 +616,7 @@ function FeedGrid({ items }: { items: ModuleLikeFeedItem[] }) {
 function EmptyState({ view, unavailable = false }: { view: ActivityView; unavailable?: boolean }) {
   const message = unavailable
     ? view === 'feed' ? 'Feed is temporarily unavailable.' : 'Activity is temporarily unavailable.'
-    : view === 'feed' ? 'No liked images yet.' : 'No likes yet.'
+    : view === 'feed' ? 'No liked images yet.' : 'No activity yet.'
 
   return (
     <div className="border-t border-border py-6">

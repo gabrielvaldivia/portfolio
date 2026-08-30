@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Activity - Gabriel Valdivia',
-  description: 'Recent and most-liked modules on Gabriel Valdivia portfolio projects and media.',
+  description: 'Recent chats and likes across Gabriel Valdivia’s portfolio projects and media.',
 }
 
 type ActivityPageSearchParams = {

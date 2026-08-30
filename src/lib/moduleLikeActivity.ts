@@ -16,15 +16,17 @@ import {
 } from '@/lib/moduleLikeActivityPagination'
 import { getPhotos, type Photo, type PhotoExif } from '@/lib/photos'
 
-type ModuleLikeActivityRow = {
-  id: number | string
-  target_id: string
+type PortfolioActivityRow = {
+  activity_id: string
+  event_type: 'chat' | 'like'
+  entity_id: number | string
+  target_id: string | null
   amount: number | string | null
   location: string | null
   city: string | null
   region: string | null
   country: string | null
-  created_at: string | Date
+  activity_at: string | Date
 }
 
 type ModuleLikeFeedRow = {
@@ -84,6 +86,7 @@ type ActivityTarget = {
 
 export type ModuleLikeActivityItem = {
   id: string
+  eventType: 'chat' | 'like'
   targetId: string
   amount: number
   createdAt: string
@@ -599,13 +602,13 @@ function normalizeActivityCursor(cursor: ModuleLikeActivityCursor | null | undef
   if (!cursor) return null
 
   const createdAt = new Date(cursor.createdAt)
-  const id = Number(cursor.id)
+  const id = typeof cursor.id === 'string' ? cursor.id.trim() : ''
 
-  if (Number.isNaN(createdAt.getTime()) || !Number.isFinite(id)) return null
+  if (Number.isNaN(createdAt.getTime()) || !/^(chat|like):\d+$/.test(id)) return null
 
   return {
     createdAt: createdAt.toISOString(),
-    id: Math.trunc(id),
+    id,
   }
 }
 
@@ -625,13 +628,13 @@ function normalizeFeedCursor(cursor: ModuleLikeFeedCursor | null | undefined) {
   }
 }
 
-function getActivityCursor(row: ModuleLikeActivityRow): ModuleLikeActivityCursor | null {
-  const createdAt = row.created_at instanceof Date ? row.created_at : new Date(row.created_at)
+function getActivityCursor(row: PortfolioActivityRow): ModuleLikeActivityCursor | null {
+  const createdAt = row.activity_at instanceof Date ? row.activity_at : new Date(row.activity_at)
   if (Number.isNaN(createdAt.getTime())) return null
 
   return {
     createdAt: createdAt.toISOString(),
-    id: String(row.id),
+    id: row.activity_id,
   }
 }
 
@@ -646,19 +649,47 @@ function getFeedCursor(row: ModuleLikeFeedRow): ModuleLikeFeedCursor | null {
   }
 }
 
-function getActivityItem(row: ModuleLikeActivityRow, targetIndex: Map<string, ActivityTarget>) {
+function getActivityItem(row: PortfolioActivityRow, targetIndex: Map<string, ActivityTarget>) {
+  const createdAt = row.activity_at instanceof Date ? row.activity_at : new Date(row.activity_at)
+  const normalizedCreatedAt = Number.isNaN(createdAt.getTime()) ? new Date().toISOString() : createdAt.toISOString()
+
+  if (row.event_type === 'chat') {
+    const conversationId = String(row.entity_id)
+    const location = cleanLocationPart(row.location || '')
+
+    return {
+      id: row.activity_id,
+      eventType: 'chat' as const,
+      targetId: row.activity_id,
+      amount: 1,
+      createdAt: normalizedCreatedAt,
+      location,
+      city: '',
+      region: '',
+      country: '',
+      target: {
+        href: `/chat/${encodeURIComponent(conversationId)}`,
+        sourceTitle: 'Chat',
+        label: 'Chat',
+        noun: 'chat',
+        thumbnail: null,
+      },
+    }
+  }
+
+  if (!row.target_id) return null
   const target = getResolvedActivityTarget(targetIndex, row.target_id)
   if (!target) return null
 
-  const createdAt = row.created_at instanceof Date ? row.created_at : new Date(row.created_at)
   const derivedLocation = toLocationParts(row.city || '', row.region || '', row.country || '')
   const location = derivedLocation.location || cleanLocationPart(row.location || '') || ''
 
   return {
-    id: String(row.id),
+    id: row.activity_id,
+    eventType: 'like' as const,
     targetId: row.target_id,
     amount: Math.min(Math.max(Math.trunc(Number(row.amount) || 1), 1), SUPER_MODULE_LIKE_AMOUNT),
-    createdAt: Number.isNaN(createdAt.getTime()) ? new Date().toISOString() : createdAt.toISOString(),
+    createdAt: normalizedCreatedAt,
     location,
     city: cleanLocationPart(row.city || ''),
     region: cleanRegionPart(row.region || ''),
@@ -698,26 +729,84 @@ export async function getModuleLikeActivityPage({
   const normalizedCursor = normalizeActivityCursor(cursor)
   const normalizedLimit = normalizePageLimit(limit)
   const cursorFilter = normalizedCursor
-    ? sql`WHERE ("created_at", "id") < (${normalizedCursor.createdAt}, ${normalizedCursor.id})`
+    ? sql`WHERE ("activity_at", "activity_id") < (${normalizedCursor.createdAt}, ${normalizedCursor.id})`
     : sql``
   const rowLimit = normalizedLimit ? normalizedLimit + 1 : null
 
   const result = rowLimit
     ? await db.execute(sql`
-      SELECT "id", "target_id", "amount", "location", "city", "region", "country", "created_at"
-      FROM "module_like_events"
+      WITH "activity_rows" AS (
+        SELECT
+          'like:' || "id"::text AS "activity_id",
+          'like'::text AS "event_type",
+          "id" AS "entity_id",
+          "target_id",
+          "amount",
+          "location",
+          "city",
+          "region",
+          "country",
+          "created_at" AS "activity_at"
+        FROM "module_like_events"
+
+        UNION ALL
+
+        SELECT
+          'chat:' || "id"::text AS "activity_id",
+          'chat'::text AS "event_type",
+          "id" AS "entity_id",
+          NULL::varchar AS "target_id",
+          1::integer AS "amount",
+          "location",
+          NULL::varchar AS "city",
+          NULL::varchar AS "region",
+          NULL::varchar AS "country",
+          "created_at" AS "activity_at"
+        FROM "conversations"
+      )
+      SELECT "activity_id", "event_type", "entity_id", "target_id", "amount", "location", "city", "region", "country", "activity_at"
+      FROM "activity_rows"
       ${cursorFilter}
-      ORDER BY "created_at" DESC, "id" DESC
+      ORDER BY "activity_at" DESC, "activity_id" DESC
       LIMIT ${rowLimit}
     `)
     : await db.execute(sql`
-      SELECT "id", "target_id", "amount", "location", "city", "region", "country", "created_at"
-      FROM "module_like_events"
+      WITH "activity_rows" AS (
+        SELECT
+          'like:' || "id"::text AS "activity_id",
+          'like'::text AS "event_type",
+          "id" AS "entity_id",
+          "target_id",
+          "amount",
+          "location",
+          "city",
+          "region",
+          "country",
+          "created_at" AS "activity_at"
+        FROM "module_like_events"
+
+        UNION ALL
+
+        SELECT
+          'chat:' || "id"::text AS "activity_id",
+          'chat'::text AS "event_type",
+          "id" AS "entity_id",
+          NULL::varchar AS "target_id",
+          1::integer AS "amount",
+          "location",
+          NULL::varchar AS "city",
+          NULL::varchar AS "region",
+          NULL::varchar AS "country",
+          "created_at" AS "activity_at"
+        FROM "conversations"
+      )
+      SELECT "activity_id", "event_type", "entity_id", "target_id", "amount", "location", "city", "region", "country", "activity_at"
+      FROM "activity_rows"
       ${cursorFilter}
-      ORDER BY "created_at" DESC, "id" DESC
+      ORDER BY "activity_at" DESC, "activity_id" DESC
     `)
 
-  const rows = readRows<ModuleLikeActivityRow>(result)
+  const rows = readRows<PortfolioActivityRow>(result)
   const pageRows = normalizedLimit ? rows.slice(0, normalizedLimit) : rows
   const hasMore = Boolean(normalizedLimit && rows.length > normalizedLimit)
   const lastPageRow = pageRows[pageRows.length - 1]
