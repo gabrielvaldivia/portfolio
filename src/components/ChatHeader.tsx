@@ -1,8 +1,7 @@
 'use client'
 
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { cn } from '@/lib/cn'
+import { SegmentedControl } from '@/components/SegmentedControl'
 
 function SidebarIcon() {
   return (
@@ -30,28 +29,14 @@ export function ChatHeader() {
         <SidebarIcon />
       </button>
 
-      <nav aria-label="Chat view" className="chat-view-toggle pointer-events-auto absolute left-1/2 top-4 z-30 flex h-10 -translate-x-1/2 items-center rounded-full bg-floating p-1 backdrop-blur-xl tablet:top-10">
-        <Link
-          href={chatHref}
-          scroll={false}
-          className={cn(
-            'flex h-8 items-center rounded-full px-4 text-[13px] transition-colors',
-            !isMap ? 'bg-background text-content' : 'text-muted hover:text-content',
-          )}
-        >
-          Chat
-        </Link>
-        <Link
-          href="/chat/map"
-          scroll={false}
-          className={cn(
-            'flex h-8 items-center rounded-full px-4 text-[13px] transition-colors',
-            isMap ? 'bg-background text-content' : 'text-muted hover:text-content',
-          )}
-        >
-          Map
-        </Link>
-      </nav>
+      <SegmentedControl
+        ariaLabel="Chat view"
+        className="chat-view-toggle pointer-events-auto absolute left-1/2 top-4 z-30 -translate-x-1/2 tablet:top-10"
+        items={[
+          { href: chatHref, label: 'Chat', selected: !isMap, scroll: false },
+          { href: '/chat/map', label: 'Map', selected: isMap, scroll: false },
+        ]}
+      />
     </header>
   )
 }

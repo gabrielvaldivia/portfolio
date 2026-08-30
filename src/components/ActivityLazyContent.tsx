@@ -229,7 +229,9 @@ function getCountryFlagUrl(country: string) {
   const code = country.trim().toUpperCase()
   if (!/^[A-Z]{2}$/.test(code)) return ''
 
-  return `https://www.worldometers.info/images/flags/w240/${code.toLowerCase()}.webp`
+  const extension = code === 'SA' ? 'png' : 'svg'
+
+  return `/flags/figma/${code.toLowerCase()}.${extension}`
 }
 
 function ActivitySentence({ item }: { item: ActivityDisplayItem }) {
@@ -250,7 +252,6 @@ function ActivitySentence({ item }: { item: ActivityDisplayItem }) {
                   display: 'inline-block',
                   height: '0.8em',
                   marginRight: '0.25em',
-                  position: 'relative',
                   verticalAlign: '-0.05em',
                 }}
               >
@@ -261,7 +262,6 @@ function ActivitySentence({ item }: { item: ActivityDisplayItem }) {
                   decoding="async"
                   style={{ display: 'block', height: '100%', width: 'auto' }}
                 />
-                <span className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-black/10 dark:ring-white/10" />
               </span>
             ) : null}
             {location}
