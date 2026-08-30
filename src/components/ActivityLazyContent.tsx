@@ -244,21 +244,25 @@ function ActivitySentence({ item }: { item: ActivityDisplayItem }) {
           {' from '}
           <span className="font-medium">
             {countryFlagUrl ? (
-              <img
-                src={countryFlagUrl}
-                alt=""
+              <span
                 aria-hidden="true"
-                loading="lazy"
-                decoding="async"
-                className="ring-1 ring-inset ring-black/10 dark:ring-white/10"
                 style={{
                   display: 'inline-block',
                   height: '0.8em',
                   marginRight: '0.25em',
+                  position: 'relative',
                   verticalAlign: '-0.05em',
-                  width: 'auto',
                 }}
-              />
+              >
+                <img
+                  src={countryFlagUrl}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  style={{ display: 'block', height: '100%', width: 'auto' }}
+                />
+                <span className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-black/10 dark:ring-white/10" />
+              </span>
             ) : null}
             {location}
           </span>
