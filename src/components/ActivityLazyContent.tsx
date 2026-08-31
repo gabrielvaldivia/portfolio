@@ -316,7 +316,7 @@ function ActivityFramedThumbnail({
   const resolvedMediaClassName = getThumbnailMediaClassName(mediaClassName, thumbnail)
   const isDC1Frame = frame.id === 'dc1'
   const paddingClassName = paddingMode === 'feed'
-    ? isDC1Frame ? 'px-1.5 py-5 tablet:py-1.5' : 'p-1.5'
+    ? isDC1Frame ? 'px-1.5 py-5 tablet:py-1.5' : 'p-5'
     : cn('px-1 tablet:px-1.5', isDC1Frame ? 'py-2 tablet:py-3' : 'py-1 tablet:py-1.5')
   const imageSizes = paddingMode === 'feed'
     ? '(max-width: 810px) 100vw, (max-width: 1280px) 50vw, 33vw'
