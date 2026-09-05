@@ -677,7 +677,7 @@ export default async function HomePage() {
             return (
               <div key={gi} id="hero" className="scroll-mt-0">
                 <HomeHeroTagline />
-                <div className="mt-[43px] min-w-0 tablet:mt-[123px] desktop:mt-[133px]">
+                <div className="mt-4 min-w-0 tablet:mt-[123px] desktop:mt-[133px]">
                   {renderSection(nextBlock, gi * 100, { heroSlideshow: true })}
                 </div>
               </div>

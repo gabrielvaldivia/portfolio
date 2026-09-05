@@ -469,7 +469,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
             type="button"
             aria-label="Show previous project"
             onClick={showPrevious}
-            className="absolute bottom-4 right-16 z-10 flex size-10 translate-y-0 cursor-pointer items-center justify-center rounded-full bg-floating backdrop-blur-[40px] transition-colors duration-150 hover:bg-white/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white tablet:bottom-auto tablet:left-8 tablet:right-auto tablet:top-1/2 tablet:-translate-y-1/2"
+            className="absolute bottom-4 right-16 z-20 flex size-10 translate-y-0 cursor-pointer items-center justify-center rounded-full bg-floating backdrop-blur-[40px] transition-colors duration-150 hover:bg-white/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white tablet:bottom-auto tablet:left-8 tablet:right-auto tablet:top-1/2 tablet:-translate-y-1/2"
           >
             <svg aria-hidden="true" className="size-[18px]" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M11 4.5L6.5 9l4.5 4.5" />
@@ -480,7 +480,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
             type="button"
             aria-label="Show next project"
             onClick={showNext}
-            className="absolute bottom-4 right-4 z-10 flex size-10 translate-y-0 cursor-pointer items-center justify-center rounded-full bg-floating backdrop-blur-[40px] transition-colors duration-150 hover:bg-white/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white tablet:bottom-auto tablet:right-8 tablet:top-1/2 tablet:-translate-y-1/2"
+            className="absolute bottom-4 right-4 z-20 flex size-10 translate-y-0 cursor-pointer items-center justify-center rounded-full bg-floating backdrop-blur-[40px] transition-colors duration-150 hover:bg-white/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white tablet:bottom-auto tablet:right-8 tablet:top-1/2 tablet:-translate-y-1/2"
           >
             <svg aria-hidden="true" className="size-[18px]" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M7 4.5L11.5 9 7 13.5" />
