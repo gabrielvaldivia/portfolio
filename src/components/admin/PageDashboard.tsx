@@ -14,7 +14,7 @@ type DashboardPage = {
   updatedAt: string
 }
 
-type DashboardCardIcon = 'calendar' | 'document' | 'folder' | 'gear' | 'grid' | 'link' | 'people' | 'upload'
+type DashboardCardIcon = 'browser' | 'calendar' | 'document' | 'folder' | 'gear' | 'grid' | 'link' | 'people' | 'upload'
 
 type RecentItem = {
   href: string
@@ -37,7 +37,7 @@ type RecentCollectionSource = {
 const recentCollectionSources: RecentCollectionSource[] = [
   { icon: 'document', label: 'Note', slug: 'notes', thumbnailFields: ['coverImage'], titleFields: ['title'] },
   { icon: 'folder', label: 'Project', slug: 'projects', thumbnailFields: ['featuredImage'], titleFields: ['title', 'slug'] },
-  { icon: 'document', label: 'Playground', slug: 'side-projects', thumbnailFields: ['featuredImage'], titleFields: ['title', 'slug'] },
+  { icon: 'browser', label: 'Playground', slug: 'side-projects', thumbnailFields: ['featuredImage'], titleFields: ['title', 'slug'] },
   { icon: 'people', label: 'Client', slug: 'clients', thumbnailFields: ['logo'], titleFields: ['name'] },
   { icon: 'people', label: 'Person', slug: 'people', thumbnailFields: ['photo'], titleFields: ['name'] },
   { icon: 'gear', label: 'Service', slug: 'services', thumbnailFields: [], titleFields: ['title'] },
@@ -240,7 +240,7 @@ export async function PageDashboard({ permissions, req }: WidgetServerProps) {
   const recentItems: RecentItem[] = [
     ...pages.map((page) => ({
       href: formatAdminURL({ adminRoute, path: `/collections/pages/${page.id}` }),
-      icon: 'document' as const,
+      icon: 'browser' as const,
       id: `pages-${page.id}`,
       label: 'Page',
       thumbnailURL: getMediaThumbnail(page.meta?.image) || getMediaThumbnail(page.bioImage),
@@ -296,7 +296,7 @@ export async function PageDashboard({ permissions, req }: WidgetServerProps) {
                   <li key={page.id}>
                     <a
                       aria-label={`Edit ${page.title || page.slug || 'page'}`}
-                      className={`card card--has-onclick page-dashboard__card dashboard-card--with-icon dashboard-card--icon-document ${thumbnailURL ? 'dashboard-card--has-thumbnail' : ''}`}
+                      className={`card card--has-onclick page-dashboard__card dashboard-card--with-icon dashboard-card--icon-browser ${thumbnailURL ? 'dashboard-card--has-thumbnail' : ''}`}
                       href={href}
                       id={`card-page-${page.slug || page.id}`}
                     >
