@@ -7,17 +7,11 @@ import Link from 'next/link'
 
 export const revalidate = 60
 
-const noteDateFormatter = new Intl.DateTimeFormat('en-US', {
-  month: 'long',
-  day: 'numeric',
-  year: 'numeric',
-})
-
-function formatNoteDate(value?: string | null) {
+function getNoteYear(value?: string | null) {
   if (!value) return null
 
   const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? null : noteDateFormatter.format(date)
+  return Number.isNaN(date.getTime()) ? null : String(date.getUTCFullYear())
 }
 
 export function generateMetadata(): Metadata {
@@ -29,6 +23,19 @@ export function generateMetadata(): Metadata {
 
 export default async function NotesPage() {
   const { docs: notes } = await getPublishedNotes()
+  const grouped: Record<string, typeof notes> = {}
+
+  notes.forEach((note) => {
+    const year = getNoteYear(note.publishedAt || note.createdAt) || 'Other'
+    if (!grouped[year]) grouped[year] = []
+    grouped[year].push(note)
+  })
+
+  const sortedYears = Object.keys(grouped).sort((a, b) => {
+    if (a === 'Other') return 1
+    if (b === 'Other') return -1
+    return b.localeCompare(a)
+  })
 
   return (
     <section className="pb-20">
@@ -41,32 +48,26 @@ export default async function NotesPage() {
         </div>
 
         {notes.length > 0 ? (
-          <div className="border-t border-border">
-            {notes.map((note) => {
-              const publishedAt = note.publishedAt || note.createdAt
-              const formattedDate = formatNoteDate(publishedAt)
-
-              return (
-                <article className="border-b border-border" key={note.id}>
-                  <Link
-                    className="group grid gap-3 py-6 transition-opacity hover:opacity-60 tablet:grid-cols-[minmax(0,1fr)_180px] tablet:gap-10 tablet:py-8"
-                    href={`/notes/${note.slug}`}
-                  >
-                    <div className="min-w-0">
-                      <h2 className="text-[24px] tablet:text-[30px]">{note.title}</h2>
-                      {note.excerpt ? (
-                        <p className="mt-2 max-w-[760px] text-body text-muted">{note.excerpt}</p>
-                      ) : null}
+          <div className="space-y-0">
+            {sortedYears.map((year) => (
+              <div className="tablet:flex tablet:gap-4" key={year}>
+                <div className="sticky top-0 z-10 shrink-0 bg-background py-7 tablet:relative tablet:top-auto tablet:z-auto tablet:w-[100px] tablet:py-0">
+                  <h4 className="text-muted tablet:sticky tablet:top-5 tablet:py-4">{year}</h4>
+                </div>
+                <div className="flex-1">
+                  {grouped[year].map((note) => (
+                    <div className="py-4" key={note.id}>
+                      <Link
+                        className="inline-block min-w-0 transition-opacity hover:opacity-60"
+                        href={`/notes/${note.slug}`}
+                      >
+                        <h4 className="text-balance">{note.title}</h4>
+                      </Link>
                     </div>
-                    {formattedDate ? (
-                      <time className="text-caption text-muted tablet:pt-2" dateTime={publishedAt}>
-                        {formattedDate}
-                      </time>
-                    ) : null}
-                  </Link>
-                </article>
-              )
-            })}
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="border-t border-border py-8">
