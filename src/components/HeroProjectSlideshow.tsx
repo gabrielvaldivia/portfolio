@@ -3,11 +3,11 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import {
+  type MotionStyle,
   AnimatePresence,
   animate,
   motion,
   useInView,
-  useMotionValueEvent,
   useMotionValue,
   useReducedMotion,
   useScroll,
@@ -15,7 +15,6 @@ import {
   useTransform,
 } from 'motion/react'
 import {
-  type CSSProperties,
   type PointerEvent as ReactPointerEvent,
   useCallback,
   useEffect,
@@ -186,61 +185,71 @@ function MobileHeroSlide({
   active,
   fallbackGradientColor,
   onImageLoad,
+  pagination,
+  visualStyle,
 }: {
   project: HeroProjectSlide
   active: boolean
   fallbackGradientColor: string
   onImageLoad: (image: HTMLImageElement, projectId: string) => void
+  pagination: React.ReactNode
+  visualStyle?: MotionStyle
 }) {
   const media = project.featuredImage
   const gradientColor = hexToRgbChannels(project.gradientColor) ?? fallbackGradientColor
 
   return (
-    <div className="relative h-[var(--hero-mobile-slide-height)] w-full shrink-0 overflow-hidden bg-background-alt text-white">
-      {media?.url ? (
-        isVideoMedia(media) ? (
-          <SilentBackgroundVideo
-            src={media.url}
-            label={media.alt || `${project.title} project video`}
-            playing={active}
-          />
-        ) : (
-          <Image
-            src={media.url}
-            alt={media.alt || ''}
-            fill
-            className="object-cover"
-            sizes="100vw"
-            quality={90}
-            priority={active}
-            onLoad={(event) => onImageLoad(event.currentTarget, project.id)}
-          />
-        )
-      ) : null}
-
-      <Link
-        href={`/work/${project.slug}`}
-        aria-label={`View ${project.title} project`}
-        className="absolute inset-0 z-0"
-      />
-
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-1/2"
-        style={{
-          backgroundImage: `linear-gradient(to bottom, rgb(${gradientColor} / 0) 0%, rgb(${gradientColor} / 0.01) 18%, rgb(${gradientColor} / 0.04) 34%, rgb(${gradientColor} / 0.12) 48%, rgb(${gradientColor} / 0.26) 61%, rgb(${gradientColor} / 0.45) 74%, rgb(${gradientColor} / 0.66) 86%, rgb(${gradientColor} / 0.86) 95%, rgb(${gradientColor}) 100%)`,
-        }}
-      />
-
-      <Link
-        href={`/work/${project.slug}`}
-        className="absolute inset-x-5 bottom-5 z-10 flex flex-col gap-2 rounded-sm pr-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-      >
-        <h2 className="hero-project-title text-balance">{project.title}</h2>
-        {project.subtitle ? (
-          <p className="max-w-2xl text-body text-pretty text-white/70">{project.subtitle}</p>
+    <div className="hero-mobile-slide relative h-dvh w-full text-white" data-project-id={project.id}>
+      {/* Snap to the actual slide's start. A one-pixel target cannot become an
+          oversized snap area with intermediate stops when browser chrome changes. */}
+      <div aria-hidden="true" className="hero-project-snap-point pointer-events-none absolute inset-x-0 top-0 h-px" />
+      <motion.div className="relative size-full overflow-hidden bg-background-alt" style={visualStyle}>
+        {media?.url ? (
+          isVideoMedia(media) ? (
+            <SilentBackgroundVideo
+              src={media.url}
+              label={media.alt || `${project.title} project video`}
+              playing={active}
+            />
+          ) : (
+            <Image
+              src={media.url}
+              alt={media.alt || ''}
+              fill
+              className="object-cover"
+              sizes="100vw"
+              quality={90}
+              priority={active}
+              onLoad={(event) => onImageLoad(event.currentTarget, project.id)}
+            />
+          )
         ) : null}
-      </Link>
+
+        <Link
+          href={`/work/${project.slug}`}
+          aria-label={`View ${project.title} project`}
+          className="absolute inset-0 z-0"
+        />
+
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-1/2"
+          style={{
+            backgroundImage: `linear-gradient(to bottom, rgb(${gradientColor} / 0) 0%, rgb(${gradientColor} / 0.01) 18%, rgb(${gradientColor} / 0.04) 34%, rgb(${gradientColor} / 0.12) 48%, rgb(${gradientColor} / 0.26) 61%, rgb(${gradientColor} / 0.45) 74%, rgb(${gradientColor} / 0.66) 86%, rgb(${gradientColor} / 0.86) 95%, rgb(${gradientColor}) 100%)`,
+          }}
+        />
+
+        <Link
+          href={`/work/${project.slug}`}
+          className="absolute inset-x-5 bottom-5 z-10 flex flex-col gap-2 rounded-sm pr-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+        >
+          <h2 className="hero-project-title text-balance">{project.title}</h2>
+          {project.subtitle ? (
+            <p className="max-w-2xl text-body text-pretty text-white/70">{project.subtitle}</p>
+          ) : null}
+        </Link>
+        {pagination}
+      </motion.div>
     </div>
   )
 }
@@ -251,9 +260,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
   const isInView = useInView(regionRef, { amount: 0.25 })
   const prefersReducedMotion = useReducedMotion()
   const [isMobileViewport, setIsMobileViewport] = useState(false)
-  const [isMobileScrollControlled, setIsMobileScrollControlled] = useState(false)
   const progress = useMotionValue(0)
-  const mobileSlideHeight = useMotionValue(1)
   const insetScale = useMotionValue(1)
   const insetRadius = useMotionValue(20)
   const expansionDistance = useMotionValue(320)
@@ -288,13 +295,8 @@ export function HeroProjectSlideshow({ projects }: Props) {
   const [isCaseStudyCursorVisible, setIsCaseStudyCursorVisible] = useState(false)
   const [cursorPortalRoot, setCursorPortalRoot] = useState<HTMLElement | null>(null)
   const [heroGradientColor, setHeroGradientColor] = useState('24 24 24')
-  const mobileScrollControlledRef = useRef(false)
 
   const { scrollY } = useScroll()
-  const { scrollYProgress: mobileScrollProgress } = useScroll({
-    target: regionRef,
-    offset: ['start start', 'end end'],
-  })
   const expansionProgress = useTransform(() => {
     if (prefersReducedMotion) return 1
     return Math.min(1, Math.max(0, scrollY.get() / expansionDistance.get()))
@@ -307,12 +309,6 @@ export function HeroProjectSlideshow({ projects }: Props) {
     const scrollProgress = expansionProgress.get()
     return insetRadius.get() * (1 - scrollProgress)
   })
-  const mobileTrackY = useTransform(() => (
-    -Math.min(
-      mobileScrollProgress.get() * Math.max(0, projects.length - 1),
-      Math.max(0, projects.length - 1),
-    ) * mobileSlideHeight.get()
-  ))
 
   const showNext = useCallback(() => {
     setActiveIndex((current) => (current + 1) % projects.length)
@@ -326,22 +322,18 @@ export function HeroProjectSlideshow({ projects }: Props) {
     const region = regionRef.current
     if (!region) return
 
-    const regionTop = region.getBoundingClientRect().top + window.scrollY
     const clampedStep = Math.max(0, Math.min(projects.length - 1, step))
-    const measuredSlideHeight = mobileSlideHeight.get()
-    const viewportHeight = measuredSlideHeight > 1
-      ? measuredSlideHeight
-      : window.visualViewport?.height ?? window.innerHeight
-    window.scrollTo({
-      top: regionTop + clampedStep * viewportHeight,
+    const slide = region.querySelectorAll<HTMLElement>('.hero-mobile-slide')[clampedStep]
+    slide?.scrollIntoView({
+      block: 'start',
       behavior: prefersReducedMotion ? 'auto' : 'smooth',
     })
-  }, [mobileSlideHeight, prefersReducedMotion, projects.length])
+  }, [prefersReducedMotion, projects.length])
 
   const selectSlide = useCallback((index: number) => {
     setActiveIndex(index)
 
-    if (isMobileViewport && mobileScrollControlledRef.current) {
+    if (isMobileViewport) {
       scrollToMobileStep(index)
     }
   }, [isMobileViewport, scrollToMobileStep])
@@ -507,27 +499,33 @@ export function HeroProjectSlideshow({ projects }: Props) {
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 809px)')
-    const region = regionRef.current
-
-    const updateViewport = () => {
-      const isMobile = mediaQuery.matches
-      setIsMobileViewport(isMobile)
-      if (!region || !isMobile) return
-      mobileSlideHeight.set(region.getBoundingClientRect().height / Math.max(1, projects.length))
-    }
+    const updateViewport = () => setIsMobileViewport(mediaQuery.matches)
 
     updateViewport()
-    const resizeObserver = region ? new ResizeObserver(updateViewport) : null
-    if (region) resizeObserver?.observe(region)
     mediaQuery.addEventListener('change', updateViewport)
-    window.addEventListener('resize', updateViewport)
 
     return () => {
-      resizeObserver?.disconnect()
       mediaQuery.removeEventListener('change', updateViewport)
-      window.removeEventListener('resize', updateViewport)
     }
-  }, [mobileSlideHeight, projects.length])
+  }, [])
+
+  useEffect(() => {
+    if (!isMobileViewport) return
+    const slides = regionRef.current?.querySelectorAll<HTMLElement>('.hero-mobile-slide')
+    if (!slides) return
+
+    // The browser moves the real slides. Observe only which slide is visible
+    // so video playback and pagination don't need a second scroll calculation.
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.intersectionRatio < 0.5) continue
+        const index = projects.findIndex((project) => project.id === (entry.target as HTMLElement).dataset.projectId)
+        if (index >= 0) setActiveIndex(index)
+      }
+    }, { threshold: 0.5 })
+    slides.forEach((slide) => observer.observe(slide))
+    return () => observer.disconnect()
+  }, [isMobileViewport, projects])
 
   useEffect(() => {
     if (!isMobileViewport || projects.length < 2) return
@@ -540,24 +538,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
     const approachScrollMargin = approach
       ? Number.parseFloat(getComputedStyle(approach).scrollMarginTop) || 0
       : 0
-    let heightLocked = false
     let lastSettledScrollY = window.scrollY
-    let updateFrame: number | null = null
-
-    const lockSlideshowHeight = () => {
-      if (heightLocked) return false
-
-      const viewport = window.visualViewport
-      const viewportTop = viewport?.offsetTop ?? 0
-      const regionRect = region.getBoundingClientRect()
-      if (regionRect.top > viewportTop + 1 || regionRect.bottom < viewportTop - 1) return false
-
-      const viewportHeight = Math.round(viewport?.height ?? window.innerHeight)
-      region.style.setProperty('--hero-mobile-slide-height', `${viewportHeight}px`)
-      mobileSlideHeight.set(viewportHeight)
-      heightLocked = true
-      return true
-    }
 
     const updatePaginationMode = (currentScrollY: number, scrollDelta: number) => {
       if (!approach) return
@@ -578,56 +559,34 @@ export function HeroProjectSlideshow({ projects }: Props) {
       const currentScrollY = window.scrollY
       const scrollDelta = currentScrollY - lastSettledScrollY
       lastSettledScrollY = currentScrollY
-      const didLockHeight = lockSlideshowHeight()
-
-      if (didLockHeight) {
-        if (updateFrame !== null) cancelAnimationFrame(updateFrame)
-        updateFrame = requestAnimationFrame(() => {
-          updateFrame = null
-          updatePaginationMode(currentScrollY, scrollDelta)
-        })
-        return
-      }
-
       updatePaginationMode(currentScrollY, scrollDelta)
     }
 
+    // Safari before 26.2 has no scrollend. This fallback only changes snap
+    // strictness at Approach; it never moves the page or resizes the slides.
+    let settleTimeout: ReturnType<typeof setTimeout> | undefined
+    const scheduleScrollEnd = () => {
+      clearTimeout(settleTimeout)
+      settleTimeout = setTimeout(handleScrollEnd, 180)
+    }
+    const supportsScrollEnd = 'onscrollend' in window
     root.classList.add('hero-project-pagination-active')
     handleScrollEnd()
-    window.addEventListener('scrollend', handleScrollEnd)
+    if (supportsScrollEnd) window.addEventListener('scrollend', handleScrollEnd)
+    else window.addEventListener('scroll', scheduleScrollEnd, { passive: true })
 
     return () => {
       window.removeEventListener('scrollend', handleScrollEnd)
-      if (updateFrame !== null) cancelAnimationFrame(updateFrame)
-      region.style.removeProperty('--hero-mobile-slide-height')
+      window.removeEventListener('scroll', scheduleScrollEnd)
+      clearTimeout(settleTimeout)
       root.classList.remove('hero-project-pagination-active')
       root.classList.remove('hero-project-pagination-relaxed')
     }
-  }, [isMobileViewport, mobileSlideHeight, projects.length])
-
-  useMotionValueEvent(mobileScrollProgress, 'change', (latest) => {
-    if (!isMobileViewport || projects.length < 2) return
-
-    const scrollControlled = latest > 0
-    if (mobileScrollControlledRef.current !== scrollControlled) {
-      mobileScrollControlledRef.current = scrollControlled
-      setIsMobileScrollControlled(scrollControlled)
-    }
-
-    if (!scrollControlled) return
-
-    const scaledProgress = latest * Math.max(0, projects.length - 1)
-    const nextIndex = Math.min(projects.length - 1, Math.round(scaledProgress))
-    const nextSlideProgress = Math.min(1, Math.max(0, scaledProgress - nextIndex))
-
-    setActiveIndex((current) => current === nextIndex ? current : nextIndex)
-    progress.set(nextSlideProgress)
-  })
+  }, [isMobileViewport, projects.length])
 
   useEffect(() => {
-    if (isMobileViewport && isMobileScrollControlled) return
     progress.set(0)
-  }, [activeIndex, isMobileScrollControlled, isMobileViewport, progress])
+  }, [activeIndex, progress])
 
   useEffect(() => {
     setCursorPortalRoot(document.body)
@@ -694,22 +653,41 @@ export function HeroProjectSlideshow({ projects }: Props) {
     <div
       ref={regionRef}
       className="hero-project-scroll-region relative w-full"
-      style={{
-        '--hero-mobile-slide-height': '100svh',
-        '--hero-mobile-scroll-height': `calc(${Math.max(1, projects.length)} * var(--hero-mobile-slide-height))`,
-      } as CSSProperties}
     >
-      <div
-        aria-hidden="true"
-        className="hero-project-snap-point pointer-events-none absolute inset-x-0 top-0 h-px tablet:hidden"
-      />
+      <div role="region" aria-label="Featured projects" aria-roledescription="carousel" className="tablet:hidden">
+        {projects.map((project, index) => (
+          <MobileHeroSlide
+            key={project.id}
+            project={project}
+            active={isMobileViewport && index === activeIndex}
+            fallbackGradientColor={index === activeIndex ? heroGradientColor : '24 24 24'}
+            onImageLoad={updateHeroGradientColor}
+            visualStyle={index === 0 ? { scale: slideshowScale, borderRadius: slideshowRadius } : undefined}
+            pagination={projects.length > 1 ? (
+              <div className="absolute right-3 top-1/2 z-20 flex -translate-y-1/2 flex-col gap-1">
+                {projects.map((destination, destinationIndex) => (
+                  <button
+                    key={destination.id}
+                    type="button"
+                    aria-label={`Show ${destination.title}, slide ${destinationIndex + 1} of ${projects.length}`}
+                    aria-current={destinationIndex === index ? 'true' : undefined}
+                    onClick={() => selectSlide(destinationIndex)}
+                    className="group inline-flex w-8 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  >
+                    <span aria-hidden="true" className={`block h-7 w-0.5 shadow-sm transition-opacity duration-150 group-hover:opacity-75 ${destinationIndex === index ? 'bg-white' : 'bg-black/35'}`} />
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          />
+        ))}
+      </div>
 
-      <div className="sticky top-0 h-[var(--hero-mobile-slide-height)] w-full tablet:relative tablet:top-auto tablet:h-auto">
         <motion.section
           role="region"
           aria-label="Featured projects"
           aria-roledescription="carousel"
-          className="hero-project-slideshow absolute inset-0 w-full origin-center overflow-hidden bg-background-alt text-white tablet:relative tablet:inset-auto tablet:aspect-video"
+          className="hero-project-slideshow relative hidden w-full origin-center overflow-hidden bg-background-alt text-white tablet:block tablet:aspect-video"
           style={{ scale: slideshowScale, borderRadius: slideshowRadius }}
           onPointerEnter={updateCaseStudyCursor}
           onPointerMove={updateCaseStudyCursor}
@@ -719,21 +697,6 @@ export function HeroProjectSlideshow({ projects }: Props) {
             if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setIsFocusPaused(false)
           }}
         >
-      <motion.div
-        className="absolute inset-x-0 top-0 tablet:hidden"
-        style={{ y: mobileTrackY }}
-      >
-        {projects.map((project, index) => (
-          <MobileHeroSlide
-            key={project.id}
-            project={project}
-            active={index === activeIndex}
-            fallbackGradientColor={index === activeIndex ? heroGradientColor : '24 24 24'}
-            onImageLoad={updateHeroGradientColor}
-          />
-        ))}
-      </motion.div>
-
       <AnimatePresence initial={false} mode="sync">
         {activeMedia?.url ? (
           <motion.div
@@ -748,6 +711,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
               <SilentBackgroundVideo
                 src={activeMedia.url}
                 label={activeMedia.alt || `${activeProject.title} project video`}
+                playing={!isMobileViewport}
               />
             ) : (
               <Image
@@ -880,15 +844,6 @@ export function HeroProjectSlideshow({ projects }: Props) {
       </div>
 
         </motion.section>
-      </div>
-
-      {Array.from({ length: Math.max(0, projects.length - 1) }, (_, index) => (
-        <div
-          key={`hero-snap-${index + 1}`}
-          aria-hidden="true"
-          className="hero-project-snap-point h-[var(--hero-mobile-slide-height)] pointer-events-none tablet:hidden"
-        />
-      ))}
 
       {cursorPortalRoot ? createPortal(
         <motion.div

@@ -431,10 +431,6 @@ h2 {
     scroll-snap-type: y proximity;
   }
 
-  .hero-project-scroll-region {
-    height: var(--hero-mobile-scroll-height);
-  }
-
   .hero-intro-snap-point {
     scroll-margin-top: 94px;
   }
