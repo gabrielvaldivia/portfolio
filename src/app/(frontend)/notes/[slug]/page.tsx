@@ -2,6 +2,8 @@ import { Container } from '@/components/Container'
 import { RichText } from '@/components/RichText'
 import { buildPageMetadata } from '@/lib/pageMetadata'
 import { getPublishedNoteBySlug, getPublishedNoteSlugs, getReadNextNote } from '@/lib/queries'
+import { ArrowRight02Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -90,14 +92,18 @@ export default async function NotePage({ params }: NotePageProps) {
               className="block rounded-[16px] bg-background-alt p-6 transition-colors hover:bg-background-alt-hover tablet:p-8"
               href={`/notes/${readNextNote.slug}`}
             >
-              <h2 className="text-balance text-[28px] leading-[1.1] tablet:text-[36px]">
+              <h3 className="text-balance text-[24px] leading-[1.2] tablet:text-[30px]">
                 {readNextNote.title}
-              </h2>
+              </h3>
               {readNextNote.excerpt ? (
-                <p className="mt-4 line-clamp-3 text-pretty text-[18px] leading-[1.5] tablet:text-[20px]">
+                <p className="mt-6 text-pretty text-[18px] leading-[1.5] tablet:text-[20px]">
                   {readNextNote.excerpt}
                 </p>
               ) : null}
+              <span className="mt-6 inline-flex items-center gap-2 text-[16px] font-medium">
+                Read now
+                <HugeiconsIcon aria-hidden="true" icon={ArrowRight02Icon} size={18} strokeWidth={1.5} />
+              </span>
             </Link>
           </section>
         ) : null}
