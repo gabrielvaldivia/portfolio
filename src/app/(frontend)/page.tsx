@@ -183,6 +183,7 @@ function buildHeroProjectSlides(projects: any[], testimonials: any[]) {
         ? {
             url: project.featuredImage.url,
             alt: project.featuredImage.alt,
+            mimeType: project.featuredImage.mimeType,
           }
         : undefined,
       testimonial: testimonialQuote

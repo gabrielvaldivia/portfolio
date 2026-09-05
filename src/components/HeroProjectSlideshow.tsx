@@ -7,6 +7,7 @@ import {
   animate,
   motion,
   useInView,
+  useMotionValueEvent,
   useMotionValue,
   useReducedMotion,
   useScroll,
@@ -14,6 +15,7 @@ import {
   useTransform,
 } from 'motion/react'
 import {
+  type CSSProperties,
   type PointerEvent as ReactPointerEvent,
   useCallback,
   useEffect,
@@ -39,6 +41,7 @@ type HeroProjectSlide = {
   featuredImage?: {
     url: string
     alt?: string | null
+    mimeType?: string | null
   }
   testimonial?: HeroTestimonial
 }
@@ -124,6 +127,8 @@ export function HeroProjectSlideshow({ projects }: Props) {
   const regionRef = useRef<HTMLDivElement>(null)
   const isInView = useInView(regionRef, { amount: 0.25 })
   const prefersReducedMotion = useReducedMotion()
+  const [isMobileViewport, setIsMobileViewport] = useState(false)
+  const [isMobileScrollControlled, setIsMobileScrollControlled] = useState(false)
   const progress = useMotionValue(0)
   const insetScale = useMotionValue(1)
   const insetRadius = useMotionValue(20)
@@ -159,8 +164,13 @@ export function HeroProjectSlideshow({ projects }: Props) {
   const [isCaseStudyCursorVisible, setIsCaseStudyCursorVisible] = useState(false)
   const [cursorPortalRoot, setCursorPortalRoot] = useState<HTMLElement | null>(null)
   const [heroGradientColor, setHeroGradientColor] = useState('24 24 24')
+  const mobileScrollControlledRef = useRef(false)
 
   const { scrollY } = useScroll()
+  const { scrollYProgress: mobileScrollProgress } = useScroll({
+    target: regionRef,
+    offset: ['start start', 'end end'],
+  })
   const expansionProgress = useTransform(() => {
     if (prefersReducedMotion) return 1
     return Math.min(1, Math.max(0, scrollY.get() / expansionDistance.get()))
@@ -335,11 +345,45 @@ export function HeroProjectSlideshow({ projects }: Props) {
   }, [stopCaseStudyCursorSpin])
 
   const isAutoplayRunning =
-    projects.length > 1 && !isFocusPaused && isInView && !prefersReducedMotion
+    projects.length > 1
+    && !isFocusPaused
+    && isInView
+    && !prefersReducedMotion
+    && !(isMobileViewport && isMobileScrollControlled)
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 809px)')
+    const updateViewport = () => setIsMobileViewport(mediaQuery.matches)
+
+    updateViewport()
+    mediaQuery.addEventListener('change', updateViewport)
+
+    return () => mediaQuery.removeEventListener('change', updateViewport)
+  }, [])
+
+  useMotionValueEvent(mobileScrollProgress, 'change', (latest) => {
+    if (!isMobileViewport || projects.length < 2) return
+
+    const scrollControlled = latest > 0
+    if (mobileScrollControlledRef.current !== scrollControlled) {
+      mobileScrollControlledRef.current = scrollControlled
+      setIsMobileScrollControlled(scrollControlled)
+    }
+
+    if (!scrollControlled) return
+
+    const scaledProgress = latest * projects.length
+    const nextIndex = Math.min(projects.length - 1, Math.floor(scaledProgress))
+    const nextSlideProgress = Math.min(1, scaledProgress - nextIndex)
+
+    setActiveIndex((current) => current === nextIndex ? current : nextIndex)
+    progress.set(nextSlideProgress)
+  })
+
+  useEffect(() => {
+    if (isMobileViewport && isMobileScrollControlled) return
     progress.set(0)
-  }, [activeIndex, progress])
+  }, [activeIndex, isMobileScrollControlled, isMobileViewport, progress])
 
   useEffect(() => {
     setCursorPortalRoot(document.body)
@@ -371,10 +415,15 @@ export function HeroProjectSlideshow({ projects }: Props) {
       const viewportWidth = window.innerWidth
       const gutter = viewportWidth >= 810 ? 40 : 20
       const radius = viewportWidth >= 1280 ? 40 : viewportWidth >= 810 ? 30 : 20
+      const regionDocumentTop = region.getBoundingClientRect().top + window.scrollY
 
       insetScale.set(Math.max(0.8, (width - gutter * 2) / width))
       insetRadius.set(radius)
-      expansionDistance.set(Math.max(240, window.innerHeight * 0.35))
+      expansionDistance.set(
+        viewportWidth < 810
+          ? Math.max(1, regionDocumentTop)
+          : Math.max(240, window.innerHeight * 0.35),
+      )
     }
 
     updateInset()
@@ -391,18 +440,29 @@ export function HeroProjectSlideshow({ projects }: Props) {
   if (!projects.length) return null
 
   const activeProject = projects[activeIndex]
+  const activeMedia = activeProject.featuredImage
+  const activeMediaIsVideo = Boolean(
+    activeMedia?.mimeType?.startsWith('video/')
+    || activeMedia?.url.match(/\.(?:mp4|mov|m4v|webm)(?:\?.*)?$/i),
+  )
   const resolvedHeroGradientColor = hexToRgbChannels(activeProject.gradientColor) ?? heroGradientColor
   const transition = prefersReducedMotion
     ? { duration: 0 }
     : { duration: 0.6, ease: 'easeOut' as const }
 
   return (
-    <div ref={regionRef} className="w-full">
+    <div
+      ref={regionRef}
+      className="hero-project-scroll-region w-full"
+      style={{
+        '--hero-mobile-scroll-height': `${(projects.length + 1) * 100}dvh`,
+      } as CSSProperties}
+    >
       <motion.section
         role="region"
         aria-label="Featured projects"
         aria-roledescription="carousel"
-        className="hero-project-slideshow relative aspect-[3/4] w-full origin-center overflow-hidden bg-background-alt text-white tablet:aspect-video"
+        className="hero-project-slideshow sticky top-0 h-dvh w-full origin-center overflow-hidden bg-background-alt text-white tablet:relative tablet:h-auto tablet:aspect-video"
         style={{ scale: slideshowScale, borderRadius: slideshowRadius }}
         onPointerEnter={updateCaseStudyCursor}
         onPointerMove={updateCaseStudyCursor}
@@ -413,7 +473,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
         }}
       >
       <AnimatePresence initial={false} mode="sync">
-        {activeProject.featuredImage?.url ? (
+        {activeMedia?.url ? (
           <motion.div
             key={activeProject.id}
             className="absolute inset-0"
@@ -422,16 +482,29 @@ export function HeroProjectSlideshow({ projects }: Props) {
             exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: '-3%' }}
             transition={transition}
           >
-            <Image
-              src={activeProject.featuredImage.url}
-              alt={activeProject.featuredImage.alt || ''}
-              fill
-              className="object-cover"
-              sizes="100vw"
-              quality={90}
-              priority={activeIndex === 0}
-              onLoad={(event) => updateHeroGradientColor(event.currentTarget, activeProject.id)}
-            />
+            {activeMediaIsVideo ? (
+              <video
+                src={activeMedia.url}
+                aria-label={activeMedia.alt || `${activeProject.title} project video`}
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="metadata"
+                className="size-full object-cover"
+              />
+            ) : (
+              <Image
+                src={activeMedia.url}
+                alt={activeMedia.alt || ''}
+                fill
+                className="object-cover"
+                sizes="100vw"
+                quality={90}
+                priority={activeIndex === 0}
+                onLoad={(event) => updateHeroGradientColor(event.currentTarget, activeProject.id)}
+              />
+            )}
           </motion.div>
         ) : null}
       </AnimatePresence>
@@ -446,13 +519,13 @@ export function HeroProjectSlideshow({ projects }: Props) {
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-1/2 tablet:hidden"
         style={{
-          backgroundImage: `linear-gradient(to bottom, rgb(${resolvedHeroGradientColor} / 0), rgb(${resolvedHeroGradientColor} / 0.72) 62%, rgb(${resolvedHeroGradientColor}) 100%)`,
+          backgroundImage: `linear-gradient(to bottom, rgb(${resolvedHeroGradientColor} / 0) 0%, rgb(${resolvedHeroGradientColor} / 0.01) 18%, rgb(${resolvedHeroGradientColor} / 0.04) 34%, rgb(${resolvedHeroGradientColor} / 0.12) 48%, rgb(${resolvedHeroGradientColor} / 0.26) 61%, rgb(${resolvedHeroGradientColor} / 0.45) 74%, rgb(${resolvedHeroGradientColor} / 0.66) 86%, rgb(${resolvedHeroGradientColor} / 0.86) 95%, rgb(${resolvedHeroGradientColor}) 100%)`,
         }}
       />
 
       {projects.length > 1 ? (
         <>
-          <div className="absolute right-4 top-3 z-10 flex gap-1 tablet:right-8 tablet:top-6">
+          <div className="absolute left-4 top-3 z-10 flex gap-1 tablet:left-auto tablet:right-8 tablet:top-6">
             {projects.map((project, index) => (
               <button
                 key={project.id}

@@ -7,11 +7,9 @@ import { cn } from '@/lib/cn'
 
 function SiteHeaderFrame({
   activityView,
-  isHome = false,
   onBack,
 }: {
   activityView?: 'activity' | 'feed'
-  isHome?: boolean
   onBack?: () => void
 }) {
   return (
@@ -21,9 +19,7 @@ function SiteHeaderFrame({
           'text-content',
           activityView
             ? 'hidden tablet:block tablet:pt-10'
-            : isHome
-              ? 'fixed left-[max(1rem,env(safe-area-inset-left))] top-[max(1.5rem,env(safe-area-inset-top))] z-40 tablet:left-[max(2.5rem,env(safe-area-inset-left))] tablet:top-[max(2.5rem,env(safe-area-inset-top))]'
-              : 'pt-6 tablet:pt-10',
+            : 'pt-6 tablet:pt-10',
         )}
       >
         <Link
@@ -97,7 +93,6 @@ export function SiteHeader() {
   return (
     <SiteHeaderFrame
       activityView={activityView}
-      isHome={pathname === '/'}
       onBack={handleBack}
     />
   )

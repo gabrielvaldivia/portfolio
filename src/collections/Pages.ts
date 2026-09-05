@@ -82,8 +82,8 @@ const HeroBlock: Block = {
           name: 'image',
           type: 'upload',
           relationTo: 'media',
-          label: 'Hero image',
-          admin: { description: 'Optional. Falls back to the project featured image.' },
+          label: 'Hero media',
+          admin: { description: 'Optional image or video. Falls back to the project featured media.' },
         },
         {
           name: 'title',

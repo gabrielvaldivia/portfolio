@@ -422,6 +422,12 @@ h2 {
   cursor: pointer;
 }
 
+@media (max-width: 809px) {
+  .hero-project-scroll-region {
+    height: var(--hero-mobile-scroll-height);
+  }
+}
+
 @media (min-width: 810px) and (hover: hover) and (pointer: fine) {
   .hero-case-study-cursor {
     display: block;
