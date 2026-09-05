@@ -525,22 +525,46 @@ export function HeroProjectSlideshow({ projects }: Props) {
     if (!isMobileViewport || projects.length < 2) return
 
     const root = document.documentElement
+    let updateFrame: number | null = null
     const updateScrollSnap = () => {
       const region = regionRef.current
       if (!region) return
 
-      const viewportHeight = window.visualViewport?.height ?? window.innerHeight
-      const regionTop = region.getBoundingClientRect().top + window.scrollY
-      const offset = window.scrollY - regionTop
-      const withinPaginatedRegion = offset >= -1 && offset < projects.length * viewportHeight - 2
+      const slideshow = region.querySelector<HTMLElement>('.hero-project-slideshow')
+      if (!slideshow) return
 
-      root.classList.toggle('hero-project-pagination-active', withinPaginatedRegion)
+      const visualViewport = window.visualViewport
+      const viewportTop = visualViewport?.offsetTop ?? 0
+      const viewportBottom = viewportTop + (visualViewport?.height ?? window.innerHeight)
+      const slideshowRect = slideshow.getBoundingClientRect()
+      const regionRect = region.getBoundingClientRect()
+      const slideshowIsFullscreen = (
+        slideshowRect.top <= viewportTop + 1
+        && slideshowRect.bottom >= viewportBottom - 1
+      )
+      const slideshowHasMorePages = regionRect.bottom > viewportBottom + 1
+
+      root.classList.toggle(
+        'hero-project-pagination-active',
+        slideshowIsFullscreen && slideshowHasMorePages,
+      )
+    }
+
+    const scheduleScrollSnapUpdate = () => {
+      if (updateFrame !== null) return
+      updateFrame = requestAnimationFrame(() => {
+        updateFrame = null
+        updateScrollSnap()
+      })
     }
 
     updateScrollSnap()
-    window.addEventListener('scroll', updateScrollSnap, { passive: true })
+    window.addEventListener('scroll', scheduleScrollSnapUpdate, { passive: true })
+    window.visualViewport?.addEventListener('resize', scheduleScrollSnapUpdate)
     return () => {
-      window.removeEventListener('scroll', updateScrollSnap)
+      window.removeEventListener('scroll', scheduleScrollSnapUpdate)
+      window.visualViewport?.removeEventListener('resize', scheduleScrollSnapUpdate)
+      if (updateFrame !== null) cancelAnimationFrame(updateFrame)
       root.classList.remove('hero-project-pagination-active')
     }
   }, [isMobileViewport, projects.length])
@@ -605,7 +629,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
       insetRadius.set(radius)
       expansionDistance.set(
         viewportWidth < 810
-          ? Math.max(1, regionDocumentTop)
+          ? Math.max(1, Math.floor(regionDocumentTop) - 8)
           : Math.max(240, window.innerHeight * 0.35),
       )
     }
