@@ -18,6 +18,12 @@ type NavigationPageResult = OrderedPage & {
   status?: string | null
 }
 
+type ReadNextNote = {
+  title: string
+  slug: string
+  excerpt?: string | null
+}
+
 export async function getProjects(options: GetProjectsOptions = {}) {
   const payload = await getPayload()
   const filters = []
@@ -120,7 +126,7 @@ export const getReadNextNote = cache(async function getReadNextNote(
       select: { title: true, slug: true, excerpt: true },
     })
 
-    if (olderResult.docs[0]) return olderResult.docs[0]
+    if (olderResult.docs[0]) return olderResult.docs[0] as ReadNextNote
   }
 
   const newestResult = await payload.find({
@@ -133,7 +139,7 @@ export const getReadNextNote = cache(async function getReadNextNote(
     select: { title: true, slug: true, excerpt: true },
   })
 
-  return newestResult.docs[0] || null
+  return (newestResult.docs[0] as ReadNextNote | undefined) || null
 })
 
 export const getPublishedNoteSlugs = cache(async function getPublishedNoteSlugs() {
