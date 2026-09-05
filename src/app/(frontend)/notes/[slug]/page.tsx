@@ -99,7 +99,7 @@ export default async function NotePage({ params }: NotePageProps) {
                 {readNextNote.title}
               </h3>
               {readNextNote.excerpt ? (
-                <p className="mt-6 text-pretty text-[18px] leading-[1.5] tablet:text-[20px]">
+                <p className="mt-6 text-pretty text-[18px] leading-[1.5] text-muted tablet:text-[20px]">
                   {readNextNote.excerpt}
                 </p>
               ) : null}
