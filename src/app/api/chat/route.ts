@@ -2,6 +2,12 @@ import { buildContext, type FAQItem } from '@/lib/buildContext'
 import { normalizeAIChatMessages } from '@/lib/chatMessages'
 import { checkChatRateLimit } from '@/lib/chatRateLimit'
 import {
+  breaksChatPersona,
+  CHAT_IMPLEMENTATION_BOUNDARY,
+  CHAT_PERSONA_LOCK,
+  isChatImplementationQuestion,
+} from '@/lib/chatPersona'
+import {
   createWorkersAICompletion,
   isWorkersAIConfigured,
   WorkersAIError,
@@ -163,11 +169,16 @@ export async function POST(req: Request) {
   }
 
   const latestQuestion = messages.at(-1)?.content || ''
+
+  if (isChatImplementationQuestion(latestQuestion)) {
+    return eventStream(CHAT_IMPLEMENTATION_BOUNDARY, rateLimit)
+  }
+
   let systemPrompt: string
   let faqItems: FAQItem[]
   try {
     ;({ systemPrompt, faqItems } = await buildContext(latestQuestion))
-    systemPrompt = boundSystemPrompt(systemPrompt)
+    systemPrompt = boundSystemPrompt(`${systemPrompt}\n\n${CHAT_PERSONA_LOCK}`)
   } catch (error) {
     console.error('Chat context unavailable', error instanceof Error ? error.name : 'unknown')
     return eventStream(faqFallback(latestQuestion, []), rateLimit)
@@ -178,6 +189,12 @@ export async function POST(req: Request) {
   }
 
   const writingContext = await getWritingContext(latestQuestion)
+  const hasUnsafePersonaHistory = messages
+    .slice(0, -1)
+    .some((message) =>
+      isChatImplementationQuestion(message.content) || breaksChatPersona(message.content),
+    )
+  const modelMessages = hasUnsafePersonaHistory ? [messages.at(-1)!] : messages
   const currentMessages: WorkersAIMessage[] = [
     { role: 'system', content: systemPrompt },
     ...(writingContext
@@ -188,12 +205,17 @@ export async function POST(req: Request) {
           },
         ]
       : []),
-    ...messages.map((message) => ({ role: message.role, content: message.content })),
+    ...modelMessages.map((message) => ({ role: message.role, content: message.content })),
   ]
 
   try {
     const response = await createWorkersAICompletion({ messages: currentMessages, maxTokens: 512 })
-    return eventStream(response.content || faqFallback(latestQuestion, faqItems), rateLimit)
+    const content = response.content?.trim() || ''
+    if (breaksChatPersona(content)) {
+      console.warn('Chat persona guard replaced an invalid response')
+      return eventStream(CHAT_IMPLEMENTATION_BOUNDARY, rateLimit)
+    }
+    return eventStream(content || faqFallback(latestQuestion, faqItems), rateLimit)
   } catch (error) {
     const status = error instanceof WorkersAIError ? error.status : 500
     const code = error instanceof WorkersAIError ? error.code : 'unknown'

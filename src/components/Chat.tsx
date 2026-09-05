@@ -12,6 +12,10 @@ import {
   type ConversationSummary,
 } from '@/lib/conversationSummaries'
 import { useChatSidebar } from '@/lib/useChatSidebar'
+import {
+  parseAssistantContent,
+  type AssistantContentBlock,
+} from '@/lib/chatFormatting'
 
 type Message = {
   role: 'user' | 'assistant'
@@ -183,7 +187,7 @@ function linkify(text: string, projects: ProjectLink[], blogPosts: BlogPost[] = 
 }
 
 function AssistantMessage({
-  paragraphs,
+  blocks,
   avatarUrl,
   avatarUrlDark,
   topMargin,
@@ -194,7 +198,7 @@ function AssistantMessage({
   talks = [],
   animate = true,
 }: {
-  paragraphs: string[]
+  blocks: AssistantContentBlock[]
   avatarUrl?: string
   avatarUrlDark?: string
   topMargin: string
@@ -205,21 +209,21 @@ function AssistantMessage({
   talks?: TalkLink[]
   animate?: boolean
 }) {
-  const [visibleCount, setVisibleCount] = useState(animate ? 1 : paragraphs.length)
+  const [visibleCount, setVisibleCount] = useState(animate ? 1 : blocks.length)
 
   useEffect(() => {
-    if (!animate || visibleCount >= paragraphs.length) return
+    if (!animate || visibleCount >= blocks.length) return
     const timer = setTimeout(() => {
       setVisibleCount((c) => c + 1)
     }, 1000)
     return () => clearTimeout(timer)
-  }, [visibleCount, paragraphs.length, animate])
+  }, [visibleCount, blocks.length, animate])
 
   useEffect(() => {
-    if (!animate) setVisibleCount(paragraphs.length)
-  }, [animate, paragraphs.length])
+    if (!animate) setVisibleCount(blocks.length)
+  }, [animate, blocks.length])
 
-  const visible = paragraphs.slice(0, visibleCount)
+  const visible = blocks.slice(0, visibleCount)
 
   return (
     <div className={`flex items-end gap-3 ${topMargin}`}>
@@ -234,20 +238,36 @@ function AssistantMessage({
         />
       )}
       <div className="flex flex-col gap-1 max-w-[85%]">
-        {visible.map((text, pi) => (
+        {visible.map((block, blockIndex) => (
           <div
-            key={pi}
-            className="w-fit px-4 py-2.5 text-body rounded-[23px] bg-background dark:bg-white/10 text-content chat-bubble"
+            key={`${block.type}-${blockIndex}`}
+            className="w-fit px-4 py-2.5 text-body rounded-[23px] bg-background-alt text-content chat-bubble"
             style={animate ? { animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both' } : undefined}
           >
-            {text ? (
-              linkify(text, projects, blogPosts, people, sideProjects, talks)
-            ) : (
+            {block.type === 'paragraph' && !block.text ? (
               <span className="inline-flex items-center gap-1 py-1">
                 <span className="w-1.5 h-1.5 bg-current opacity-40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                 <span className="w-1.5 h-1.5 bg-current opacity-40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                 <span className="w-1.5 h-1.5 bg-current opacity-40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
               </span>
+            ) : block.type === 'paragraph' ? (
+              linkify(block.text, projects, blogPosts, people, sideProjects, talks)
+            ) : block.type === 'unordered-list' ? (
+              <ul className="list-disc space-y-2 pl-5">
+                {block.items.map((item, itemIndex) => (
+                  <li key={itemIndex} className="pl-1">
+                    {linkify(item, projects, blogPosts, people, sideProjects, talks)}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <ol className="list-decimal space-y-2 pl-5">
+                {block.items.map((item, itemIndex) => (
+                  <li key={itemIndex} className="pl-1">
+                    {linkify(item, projects, blogPosts, people, sideProjects, talks)}
+                  </li>
+                ))}
+              </ol>
             )}
           </div>
         ))}
@@ -755,15 +775,13 @@ export function Chat({
               )
             }
 
-            // Assistant: split into paragraphs, reveal with delay
-            const paragraphs = msg.content
-              ? msg.content.replace(/\{\{FOLLOWUPS:.*?\}\}/g, '').split(/\n\n+/).filter(Boolean)
-              : ['']
+            // Assistant: parse paragraphs and lists, then reveal each block with a delay.
+            const blocks = parseAssistantContent(msg.content)
 
             return (
               <AssistantMessage
                 key={i}
-                paragraphs={paragraphs}
+                blocks={blocks}
                 avatarUrl={avatarUrl}
                 avatarUrlDark={avatarUrlDark}
                 topMargin={topMargin}

@@ -49,6 +49,68 @@ type Props = {
 const AUTOPLAY_DELAY_MS = 6000
 const CURSOR_IDLE_ROTATION_SPEED = 14
 
+function samplePredominantImageColor(image: HTMLImageElement) {
+  const canvas = document.createElement('canvas')
+  const context = canvas.getContext('2d', { willReadFrequently: true })
+  if (!context || !image.naturalWidth || !image.naturalHeight) return null
+
+  const sampleSize = 24
+  const renderedAspect = image.clientWidth / image.clientHeight
+  const naturalAspect = image.naturalWidth / image.naturalHeight
+  let sourceX = 0
+  let sourceY = 0
+  let sourceWidth = image.naturalWidth
+  let sourceHeight = image.naturalHeight
+
+  if (naturalAspect > renderedAspect) {
+    sourceWidth = sourceHeight * renderedAspect
+    sourceX = (image.naturalWidth - sourceWidth) / 2
+  } else {
+    sourceHeight = sourceWidth / renderedAspect
+    sourceY = (image.naturalHeight - sourceHeight) / 2
+  }
+
+  canvas.width = sampleSize
+  canvas.height = sampleSize
+  context.drawImage(
+    image,
+    sourceX,
+    sourceY,
+    sourceWidth,
+    sourceHeight,
+    0,
+    0,
+    sampleSize,
+    sampleSize,
+  )
+
+  const buckets = new Map<string, { count: number; red: number; green: number; blue: number }>()
+  const pixels = context.getImageData(0, 0, sampleSize, sampleSize).data
+
+  for (let index = 0; index < pixels.length; index += 4) {
+    if (pixels[index + 3] < 128) continue
+
+    const red = pixels[index]
+    const green = pixels[index + 1]
+    const blue = pixels[index + 2]
+    const key = `${red >> 5}-${green >> 5}-${blue >> 5}`
+    const bucket = buckets.get(key) ?? { count: 0, red: 0, green: 0, blue: 0 }
+
+    bucket.count += 1
+    bucket.red += red
+    bucket.green += green
+    bucket.blue += blue
+    buckets.set(key, bucket)
+  }
+
+  const predominant = [...buckets.values()].sort((a, b) => b.count - a.count)[0]
+  if (!predominant) return null
+
+  return [predominant.red, predominant.green, predominant.blue]
+    .map((channel) => Math.round((channel / predominant.count) * 0.58))
+    .join(' ')
+}
+
 export function HeroProjectSlideshow({ projects }: Props) {
   const cursorTextPathId = `hero-cursor-${useId().replaceAll(':', '')}`
   const regionRef = useRef<HTMLDivElement>(null)
@@ -88,6 +150,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
   const [isFocusPaused, setIsFocusPaused] = useState(false)
   const [isCaseStudyCursorVisible, setIsCaseStudyCursorVisible] = useState(false)
   const [cursorPortalRoot, setCursorPortalRoot] = useState<HTMLElement | null>(null)
+  const [heroGradientColor, setHeroGradientColor] = useState('24 24 24')
 
   const { scrollY } = useScroll()
   const expansionProgress = useTransform(() => {
@@ -110,6 +173,17 @@ export function HeroProjectSlideshow({ projects }: Props) {
   const showPrevious = useCallback(() => {
     setActiveIndex((current) => (current - 1 + projects.length) % projects.length)
   }, [projects.length])
+
+  const updateHeroGradientColor = useCallback((image: HTMLImageElement, projectId: string) => {
+    if (projects[activeIndex]?.id !== projectId) return
+
+    try {
+      const color = samplePredominantImageColor(image)
+      if (color) setHeroGradientColor(color)
+    } catch {
+      setHeroGradientColor('24 24 24')
+    }
+  }, [activeIndex, projects])
 
   const stopCaseStudyCursorSpin = useCallback(() => {
     if (caseStudyCursorSpinFrame.current !== null) {
@@ -346,6 +420,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
               sizes="100vw"
               quality={90}
               priority={activeIndex === 0}
+              onLoad={(event) => updateHeroGradientColor(event.currentTarget, activeProject.id)}
             />
           </motion.div>
         ) : null}
@@ -355,6 +430,14 @@ export function HeroProjectSlideshow({ projects }: Props) {
         href={`/work/${activeProject.slug}`}
         aria-label={`View ${activeProject.title} project`}
         className="absolute inset-0 z-0"
+      />
+
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-1/2 tablet:hidden"
+        style={{
+          backgroundImage: `linear-gradient(to bottom, rgb(${heroGradientColor} / 0), rgb(${heroGradientColor} / 0.72) 62%, rgb(${heroGradientColor}) 100%)`,
+        }}
       />
 
       {projects.length > 1 ? (
