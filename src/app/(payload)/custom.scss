@@ -4210,6 +4210,14 @@ body:has(.drawer--is-open) :is(.template-default__nav-toggler-container, .app-he
 }
 
 /* Notes edit view: a distraction-free writing canvas with metadata behind the more menu. */
+body:has(.collection-edit--notes),
+body:has(.collection-edit--notes) .template-default__wrap,
+.collection-edit--notes,
+.collection-edit--notes .document-fields,
+.collection-edit--notes .document-fields__main {
+  background: #fff !important;
+}
+
 .collection-edit--notes .document-fields--no-sidebar {
   width: 100%;
   max-width: none;
@@ -4254,9 +4262,9 @@ body:has(.drawer--is-open) :is(.template-default__nav-toggler-container, .app-he
 }
 
 .collection-edit--notes .notes-editor-title .input-wrap,
-.collection-edit--notes .notes-editor-title input {
+.collection-edit--notes .field-type.text.notes-editor-title:not(.has-many) input {
   min-height: 0;
-  padding: 0;
+  padding: 0 !important;
   border: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
@@ -4264,16 +4272,22 @@ body:has(.drawer--is-open) :is(.template-default__nav-toggler-container, .app-he
   box-shadow: none !important;
 }
 
-.collection-edit--notes .notes-editor-title input {
-  height: auto;
+.collection-edit--notes .field-type.text.notes-editor-title:not(.has-many) input {
+  height: auto !important;
+  font-family: 'Inter Display', 'Inter', var(--font-body), system-ui, sans-serif;
   font-size: clamp(36px, 4vw, 48px);
   font-weight: 500;
   line-height: 1.12;
   letter-spacing: -0.035em;
 }
 
-.collection-edit--notes .notes-editor-title input::placeholder {
-  color: #b8b8b8;
+.collection-edit--notes .field-type.text.notes-editor-title:not(.has-many) input::placeholder {
+  color: #b8b8b8 !important;
+  font-family: 'Inter Display', 'Inter', var(--font-body), system-ui, sans-serif;
+  font-size: clamp(36px, 4vw, 48px) !important;
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  opacity: 1;
 }
 
 .collection-edit--notes .notes-editor-body {
@@ -4312,6 +4326,17 @@ body:has(.drawer--is-open) :is(.template-default__nav-toggler-container, .app-he
   line-height: 1.72;
 }
 
+body:has(.collection-edit--notes) .toolbar-popup__dropdown-items,
+body:has(.collection-edit--notes) .toolbar-popup__dropdown-items .toolbar-popup__dropdown-item {
+  text-align: left;
+}
+
+body:has(.collection-edit--notes) .toolbar-popup__dropdown-items .toolbar-popup__dropdown-item .btn__content {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+}
+
 .collection-edit--notes .notes-editor-tabs > .tabs-field__content-wrap > .tabs-field__tabConfigLabel-metadata::before {
   content: 'Metadata';
   display: block;
@@ -4333,7 +4358,8 @@ body:has(.drawer--is-open) :is(.template-default__nav-toggler-container, .app-he
     margin-bottom: 22px;
   }
 
-  .collection-edit--notes .notes-editor-title input {
+  .collection-edit--notes .field-type.text.notes-editor-title:not(.has-many) input,
+  .collection-edit--notes .field-type.text.notes-editor-title:not(.has-many) input::placeholder {
     font-size: 34px;
   }
 

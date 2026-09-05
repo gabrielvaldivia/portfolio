@@ -1,11 +1,15 @@
 'use client'
 
-import { PopupList, useDocumentInfo } from '@payloadcms/ui'
+import { PopupList, PublishButton, useDocumentInfo } from '@payloadcms/ui'
 import { useCallback, useEffect, useState } from 'react'
 
 type NoteEditorView = 'writing' | 'metadata'
 
 const TAB_SELECTOR = '.notes-editor-tabs .tabs-field__tab-button'
+
+export function NotesPublishButton() {
+  return <PublishButton label="Publish" />
+}
 
 function getActiveView(): NoteEditorView {
   const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>(TAB_SELECTOR))

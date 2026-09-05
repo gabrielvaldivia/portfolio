@@ -26,6 +26,7 @@ export const Notes: CollectionConfig = {
     components: {
       edit: {
         editMenuItems: ['./components/admin/NotesEditMenu#NotesEditMenu'],
+        PublishButton: './components/admin/NotesEditMenu#NotesPublishButton',
       },
     },
   },
