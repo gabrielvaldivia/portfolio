@@ -122,7 +122,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
     })
   }
 
-  const sections = (home.sections || []).map((section) => (
+  const sections = (home.sections || []).map((section: any) => (
     section.blockType === 'hero'
       ? {
           ...section,
