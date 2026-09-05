@@ -218,7 +218,7 @@ const existingNotesBySlug = new Map(existingNotes.docs.map((note) => [note.slug,
 const existingSlugs = new Set(existingNotesBySlug.keys())
 const statusCounts = Object.fromEntries(
   Object.entries(Object.groupBy(existingNotes.docs, (note) => note._status || 'published'))
-    .map(([status, notes]) => [status, notes.length]),
+    .map(([status, notes]) => [status, notes?.length || 0]),
 )
 const essaysToCreate = uniqueEssays.filter((essay) => !existingSlugs.has(essay.slug))
 const essaysToRefresh = refreshSlug
