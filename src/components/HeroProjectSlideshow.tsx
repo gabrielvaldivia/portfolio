@@ -196,7 +196,7 @@ function MobileHeroSlide({
   const gradientColor = hexToRgbChannels(project.gradientColor) ?? fallbackGradientColor
 
   return (
-    <div className="relative h-dvh w-full shrink-0 overflow-hidden bg-background-alt text-white">
+    <div className="relative h-svh w-full shrink-0 overflow-hidden bg-background-alt text-white">
       {media?.url ? (
         isVideoMedia(media) ? (
           <SilentBackgroundVideo
@@ -289,9 +289,6 @@ export function HeroProjectSlideshow({ projects }: Props) {
   const [cursorPortalRoot, setCursorPortalRoot] = useState<HTMLElement | null>(null)
   const [heroGradientColor, setHeroGradientColor] = useState('24 24 24')
   const mobileScrollControlledRef = useRef(false)
-  const mobileResizeCorrectionTimeout = useRef<number | null>(null)
-  const mobileScrollSettleTimeout = useRef<number | null>(null)
-  const mobileLastScrollTimestamp = useRef(0)
 
   const { scrollY } = useScroll()
   const { scrollYProgress: mobileScrollProgress } = useScroll({
@@ -331,53 +328,15 @@ export function HeroProjectSlideshow({ projects }: Props) {
 
     const regionTop = region.getBoundingClientRect().top + window.scrollY
     const clampedStep = Math.max(0, Math.min(projects.length - 1, step))
-    const viewportHeight = window.visualViewport?.height ?? window.innerHeight
+    const measuredSlideHeight = mobileSlideHeight.get()
+    const viewportHeight = measuredSlideHeight > 1
+      ? measuredSlideHeight
+      : window.visualViewport?.height ?? window.innerHeight
     window.scrollTo({
       top: regionTop + clampedStep * viewportHeight,
       behavior: prefersReducedMotion ? 'auto' : 'smooth',
     })
-  }, [prefersReducedMotion, projects.length])
-
-  const settleMobileScroll = useCallback((behavior: ScrollBehavior = 'smooth') => {
-    const region = regionRef.current
-    if (!region || !document.documentElement.classList.contains('hero-project-pagination-active')) return
-
-    const currentScrollY = window.scrollY
-    const viewportHeight = window.visualViewport?.height ?? window.innerHeight
-    const regionTop = region.getBoundingClientRect().top + currentScrollY
-    const intro = region.closest<HTMLElement>('#hero')?.querySelector<HTMLElement>('.hero-intro-snap-point')
-    const introScrollMargin = intro ? Number.parseFloat(getComputedStyle(intro).scrollMarginTop) || 0 : 0
-    const introTop = intro
-      ? Math.max(0, intro.getBoundingClientRect().top + currentScrollY - introScrollMargin)
-      : regionTop
-    const approach = document.querySelector<HTMLElement>('.hero-approach-snap-point')
-    const approachScrollMargin = approach
-      ? Number.parseFloat(getComputedStyle(approach).scrollMarginTop) || 0
-      : 0
-    const approachTop = approach
-      ? approach.getBoundingClientRect().top + currentScrollY - approachScrollMargin
-      : null
-    const snapPositions = [
-      introTop,
-      ...Array.from(
-        { length: projects.length },
-        (_, index) => regionTop + index * viewportHeight,
-      ),
-      ...(approachTop !== null ? [approachTop] : []),
-    ]
-    const sequenceEnd = snapPositions[snapPositions.length - 1]
-
-    if (currentScrollY < introTop - 1 || currentScrollY > sequenceEnd + 1) return
-
-    const targetScrollY = snapPositions.reduce((nearest, position) => (
-      Math.abs(currentScrollY - position) < Math.abs(currentScrollY - nearest)
-        ? position
-        : nearest
-    ))
-
-    if (Math.abs(currentScrollY - targetScrollY) <= 1) return
-    window.scrollTo({ top: targetScrollY, behavior })
-  }, [projects.length])
+  }, [mobileSlideHeight, prefersReducedMotion, projects.length])
 
   const selectSlide = useCallback((index: number) => {
     setActiveIndex(index)
@@ -548,156 +507,37 @@ export function HeroProjectSlideshow({ projects }: Props) {
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 809px)')
+    const region = regionRef.current
+
     const updateViewport = () => {
       const isMobile = mediaQuery.matches
-      const viewportHeight = window.visualViewport?.height ?? window.innerHeight
-
       setIsMobileViewport(isMobile)
-      mobileSlideHeight.set(viewportHeight)
-
-      if (mobileResizeCorrectionTimeout.current !== null) {
-        window.clearTimeout(mobileResizeCorrectionTimeout.current)
-        mobileResizeCorrectionTimeout.current = null
-      }
-
-      if (!isMobile) return
-
-      // Mobile browser chrome changes the dynamic viewport after a swipe has
-      // already snapped. Re-anchor the settled project to the newly measured
-      // viewport so two slides can never remain visible at once.
-      const settleAfterViewportResize = () => {
-        const idleTime = performance.now() - mobileLastScrollTimestamp.current
-        const remainingIdleTime = 64 - idleTime
-
-        if (remainingIdleTime > 0) {
-          mobileResizeCorrectionTimeout.current = window.setTimeout(
-            settleAfterViewportResize,
-            remainingIdleTime,
-          )
-          return
-        }
-
-        mobileResizeCorrectionTimeout.current = null
-        settleMobileScroll(prefersReducedMotion ? 'auto' : 'smooth')
-      }
-
-      mobileResizeCorrectionTimeout.current = window.setTimeout(settleAfterViewportResize, 64)
+      if (!region || !isMobile) return
+      mobileSlideHeight.set(region.getBoundingClientRect().height / Math.max(1, projects.length))
     }
 
     updateViewport()
+    const resizeObserver = region ? new ResizeObserver(updateViewport) : null
+    if (region) resizeObserver?.observe(region)
     mediaQuery.addEventListener('change', updateViewport)
     window.addEventListener('resize', updateViewport)
-    window.visualViewport?.addEventListener('resize', updateViewport)
 
     return () => {
+      resizeObserver?.disconnect()
       mediaQuery.removeEventListener('change', updateViewport)
       window.removeEventListener('resize', updateViewport)
-      window.visualViewport?.removeEventListener('resize', updateViewport)
-      if (mobileResizeCorrectionTimeout.current !== null) {
-        window.clearTimeout(mobileResizeCorrectionTimeout.current)
-        mobileResizeCorrectionTimeout.current = null
-      }
     }
-  }, [mobileSlideHeight, prefersReducedMotion, settleMobileScroll])
+  }, [mobileSlideHeight, projects.length])
 
   useEffect(() => {
     if (!isMobileViewport || projects.length < 2) return
 
     const root = document.documentElement
-    const region = regionRef.current
-    if (!region) return
-
-    const sequence = region.closest<HTMLElement>('#hero') ?? region
-    const approach = document.querySelector<HTMLElement>('.hero-approach-snap-point')
-    const approachScrollMargin = approach
-      ? Number.parseFloat(getComputedStyle(approach).scrollMarginTop) || 0
-      : 0
-    let updateFrame: number | null = null
-    const updateScrollSnap = () => {
-      const visualViewport = window.visualViewport
-      const viewportTop = visualViewport?.offsetTop ?? 0
-      const viewportBottom = viewportTop + (visualViewport?.height ?? window.innerHeight)
-      const sequenceRect = sequence.getBoundingClientRect()
-      const regionRect = region.getBoundingClientRect()
-      const approachSnapTop = approach
-        ? approach.getBoundingClientRect().top - approachScrollMargin
-        : null
-      const sequenceIsInRange = sequenceRect.top < viewportBottom - 1
-      const sequenceHasNotFinished = approachSnapTop !== null
-        ? approachSnapTop > viewportTop + 1
-        : regionRect.bottom > viewportBottom + 1
-
-      root.classList.toggle(
-        'hero-project-pagination-active',
-        sequenceIsInRange && sequenceHasNotFinished,
-      )
-    }
-
-    const scheduleScrollSnapUpdate = () => {
-      if (updateFrame !== null) return
-      updateFrame = requestAnimationFrame(() => {
-        updateFrame = null
-        updateScrollSnap()
-      })
-    }
-
-    updateScrollSnap()
-    window.addEventListener('scroll', scheduleScrollSnapUpdate, { passive: true })
-    window.visualViewport?.addEventListener('resize', scheduleScrollSnapUpdate)
+    root.classList.add('hero-project-pagination-active')
     return () => {
-      window.removeEventListener('scroll', scheduleScrollSnapUpdate)
-      window.visualViewport?.removeEventListener('resize', scheduleScrollSnapUpdate)
-      if (updateFrame !== null) cancelAnimationFrame(updateFrame)
       root.classList.remove('hero-project-pagination-active')
     }
   }, [isMobileViewport, projects.length])
-
-  useEffect(() => {
-    if (!isMobileViewport || projects.length < 2) return
-
-    let settleFrame: number | null = null
-    const settle = (event: Event) => {
-      if (event.type === 'scroll') {
-        mobileLastScrollTimestamp.current = performance.now()
-      }
-
-      if (mobileScrollSettleTimeout.current !== null) {
-        window.clearTimeout(mobileScrollSettleTimeout.current)
-      }
-
-      mobileScrollSettleTimeout.current = window.setTimeout(() => {
-        mobileScrollSettleTimeout.current = null
-        settleMobileScroll(prefersReducedMotion ? 'auto' : 'smooth')
-      }, 32)
-    }
-
-    const settleImmediately = () => {
-      if (mobileScrollSettleTimeout.current !== null) {
-        window.clearTimeout(mobileScrollSettleTimeout.current)
-        mobileScrollSettleTimeout.current = null
-      }
-      if (settleFrame !== null) cancelAnimationFrame(settleFrame)
-      settleFrame = requestAnimationFrame(() => {
-        settleFrame = null
-        settleMobileScroll(prefersReducedMotion ? 'auto' : 'smooth')
-      })
-    }
-
-    window.addEventListener('scroll', settle, { passive: true })
-    window.addEventListener('scrollend', settleImmediately)
-    window.addEventListener('touchend', settleImmediately, { passive: true })
-
-    return () => {
-      window.removeEventListener('scroll', settle)
-      window.removeEventListener('scrollend', settleImmediately)
-      window.removeEventListener('touchend', settleImmediately)
-      if (mobileScrollSettleTimeout.current !== null) {
-        window.clearTimeout(mobileScrollSettleTimeout.current)
-        mobileScrollSettleTimeout.current = null
-      }
-      if (settleFrame !== null) cancelAnimationFrame(settleFrame)
-    }
-  }, [isMobileViewport, prefersReducedMotion, projects.length, settleMobileScroll])
 
   useMotionValueEvent(mobileScrollProgress, 'change', (latest) => {
     if (!isMobileViewport || projects.length < 2) return
@@ -789,7 +629,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
       ref={regionRef}
       className="hero-project-scroll-region relative w-full"
       style={{
-        '--hero-mobile-scroll-height': `${Math.max(1, projects.length) * 100}dvh`,
+        '--hero-mobile-scroll-height': `${Math.max(1, projects.length) * 100}svh`,
       } as CSSProperties}
     >
       <div
@@ -797,7 +637,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
         className="hero-project-snap-point pointer-events-none absolute inset-x-0 top-0 h-px tablet:hidden"
       />
 
-      <div className="sticky top-0 h-dvh w-full tablet:relative tablet:top-auto tablet:h-auto">
+      <div className="sticky top-0 h-svh w-full tablet:relative tablet:top-auto tablet:h-auto">
         <motion.section
           role="region"
           aria-label="Featured projects"
@@ -979,7 +819,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
         <div
           key={`hero-snap-${index + 1}`}
           aria-hidden="true"
-          className="hero-project-snap-point h-dvh pointer-events-none tablet:hidden"
+          className="hero-project-snap-point h-svh pointer-events-none tablet:hidden"
         />
       ))}
 
