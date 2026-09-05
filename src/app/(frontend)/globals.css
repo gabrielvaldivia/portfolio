@@ -431,6 +431,11 @@ h2 {
     height: var(--hero-mobile-scroll-height);
   }
 
+  .hero-intro-snap-point {
+    scroll-margin-top: 94px;
+  }
+
+  .hero-intro-snap-point,
   .hero-project-snap-point {
     scroll-snap-align: start;
     scroll-snap-stop: always;

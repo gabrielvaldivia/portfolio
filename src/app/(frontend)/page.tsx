@@ -335,7 +335,7 @@ function HomeHeroTagline({ heading = HOME_HERO_TAGLINE }: { heading?: string | n
   const lines = (heading?.trim() || HOME_HERO_TAGLINE).split(/\r?\n/)
 
   return (
-    <div className="px-5 tablet:px-10 tablet:pt-20 desktop:pt-24">
+    <div className="hero-intro-snap-point px-5 tablet:px-10 tablet:pt-20 desktop:pt-24">
       <h1
         aria-label={lines.join(' ')}
         className="home-hero-heading max-w-[1120px] text-left"

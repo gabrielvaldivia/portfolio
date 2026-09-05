@@ -289,6 +289,8 @@ export function HeroProjectSlideshow({ projects }: Props) {
   const [cursorPortalRoot, setCursorPortalRoot] = useState<HTMLElement | null>(null)
   const [heroGradientColor, setHeroGradientColor] = useState('24 24 24')
   const mobileScrollControlledRef = useRef(false)
+  const mobileResizeCorrectionTimeout = useRef<number | null>(null)
+  const mobileScrollSettleTimeout = useRef<number | null>(null)
 
   const { scrollY } = useScroll()
   const { scrollYProgress: mobileScrollProgress } = useScroll({
@@ -334,6 +336,39 @@ export function HeroProjectSlideshow({ projects }: Props) {
       behavior: prefersReducedMotion ? 'auto' : 'smooth',
     })
   }, [prefersReducedMotion, projects.length])
+
+  const settleMobileScroll = useCallback((behavior: ScrollBehavior = 'smooth') => {
+    const region = regionRef.current
+    if (!region || !document.documentElement.classList.contains('hero-project-pagination-active')) return
+
+    const currentScrollY = window.scrollY
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight
+    const regionTop = region.getBoundingClientRect().top + currentScrollY
+    const sequenceEnd = regionTop + projects.length * viewportHeight
+    const intro = region.closest<HTMLElement>('#hero')?.querySelector<HTMLElement>('.hero-intro-snap-point')
+    const introScrollMargin = intro ? Number.parseFloat(getComputedStyle(intro).scrollMarginTop) || 0 : 0
+    const introTop = intro
+      ? Math.max(0, intro.getBoundingClientRect().top + currentScrollY - introScrollMargin)
+      : regionTop
+
+    if (currentScrollY < introTop - 1 || currentScrollY > sequenceEnd + 1) return
+
+    let targetScrollY: number
+    if (currentScrollY < regionTop) {
+      targetScrollY = Math.abs(currentScrollY - introTop) <= Math.abs(currentScrollY - regionTop)
+        ? introTop
+        : regionTop
+    } else {
+      const nearestStep = Math.max(
+        0,
+        Math.min(projects.length, Math.round((currentScrollY - regionTop) / viewportHeight)),
+      )
+      targetScrollY = regionTop + nearestStep * viewportHeight
+    }
+
+    if (Math.abs(currentScrollY - targetScrollY) <= 1) return
+    window.scrollTo({ top: targetScrollY, behavior })
+  }, [projects.length])
 
   const selectSlide = useCallback((index: number) => {
     setActiveIndex(index)
@@ -505,8 +540,26 @@ export function HeroProjectSlideshow({ projects }: Props) {
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 809px)')
     const updateViewport = () => {
-      setIsMobileViewport(mediaQuery.matches)
-      mobileSlideHeight.set(window.visualViewport?.height ?? window.innerHeight)
+      const isMobile = mediaQuery.matches
+      const viewportHeight = window.visualViewport?.height ?? window.innerHeight
+
+      setIsMobileViewport(isMobile)
+      mobileSlideHeight.set(viewportHeight)
+
+      if (mobileResizeCorrectionTimeout.current !== null) {
+        window.clearTimeout(mobileResizeCorrectionTimeout.current)
+        mobileResizeCorrectionTimeout.current = null
+      }
+
+      if (!isMobile) return
+
+      // Mobile browser chrome changes the dynamic viewport after a swipe has
+      // already snapped. Re-anchor the settled project to the newly measured
+      // viewport so two slides can never remain visible at once.
+      mobileResizeCorrectionTimeout.current = window.setTimeout(() => {
+        mobileResizeCorrectionTimeout.current = null
+        settleMobileScroll('auto')
+      }, 160)
     }
 
     updateViewport()
@@ -518,8 +571,12 @@ export function HeroProjectSlideshow({ projects }: Props) {
       mediaQuery.removeEventListener('change', updateViewport)
       window.removeEventListener('resize', updateViewport)
       window.visualViewport?.removeEventListener('resize', updateViewport)
+      if (mobileResizeCorrectionTimeout.current !== null) {
+        window.clearTimeout(mobileResizeCorrectionTimeout.current)
+        mobileResizeCorrectionTimeout.current = null
+      }
     }
-  }, [mobileSlideHeight])
+  }, [mobileSlideHeight, settleMobileScroll])
 
   useEffect(() => {
     if (!isMobileViewport || projects.length < 2) return
@@ -530,23 +587,18 @@ export function HeroProjectSlideshow({ projects }: Props) {
       const region = regionRef.current
       if (!region) return
 
-      const slideshow = region.querySelector<HTMLElement>('.hero-project-slideshow')
-      if (!slideshow) return
-
       const visualViewport = window.visualViewport
       const viewportTop = visualViewport?.offsetTop ?? 0
       const viewportBottom = viewportTop + (visualViewport?.height ?? window.innerHeight)
-      const slideshowRect = slideshow.getBoundingClientRect()
+      const sequence = region.closest<HTMLElement>('#hero') ?? region
+      const sequenceRect = sequence.getBoundingClientRect()
       const regionRect = region.getBoundingClientRect()
-      const slideshowIsFullscreen = (
-        slideshowRect.top <= viewportTop + 1
-        && slideshowRect.bottom >= viewportBottom - 1
-      )
-      const slideshowHasMorePages = regionRect.bottom > viewportBottom + 1
+      const sequenceIsInRange = sequenceRect.top < viewportBottom - 1
+      const slideshowHasNotPassed = regionRect.bottom > viewportBottom + 1
 
       root.classList.toggle(
         'hero-project-pagination-active',
-        slideshowIsFullscreen && slideshowHasMorePages,
+        sequenceIsInRange && slideshowHasNotPassed,
       )
     }
 
@@ -568,6 +620,43 @@ export function HeroProjectSlideshow({ projects }: Props) {
       root.classList.remove('hero-project-pagination-active')
     }
   }, [isMobileViewport, projects.length])
+
+  useEffect(() => {
+    if (!isMobileViewport || projects.length < 2) return
+
+    const settle = () => {
+      if (mobileScrollSettleTimeout.current !== null) {
+        window.clearTimeout(mobileScrollSettleTimeout.current)
+      }
+
+      mobileScrollSettleTimeout.current = window.setTimeout(() => {
+        mobileScrollSettleTimeout.current = null
+        settleMobileScroll(prefersReducedMotion ? 'auto' : 'smooth')
+      }, 140)
+    }
+
+    const settleImmediately = () => {
+      if (mobileScrollSettleTimeout.current !== null) {
+        window.clearTimeout(mobileScrollSettleTimeout.current)
+        mobileScrollSettleTimeout.current = null
+      }
+      settleMobileScroll(prefersReducedMotion ? 'auto' : 'smooth')
+    }
+
+    window.addEventListener('scroll', settle, { passive: true })
+    window.addEventListener('scrollend', settleImmediately)
+    window.addEventListener('touchend', settle, { passive: true })
+
+    return () => {
+      window.removeEventListener('scroll', settle)
+      window.removeEventListener('scrollend', settleImmediately)
+      window.removeEventListener('touchend', settle)
+      if (mobileScrollSettleTimeout.current !== null) {
+        window.clearTimeout(mobileScrollSettleTimeout.current)
+        mobileScrollSettleTimeout.current = null
+      }
+    }
+  }, [isMobileViewport, prefersReducedMotion, projects.length, settleMobileScroll])
 
   useMotionValueEvent(mobileScrollProgress, 'change', (latest) => {
     if (!isMobileViewport || projects.length < 2) return
@@ -657,25 +746,31 @@ export function HeroProjectSlideshow({ projects }: Props) {
   return (
     <div
       ref={regionRef}
-      className="hero-project-scroll-region hero-project-snap-point w-full"
+      className="hero-project-scroll-region relative w-full"
       style={{
         '--hero-mobile-scroll-height': `${(projects.length + 1) * 100}dvh`,
       } as CSSProperties}
     >
-      <motion.section
-        role="region"
-        aria-label="Featured projects"
-        aria-roledescription="carousel"
-        className="hero-project-slideshow sticky top-0 h-dvh w-full origin-center overflow-hidden bg-background-alt text-white tablet:relative tablet:h-auto tablet:aspect-video"
-        style={{ scale: slideshowScale, borderRadius: slideshowRadius }}
-        onPointerEnter={updateCaseStudyCursor}
-        onPointerMove={updateCaseStudyCursor}
-        onPointerLeave={handleCaseStudyCursorLeave}
-        onFocusCapture={() => setIsFocusPaused(true)}
-        onBlurCapture={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setIsFocusPaused(false)
-        }}
-      >
+      <div
+        aria-hidden="true"
+        className="hero-project-snap-point pointer-events-none absolute inset-x-0 top-0 h-px tablet:hidden"
+      />
+
+      <div className="sticky top-0 h-dvh w-full tablet:relative tablet:top-auto tablet:h-auto">
+        <motion.section
+          role="region"
+          aria-label="Featured projects"
+          aria-roledescription="carousel"
+          className="hero-project-slideshow absolute inset-0 w-full origin-center overflow-hidden bg-background-alt text-white tablet:relative tablet:inset-auto tablet:aspect-video"
+          style={{ scale: slideshowScale, borderRadius: slideshowRadius }}
+          onPointerEnter={updateCaseStudyCursor}
+          onPointerMove={updateCaseStudyCursor}
+          onPointerLeave={handleCaseStudyCursorLeave}
+          onFocusCapture={() => setIsFocusPaused(true)}
+          onBlurCapture={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setIsFocusPaused(false)
+          }}
+        >
       <motion.div
         className="absolute inset-x-0 top-0 tablet:hidden"
         style={{ y: mobileTrackY }}
@@ -836,7 +931,8 @@ export function HeroProjectSlideshow({ projects }: Props) {
         </div>
       </div>
 
-      </motion.section>
+        </motion.section>
+      </div>
 
       {Array.from({ length: projects.length }, (_, index) => (
         <div
