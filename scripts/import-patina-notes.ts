@@ -4,6 +4,7 @@
 // Usage:
 //   npx payload run scripts/import-patina-notes.ts -- --dry-run
 //   npx payload run scripts/import-patina-notes.ts
+//   npx payload run scripts/import-patina-notes.ts -- --publish
 //   npx payload run scripts/import-patina-notes.ts -- --refresh=an-existing-slug
 //   PATINA_NOTES_DIR=/path/to/blog npx payload run scripts/import-patina-notes.ts
 
@@ -40,6 +41,7 @@ const DEFAULT_PATINA_NOTES_DIR = path.join(
 )
 
 const isDryRun = process.argv.includes('--dry-run')
+const shouldPublish = process.argv.includes('--publish')
 const refreshSlug = process.argv
   .find((argument) => argument.startsWith('--refresh='))
   ?.slice('--refresh='.length)
@@ -224,11 +226,26 @@ const essaysToCreate = uniqueEssays.filter((essay) => !existingSlugs.has(essay.s
 const essaysToRefresh = refreshSlug
   ? uniqueEssays.filter((essay) => essay.slug === refreshSlug && existingSlugs.has(essay.slug))
   : []
+const essaysToPublish = shouldPublish
+  ? uniqueEssays.filter((essay) => existingNotesBySlug.get(essay.slug)?._status !== 'published')
+  : []
+const dateMismatches = uniqueEssays.flatMap((essay) => {
+  const note = existingNotesBySlug.get(essay.slug)
+  if (!note) return []
+
+  const expected = essay.date.slice(0, 10)
+  const actual = note.publishedAt?.slice(0, 10) || null
+  return actual === expected ? [] : [{ actual, expected, slug: essay.slug }]
+})
 const skippedExisting = uniqueEssays
   .filter((essay) => existingSlugs.has(essay.slug) && essay.slug !== refreshSlug)
   .map((essay) => essay.slug)
 
 if (!isDryRun) {
+  if (shouldPublish && dateMismatches.length > 0) {
+    throw new Error(`Refusing to publish notes with date mismatches: ${JSON.stringify(dateMismatches)}`)
+  }
+
   const editorConfig = await editorConfigFactory.default({ config: payload.config })
 
   const noteData = (essay: Essay) => {
@@ -270,6 +287,22 @@ if (!isDryRun) {
       overrideAccess: true,
     })
   }
+
+  for (const essay of essaysToPublish) {
+    const existingNote = existingNotesBySlug.get(essay.slug)
+    if (!existingNote) continue
+
+    await payload.update({
+      collection: 'notes',
+      id: existingNote.id,
+      data: {
+        _status: 'published',
+      },
+      depth: 0,
+      draft: false,
+      overrideAccess: true,
+    })
+  }
 }
 
 console.log(JSON.stringify({
@@ -277,8 +310,11 @@ console.log(JSON.stringify({
   draftsReady: essaysToCreate.length,
   dryRun: isDryRun,
   duplicateFiles,
+  dateMismatches,
   existingNotes: existingNotes.totalDocs,
   imageReferencesPreserved: uniqueEssays.reduce((total, essay) => total + essay.imageCount, 0),
+  published: isDryRun ? 0 : essaysToPublish.length,
+  publishReady: essaysToPublish.length,
   refreshed: isDryRun ? 0 : essaysToRefresh.length,
   refreshReady: essaysToRefresh.map((essay) => essay.slug),
   skippedExisting,
