@@ -4289,6 +4289,18 @@ body:has(.collection-edit--notes) .app-header__step-nav .step-nav__last {
   letter-spacing: -0.025em;
 }
 
+.collection-edit--notes #field-title,
+.collection-edit--notes #field-title:hover,
+.collection-edit--notes #field-title:focus,
+.collection-edit--notes #field-title:focus-visible,
+.collection-edit--notes #field-title:active {
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
 .collection-edit--notes .field-type.text.notes-editor-title:not(.has-many) input::placeholder {
   color: #b8b8b8 !important;
   font-family: 'Inter Display', 'Inter', var(--font-body), system-ui, sans-serif;
@@ -4333,6 +4345,11 @@ body:has(.collection-edit--notes) .app-header__step-nav .step-nav__last {
   font-family: Georgia, 'Times New Roman', serif;
   font-size: 19px;
   line-height: 1.72;
+}
+
+.collection-edit--notes .notes-editor-body .add-block-menu .icon {
+  position: relative;
+  top: 4px;
 }
 
 body:has(.collection-edit--notes) .toolbar-popup__dropdown-items,
