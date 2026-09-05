@@ -178,6 +178,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
   const [isMobileViewport, setIsMobileViewport] = useState(false)
   const [isMobileScrollControlled, setIsMobileScrollControlled] = useState(false)
   const progress = useMotionValue(0)
+  const mobileDragY = useMotionValue(0)
   const insetScale = useMotionValue(1)
   const insetRadius = useMotionValue(20)
   const expansionDistance = useMotionValue(320)
@@ -208,13 +209,13 @@ export function HeroProjectSlideshow({ projects }: Props) {
     lastTurnTimestamp: 0,
   })
   const [activeIndex, setActiveIndex] = useState(0)
-  const [transitionDirection, setTransitionDirection] = useState(1)
   const [isFocusPaused, setIsFocusPaused] = useState(false)
   const [isCaseStudyCursorVisible, setIsCaseStudyCursorVisible] = useState(false)
   const [cursorPortalRoot, setCursorPortalRoot] = useState<HTMLElement | null>(null)
   const [heroGradientColor, setHeroGradientColor] = useState('24 24 24')
   const mobileScrollControlledRef = useRef(false)
   const mobileTouchGestureRef = useRef<{ startY: number; startIndex: number } | null>(null)
+  const mobileSwipeAnimationRef = useRef<ReturnType<typeof animate> | null>(null)
   const suppressMobileClickRef = useRef(false)
 
   const { scrollY } = useScroll()
@@ -236,12 +237,10 @@ export function HeroProjectSlideshow({ projects }: Props) {
   })
 
   const showNext = useCallback(() => {
-    setTransitionDirection(1)
     setActiveIndex((current) => (current + 1) % projects.length)
   }, [projects.length])
 
   const showPrevious = useCallback(() => {
-    setTransitionDirection(-1)
     setActiveIndex((current) => (current - 1 + projects.length) % projects.length)
   }, [projects.length])
 
@@ -258,13 +257,12 @@ export function HeroProjectSlideshow({ projects }: Props) {
   }, [projects.length])
 
   const selectSlide = useCallback((index: number) => {
-    setTransitionDirection(index >= activeIndex ? 1 : -1)
     setActiveIndex(index)
 
     if (isMobileViewport && mobileScrollControlledRef.current) {
       scrollToMobileStep(index)
     }
-  }, [activeIndex, isMobileViewport, scrollToMobileStep])
+  }, [isMobileViewport, scrollToMobileStep])
 
   const handleMobileTouchStart = useCallback((event: ReactTouchEvent<HTMLElement>) => {
     if (!isMobileViewport || (event.target as HTMLElement).closest('button')) return
@@ -279,10 +277,12 @@ export function HeroProjectSlideshow({ projects }: Props) {
     const touch = event.touches[0]
     if (!touch) return
 
+    mobileSwipeAnimationRef.current?.stop()
+    mobileDragY.set(0)
     mobileTouchGestureRef.current = { startY: touch.clientY, startIndex: activeIndex }
     mobileScrollControlledRef.current = true
     setIsMobileScrollControlled(true)
-  }, [activeIndex, isMobileViewport])
+  }, [activeIndex, isMobileViewport, mobileDragY])
 
   const handleMobileTouchEnd = useCallback((event: ReactTouchEvent<HTMLElement>) => {
     const gesture = mobileTouchGestureRef.current
@@ -292,21 +292,55 @@ export function HeroProjectSlideshow({ projects }: Props) {
     const touch = event.changedTouches[0]
     const distance = touch ? gesture.startY - touch.clientY : 0
     const direction = distance >= 0 ? 1 : -1
-    const targetStep = Math.abs(distance) >= MOBILE_SWIPE_THRESHOLD
-      ? Math.max(0, Math.min(projects.length, gesture.startIndex + direction))
-      : gesture.startIndex
+    const shouldPaginate = Math.abs(distance) >= MOBILE_SWIPE_THRESHOLD
+    const targetStep = shouldPaginate ? gesture.startIndex + direction : gesture.startIndex
 
-    if (Math.abs(distance) >= MOBILE_SWIPE_THRESHOLD) {
+    if (shouldPaginate) {
       suppressMobileClickRef.current = true
       window.setTimeout(() => { suppressMobileClickRef.current = false }, 450)
     }
 
-    if (targetStep < projects.length) {
-      setTransitionDirection(direction)
-      setActiveIndex(targetStep)
+    mobileSwipeAnimationRef.current?.stop()
+
+    if (!shouldPaginate) {
+      mobileSwipeAnimationRef.current = animate(mobileDragY, 0, {
+        type: 'spring',
+        stiffness: 420,
+        damping: 38,
+      })
+      return
     }
-    scrollToMobileStep(targetStep)
-  }, [projects.length, scrollToMobileStep])
+
+    mobileSwipeAnimationRef.current = animate(
+      mobileDragY,
+      direction > 0 ? -window.innerHeight : window.innerHeight,
+      {
+        duration: prefersReducedMotion ? 0 : 0.24,
+        ease: [0.32, 0.72, 0, 1],
+        onComplete: () => {
+          if (targetStep < 0) {
+            const region = regionRef.current
+            const regionTop = region
+              ? region.getBoundingClientRect().top + window.scrollY
+              : 0
+            window.scrollTo({ top: Math.max(0, regionTop - window.innerHeight), behavior: 'auto' })
+            mobileDragY.set(0)
+            return
+          }
+
+          if (targetStep >= projects.length) {
+            scrollToMobileStep(projects.length)
+            mobileDragY.set(0)
+            return
+          }
+
+          setActiveIndex(targetStep)
+          scrollToMobileStep(targetStep)
+          requestAnimationFrame(() => mobileDragY.set(0))
+        },
+      },
+    )
+  }, [mobileDragY, prefersReducedMotion, projects.length, scrollToMobileStep])
 
   const updateHeroGradientColor = useCallback((image: HTMLImageElement, projectId: string) => {
     const activeProject = projects[activeIndex]
@@ -486,21 +520,13 @@ export function HeroProjectSlideshow({ projects }: Props) {
       const touch = event.touches[0]
       if (!gesture || !touch) return
 
-      const distance = gesture.startY - touch.clientY
-      const leavingAboveCarousel = gesture.startIndex === 0 && distance < 0
-      const leavingBelowCarousel = gesture.startIndex === projects.length - 1 && distance > 0
-
-      if (leavingAboveCarousel || leavingBelowCarousel) {
-        mobileTouchGestureRef.current = null
-        return
-      }
-
       event.preventDefault()
+      mobileDragY.set(touch.clientY - gesture.startY)
     }
 
     slideshow.addEventListener('touchmove', preventFreeScrollDuringSwipe, { passive: false })
     return () => slideshow.removeEventListener('touchmove', preventFreeScrollDuringSwipe)
-  }, [projects.length])
+  }, [mobileDragY])
 
   useMotionValueEvent(mobileScrollProgress, 'change', (latest) => {
     if (!isMobileViewport || projects.length < 2) return
@@ -518,11 +544,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
     const nextSlideProgress = Math.min(1, scaledProgress - nextIndex)
 
     if (!mobileTouchGestureRef.current) {
-      setActiveIndex((current) => {
-        if (current === nextIndex) return current
-        setTransitionDirection(nextIndex > current ? 1 : -1)
-        return nextIndex
-      })
+      setActiveIndex((current) => current === nextIndex ? current : nextIndex)
     }
     progress.set(nextSlideProgress)
   })
@@ -617,7 +639,15 @@ export function HeroProjectSlideshow({ projects }: Props) {
         onPointerLeave={handleCaseStudyCursorLeave}
         onTouchStart={handleMobileTouchStart}
         onTouchEnd={handleMobileTouchEnd}
-        onTouchCancel={() => { mobileTouchGestureRef.current = null }}
+        onTouchCancel={() => {
+          mobileTouchGestureRef.current = null
+          mobileSwipeAnimationRef.current?.stop()
+          mobileSwipeAnimationRef.current = animate(mobileDragY, 0, {
+            type: 'spring',
+            stiffness: 420,
+            damping: 38,
+          })
+        }}
         onClickCapture={(event) => {
           if (!suppressMobileClickRef.current) return
           event.preventDefault()
@@ -633,14 +663,11 @@ export function HeroProjectSlideshow({ projects }: Props) {
           <motion.div
             key={activeProject.id}
             className="absolute inset-0"
-            initial={prefersReducedMotion ? false : isMobileViewport
-              ? { opacity: 0, y: `${transitionDirection * 5}%` }
-              : { opacity: 0, x: '3%' }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
-            exit={prefersReducedMotion ? { opacity: 1 } : isMobileViewport
-              ? { opacity: 0, y: `${transitionDirection * -5}%` }
-              : { opacity: 0, x: '-3%' }}
-            transition={transition}
+            initial={prefersReducedMotion || isMobileViewport ? false : { opacity: 0, x: '3%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={prefersReducedMotion || isMobileViewport ? { opacity: 1 } : { opacity: 0, x: '-3%' }}
+            transition={isMobileViewport ? { duration: 0 } : transition}
+            style={isMobileViewport ? { y: mobileDragY } : undefined}
           >
             {activeMediaIsVideo ? (
               <SilentBackgroundVideo
@@ -679,7 +706,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
 
       {projects.length > 1 ? (
         <>
-          <div className="absolute left-4 top-3 z-10 flex gap-1 tablet:left-auto tablet:right-8 tablet:top-6">
+          <div className="absolute right-3 top-1/2 z-20 flex -translate-y-1/2 flex-col gap-1 tablet:left-8 tablet:right-auto tablet:top-6 tablet:translate-y-0 tablet:flex-row">
             {projects.map((project, index) => (
               <button
                 key={project.id}
@@ -687,15 +714,15 @@ export function HeroProjectSlideshow({ projects }: Props) {
                 aria-label={`Show ${project.title}, slide ${index + 1} of ${projects.length}`}
                 aria-current={index === activeIndex ? 'true' : undefined}
                 onClick={() => selectSlide(index)}
-                className="group inline-flex h-8 items-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                className="group inline-flex w-8 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white tablet:h-8 tablet:w-auto"
               >
-                <span className="relative block h-1 w-7 overflow-hidden rounded-full bg-black/35 shadow-sm transition-opacity duration-150 group-hover:opacity-75">
+                <span className="relative block h-7 w-1 overflow-hidden rounded-full bg-black/35 shadow-sm transition-opacity duration-150 group-hover:opacity-75 tablet:h-1 tablet:w-7">
                   <motion.span
                     aria-hidden="true"
-                    className="absolute inset-0 origin-left rounded-full bg-white"
-                    style={{
-                      scaleX: index === activeIndex ? (prefersReducedMotion ? 1 : progress) : 0,
-                    }}
+                    className="absolute inset-0 origin-top rounded-full bg-white tablet:origin-left"
+                    style={isMobileViewport
+                      ? { scaleY: index === activeIndex ? 1 : 0 }
+                      : { scaleX: index === activeIndex ? (prefersReducedMotion ? 1 : progress) : 0 }}
                   />
                 </span>
               </button>
@@ -709,7 +736,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
               if (isMobileViewport) selectSlide(Math.max(0, activeIndex - 1))
               else showPrevious()
             }}
-            className="absolute bottom-4 right-16 z-20 flex size-10 translate-y-0 cursor-pointer items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-[40px] transition-colors duration-150 hover:bg-black/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white dark:bg-floating dark:hover:bg-white/25 tablet:bottom-auto tablet:left-8 tablet:right-auto tablet:top-1/2 tablet:-translate-y-1/2"
+            className="absolute bottom-4 right-16 z-20 hidden size-10 translate-y-0 cursor-pointer items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-[40px] transition-colors duration-150 hover:bg-black/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white dark:bg-floating dark:hover:bg-white/25 tablet:bottom-auto tablet:left-8 tablet:right-auto tablet:top-1/2 tablet:flex tablet:-translate-y-1/2"
           >
             <svg aria-hidden="true" className="size-[18px]" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M11 4.5L6.5 9l4.5 4.5" />
@@ -723,7 +750,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
               if (isMobileViewport) selectSlide(Math.min(projects.length - 1, activeIndex + 1))
               else showNext()
             }}
-            className="absolute bottom-4 right-4 z-20 flex size-10 translate-y-0 cursor-pointer items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-[40px] transition-colors duration-150 hover:bg-black/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white dark:bg-floating dark:hover:bg-white/25 tablet:bottom-auto tablet:right-8 tablet:top-1/2 tablet:-translate-y-1/2"
+            className="absolute bottom-4 right-4 z-20 hidden size-10 translate-y-0 cursor-pointer items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-[40px] transition-colors duration-150 hover:bg-black/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white dark:bg-floating dark:hover:bg-white/25 tablet:bottom-auto tablet:right-8 tablet:top-1/2 tablet:flex tablet:-translate-y-1/2"
           >
             <svg aria-hidden="true" className="size-[18px]" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M7 4.5L11.5 9 7 13.5" />
@@ -743,14 +770,11 @@ export function HeroProjectSlideshow({ projects }: Props) {
             <motion.div
               key={activeProject.id}
               className="min-w-0"
-              initial={prefersReducedMotion ? false : isMobileViewport
-                ? { opacity: 0, y: `${transitionDirection * 5}%` }
-                : { opacity: 0, x: '3%' }}
-              animate={{ opacity: 1, x: 0, y: 0 }}
-              exit={prefersReducedMotion ? { opacity: 1 } : isMobileViewport
-                ? { opacity: 0, y: `${transitionDirection * -5}%` }
-                : { opacity: 0, x: '-3%' }}
-              transition={transition}
+              initial={prefersReducedMotion || isMobileViewport ? false : { opacity: 0, x: '3%' }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={prefersReducedMotion || isMobileViewport ? { opacity: 1 } : { opacity: 0, x: '-3%' }}
+              transition={isMobileViewport ? { duration: 0 } : transition}
+              style={isMobileViewport ? { y: mobileDragY } : undefined}
             >
               <Link
                 href={`/work/${activeProject.slug}`}
