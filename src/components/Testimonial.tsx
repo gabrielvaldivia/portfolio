@@ -14,7 +14,7 @@ type Props = {
 export function Testimonial({ quote, name, company, companyLogo, photo, linkedIn, variant = 'default' }: Props) {
   const isHero = variant === 'hero'
   const authorBlock = isHero ? (
-    <p className="text-caption font-medium text-muted">{name}</p>
+    <p className="text-caption font-medium text-white/70">{name}</p>
   ) : (
     <div className="flex items-center justify-between gap-3">
       <div>
@@ -42,10 +42,10 @@ export function Testimonial({ quote, name, company, companyLogo, photo, linkedIn
     >
       <p
         className={cn(
-          'text-content leading-[1.4]',
+          'leading-[1.4]',
           isHero
-            ? 'text-balance text-[16px] tablet:text-[18px] desktop:text-[20px]'
-            : 'flex-1 pb-10 text-[18px] tablet:text-[22px] desktop:text-[26px]',
+            ? 'text-balance text-[16px] text-white tablet:text-[18px] desktop:text-[20px]'
+            : 'text-content flex-1 pb-10 text-[18px] tablet:text-[22px] desktop:text-[26px]',
         )}
         style={{ textIndent: '-0.4em' }}
       >

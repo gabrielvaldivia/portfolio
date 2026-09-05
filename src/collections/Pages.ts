@@ -55,7 +55,71 @@ const HeroBlock: Block = {
   labels: { singular: 'Hero', plural: 'Heroes' },
   fields: [
     sizeFields,
-    { name: 'heading', type: 'text', required: true },
+    {
+      name: 'heading',
+      type: 'textarea',
+      required: true,
+      admin: { description: 'Add a line break where you want the desktop headline to wrap.' },
+    },
+    {
+      name: 'slides',
+      type: 'array',
+      label: 'Slideshow',
+      labels: { singular: 'Slide', plural: 'Slides' },
+      maxRows: 20,
+      admin: {
+        description: 'Choose and reorder the projects shown in the homepage hero. Leave overrides blank to use the project content.',
+        initCollapsed: true,
+      },
+      fields: [
+        {
+          name: 'project',
+          type: 'relationship',
+          relationTo: 'projects',
+          required: true,
+        },
+        {
+          name: 'image',
+          type: 'upload',
+          relationTo: 'media',
+          label: 'Hero image',
+          admin: { description: 'Optional. Falls back to the project featured image.' },
+        },
+        {
+          name: 'title',
+          type: 'text',
+          label: 'Project title override',
+        },
+        {
+          name: 'description',
+          type: 'textarea',
+          label: 'Project description override',
+        },
+        {
+          name: 'gradientColor',
+          type: 'text',
+          label: 'Mobile gradient color',
+          validate: (value: unknown) => (
+            !value || (typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value))
+              ? true
+              : 'Use a six-digit hex color, such as #29170e.'
+          ),
+          admin: {
+            description: 'Optional. Used behind the mobile caption; otherwise it is sampled from the image.',
+          },
+        },
+        {
+          name: 'testimonialQuote',
+          type: 'textarea',
+          label: 'Testimonial quote override',
+        },
+        {
+          name: 'testimonialName',
+          type: 'text',
+          label: 'Testimonial name override',
+        },
+      ],
+    },
     { name: 'fullWidth', type: 'checkbox', defaultValue: false, admin: { position: 'sidebar' } },
   ],
 }

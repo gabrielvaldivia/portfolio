@@ -402,7 +402,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
         role="region"
         aria-label="Featured projects"
         aria-roledescription="carousel"
-        className="hero-project-slideshow relative aspect-[3/4] w-full origin-center overflow-hidden bg-background-alt tablet:aspect-video"
+        className="hero-project-slideshow relative aspect-[3/4] w-full origin-center overflow-hidden bg-background-alt text-white tablet:aspect-video"
         style={{ scale: slideshowScale, borderRadius: slideshowRadius }}
         onPointerEnter={updateCaseStudyCursor}
         onPointerMove={updateCaseStudyCursor}
@@ -517,11 +517,11 @@ export function HeroProjectSlideshow({ projects }: Props) {
             >
               <Link
                 href={`/work/${activeProject.slug}`}
-                className="pointer-events-auto flex flex-col gap-2 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
+                className="pointer-events-auto flex flex-col gap-2 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
               >
                 <h2 className="hero-project-title text-balance">{activeProject.title}</h2>
                 {activeProject.subtitle ? (
-                  <p className="max-w-2xl text-body text-pretty text-muted">
+                  <p className="max-w-2xl text-body text-pretty text-white/70">
                     {activeProject.subtitle}
                   </p>
                 ) : null}

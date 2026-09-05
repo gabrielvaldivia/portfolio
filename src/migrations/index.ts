@@ -13,6 +13,7 @@ import * as migration_20260811_000000_secure_chat_ai from './20260811_000000_sec
 import * as migration_20260819_000000_add_timeline_global from './20260819_000000_add_timeline_global';
 import * as migration_20260819_010000_timeline_rich_text from './20260819_010000_timeline_rich_text';
 import * as migration_20260904_000000_add_approach_item_titles from './20260904_000000_add_approach_item_titles';
+import * as migration_20260905_121312 from './20260905_121312';
 
 export const migrations = [
   {
@@ -89,5 +90,10 @@ export const migrations = [
     up: migration_20260904_000000_add_approach_item_titles.up,
     down: migration_20260904_000000_add_approach_item_titles.down,
     name: '20260904_000000_add_approach_item_titles'
+  },
+  {
+    up: migration_20260905_121312.up,
+    down: migration_20260905_121312.down,
+    name: '20260905_121312'
   },
 ];

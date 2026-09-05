@@ -15,7 +15,6 @@ import { getPayload, isPayloadUnavailable } from '@/lib/payload'
 import { getFAQItemsFromSections } from '@/lib/buildContext'
 import { getModuleLikeFeed } from '@/lib/moduleLikeActivity'
 import { cn } from '@/lib/cn'
-import { applyHeroConfig } from '@/lib/heroConfig'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 
@@ -23,10 +22,6 @@ export const revalidate = 300
 
 const PUBLIC_CMS_API = 'https://www.gabrielvaldivia.com/api'
 const HOME_HERO_TAGLINE = 'Your design partner for first-generation products.'
-const HOME_HERO_TAGLINE_LINES = [
-  'Your design partner for',
-  'first-generation products.',
-]
 
 function HomeContainer({
   children,
@@ -169,6 +164,12 @@ function buildHeroProjectSlides(projects: any[], testimonials: any[]) {
   return projects.map((project, index) => {
     const testimonial = matchedTestimonials[index]
     const projectId = String(project.id || project.slug || index)
+    const testimonialQuote = typeof project.heroTestimonialQuote === 'string'
+      ? project.heroTestimonialQuote.trim()
+      : ''
+    const testimonialName = typeof project.heroTestimonialName === 'string'
+      ? project.heroTestimonialName.trim()
+      : ''
 
     return {
       id: projectId,
@@ -184,7 +185,13 @@ function buildHeroProjectSlides(projects: any[], testimonials: any[]) {
             alt: project.featuredImage.alt,
           }
         : undefined,
-      testimonial: testimonial?.testimonial
+      testimonial: testimonialQuote
+        ? {
+            id: `${projectId}-testimonial-override`,
+            quote: testimonialQuote,
+            name: testimonialName || testimonial?.name || project.title,
+          }
+        : testimonial?.testimonial
         ? {
             id: String(testimonial.id || `${project.id || index}-testimonial`),
             quote: testimonial.testimonial,
@@ -196,6 +203,37 @@ function buildHeroProjectSlides(projects: any[], testimonials: any[]) {
             name: 'Lorem Ipsum',
           },
     }
+  })
+}
+
+function resolveHeroProjects(slides: any[], projects: any[]) {
+  const projectsById = new Map(projects.map((project) => [String(project.id), project]))
+
+  return slides.flatMap((slide) => {
+    const project = typeof slide.project === 'object' && slide.project !== null
+      ? slide.project
+      : projectsById.get(String(slide.project))
+    if (!project?.slug) return []
+
+    const image = typeof slide.image === 'object' && slide.image?.url
+      ? slide.image
+      : project.featuredImage
+
+    return [{
+      ...project,
+      title: typeof slide.title === 'string' && slide.title.trim()
+        ? slide.title.trim()
+        : project.title,
+      subtitle: typeof slide.description === 'string' && slide.description.trim()
+        ? slide.description.trim()
+        : project.subtitle,
+      featuredImage: image,
+      heroGradientColor: typeof slide.gradientColor === 'string' && slide.gradientColor.trim()
+        ? slide.gradientColor.trim()
+        : undefined,
+      heroTestimonialQuote: slide.testimonialQuote,
+      heroTestimonialName: slide.testimonialName,
+    }]
   })
 }
 
@@ -296,20 +334,22 @@ function SectionWithTitle({
   )
 }
 
-function HomeHeroTagline() {
+function HomeHeroTagline({ heading = HOME_HERO_TAGLINE }: { heading?: string | null }) {
+  const lines = (heading?.trim() || HOME_HERO_TAGLINE).split(/\r?\n/)
+
   return (
     <div className="px-5 tablet:px-10 tablet:pt-20 desktop:pt-24">
       <h1
-        aria-label={HOME_HERO_TAGLINE}
+        aria-label={lines.join(' ')}
         className="home-hero-heading max-w-[1120px] text-left"
       >
-        {HOME_HERO_TAGLINE_LINES.map((line, index) => (
+        {lines.map((line, index) => (
           <span
-            key={line}
+            key={`${line}-${index}`}
             aria-hidden="true"
-            className="tablet:block tablet:whitespace-nowrap"
+            className={lines.length > 1 ? 'tablet:block tablet:whitespace-nowrap' : undefined}
           >
-            {line}{index < HOME_HERO_TAGLINE_LINES.length - 1 ? ' ' : ''}
+            {line}{index < lines.length - 1 ? ' ' : ''}
           </span>
         ))}
       </h1>
@@ -385,12 +425,21 @@ export default async function HomePage() {
 
   function renderSection(block: any, i: number, options?: { heroSlideshow?: boolean }) {
     switch (block.blockType) {
-      case 'hero':
+      case 'hero': {
+        const heroProjects = resolveHeroProjects(block.slides || [], projectsResult.docs as any[])
         return (
-          <section key={block.id || i} id="hero" className="scroll-mt-0">
-            <HomeHeroTagline />
-          </section>
+          <div key={block.id || i} id="hero" className="scroll-mt-0">
+            <HomeHeroTagline heading={block.heading} />
+            {heroProjects.length ? (
+              <div className="mt-4 min-w-0 tablet:mt-[123px] desktop:mt-[133px]">
+                <HeroProjectSlideshow
+                  projects={buildHeroProjectSlides(heroProjects, homepageTestimonials)}
+                />
+              </div>
+            ) : null}
+          </div>
         )
+      }
 
       case 'hScroll': {
         const items = block.source === 'featuredProjects' ? (block.projects || []) : (block.testimonials || [])
@@ -399,11 +448,10 @@ export default async function HomePage() {
         const heroSlideshow = options?.heroSlideshow === true
 
         if (heroSlideshow) {
-          const heroProjects = applyHeroConfig(projectsResult.docs as any[], items)
           return (
             <HeroProjectSlideshow
               key={block.id || i}
-              projects={buildHeroProjectSlides(heroProjects, homepageTestimonials)}
+              projects={buildHeroProjectSlides(items, homepageTestimonials)}
             />
           )
         }
@@ -661,11 +709,15 @@ export default async function HomePage() {
         return groups.map((group, gi) => {
           const isGrid = group.blocks.length > 1 || (group.blocks[0]?.columns || '6') !== '6'
           const blockType = group.blocks[0]?.blockType
-          const prevBlockType = gi > 0 ? groups[gi - 1].blocks[groups[gi - 1].blocks.length - 1]?.blockType : null
+          const previousBlock = gi > 0
+            ? groups[gi - 1].blocks[groups[gi - 1].blocks.length - 1]
+            : null
+          const prevBlockType = previousBlock?.blockType
           const nextGroup = groups[gi + 1]
           const nextBlock = nextGroup?.blocks[0]
           const isHeroShowcase = blockType === 'hero'
             && group.blocks.length === 1
+            && !(group.blocks[0]?.slides || []).length
             && nextGroup?.blocks.length === 1
             && nextBlock?.blockType === 'hScroll'
             && nextBlock?.source === 'featuredProjects'
@@ -679,7 +731,7 @@ export default async function HomePage() {
           if (isHeroShowcase) {
             return (
               <div key={gi} id="hero" className="scroll-mt-0">
-                <HomeHeroTagline />
+                <HomeHeroTagline heading={group.blocks[0]?.heading} />
                 <div className="mt-4 min-w-0 tablet:mt-[123px] desktop:mt-[133px]">
                   {renderSection(nextBlock, gi * 100, { heroSlideshow: true })}
                 </div>
@@ -687,13 +739,12 @@ export default async function HomePage() {
             )
           }
 
-          const isHero = blockType === 'hero'
           const isHeroFollowUp = blockType === 'hScroll' && prevBlockType === 'hero'
           return (
             <div
               key={gi}
               className={cn(
-                (isHero || isHeroFollowUp) && 'mt-10 tablet:mt-16 desktop:mt-20',
+                isHeroFollowUp && 'mt-10 tablet:mt-16 desktop:mt-20',
                 gi > 0 && !isHeroFollowUp && 'mt-20 tablet:mt-28 desktop:mt-[200px]',
               )}
             >
