@@ -424,6 +424,10 @@ h2 {
 
 @media (max-width: 809px) {
   html.hero-project-pagination-active {
+    scroll-snap-type: y mandatory;
+  }
+
+  html.hero-project-pagination-active.hero-project-pagination-relaxed {
     scroll-snap-type: y proximity;
   }
 

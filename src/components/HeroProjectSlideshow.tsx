@@ -196,7 +196,7 @@ function MobileHeroSlide({
   const gradientColor = hexToRgbChannels(project.gradientColor) ?? fallbackGradientColor
 
   return (
-    <div className="relative h-svh w-full shrink-0 overflow-hidden bg-background-alt text-white">
+    <div className="relative h-[var(--hero-mobile-slide-height)] w-full shrink-0 overflow-hidden bg-background-alt text-white">
       {media?.url ? (
         isVideoMedia(media) ? (
           <SilentBackgroundVideo
@@ -533,11 +533,77 @@ export function HeroProjectSlideshow({ projects }: Props) {
     if (!isMobileViewport || projects.length < 2) return
 
     const root = document.documentElement
-    root.classList.add('hero-project-pagination-active')
-    return () => {
-      root.classList.remove('hero-project-pagination-active')
+    const region = regionRef.current
+    if (!region) return
+
+    const approach = document.querySelector<HTMLElement>('.hero-approach-snap-point')
+    const approachScrollMargin = approach
+      ? Number.parseFloat(getComputedStyle(approach).scrollMarginTop) || 0
+      : 0
+    let heightLocked = false
+    let lastSettledScrollY = window.scrollY
+    let updateFrame: number | null = null
+
+    const lockSlideshowHeight = () => {
+      if (heightLocked) return false
+
+      const viewport = window.visualViewport
+      const viewportTop = viewport?.offsetTop ?? 0
+      const regionRect = region.getBoundingClientRect()
+      if (regionRect.top > viewportTop + 1 || regionRect.bottom < viewportTop - 1) return false
+
+      const viewportHeight = Math.round(viewport?.height ?? window.innerHeight)
+      region.style.setProperty('--hero-mobile-slide-height', `${viewportHeight}px`)
+      mobileSlideHeight.set(viewportHeight)
+      heightLocked = true
+      return true
     }
-  }, [isMobileViewport, projects.length])
+
+    const updatePaginationMode = (currentScrollY: number, scrollDelta: number) => {
+      if (!approach) return
+
+      const approachSnapY = approach.getBoundingClientRect().top
+        + currentScrollY
+        - approachScrollMargin
+      const reachedApproach = currentScrollY >= approachSnapY - 1
+      const returningToSlideshow = scrollDelta < 0 && currentScrollY <= approachSnapY + 1
+
+      root.classList.toggle(
+        'hero-project-pagination-relaxed',
+        reachedApproach && !returningToSlideshow,
+      )
+    }
+
+    const handleScrollEnd = () => {
+      const currentScrollY = window.scrollY
+      const scrollDelta = currentScrollY - lastSettledScrollY
+      lastSettledScrollY = currentScrollY
+      const didLockHeight = lockSlideshowHeight()
+
+      if (didLockHeight) {
+        if (updateFrame !== null) cancelAnimationFrame(updateFrame)
+        updateFrame = requestAnimationFrame(() => {
+          updateFrame = null
+          updatePaginationMode(currentScrollY, scrollDelta)
+        })
+        return
+      }
+
+      updatePaginationMode(currentScrollY, scrollDelta)
+    }
+
+    root.classList.add('hero-project-pagination-active')
+    handleScrollEnd()
+    window.addEventListener('scrollend', handleScrollEnd)
+
+    return () => {
+      window.removeEventListener('scrollend', handleScrollEnd)
+      if (updateFrame !== null) cancelAnimationFrame(updateFrame)
+      region.style.removeProperty('--hero-mobile-slide-height')
+      root.classList.remove('hero-project-pagination-active')
+      root.classList.remove('hero-project-pagination-relaxed')
+    }
+  }, [isMobileViewport, mobileSlideHeight, projects.length])
 
   useMotionValueEvent(mobileScrollProgress, 'change', (latest) => {
     if (!isMobileViewport || projects.length < 2) return
@@ -629,7 +695,8 @@ export function HeroProjectSlideshow({ projects }: Props) {
       ref={regionRef}
       className="hero-project-scroll-region relative w-full"
       style={{
-        '--hero-mobile-scroll-height': `${Math.max(1, projects.length) * 100}svh`,
+        '--hero-mobile-slide-height': '100svh',
+        '--hero-mobile-scroll-height': `calc(${Math.max(1, projects.length)} * var(--hero-mobile-slide-height))`,
       } as CSSProperties}
     >
       <div
@@ -637,7 +704,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
         className="hero-project-snap-point pointer-events-none absolute inset-x-0 top-0 h-px tablet:hidden"
       />
 
-      <div className="sticky top-0 h-svh w-full tablet:relative tablet:top-auto tablet:h-auto">
+      <div className="sticky top-0 h-[var(--hero-mobile-slide-height)] w-full tablet:relative tablet:top-auto tablet:h-auto">
         <motion.section
           role="region"
           aria-label="Featured projects"
@@ -819,7 +886,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
         <div
           key={`hero-snap-${index + 1}`}
           aria-hidden="true"
-          className="hero-project-snap-point h-svh pointer-events-none tablet:hidden"
+          className="hero-project-snap-point h-[var(--hero-mobile-slide-height)] pointer-events-none tablet:hidden"
         />
       ))}
 
