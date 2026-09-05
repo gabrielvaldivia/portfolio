@@ -4099,6 +4099,51 @@ body:has(.drawer--is-open) :is(.template-default__nav-toggler-container, .app-he
     overflow-x: clip;
   }
 
+  .collection-list .list-header:has(.collection-list__sub-header) {
+    margin-bottom: 20px;
+  }
+
+  .collection-list .collection-list__sub-header {
+    padding-top: 0;
+  }
+
+  .collection-list .custom-view-description {
+    max-width: 36rem;
+    text-wrap: pretty;
+  }
+
+  .collection-list .list-controls .search-bar,
+  .collection-list .list-controls .search-bar:has(.search-bar__actions) {
+    height: auto;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: var(--cms-list-toolbar-height) var(--cms-list-toolbar-height);
+    gap: 8px;
+  }
+
+  .collection-list .list-controls .search-bar .search-filter {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .collection-list .list-controls .search-bar__actions {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .collection-list .list-controls .search-bar__actions > * {
+    min-width: 0;
+    flex: 1 1 0;
+  }
+
+  .collection-list .list-controls .search-bar__actions .pill {
+    width: 100%;
+    justify-content: space-between;
+  }
+
   body:has(.template-default .app-header)::before {
     left: 0;
   }
