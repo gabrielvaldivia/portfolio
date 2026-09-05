@@ -4218,6 +4218,10 @@ body:has(.collection-edit--notes) .template-default__wrap,
   background: #fff !important;
 }
 
+body:has(.collection-edit--notes) .app-header__step-nav .step-nav__last {
+  display: none;
+}
+
 .collection-edit--notes .document-fields--no-sidebar {
   width: 100%;
   max-width: none;
@@ -4262,6 +4266,7 @@ body:has(.collection-edit--notes) .template-default__wrap,
 }
 
 .collection-edit--notes .notes-editor-title .input-wrap,
+.collection-edit--notes .notes-editor-title .field-type__wrap,
 .collection-edit--notes .field-type.text.notes-editor-title:not(.has-many) input {
   min-height: 0;
   padding: 0 !important;
@@ -4270,23 +4275,27 @@ body:has(.collection-edit--notes) .template-default__wrap,
   background: transparent !important;
   color: #171717 !important;
   box-shadow: none !important;
+  outline: 0 !important;
 }
 
 .collection-edit--notes .field-type.text.notes-editor-title:not(.has-many) input {
-  height: auto !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  appearance: none;
   font-family: 'Inter Display', 'Inter', var(--font-body), system-ui, sans-serif;
-  font-size: clamp(36px, 4vw, 48px);
+  font-size: 32px;
   font-weight: 500;
-  line-height: 1.12;
-  letter-spacing: -0.035em;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
 }
 
 .collection-edit--notes .field-type.text.notes-editor-title:not(.has-many) input::placeholder {
   color: #b8b8b8 !important;
   font-family: 'Inter Display', 'Inter', var(--font-body), system-ui, sans-serif;
-  font-size: clamp(36px, 4vw, 48px) !important;
+  font-size: 32px !important;
   font-weight: 500;
-  letter-spacing: -0.035em;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
   opacity: 1;
 }
 
@@ -4360,7 +4369,7 @@ body:has(.collection-edit--notes) .toolbar-popup__dropdown-items .toolbar-popup_
 
   .collection-edit--notes .field-type.text.notes-editor-title:not(.has-many) input,
   .collection-edit--notes .field-type.text.notes-editor-title:not(.has-many) input::placeholder {
-    font-size: 34px;
+    font-size: 30px;
   }
 
   .collection-edit--notes .notes-editor-body .ContentEditable__root,
