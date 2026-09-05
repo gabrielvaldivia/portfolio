@@ -736,6 +736,16 @@ a {
   font-weight: 600;
 }
 
+.note-page .rich-text,
+.note-page .rich-text a,
+.note-page .rich-text blockquote {
+  color: var(--color-content);
+}
+
+.note-page .rich-text ul li::before {
+  opacity: 1;
+}
+
 /* Easing gradients following cubic-bezier(0.4, 0, 0.2, 1) curve */
 .hscroll-masked, .hscroll-mask-right, .hscroll-mask-left {
   --fade: 60px;

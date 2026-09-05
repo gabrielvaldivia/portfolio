@@ -52,7 +52,7 @@ export default async function NotePage({ params }: NotePageProps) {
   const coverImage = typeof note.coverImage === 'object' ? note.coverImage : null
 
   return (
-    <article className="pb-20">
+    <article className="note-page pb-20 text-content">
       <Container>
         <div className="max-w-[880px]">
           <header className="pb-12 tablet:pb-16">
