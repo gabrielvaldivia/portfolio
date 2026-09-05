@@ -803,6 +803,10 @@ body:has(.collections) .collections:not(.page-dashboard) .collections__card-list
   margin-bottom: 12px;
 }
 
+.recent-pages-dashboard {
+  margin-bottom: 4px;
+}
+
 .collections__wrap {
   gap: 16px;
 }
@@ -825,6 +829,11 @@ body:has(.collections) .collections:not(.page-dashboard) .collections__card-list
 .page-dashboard__list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.recent-pages-dashboard__list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .page-dashboard__list > li {
@@ -854,6 +863,10 @@ body:has(.collections) .collections:not(.page-dashboard) .collections__card-list
   gap: 4px;
   color: var(--cms-text-primary);
   text-decoration: none;
+}
+
+.recent-pages-dashboard__card {
+  min-height: 72px;
 }
 
 .page-dashboard__card:hover,
@@ -889,6 +902,14 @@ body:has(.collections) .collections:not(.page-dashboard) .collections__card-list
 
   .page-dashboard__list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .recent-pages-dashboard__list {
+    grid-auto-columns: minmax(190px, 72vw);
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
   }
 
   .page-dashboard__card {

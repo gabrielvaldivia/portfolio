@@ -7,7 +7,13 @@ type DashboardPage = {
   order?: number | null
   slug?: string | null
   title?: string | null
+  updatedAt: string
 }
+
+const editedDateFormatter = new Intl.DateTimeFormat('en', {
+  day: 'numeric',
+  month: 'short',
+})
 
 export async function PageDashboard({ permissions, req }: WidgetServerProps) {
   if (!permissions?.collections?.pages?.read) {
@@ -34,14 +40,48 @@ export async function PageDashboard({ permissions, req }: WidgetServerProps) {
       order: true,
       slug: true,
       title: true,
+      updatedAt: true,
     },
     sort: 'order',
   })
   const pages = sortPagesByOrder(docs as DashboardPage[])
+  const recentPages = [...pages]
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    .slice(0, 5)
 
   return (
     <section className="collections page-dashboard" aria-label="Pages">
       <div className="collections__wrap">
+        {recentPages.length > 0 ? (
+          <div className="collections__group recent-pages-dashboard">
+            <h2 className="collections__label">Recently edited</h2>
+            <ul className="collections__card-list recent-pages-dashboard__list">
+              {recentPages.map((page) => {
+                const href = formatAdminURL({
+                  adminRoute,
+                  path: `/collections/pages/${page.id}`,
+                })
+
+                return (
+                  <li key={page.id}>
+                    <a
+                      aria-label={`Edit ${page.title || page.slug || 'page'}`}
+                      className="card card--has-onclick page-dashboard__card recent-pages-dashboard__card"
+                      href={href}
+                    >
+                      <span className="card__title page-dashboard__title">
+                        {page.title || page.slug || 'Untitled page'}
+                      </span>
+                      <time className="page-dashboard__meta" dateTime={page.updatedAt}>
+                        Edited {editedDateFormatter.format(new Date(page.updatedAt))}
+                      </time>
+                    </a>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        ) : null}
         <div className="collections__group">
           <h2 className="collections__label">Pages</h2>
           {pages.length > 0 ? (
