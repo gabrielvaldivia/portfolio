@@ -22,7 +22,6 @@ export const Notes: CollectionConfig = {
     group: 'Collections',
     useAsTitle: 'title',
     defaultColumns: ['title', '_status', 'publishedAt', 'updatedAt'],
-    description: 'Write, revise, and publish essays to the Notes section.',
     components: {
       edit: {
         editMenuItems: ['./components/admin/NotesEditMenu#NotesEditMenu'],

@@ -4127,21 +4127,28 @@ body:has(.drawer--is-open) :is(.template-default__nav-toggler-container, .app-he
   }
 
   .collection-list .list-controls .search-bar__actions {
-    display: flex;
+    display: grid;
     width: 100%;
     min-width: 0;
     grid-column: 1;
     grid-row: 2;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .collection-list .list-controls .search-bar__actions > * {
+    width: 100%;
     min-width: 0;
-    flex: 1 1 0;
   }
 
   .collection-list .list-controls .search-bar__actions .pill {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .collection-list .list-controls .search-bar__actions .pill__label {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
   }
 
   body:has(.template-default .app-header)::before {
