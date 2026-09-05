@@ -4,6 +4,7 @@ import {
   BriefcaseBusinessIcon,
   BrowserIcon,
   BubbleChatIcon,
+  Calendar04Icon,
   Camera01Icon,
   CustomerService01Icon,
   DashboardSquare03Icon,
@@ -70,7 +71,7 @@ const icons: Record<DashboardSidebarIconKey, IconSvgElement> = {
   services: CustomerService01Icon,
   settings: Setting06Icon,
   sideProjects: Layers01Icon,
-  timeline: File02Icon,
+  timeline: Calendar04Icon,
   users: User03Icon,
 }
 

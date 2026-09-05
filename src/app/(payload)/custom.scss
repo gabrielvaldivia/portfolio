@@ -800,7 +800,8 @@ body:has(.collections) .collections .card__actions * {
   display: none !important;
 }
 
-body:has(.collections) .collections:not(.page-dashboard) .collections__group:has(#card-pages) {
+body:has(.collections) .collections:not(.page-dashboard) .collections__group:has(#card-pages),
+body:has(.collections) .collections:not(.page-dashboard) .collections__group:has(#card-timeline) {
   display: none !important;
 }
 
@@ -843,6 +844,10 @@ body:has(.collections) .collections:not(.page-dashboard) .collections__group:has
 
 body:has(.dashboard) {
   --dashboard-card-columns: 5;
+}
+
+body:has(.dashboard) .collections__wrap {
+  gap: 28px;
 }
 
 body:has(.dashboard) .collections__card-list {
