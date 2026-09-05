@@ -4208,3 +4208,137 @@ body:has(.drawer--is-open) :is(.template-default__nav-toggler-container, .app-he
     display: none !important;
   }
 }
+
+/* Notes edit view: a distraction-free writing canvas with metadata behind the more menu. */
+.collection-edit--notes .document-fields--no-sidebar {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+.collection-edit--notes .document-fields__main {
+  border-inline-end: 0 !important;
+}
+
+.collection-edit--notes .document-fields__edit {
+  width: min(100%, 900px);
+  max-width: 900px;
+  min-height: calc(100vh - var(--cms-header-height));
+  margin-inline: auto;
+  padding: clamp(52px, 7vw, 96px) clamp(28px, 7vw, 88px) 180px !important;
+  border: 0 !important;
+  background: #fff;
+  color: #171717;
+}
+
+.collection-edit--notes .notes-editor-tabs {
+  width: 100%;
+  margin: 0;
+}
+
+.collection-edit--notes .notes-editor-tabs > .tabs-field__tabs-wrap {
+  display: none;
+}
+
+.collection-edit--notes .notes-editor-tabs > .tabs-field__content-wrap {
+  padding: 0;
+}
+
+.collection-edit--notes .notes-editor-title {
+  margin: 0 0 28px;
+}
+
+.collection-edit--notes .notes-editor-title > .field-label,
+.collection-edit--notes .notes-editor-title > .field-description {
+  display: none;
+}
+
+.collection-edit--notes .notes-editor-title .input-wrap,
+.collection-edit--notes .notes-editor-title input {
+  min-height: 0;
+  padding: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #171717 !important;
+  box-shadow: none !important;
+}
+
+.collection-edit--notes .notes-editor-title input {
+  height: auto;
+  font-size: clamp(36px, 4vw, 48px);
+  font-weight: 500;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+
+.collection-edit--notes .notes-editor-title input::placeholder {
+  color: #b8b8b8;
+}
+
+.collection-edit--notes .notes-editor-body {
+  margin: 0;
+}
+
+.collection-edit--notes .notes-editor-body .rich-text-lexical__label-row {
+  display: none;
+}
+
+.collection-edit--notes .notes-editor-body .rich-text-lexical__wrap,
+.collection-edit--notes .notes-editor-body .editor-container,
+.collection-edit--notes .notes-editor-body .editor-scroller,
+.collection-edit--notes .notes-editor-body .editor {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.collection-edit--notes .notes-editor-body .ContentEditable__root {
+  min-height: 58vh;
+  padding: 0;
+  color: #242424;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 19px;
+  line-height: 1.72;
+  letter-spacing: -0.005em;
+}
+
+.collection-edit--notes .notes-editor-body .LexicalEditorTheme__placeholder {
+  top: 0;
+  color: #aaa;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 19px;
+  line-height: 1.72;
+}
+
+.collection-edit--notes .notes-editor-tabs > .tabs-field__content-wrap > .tabs-field__tabConfigLabel-metadata::before {
+  content: 'Metadata';
+  display: block;
+  margin-bottom: 44px;
+  color: #171717;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+@media (max-width: 768px) {
+  .collection-edit--notes .document-fields__edit {
+    min-height: calc(100vh - var(--cms-header-height));
+    padding: 40px 20px 120px !important;
+  }
+
+  .collection-edit--notes .notes-editor-title {
+    margin-bottom: 22px;
+  }
+
+  .collection-edit--notes .notes-editor-title input {
+    font-size: 34px;
+  }
+
+  .collection-edit--notes .notes-editor-body .ContentEditable__root,
+  .collection-edit--notes .notes-editor-body .LexicalEditorTheme__placeholder {
+    font-size: 18px;
+  }
+}

@@ -1,3 +1,4 @@
+import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import type { CollectionConfig } from 'payload'
 
 function slugify(value: string) {
@@ -22,6 +23,11 @@ export const Notes: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', '_status', 'publishedAt', 'updatedAt'],
     description: 'Write, revise, and publish essays to the Notes section.',
+    components: {
+      edit: {
+        editMenuItems: ['./components/admin/NotesEditMenu#NotesEditMenu'],
+      },
+    },
   },
   access: {
     read: ({ req }) => (
@@ -60,78 +66,108 @@ export const Notes: CollectionConfig = {
   },
   fields: [
     {
-      name: 'title',
-      type: 'text',
-      required: true,
-    },
-    {
-      name: 'slug',
-      type: 'text',
-      required: true,
-      unique: true,
-      index: true,
+      type: 'tabs',
       admin: {
-        position: 'sidebar',
-        description: 'Generated from the title when left blank.',
+        className: 'notes-editor-tabs',
       },
-    },
-    {
-      name: 'publishedAt',
-      type: 'date',
-      index: true,
-      admin: {
-        position: 'sidebar',
-        description: 'Set automatically the first time this note is published.',
-        date: {
-          pickerAppearance: 'dayAndTime',
-        },
-      },
-    },
-    {
-      name: 'excerpt',
-      type: 'textarea',
-      admin: {
-        description: 'A short introduction used on the Notes index and in search results.',
-      },
-    },
-    {
-      name: 'coverImage',
-      label: 'Cover image',
-      type: 'upload',
-      relationTo: 'media',
-    },
-    {
-      name: 'body',
-      type: 'richText',
-      required: true,
-    },
-    {
-      name: 'meta',
-      label: 'SEO',
-      type: 'group',
-      fields: [
+      tabs: [
         {
-          name: 'title',
-          type: 'text',
-          admin: {
-            description: 'Optional search and social title. Defaults to the note title.',
-          },
+          label: 'Writing',
+          fields: [
+            {
+              name: 'title',
+              type: 'text',
+              required: true,
+              admin: {
+                className: 'notes-editor-title',
+                placeholder: 'Untitled note',
+              },
+            },
+            {
+              name: 'body',
+              type: 'richText',
+              required: true,
+              editor: lexicalEditor({
+                admin: {
+                  hideGutter: true,
+                  hideInsertParagraphAtEnd: true,
+                  placeholder: 'Start writing…',
+                },
+              }),
+              admin: {
+                className: 'notes-editor-body',
+              },
+            },
+          ],
         },
         {
-          name: 'description',
-          type: 'textarea',
-          admin: {
-            description: 'Optional search description. Defaults to the excerpt.',
-          },
-        },
-        {
-          name: 'image',
-          label: 'Social image',
-          type: 'upload',
-          relationTo: 'media',
-          admin: {
-            description: 'Optional social share image. Defaults to the cover image.',
-          },
+          label: 'Metadata',
+          fields: [
+            {
+              name: 'slug',
+              type: 'text',
+              required: true,
+              unique: true,
+              index: true,
+              admin: {
+                description: 'Generated from the title when left blank.',
+              },
+            },
+            {
+              name: 'publishedAt',
+              type: 'date',
+              index: true,
+              admin: {
+                description: 'Set automatically the first time this note is published.',
+                date: {
+                  pickerAppearance: 'dayAndTime',
+                },
+              },
+            },
+            {
+              name: 'excerpt',
+              type: 'textarea',
+              admin: {
+                description: 'A short introduction used on the Notes index and in search results.',
+              },
+            },
+            {
+              name: 'coverImage',
+              label: 'Cover image',
+              type: 'upload',
+              relationTo: 'media',
+            },
+            {
+              name: 'meta',
+              label: 'SEO',
+              type: 'group',
+              fields: [
+                {
+                  name: 'title',
+                  type: 'text',
+                  admin: {
+                    description: 'Optional search and social title. Defaults to the note title.',
+                  },
+                },
+                {
+                  name: 'description',
+                  type: 'textarea',
+                  admin: {
+                    description: 'Optional search description. Defaults to the excerpt.',
+                  },
+                },
+                {
+                  name: 'image',
+                  label: 'Social image',
+                  type: 'upload',
+                  relationTo: 'media',
+                  admin: {
+                    description: 'Optional social share image. Defaults to the cover image.',
+                  },
+                },
+              ],
+            },
+          ],
         },
       ],
     },
