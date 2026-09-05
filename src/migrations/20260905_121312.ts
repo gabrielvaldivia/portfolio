@@ -116,8 +116,8 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
     })
 
     slides.push({
-      project: project.id,
-      image: media.id,
+      project: Number(project.id),
+      image: Number(media.id),
       gradientColor: 'gradientColor' in slide ? slide.gradientColor : undefined,
     })
   }
