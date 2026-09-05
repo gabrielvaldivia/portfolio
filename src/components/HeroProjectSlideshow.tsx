@@ -252,7 +252,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
     const regionTop = region.getBoundingClientRect().top + window.scrollY
     const clampedStep = Math.max(0, Math.min(projects.length, step))
     window.scrollTo({
-      top: regionTop + clampedStep * window.innerHeight,
+      top: regionTop + clampedStep * window.innerHeight + (clampedStep === projects.length ? 2 : 0),
       behavior: 'auto',
     })
   }, [projects.length])
@@ -270,7 +270,11 @@ export function HeroProjectSlideshow({ projects }: Props) {
     if (!isMobileViewport || (event.target as HTMLElement).closest('button')) return
 
     const region = regionRef.current
-    if (!region || region.getBoundingClientRect().top > 1) return
+    if (!region) return
+
+    const regionRect = region.getBoundingClientRect()
+    const slideshowIsPinned = regionRect.top <= 1 && regionRect.bottom > window.innerHeight + 1
+    if (!slideshowIsPinned) return
 
     const touch = event.touches[0]
     if (!touch) return
@@ -478,12 +482,25 @@ export function HeroProjectSlideshow({ projects }: Props) {
     if (!slideshow) return
 
     const preventFreeScrollDuringSwipe = (event: TouchEvent) => {
-      if (mobileTouchGestureRef.current) event.preventDefault()
+      const gesture = mobileTouchGestureRef.current
+      const touch = event.touches[0]
+      if (!gesture || !touch) return
+
+      const distance = gesture.startY - touch.clientY
+      const leavingAboveCarousel = gesture.startIndex === 0 && distance < 0
+      const leavingBelowCarousel = gesture.startIndex === projects.length - 1 && distance > 0
+
+      if (leavingAboveCarousel || leavingBelowCarousel) {
+        mobileTouchGestureRef.current = null
+        return
+      }
+
+      event.preventDefault()
     }
 
     slideshow.addEventListener('touchmove', preventFreeScrollDuringSwipe, { passive: false })
     return () => slideshow.removeEventListener('touchmove', preventFreeScrollDuringSwipe)
-  }, [])
+  }, [projects.length])
 
   useMotionValueEvent(mobileScrollProgress, 'change', (latest) => {
     if (!isMobileViewport || projects.length < 2) return
