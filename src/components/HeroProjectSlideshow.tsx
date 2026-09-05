@@ -241,12 +241,21 @@ function MobileHeroSlide({
 
         <Link
           href={`/work/${project.slug}`}
-          className="absolute inset-x-5 bottom-5 z-10 flex flex-col gap-2 rounded-sm pr-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+          className="absolute bottom-5 left-5 right-24 z-10 flex flex-col gap-2 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
         >
           <h2 className="hero-project-title text-balance">{project.title}</h2>
           {project.subtitle ? (
             <p className="max-w-2xl text-body text-pretty text-white/70">{project.subtitle}</p>
           ) : null}
+        </Link>
+        <Link
+          href={`/work/${project.slug}`}
+          aria-label={`Open ${project.title} project`}
+          className="absolute bottom-5 right-5 z-20 flex size-12 items-center justify-center rounded-full bg-white transition-colors duration-150 hover:bg-white/90 active:bg-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+        >
+          <svg aria-hidden="true" className="size-6 text-black" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+            <path d="M6 16h20M18 8l8 8-8 8" />
+          </svg>
         </Link>
         {pagination}
       </motion.div>
