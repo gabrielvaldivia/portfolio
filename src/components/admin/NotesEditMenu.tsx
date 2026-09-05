@@ -78,8 +78,7 @@ export function NotesEditMenu() {
 
   return (
     <>
-      <PopupList.Divider />
-      <PopupList.GroupLabel label="Editor" />
+      <p className="popup-list-group-label notes-edit-menu-editor-label">Editor</p>
       <PopupList.Button
         active={activeView === 'writing'}
         id="notes-edit-menu-writing"
@@ -94,6 +93,8 @@ export function NotesEditMenu() {
       >
         Metadata
       </PopupList.Button>
+      <hr className="popup-divider notes-edit-menu-divider" />
+      <p className="popup-list-group-label notes-edit-menu-actions-label">Actions</p>
     </>
   )
 }

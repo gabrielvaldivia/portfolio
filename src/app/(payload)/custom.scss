@@ -4265,9 +4265,9 @@ body:has(.collection-edit--notes) .app-header__step-nav .step-nav__last {
   display: none;
 }
 
-.collection-edit--notes .notes-editor-title .input-wrap,
 .collection-edit--notes .notes-editor-title .field-type__wrap,
-.collection-edit--notes .field-type.text.notes-editor-title:not(.has-many) input {
+.collection-edit--notes .notes-editor-title .textarea-outer,
+.collection-edit--notes .field-type.textarea.notes-editor-title textarea {
   min-height: 0;
   padding: 0 !important;
   border: 0 !important;
@@ -4278,32 +4278,39 @@ body:has(.collection-edit--notes) .app-header__step-nav .step-nav__last {
   outline: 0 !important;
 }
 
-.collection-edit--notes .field-type.text.notes-editor-title:not(.has-many) input {
-  height: 42px !important;
-  min-height: 42px !important;
+.collection-edit--notes .field-type.textarea.notes-editor-title textarea {
+  width: 100%;
+  height: auto !important;
+  min-height: 40px !important;
+  max-height: none;
+  overflow: hidden;
+  resize: none;
   appearance: none;
-  font-family: 'Inter Display', 'Inter', var(--font-body), system-ui, sans-serif;
-  font-size: 32px;
+  field-sizing: content;
+  font-family: 'Inter Display', 'Inter', var(--font-body), system-ui, sans-serif !important;
+  font-size: 32px !important;
   font-weight: 500;
   line-height: 1.25;
   letter-spacing: -0.025em;
+  white-space: pre-wrap;
 }
 
-.collection-edit--notes #field-title,
-.collection-edit--notes #field-title:hover,
-.collection-edit--notes #field-title:focus,
-.collection-edit--notes #field-title:focus-visible,
-.collection-edit--notes #field-title:active {
+.collection-edit--notes textarea#field-title,
+.collection-edit--notes textarea#field-title:hover,
+.collection-edit--notes textarea#field-title:focus,
+.collection-edit--notes textarea#field-title:focus-visible,
+.collection-edit--notes textarea#field-title:active {
   padding: 0 !important;
   border: 0 !important;
+  border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
   outline: 0 !important;
 }
 
-.collection-edit--notes .field-type.text.notes-editor-title:not(.has-many) input::placeholder {
+.collection-edit--notes .field-type.textarea.notes-editor-title textarea::placeholder {
   color: #b8b8b8 !important;
-  font-family: 'Inter Display', 'Inter', var(--font-body), system-ui, sans-serif;
+  font-family: 'Inter Display', 'Inter', var(--font-body), system-ui, sans-serif !important;
   font-size: 32px !important;
   font-weight: 500;
   line-height: 1.25;
@@ -4363,6 +4370,72 @@ body:has(.collection-edit--notes) .toolbar-popup__dropdown-items .toolbar-popup_
   text-align: left;
 }
 
+body:has(.collection-edit--notes) .popup__content:has(#notes-edit-menu-writing) .popup__scroll-container {
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+
+body:has(.collection-edit--notes) .popup-button-list:has(#notes-edit-menu-writing) > * {
+  order: 5;
+}
+
+body:has(.collection-edit--notes) .popup-button-list:has(#notes-edit-menu-writing) > .notes-edit-menu-editor-label {
+  order: 0;
+}
+
+body:has(.collection-edit--notes) .popup-button-list:has(#notes-edit-menu-writing) > #notes-edit-menu-writing {
+  order: 1;
+}
+
+body:has(.collection-edit--notes) .popup-button-list:has(#notes-edit-menu-writing) > #notes-edit-menu-metadata {
+  order: 2;
+}
+
+body:has(.collection-edit--notes) .popup-button-list:has(#notes-edit-menu-writing) > .notes-edit-menu-divider {
+  order: 3;
+}
+
+body:has(.collection-edit--notes) .popup-button-list:has(#notes-edit-menu-writing) > .notes-edit-menu-actions-label {
+  order: 4;
+}
+
+body:has(.collection-edit--notes) .popup__content:has(#notes-edit-menu-writing) :is(#action-create, #action-duplicate, #action-delete) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+body:has(.collection-edit--notes) .popup__content:has(#notes-edit-menu-writing) :is(#action-create, #action-duplicate, #action-delete)::before {
+  content: '';
+  display: block;
+  width: var(--cms-icon-size);
+  height: var(--cms-icon-size);
+  flex: 0 0 var(--cms-icon-size);
+  background: currentColor;
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: var(--cms-icon-size) var(--cms-icon-size);
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: var(--cms-icon-size) var(--cms-icon-size);
+}
+
+body:has(.collection-edit--notes) .popup__content:has(#notes-edit-menu-writing) #action-create::before {
+  -webkit-mask-image: var(--cms-icon-plus);
+  mask-image: var(--cms-icon-plus);
+}
+
+body:has(.collection-edit--notes) .popup__content:has(#notes-edit-menu-writing) #action-duplicate::before {
+  -webkit-mask-image: var(--cms-icon-copy);
+  mask-image: var(--cms-icon-copy);
+}
+
+body:has(.collection-edit--notes) .popup__content:has(#notes-edit-menu-writing) #action-delete::before {
+  -webkit-mask-image: var(--cms-icon-trash);
+  mask-image: var(--cms-icon-trash);
+}
+
 .collection-edit--notes .notes-editor-tabs > .tabs-field__content-wrap > .tabs-field__tabConfigLabel-metadata::before {
   content: 'Metadata';
   display: block;
@@ -4384,9 +4457,9 @@ body:has(.collection-edit--notes) .toolbar-popup__dropdown-items .toolbar-popup_
     margin-bottom: 22px;
   }
 
-  .collection-edit--notes .field-type.text.notes-editor-title:not(.has-many) input,
-  .collection-edit--notes .field-type.text.notes-editor-title:not(.has-many) input::placeholder {
-    font-size: 30px;
+  .collection-edit--notes .field-type.textarea.notes-editor-title textarea,
+  .collection-edit--notes .field-type.textarea.notes-editor-title textarea::placeholder {
+    font-size: 30px !important;
   }
 
   .collection-edit--notes .notes-editor-body .ContentEditable__root,

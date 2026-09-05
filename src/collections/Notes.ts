@@ -77,11 +77,12 @@ export const Notes: CollectionConfig = {
           fields: [
             {
               name: 'title',
-              type: 'text',
+              type: 'textarea',
               required: true,
               admin: {
                 className: 'notes-editor-title',
                 placeholder: 'Untitled note',
+                rows: 1,
               },
             },
             {
