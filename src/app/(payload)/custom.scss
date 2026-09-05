@@ -4346,6 +4346,14 @@ body:has(.collection-edit--notes) .app-header__step-nav .step-nav__last {
   letter-spacing: -0.005em;
 }
 
+.collection-edit--notes .notes-editor-body .ContentEditable__root .LexicalEditorTheme__paragraph {
+  margin-top: 0;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+}
+
 .collection-edit--notes .notes-editor-body .LexicalEditorTheme__placeholder {
   top: 0;
   color: #aaa;
