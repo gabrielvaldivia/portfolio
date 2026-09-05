@@ -17,7 +17,6 @@ import {
 import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
-  type TouchEvent as ReactTouchEvent,
   useCallback,
   useEffect,
   useId,
@@ -53,9 +52,8 @@ type Props = {
 
 const AUTOPLAY_DELAY_MS = 6000
 const CURSOR_IDLE_ROTATION_SPEED = 14
-const MOBILE_SWIPE_THRESHOLD = 36
 
-function SilentBackgroundVideo({ src, label }: { src: string; label: string }) {
+function SilentBackgroundVideo({ src, label, playing = true }: { src: string; label: string; playing?: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
@@ -70,7 +68,6 @@ function SilentBackgroundVideo({ src, label }: { src: string; label: string }) {
     video.setAttribute('muted', '')
     video.src = src
     video.load()
-    void video.play().catch(() => {})
 
     return () => {
       video.pause()
@@ -79,11 +76,19 @@ function SilentBackgroundVideo({ src, label }: { src: string; label: string }) {
     }
   }, [src])
 
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    if (playing) void video.play().catch(() => {})
+    else video.pause()
+  }, [playing, src])
+
   return (
     <video
       ref={videoRef}
       aria-label={label}
-      autoPlay
+      autoPlay={playing}
       loop
       muted
       playsInline
@@ -169,16 +174,86 @@ function hexToRgbChannels(color?: string) {
   return match.slice(1).map((channel) => Number.parseInt(channel, 16)).join(' ')
 }
 
+function isVideoMedia(media?: HeroProjectSlide['featuredImage']) {
+  return Boolean(
+    media?.mimeType?.startsWith('video/')
+    || media?.url.match(/\.(?:mp4|mov|m4v|webm)(?:\?.*)?$/i),
+  )
+}
+
+function MobileHeroSlide({
+  project,
+  active,
+  fallbackGradientColor,
+  onImageLoad,
+}: {
+  project: HeroProjectSlide
+  active: boolean
+  fallbackGradientColor: string
+  onImageLoad: (image: HTMLImageElement, projectId: string) => void
+}) {
+  const media = project.featuredImage
+  const gradientColor = hexToRgbChannels(project.gradientColor) ?? fallbackGradientColor
+
+  return (
+    <div className="relative h-dvh w-full shrink-0 overflow-hidden bg-background-alt text-white">
+      {media?.url ? (
+        isVideoMedia(media) ? (
+          <SilentBackgroundVideo
+            src={media.url}
+            label={media.alt || `${project.title} project video`}
+            playing={active}
+          />
+        ) : (
+          <Image
+            src={media.url}
+            alt={media.alt || ''}
+            fill
+            className="object-cover"
+            sizes="100vw"
+            quality={90}
+            priority={active}
+            onLoad={(event) => onImageLoad(event.currentTarget, project.id)}
+          />
+        )
+      ) : null}
+
+      <Link
+        href={`/work/${project.slug}`}
+        aria-label={`View ${project.title} project`}
+        className="absolute inset-0 z-0"
+      />
+
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-1/2"
+        style={{
+          backgroundImage: `linear-gradient(to bottom, rgb(${gradientColor} / 0) 0%, rgb(${gradientColor} / 0.01) 18%, rgb(${gradientColor} / 0.04) 34%, rgb(${gradientColor} / 0.12) 48%, rgb(${gradientColor} / 0.26) 61%, rgb(${gradientColor} / 0.45) 74%, rgb(${gradientColor} / 0.66) 86%, rgb(${gradientColor} / 0.86) 95%, rgb(${gradientColor}) 100%)`,
+        }}
+      />
+
+      <Link
+        href={`/work/${project.slug}`}
+        className="absolute inset-x-5 bottom-5 z-10 flex flex-col gap-2 rounded-sm pr-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+      >
+        <h2 className="hero-project-title text-balance">{project.title}</h2>
+        {project.subtitle ? (
+          <p className="max-w-2xl text-body text-pretty text-white/70">{project.subtitle}</p>
+        ) : null}
+      </Link>
+    </div>
+  )
+}
+
 export function HeroProjectSlideshow({ projects }: Props) {
   const cursorTextPathId = `hero-cursor-${useId().replaceAll(':', '')}`
   const regionRef = useRef<HTMLDivElement>(null)
-  const slideshowRef = useRef<HTMLElement>(null)
   const isInView = useInView(regionRef, { amount: 0.25 })
   const prefersReducedMotion = useReducedMotion()
   const [isMobileViewport, setIsMobileViewport] = useState(false)
   const [isMobileScrollControlled, setIsMobileScrollControlled] = useState(false)
   const progress = useMotionValue(0)
-  const mobileDragY = useMotionValue(0)
+  const mobileSlideHeight = useMotionValue(1)
   const insetScale = useMotionValue(1)
   const insetRadius = useMotionValue(20)
   const expansionDistance = useMotionValue(320)
@@ -214,9 +289,6 @@ export function HeroProjectSlideshow({ projects }: Props) {
   const [cursorPortalRoot, setCursorPortalRoot] = useState<HTMLElement | null>(null)
   const [heroGradientColor, setHeroGradientColor] = useState('24 24 24')
   const mobileScrollControlledRef = useRef(false)
-  const mobileTouchGestureRef = useRef<{ startY: number; startIndex: number } | null>(null)
-  const mobileSwipeAnimationRef = useRef<ReturnType<typeof animate> | null>(null)
-  const suppressMobileClickRef = useRef(false)
 
   const { scrollY } = useScroll()
   const { scrollYProgress: mobileScrollProgress } = useScroll({
@@ -235,6 +307,12 @@ export function HeroProjectSlideshow({ projects }: Props) {
     const scrollProgress = expansionProgress.get()
     return insetRadius.get() * (1 - scrollProgress)
   })
+  const mobileTrackY = useTransform(() => (
+    -Math.min(
+      mobileScrollProgress.get() * projects.length,
+      Math.max(0, projects.length - 1),
+    ) * mobileSlideHeight.get()
+  ))
 
   const showNext = useCallback(() => {
     setActiveIndex((current) => (current + 1) % projects.length)
@@ -250,11 +328,12 @@ export function HeroProjectSlideshow({ projects }: Props) {
 
     const regionTop = region.getBoundingClientRect().top + window.scrollY
     const clampedStep = Math.max(0, Math.min(projects.length, step))
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight
     window.scrollTo({
-      top: regionTop + clampedStep * window.innerHeight + (clampedStep === projects.length ? 2 : 0),
-      behavior: 'auto',
+      top: regionTop + clampedStep * viewportHeight + (clampedStep === projects.length ? 2 : 0),
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
     })
-  }, [projects.length])
+  }, [prefersReducedMotion, projects.length])
 
   const selectSlide = useCallback((index: number) => {
     setActiveIndex(index)
@@ -263,84 +342,6 @@ export function HeroProjectSlideshow({ projects }: Props) {
       scrollToMobileStep(index)
     }
   }, [isMobileViewport, scrollToMobileStep])
-
-  const handleMobileTouchStart = useCallback((event: ReactTouchEvent<HTMLElement>) => {
-    if (!isMobileViewport || (event.target as HTMLElement).closest('button')) return
-
-    const region = regionRef.current
-    if (!region) return
-
-    const regionRect = region.getBoundingClientRect()
-    const slideshowIsPinned = regionRect.top <= 1 && regionRect.bottom > window.innerHeight + 1
-    if (!slideshowIsPinned) return
-
-    const touch = event.touches[0]
-    if (!touch) return
-
-    mobileSwipeAnimationRef.current?.stop()
-    mobileDragY.set(0)
-    mobileTouchGestureRef.current = { startY: touch.clientY, startIndex: activeIndex }
-    mobileScrollControlledRef.current = true
-    setIsMobileScrollControlled(true)
-  }, [activeIndex, isMobileViewport, mobileDragY])
-
-  const handleMobileTouchEnd = useCallback((event: ReactTouchEvent<HTMLElement>) => {
-    const gesture = mobileTouchGestureRef.current
-    mobileTouchGestureRef.current = null
-    if (!gesture) return
-
-    const touch = event.changedTouches[0]
-    const distance = touch ? gesture.startY - touch.clientY : 0
-    const direction = distance >= 0 ? 1 : -1
-    const shouldPaginate = Math.abs(distance) >= MOBILE_SWIPE_THRESHOLD
-    const targetStep = shouldPaginate ? gesture.startIndex + direction : gesture.startIndex
-
-    if (shouldPaginate) {
-      suppressMobileClickRef.current = true
-      window.setTimeout(() => { suppressMobileClickRef.current = false }, 450)
-    }
-
-    mobileSwipeAnimationRef.current?.stop()
-
-    if (!shouldPaginate) {
-      mobileSwipeAnimationRef.current = animate(mobileDragY, 0, {
-        type: 'spring',
-        stiffness: 420,
-        damping: 38,
-      })
-      return
-    }
-
-    mobileSwipeAnimationRef.current = animate(
-      mobileDragY,
-      direction > 0 ? -window.innerHeight : window.innerHeight,
-      {
-        duration: prefersReducedMotion ? 0 : 0.24,
-        ease: [0.32, 0.72, 0, 1],
-        onComplete: () => {
-          if (targetStep < 0) {
-            const region = regionRef.current
-            const regionTop = region
-              ? region.getBoundingClientRect().top + window.scrollY
-              : 0
-            window.scrollTo({ top: Math.max(0, regionTop - window.innerHeight), behavior: 'auto' })
-            mobileDragY.set(0)
-            return
-          }
-
-          if (targetStep >= projects.length) {
-            scrollToMobileStep(projects.length)
-            mobileDragY.set(0)
-            return
-          }
-
-          setActiveIndex(targetStep)
-          scrollToMobileStep(targetStep)
-          requestAnimationFrame(() => mobileDragY.set(0))
-        },
-      },
-    )
-  }, [mobileDragY, prefersReducedMotion, projects.length, scrollToMobileStep])
 
   const updateHeroGradientColor = useCallback((image: HTMLImageElement, projectId: string) => {
     const activeProject = projects[activeIndex]
@@ -496,37 +497,66 @@ export function HeroProjectSlideshow({ projects }: Props) {
 
   const isAutoplayRunning =
     projects.length > 1
+    && !isMobileViewport
     && !isFocusPaused
     && isInView
     && !prefersReducedMotion
-    && !(isMobileViewport && isMobileScrollControlled)
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 809px)')
-    const updateViewport = () => setIsMobileViewport(mediaQuery.matches)
+    const updateViewport = () => {
+      setIsMobileViewport(mediaQuery.matches)
+      mobileSlideHeight.set(window.visualViewport?.height ?? window.innerHeight)
+    }
 
     updateViewport()
     mediaQuery.addEventListener('change', updateViewport)
+    window.addEventListener('resize', updateViewport)
+    window.visualViewport?.addEventListener('resize', updateViewport)
 
-    return () => mediaQuery.removeEventListener('change', updateViewport)
-  }, [])
+    return () => {
+      mediaQuery.removeEventListener('change', updateViewport)
+      window.removeEventListener('resize', updateViewport)
+      window.visualViewport?.removeEventListener('resize', updateViewport)
+    }
+  }, [mobileSlideHeight])
 
   useEffect(() => {
-    const slideshow = slideshowRef.current
-    if (!slideshow) return
+    if (!isMobileViewport || projects.length < 2) return
 
-    const preventFreeScrollDuringSwipe = (event: TouchEvent) => {
-      const gesture = mobileTouchGestureRef.current
-      const touch = event.touches[0]
-      if (!gesture || !touch) return
+    let snapTimeout: number | undefined
+    const snapToNearestSlide = () => {
+      const region = regionRef.current
+      if (!region) return
 
-      event.preventDefault()
-      mobileDragY.set(touch.clientY - gesture.startY)
+      const viewportHeight = window.visualViewport?.height ?? window.innerHeight
+      const regionTop = region.getBoundingClientRect().top + window.scrollY
+      const offset = window.scrollY - regionTop
+      const maximumOffset = projects.length * viewportHeight
+
+      if (offset < 0 || offset > maximumOffset) return
+
+      const nearestStep = Math.max(0, Math.min(projects.length, Math.round(offset / viewportHeight)))
+      const target = regionTop + nearestStep * viewportHeight + (nearestStep === projects.length ? 2 : 0)
+      if (Math.abs(window.scrollY - target) < 2) return
+
+      window.scrollTo({
+        top: target,
+        behavior: prefersReducedMotion ? 'auto' : 'smooth',
+      })
     }
 
-    slideshow.addEventListener('touchmove', preventFreeScrollDuringSwipe, { passive: false })
-    return () => slideshow.removeEventListener('touchmove', preventFreeScrollDuringSwipe)
-  }, [mobileDragY])
+    const scheduleSnap = () => {
+      if (snapTimeout) window.clearTimeout(snapTimeout)
+      snapTimeout = window.setTimeout(snapToNearestSlide, 120)
+    }
+
+    window.addEventListener('scroll', scheduleSnap, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', scheduleSnap)
+      if (snapTimeout) window.clearTimeout(snapTimeout)
+    }
+  }, [isMobileViewport, prefersReducedMotion, projects.length])
 
   useMotionValueEvent(mobileScrollProgress, 'change', (latest) => {
     if (!isMobileViewport || projects.length < 2) return
@@ -540,12 +570,10 @@ export function HeroProjectSlideshow({ projects }: Props) {
     if (!scrollControlled) return
 
     const scaledProgress = latest * projects.length
-    const nextIndex = Math.min(projects.length - 1, Math.floor(scaledProgress))
-    const nextSlideProgress = Math.min(1, scaledProgress - nextIndex)
+    const nextIndex = Math.min(projects.length - 1, Math.round(scaledProgress))
+    const nextSlideProgress = Math.min(1, Math.max(0, scaledProgress - nextIndex))
 
-    if (!mobileTouchGestureRef.current) {
-      setActiveIndex((current) => current === nextIndex ? current : nextIndex)
-    }
+    setActiveIndex((current) => current === nextIndex ? current : nextIndex)
     progress.set(nextSlideProgress)
   })
 
@@ -610,11 +638,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
 
   const activeProject = projects[activeIndex]
   const activeMedia = activeProject.featuredImage
-  const activeMediaIsVideo = Boolean(
-    activeMedia?.mimeType?.startsWith('video/')
-    || activeMedia?.url.match(/\.(?:mp4|mov|m4v|webm)(?:\?.*)?$/i),
-  )
-  const resolvedHeroGradientColor = hexToRgbChannels(activeProject.gradientColor) ?? heroGradientColor
+  const activeMediaIsVideo = isVideoMedia(activeMedia)
   const transition = prefersReducedMotion
     ? { duration: 0 }
     : { duration: 0.6, ease: 'easeOut' as const }
@@ -628,7 +652,6 @@ export function HeroProjectSlideshow({ projects }: Props) {
       } as CSSProperties}
     >
       <motion.section
-        ref={slideshowRef}
         role="region"
         aria-label="Featured projects"
         aria-roledescription="carousel"
@@ -637,37 +660,35 @@ export function HeroProjectSlideshow({ projects }: Props) {
         onPointerEnter={updateCaseStudyCursor}
         onPointerMove={updateCaseStudyCursor}
         onPointerLeave={handleCaseStudyCursorLeave}
-        onTouchStart={handleMobileTouchStart}
-        onTouchEnd={handleMobileTouchEnd}
-        onTouchCancel={() => {
-          mobileTouchGestureRef.current = null
-          mobileSwipeAnimationRef.current?.stop()
-          mobileSwipeAnimationRef.current = animate(mobileDragY, 0, {
-            type: 'spring',
-            stiffness: 420,
-            damping: 38,
-          })
-        }}
-        onClickCapture={(event) => {
-          if (!suppressMobileClickRef.current) return
-          event.preventDefault()
-          event.stopPropagation()
-        }}
         onFocusCapture={() => setIsFocusPaused(true)}
         onBlurCapture={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setIsFocusPaused(false)
         }}
       >
+      <motion.div
+        className="absolute inset-x-0 top-0 tablet:hidden"
+        style={{ y: mobileTrackY }}
+      >
+        {projects.map((project, index) => (
+          <MobileHeroSlide
+            key={project.id}
+            project={project}
+            active={index === activeIndex}
+            fallbackGradientColor={index === activeIndex ? heroGradientColor : '24 24 24'}
+            onImageLoad={updateHeroGradientColor}
+          />
+        ))}
+      </motion.div>
+
       <AnimatePresence initial={false} mode="sync">
         {activeMedia?.url ? (
           <motion.div
             key={activeProject.id}
-            className="absolute inset-0"
-            initial={prefersReducedMotion || isMobileViewport ? false : { opacity: 0, x: '3%' }}
+            className="absolute inset-0 hidden tablet:block"
+            initial={prefersReducedMotion ? false : { opacity: 0, x: '3%' }}
             animate={{ opacity: 1, x: 0 }}
-            exit={prefersReducedMotion || isMobileViewport ? { opacity: 1 } : { opacity: 0, x: '-3%' }}
-            transition={isMobileViewport ? { duration: 0 } : transition}
-            style={isMobileViewport ? { y: mobileDragY } : undefined}
+            exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: '-3%' }}
+            transition={transition}
           >
             {activeMediaIsVideo ? (
               <SilentBackgroundVideo
@@ -693,15 +714,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
       <Link
         href={`/work/${activeProject.slug}`}
         aria-label={`View ${activeProject.title} project`}
-        className="absolute inset-0 z-0"
-      />
-
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-1/2 tablet:hidden"
-        style={{
-          backgroundImage: `linear-gradient(to bottom, rgb(${resolvedHeroGradientColor} / 0) 0%, rgb(${resolvedHeroGradientColor} / 0.01) 18%, rgb(${resolvedHeroGradientColor} / 0.04) 34%, rgb(${resolvedHeroGradientColor} / 0.12) 48%, rgb(${resolvedHeroGradientColor} / 0.26) 61%, rgb(${resolvedHeroGradientColor} / 0.45) 74%, rgb(${resolvedHeroGradientColor} / 0.66) 86%, rgb(${resolvedHeroGradientColor} / 0.86) 95%, rgb(${resolvedHeroGradientColor}) 100%)`,
-        }}
+        className="absolute inset-0 z-0 hidden tablet:block"
       />
 
       {projects.length > 1 ? (
@@ -716,10 +729,10 @@ export function HeroProjectSlideshow({ projects }: Props) {
                 onClick={() => selectSlide(index)}
                 className="group inline-flex w-8 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white tablet:h-8 tablet:w-auto"
               >
-                <span className="relative block h-7 w-1 overflow-hidden rounded-full bg-black/35 shadow-sm transition-opacity duration-150 group-hover:opacity-75 tablet:h-1 tablet:w-7">
+                <span className="relative block h-7 w-px overflow-hidden bg-black/35 shadow-sm transition-opacity duration-150 group-hover:opacity-75 tablet:h-px tablet:w-7">
                   <motion.span
                     aria-hidden="true"
-                    className="absolute inset-0 origin-top rounded-full bg-white tablet:origin-left"
+                    className="absolute inset-0 origin-top bg-white tablet:origin-left"
                     style={isMobileViewport
                       ? { scaleY: index === activeIndex ? 1 : 0 }
                       : { scaleX: index === activeIndex ? (prefersReducedMotion ? 1 : progress) : 0 }}
@@ -763,18 +776,17 @@ export function HeroProjectSlideshow({ projects }: Props) {
         role="group"
         aria-label={`${activeIndex + 1} of ${projects.length}: ${activeProject.title}`}
         aria-roledescription="slide"
-        className="pointer-events-none absolute inset-x-5 bottom-5 z-10 grid items-end gap-5 tablet:inset-x-10 tablet:bottom-10 tablet:grid-cols-2 tablet:gap-10 desktop:grid-cols-[minmax(0,1fr)_minmax(360px,480px)]"
+        className="pointer-events-none absolute inset-x-10 bottom-10 z-10 hidden items-end gap-10 tablet:grid tablet:grid-cols-2 desktop:grid-cols-[minmax(0,1fr)_minmax(360px,480px)]"
       >
         <div className="relative min-w-0">
           <AnimatePresence initial={false} mode="popLayout">
             <motion.div
               key={activeProject.id}
               className="min-w-0"
-              initial={prefersReducedMotion || isMobileViewport ? false : { opacity: 0, x: '3%' }}
+              initial={prefersReducedMotion ? false : { opacity: 0, x: '3%' }}
               animate={{ opacity: 1, x: 0 }}
-              exit={prefersReducedMotion || isMobileViewport ? { opacity: 1 } : { opacity: 0, x: '-3%' }}
-              transition={isMobileViewport ? { duration: 0 } : transition}
-              style={isMobileViewport ? { y: mobileDragY } : undefined}
+              exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: '-3%' }}
+              transition={transition}
             >
               <Link
                 href={`/work/${activeProject.slug}`}

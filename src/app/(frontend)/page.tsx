@@ -198,11 +198,7 @@ function buildHeroProjectSlides(projects: any[], testimonials: any[]) {
             quote: testimonial.testimonial,
             name: testimonial.name,
           }
-        : {
-            id: `${projectId}-testimonial-placeholder`,
-            quote: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-            name: 'Lorem Ipsum',
-          },
+        : undefined,
     }
   })
 }
