@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useMemo, useState, type FormEvent } from 'react'
 import type { HeroConfigSlide } from '@/lib/heroConfig'
 
@@ -28,6 +29,13 @@ export function HeroEditor({ projects, initialSlides }: Props) {
   const selectedSlugs = new Set(slides.map((slide) => slide.slug))
   const availableProjects = projects.filter((project) => !selectedSlugs.has(project.slug))
 
+  const updateSlide = (slug: string, updates: Partial<HeroConfigSlide>) => {
+    setSlides((current) => current.map((slide) => (
+      slide.slug === slug ? { ...slide, ...updates } : slide
+    )))
+    setMessage(null)
+  }
+
   const moveSlide = (index: number, direction: -1 | 1) => {
     const targetIndex = index + direction
     if (targetIndex < 0 || targetIndex >= slides.length) return
@@ -52,7 +60,13 @@ export function HeroEditor({ projects, initialSlides }: Props) {
   }
 
   const addSlide = (slug: string) => {
-    setSlides((current) => [...current, { slug, image: null }])
+    setSlides((current) => [...current, {
+      slug,
+      image: null,
+      title: null,
+      subtitle: null,
+      gradientColor: null,
+    }])
     setMessage(null)
   }
 
@@ -89,7 +103,7 @@ export function HeroEditor({ projects, initialSlides }: Props) {
         <div className="flex items-end justify-between gap-6">
           <div>
             <h2 id="selected-slides-heading" className="text-balance text-2xl font-medium">Selected slides</h2>
-            <p className="mt-2 text-pretty text-muted">Use the arrows to set the order. Uploading a new image overrides the project’s current featured image.</p>
+            <p className="mt-2 text-pretty text-muted">Set each slide’s copy, image, mobile gradient, and order. Project content remains the fallback until you override it here.</p>
           </div>
           <span className="shrink-0 text-sm text-muted tabular-nums">{slides.length} selected</span>
         </div>
@@ -100,12 +114,19 @@ export function HeroEditor({ projects, initialSlides }: Props) {
               const project = projectsBySlug.get(slide.slug)
               const preview = slide.image || project?.image
               const pendingFile = files[slide.slug]
+              const hasCopyOverride = slide.title != null || slide.subtitle != null
 
               return (
-                <li key={slide.slug} className="grid gap-5 rounded-2xl border border-border-strong bg-background-alt p-4 tablet:grid-cols-[96px_minmax(0,1fr)_auto] tablet:items-center">
+                <li key={slide.slug} className="grid gap-5 rounded-2xl border border-border-strong bg-background-alt p-4 tablet:grid-cols-[96px_minmax(0,1fr)_auto] tablet:items-start">
                   <div className="relative aspect-video overflow-hidden rounded-xl bg-background">
                     {preview ? (
-                      <img src={preview} alt="" className="size-full object-cover" />
+                      <Image
+                        src={preview}
+                        alt=""
+                        fill
+                        sizes="(min-width: 810px) 96px, calc(100vw - 72px)"
+                        className="object-cover"
+                      />
                     ) : (
                       <div className="flex size-full items-center justify-center text-xs text-muted">No image</div>
                     )}
@@ -116,7 +137,64 @@ export function HeroEditor({ projects, initialSlides }: Props) {
                       <span className="text-sm text-muted tabular-nums">{index + 1}</span>
                       <h3 className="truncate text-balance text-xl">{project?.title || slide.slug}</h3>
                     </div>
-                    {project?.subtitle ? <p className="mt-1 truncate text-sm text-muted">{project.subtitle}</p> : null}
+                    {project?.subtitle ? <p className="mt-1 truncate text-sm text-muted">Project default: {project.subtitle}</p> : null}
+                    {hasCopyOverride ? (
+                      <button
+                        type="button"
+                        onClick={() => updateSlide(slide.slug, { title: null, subtitle: null })}
+                        className="mt-3 text-sm text-muted underline decoration-border-strong underline-offset-4 transition-colors duration-150 hover:text-content"
+                      >
+                        Use project copy
+                      </button>
+                    ) : null}
+
+                    <div className="mt-5 grid gap-4 desktop:grid-cols-2">
+                      <label className="grid gap-2 text-sm">
+                        <span className="text-muted">Slide title</span>
+                        <input
+                          type="text"
+                          required
+                          maxLength={120}
+                          value={slide.title ?? project?.title ?? slide.slug}
+                          onChange={(event) => updateSlide(slide.slug, { title: event.target.value })}
+                          className="min-h-11 rounded-xl border border-border-strong bg-background px-3 text-base outline-none transition-colors duration-150 focus:border-content"
+                        />
+                      </label>
+
+                      <label className="grid gap-2 text-sm">
+                        <span className="text-muted">Slide description</span>
+                        <textarea
+                          rows={2}
+                          maxLength={240}
+                          value={slide.subtitle ?? project?.subtitle ?? ''}
+                          onChange={(event) => updateSlide(slide.slug, { subtitle: event.target.value })}
+                          className="min-h-11 resize-y rounded-xl border border-border-strong bg-background px-3 py-2 text-base outline-none transition-colors duration-150 focus:border-content"
+                        />
+                      </label>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                      <span className="text-sm text-muted">Mobile gradient</span>
+                      <input
+                        type="color"
+                        aria-label={`Mobile gradient for ${project?.title || slide.slug}`}
+                        disabled={!slide.gradientColor}
+                        value={slide.gradientColor || '#181818'}
+                        onChange={(event) => updateSlide(slide.slug, { gradientColor: event.target.value })}
+                        className="size-10 cursor-pointer rounded-lg border border-border-strong bg-transparent p-1 disabled:cursor-not-allowed disabled:opacity-35"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => updateSlide(slide.slug, {
+                          gradientColor: slide.gradientColor ? null : '#181818',
+                        })}
+                        className="rounded-full border border-border-strong px-4 py-2 text-sm transition-opacity duration-150 hover:opacity-60"
+                      >
+                        {slide.gradientColor ? 'Use automatic color' : 'Choose custom color'}
+                      </button>
+                      <span className="text-sm text-muted">{slide.gradientColor || 'Automatic'}</span>
+                    </div>
+
                     <label className="mt-4 inline-flex cursor-pointer items-center rounded-full border border-border-strong px-4 py-2 text-sm transition-opacity duration-150 hover:opacity-60 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-content">
                       <span>{pendingFile ? pendingFile.name : 'Choose hero image'}</span>
                       <input

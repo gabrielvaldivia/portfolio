@@ -2,19 +2,31 @@
   "slides": [
     {
       "slug": "twinsi",
-      "image": "/hero/twinsi.webp"
+      "image": "/hero/twinsi.webp",
+      "title": null,
+      "subtitle": null,
+      "gradientColor": "#29170e"
     },
     {
       "slug": "dex",
-      "image": "/hero/dex.webp"
+      "image": "/hero/dex.webp",
+      "title": null,
+      "subtitle": null,
+      "gradientColor": null
     },
     {
       "slug": "daylight",
-      "image": "/hero/daylight.webp"
+      "image": "/hero/daylight.webp",
+      "title": null,
+      "subtitle": null,
+      "gradientColor": null
     },
     {
       "slug": "slingshot",
-      "image": "/hero/slingshot.webp"
+      "image": "/hero/slingshot.webp",
+      "title": null,
+      "subtitle": null,
+      "gradientColor": "#20150f"
     }
   ]
 }

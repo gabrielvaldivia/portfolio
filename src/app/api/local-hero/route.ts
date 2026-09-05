@@ -11,12 +11,25 @@ const configPath = path.join(process.cwd(), 'src/data/hero-config.json')
 const heroImageDirectory = path.join(process.cwd(), 'public/hero')
 const maximumImageBytes = 25 * 1024 * 1024
 
+function isOptionalText(value: unknown, maximumLength: number) {
+  return value === undefined
+    || value === null
+    || (typeof value === 'string' && value.length <= maximumLength)
+}
+
 function isValidSlide(value: unknown): value is HeroConfigSlide {
   if (!value || typeof value !== 'object') return false
   const slide = value as Partial<HeroConfigSlide>
   return typeof slide.slug === 'string'
     && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slide.slug)
     && (slide.image === null || typeof slide.image === 'string')
+    && isOptionalText(slide.title, 120)
+    && isOptionalText(slide.subtitle, 240)
+    && (
+      slide.gradientColor === undefined
+      || slide.gradientColor === null
+      || /^#[0-9a-f]{6}$/i.test(slide.gradientColor)
+    )
 }
 
 export async function POST(request: Request) {
@@ -61,7 +74,19 @@ export async function POST(request: Request) {
         image = `/hero/${filename}`
       }
 
-      slides.push({ slug: submittedSlide.slug, image })
+      slides.push({
+        slug: submittedSlide.slug,
+        image,
+        title: typeof submittedSlide.title === 'string'
+          ? submittedSlide.title.trim() || null
+          : null,
+        subtitle: typeof submittedSlide.subtitle === 'string'
+          ? submittedSlide.subtitle.trim()
+          : null,
+        gradientColor: typeof submittedSlide.gradientColor === 'string'
+          ? submittedSlide.gradientColor.toLowerCase()
+          : null,
+      })
     }
 
     const nextConfig: HeroConfig = { slides }

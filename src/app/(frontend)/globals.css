@@ -414,17 +414,23 @@ h2 {
 }
 
 .hero-case-study-cursor {
-  display: block;
-}
-
-.hero-project-slideshow,
-.hero-project-slideshow a {
-  cursor: none;
+  display: none;
 }
 
 .hero-project-slideshow button,
 .hero-project-slideshow button * {
   cursor: pointer;
+}
+
+@media (min-width: 810px) and (hover: hover) and (pointer: fine) {
+  .hero-case-study-cursor {
+    display: block;
+  }
+
+  .hero-project-slideshow,
+  .hero-project-slideshow a {
+    cursor: none;
+  }
 }
 
 

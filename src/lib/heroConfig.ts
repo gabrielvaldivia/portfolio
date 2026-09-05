@@ -3,6 +3,9 @@ import configData from '@/data/hero-config.json'
 export type HeroConfigSlide = {
   slug: string
   image: string | null
+  title?: string | null
+  subtitle?: string | null
+  gradientColor?: string | null
 }
 
 export type HeroConfig = {
@@ -23,12 +26,15 @@ export function applyHeroConfig(projects: any[], fallbackProjects: any[]) {
 
     return [{
       ...project,
+      title: slide.title?.trim() || project.title,
+      subtitle: typeof slide.subtitle === 'string' ? slide.subtitle : project.subtitle,
       featuredImage: slide.image
         ? {
             url: slide.image,
             alt: project.featuredImage?.alt || `${project.title} hero image`,
           }
         : project.featuredImage,
+      heroGradientColor: slide.gradientColor || null,
     }]
   })
 

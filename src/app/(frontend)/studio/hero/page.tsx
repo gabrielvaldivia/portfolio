@@ -38,7 +38,7 @@ export default async function HeroEditorPage() {
           <div>
             <p className="text-sm text-muted">Local workspace</p>
             <h1 className="mt-2 text-balance text-4xl font-medium tablet:text-5xl">Hero editor</h1>
-            <p className="mt-4 max-w-2xl text-pretty text-muted">Choose the projects and images shown in the homepage slideshow. Saving writes versioned files to this repository; it does not change the live CMS.</p>
+            <p className="mt-4 max-w-2xl text-pretty text-muted">Edit the projects, order, copy, images, and mobile gradients shown in the homepage slideshow. Saving writes versioned files to this repository so the changes ship with the next production push.</p>
           </div>
           <Link href="/" className="rounded-full border border-border-strong px-5 py-2.5 text-sm transition-opacity duration-150 hover:opacity-60">
             View homepage

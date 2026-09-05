@@ -35,6 +35,7 @@ type HeroProjectSlide = {
   title: string
   slug: string
   subtitle?: string
+  gradientColor?: string
   featuredImage?: {
     url: string
     alt?: string | null
@@ -111,6 +112,13 @@ function samplePredominantImageColor(image: HTMLImageElement) {
     .join(' ')
 }
 
+function hexToRgbChannels(color?: string) {
+  const match = color?.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i)
+  if (!match) return null
+
+  return match.slice(1).map((channel) => Number.parseInt(channel, 16)).join(' ')
+}
+
 export function HeroProjectSlideshow({ projects }: Props) {
   const cursorTextPathId = `hero-cursor-${useId().replaceAll(':', '')}`
   const regionRef = useRef<HTMLDivElement>(null)
@@ -175,7 +183,8 @@ export function HeroProjectSlideshow({ projects }: Props) {
   }, [projects.length])
 
   const updateHeroGradientColor = useCallback((image: HTMLImageElement, projectId: string) => {
-    if (projects[activeIndex]?.id !== projectId) return
+    const activeProject = projects[activeIndex]
+    if (activeProject?.id !== projectId || activeProject.gradientColor) return
 
     try {
       const color = samplePredominantImageColor(image)
@@ -220,7 +229,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
   }, [caseStudyCursorSpinRotation, prefersReducedMotion])
 
   const updateCaseStudyCursor = useCallback((event: ReactPointerEvent<HTMLElement>) => {
-    if (event.pointerType !== 'mouse') return
+    if (event.pointerType !== 'mouse' || window.innerWidth < 810) return
 
     const isOverButton = Boolean((event.target as HTMLElement).closest('button'))
     const previousPosition = lastCaseStudyCursorPosition.current
@@ -382,6 +391,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
   if (!projects.length) return null
 
   const activeProject = projects[activeIndex]
+  const resolvedHeroGradientColor = hexToRgbChannels(activeProject.gradientColor) ?? heroGradientColor
   const transition = prefersReducedMotion
     ? { duration: 0 }
     : { duration: 0.6, ease: 'easeOut' as const }
@@ -436,7 +446,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-1/2 tablet:hidden"
         style={{
-          backgroundImage: `linear-gradient(to bottom, rgb(${heroGradientColor} / 0), rgb(${heroGradientColor} / 0.72) 62%, rgb(${heroGradientColor}) 100%)`,
+          backgroundImage: `linear-gradient(to bottom, rgb(${resolvedHeroGradientColor} / 0), rgb(${resolvedHeroGradientColor} / 0.72) 62%, rgb(${resolvedHeroGradientColor}) 100%)`,
         }}
       />
 

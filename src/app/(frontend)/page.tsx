@@ -175,6 +175,9 @@ function buildHeroProjectSlides(projects: any[], testimonials: any[]) {
       title: project.title,
       slug: project.slug,
       subtitle: project.subtitle || undefined,
+      gradientColor: typeof project.heroGradientColor === 'string'
+        ? project.heroGradientColor
+        : undefined,
       featuredImage: typeof project.featuredImage === 'object' && project.featuredImage?.url
         ? {
             url: project.featuredImage.url,
