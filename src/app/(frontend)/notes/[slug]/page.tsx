@@ -4,26 +4,12 @@ import { buildPageMetadata } from '@/lib/pageMetadata'
 import { getPublishedNoteBySlug, getPublishedNoteSlugs } from '@/lib/queries'
 import type { Metadata } from 'next'
 import Image from 'next/image'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 export const revalidate = 60
 
 type NotePageProps = {
   params: Promise<{ slug: string }>
-}
-
-const noteDateFormatter = new Intl.DateTimeFormat('en-US', {
-  month: 'long',
-  day: 'numeric',
-  year: 'numeric',
-})
-
-function formatNoteDate(value?: string | null) {
-  if (!value) return null
-
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? null : noteDateFormatter.format(date)
 }
 
 export async function generateStaticParams() {
@@ -63,35 +49,16 @@ export default async function NotePage({ params }: NotePageProps) {
   const note = await getPublishedNoteBySlug(slug)
   if (!note) notFound()
 
-  const publishedAt = note.publishedAt || note.createdAt
-  const formattedDate = formatNoteDate(publishedAt)
   const coverImage = typeof note.coverImage === 'object' ? note.coverImage : null
 
   return (
     <article className="pb-20">
       <Container>
         <div className="max-w-[880px]">
-          <Link
-            className="text-caption text-muted transition-colors hover:text-content"
-            href="/notes"
-          >
-            Notes
-          </Link>
-
-          <header className="pb-12 pt-6 tablet:pb-16 tablet:pt-8">
-            <h1 className="max-w-[1100px] text-[40px] leading-[1.05] tablet:text-[64px] desktop:text-[80px]">
+          <header className="pb-12 tablet:pb-16">
+            <h1 className="max-w-[1100px] text-balance text-[40px] leading-[1.05] tablet:text-[64px] desktop:text-[80px]">
               {note.title}
             </h1>
-            {note.excerpt ? (
-              <p className="mt-6 max-w-[760px] text-[20px] leading-[1.45] text-muted tablet:text-[24px]">
-                {note.excerpt}
-              </p>
-            ) : null}
-            {formattedDate ? (
-              <time className="mt-6 block text-caption text-muted" dateTime={publishedAt}>
-                {formattedDate}
-              </time>
-            ) : null}
           </header>
         </div>
 
