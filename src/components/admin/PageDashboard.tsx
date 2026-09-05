@@ -37,7 +37,7 @@ type RecentCollectionSource = {
 const recentCollectionSources: RecentCollectionSource[] = [
   { icon: 'document', label: 'Note', slug: 'notes', thumbnailFields: ['coverImage'], titleFields: ['title'] },
   { icon: 'folder', label: 'Project', slug: 'projects', thumbnailFields: ['featuredImage'], titleFields: ['title', 'slug'] },
-  { icon: 'grid', label: 'Playground', slug: 'side-projects', thumbnailFields: ['featuredImage'], titleFields: ['title', 'slug'] },
+  { icon: 'document', label: 'Playground', slug: 'side-projects', thumbnailFields: ['featuredImage'], titleFields: ['title', 'slug'] },
   { icon: 'people', label: 'Client', slug: 'clients', thumbnailFields: ['logo'], titleFields: ['name'] },
   { icon: 'people', label: 'Person', slug: 'people', thumbnailFields: ['photo'], titleFields: ['name'] },
   { icon: 'gear', label: 'Service', slug: 'services', thumbnailFields: [], titleFields: ['title'] },
@@ -54,7 +54,31 @@ const recentGlobalSources = [
 const editedDateFormatter = new Intl.DateTimeFormat('en', {
   day: 'numeric',
   month: 'short',
+  timeZone: 'America/New_York',
 })
+
+const editedDayFormatter = new Intl.DateTimeFormat('en-CA', {
+  day: '2-digit',
+  month: '2-digit',
+  timeZone: 'America/New_York',
+  year: 'numeric',
+})
+
+function formatEditedTime(updatedAt: string) {
+  const editedAt = new Date(updatedAt)
+  const now = new Date()
+
+  if (editedDayFormatter.format(editedAt) === editedDayFormatter.format(now)) {
+    const minutesAgo = Math.max(0, Math.floor((now.getTime() - editedAt.getTime()) / 60_000))
+    if (minutesAgo < 60) {
+      return `Edited ${minutesAgo} min ago`
+    }
+
+    return `Edited ${Math.floor(minutesAgo / 60)} hr ago`
+  }
+
+  return editedDateFormatter.format(editedAt)
+}
 
 function getItemTitle(doc: Record<string, unknown>, fields: string[], fallback: string) {
   for (const field of fields) {
@@ -247,9 +271,9 @@ export async function PageDashboard({ permissions, req }: WidgetServerProps) {
                       <img alt="" aria-hidden="true" className="dashboard-card__thumbnail" src={item.thumbnailURL} />
                     ) : null}
                     <span className="card__title page-dashboard__title">{item.title}</span>
-                    <span className="page-dashboard__meta">
-                      {item.label} · <time dateTime={item.updatedAt}>Edited {editedDateFormatter.format(new Date(item.updatedAt))}</time>
-                    </span>
+                    <time className="page-dashboard__meta" dateTime={item.updatedAt}>
+                      {formatEditedTime(item.updatedAt)}
+                    </time>
                   </a>
                 </li>
               ))}

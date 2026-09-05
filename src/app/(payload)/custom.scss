@@ -742,6 +742,10 @@ body:has(.collection-list--photos-ios) .app-header__actions .photos-list-add-act
 }
 
 /* Dashboard: keep the landing screen card-first without removing the shared header. */
+body:has(.dashboard) :is(.template-default, .dashboard) {
+  background: var(--cms-bg-primary);
+}
+
 body:has(.dashboard) .app-header__step-nav {
   gap: 0;
 }
