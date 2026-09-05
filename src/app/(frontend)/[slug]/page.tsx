@@ -8,7 +8,7 @@ import type { Metadata } from 'next'
 export const revalidate = 60
 
 // Reserved slugs handled by other routes
-const RESERVED = ['work', 'about', 'clients', 'playground', 'design-system', 'admin']
+const RESERVED = ['work', 'about', 'clients', 'playground', 'notes', 'design-system', 'admin']
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params

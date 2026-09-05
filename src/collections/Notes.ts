@@ -1,0 +1,139 @@
+import type { CollectionConfig } from 'payload'
+
+function slugify(value: string) {
+  return value
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+export const Notes: CollectionConfig = {
+  slug: 'notes',
+  labels: {
+    singular: 'Note',
+    plural: 'Notes',
+  },
+  defaultSort: '-publishedAt',
+  admin: {
+    group: 'Collections',
+    useAsTitle: 'title',
+    defaultColumns: ['title', '_status', 'publishedAt', 'updatedAt'],
+    description: 'Write, revise, and publish essays to the Notes section.',
+  },
+  access: {
+    read: ({ req }) => (
+      req.user
+        ? true
+        : { _status: { equals: 'published' } }
+    ),
+  },
+  hooks: {
+    beforeValidate: [
+      ({ data, originalDoc }) => {
+        if (!data) return data
+
+        if (!data.slug) {
+          data.slug = slugify(data.title || originalDoc?.title || '')
+        }
+
+        return data
+      },
+    ],
+    beforeChange: [
+      ({ data }) => {
+        if (data._status === 'published' && !data.publishedAt) {
+          data.publishedAt = new Date().toISOString()
+        }
+
+        return data
+      },
+    ],
+  },
+  versions: {
+    drafts: {
+      autosave: true,
+    },
+    maxPerDoc: 50,
+  },
+  fields: [
+    {
+      name: 'title',
+      type: 'text',
+      required: true,
+    },
+    {
+      name: 'slug',
+      type: 'text',
+      required: true,
+      unique: true,
+      index: true,
+      admin: {
+        position: 'sidebar',
+        description: 'Generated from the title when left blank.',
+      },
+    },
+    {
+      name: 'publishedAt',
+      type: 'date',
+      index: true,
+      admin: {
+        position: 'sidebar',
+        description: 'Set automatically the first time this note is published.',
+        date: {
+          pickerAppearance: 'dayAndTime',
+        },
+      },
+    },
+    {
+      name: 'excerpt',
+      type: 'textarea',
+      admin: {
+        description: 'A short introduction used on the Notes index and in search results.',
+      },
+    },
+    {
+      name: 'coverImage',
+      label: 'Cover image',
+      type: 'upload',
+      relationTo: 'media',
+    },
+    {
+      name: 'body',
+      type: 'richText',
+      required: true,
+    },
+    {
+      name: 'meta',
+      label: 'SEO',
+      type: 'group',
+      fields: [
+        {
+          name: 'title',
+          type: 'text',
+          admin: {
+            description: 'Optional search and social title. Defaults to the note title.',
+          },
+        },
+        {
+          name: 'description',
+          type: 'textarea',
+          admin: {
+            description: 'Optional search description. Defaults to the excerpt.',
+          },
+        },
+        {
+          name: 'image',
+          label: 'Social image',
+          type: 'upload',
+          relationTo: 'media',
+          admin: {
+            description: 'Optional social share image. Defaults to the cover image.',
+          },
+        },
+      ],
+    },
+  ],
+}

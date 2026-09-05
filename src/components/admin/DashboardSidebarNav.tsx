@@ -22,6 +22,7 @@ type CollectionNavItem = {
 }
 
 const contentCollections: CollectionNavItem[] = [
+  { icon: 'notes', label: 'Notes', slug: 'notes' },
   { icon: 'projects', label: 'Projects', slug: 'projects' },
   { icon: 'sideProjects', label: 'Playground', slug: 'side-projects' },
   { icon: 'clients', label: 'Clients', slug: 'clients' },

@@ -66,6 +66,50 @@ export async function getSideProjects() {
   return payload.find({ collection: 'side-projects', sort: 'order', limit: 100, depth: 2 })
 }
 
+export const getPublishedNotes = cache(async function getPublishedNotes() {
+  const payload = await getPayload()
+  return payload.find({
+    collection: 'notes',
+    where: { _status: { equals: 'published' } },
+    sort: '-publishedAt',
+    limit: 100,
+    depth: 1,
+    draft: false,
+  })
+})
+
+export const getPublishedNoteBySlug = cache(async function getPublishedNoteBySlug(slug: string) {
+  const payload = await getPayload()
+  const result = await payload.find({
+    collection: 'notes',
+    where: {
+      and: [
+        { slug: { equals: slug } },
+        { _status: { equals: 'published' } },
+      ],
+    },
+    depth: 2,
+    limit: 1,
+    draft: false,
+  })
+
+  return result.docs[0] || null
+})
+
+export const getPublishedNoteSlugs = cache(async function getPublishedNoteSlugs() {
+  const payload = await getPayload()
+  const result = await payload.find({
+    collection: 'notes',
+    where: { _status: { equals: 'published' } },
+    limit: 100,
+    depth: 0,
+    draft: false,
+    select: { slug: true },
+  })
+
+  return result.docs.flatMap((note) => note.slug ? [note.slug] : [])
+})
+
 export const getSideProjectBySlug = cache(async function getSideProjectBySlug(slug: string) {
   const payload = await getPayload()
   const result = await payload.find({
@@ -141,7 +185,7 @@ export const getNavigationPages = cache(async function getNavigationPages() {
     },
   })
 
-  return sortPagesByOrder(result.docs as NavigationPageResult[]).flatMap((page) => {
+  const pages = sortPagesByOrder(result.docs as NavigationPageResult[]).flatMap((page) => {
     const url = getPagePath(page.slug)
     if (!url) return []
 
@@ -152,6 +196,12 @@ export const getNavigationPages = cache(async function getNavigationPages() {
       },
     ]
   })
+
+  if (pages.length > 0 && !pages.some((page) => page.url === '/notes')) {
+    pages.push({ label: 'Notes', url: '/notes' })
+  }
+
+  return pages
 })
 
 export const getSiteSettings = cache(async function getSiteSettings() {

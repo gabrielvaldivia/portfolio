@@ -16,6 +16,7 @@ const fallbackPages: NavMenuPage[] = [
   { label: 'About', url: '/about' },
   { label: 'Work', url: '/work' },
   { label: 'Playground', url: '/playground' },
+  { label: 'Notes', url: '/notes' },
   { label: 'Clients', url: '/clients' },
   { label: 'People', url: '/people' },
 ]

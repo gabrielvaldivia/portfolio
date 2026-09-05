@@ -14,6 +14,10 @@ function resolveUrl(fields: any): string {
       return `/work/${slug}`
     }
 
+    if (collection === 'notes') {
+      return `/notes/${slug}`
+    }
+
     // Pages
     if (slug) {
       if (slug === 'home') return '/'

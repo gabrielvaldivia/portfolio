@@ -12,6 +12,7 @@ import {
   Image03Icon,
   Layers01Icon,
   LayoutGridIcon,
+  Note01Icon,
   Setting06Icon,
   User03Icon,
   UserMultiple02Icon,
@@ -29,6 +30,7 @@ export type DashboardSidebarIconKey =
   | 'conversations'
   | 'dashboard'
   | 'media'
+  | 'notes'
   | 'page'
   | 'pages'
   | 'people'
@@ -60,6 +62,7 @@ const icons: Record<DashboardSidebarIconKey, IconSvgElement> = {
   conversations: BubbleChatIcon,
   dashboard: DashboardSquare03Icon,
   media: Image03Icon,
+  notes: Note01Icon,
   page: File02Icon,
   pages: Folder01Icon,
   people: UserMultiple02Icon,
