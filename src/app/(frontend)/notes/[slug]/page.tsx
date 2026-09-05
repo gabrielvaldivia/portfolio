@@ -84,9 +84,12 @@ export default async function NotePage({ params }: NotePageProps) {
         </div>
 
         {readNextNote?.slug ? (
-          <section className="mt-20 max-w-[760px] tablet:mt-28" aria-labelledby="read-next-heading">
-            <p className="mb-4 text-caption" id="read-next-heading">
-              Read next
+          <section
+            className="mt-20 mb-16 max-w-[760px] tablet:mt-28 tablet:mb-24"
+            aria-labelledby="continue-reading-heading"
+          >
+            <p className="mb-4 text-caption" id="continue-reading-heading">
+              Continue reading
             </p>
             <Link
               className="block rounded-[16px] bg-background-alt p-6 transition-colors hover:bg-background-alt-hover tablet:p-8"
