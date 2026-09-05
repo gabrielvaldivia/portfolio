@@ -98,7 +98,7 @@ export const getPublishedNoteBySlug = cache(async function getPublishedNoteBySlu
 })
 
 export const getReadNextNote = cache(async function getReadNextNote(
-  currentNoteId: number,
+  currentNoteId: string | number,
   publishedAt?: string | null,
 ) {
   const payload = await getPayload()
