@@ -291,6 +291,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
   const mobileScrollControlledRef = useRef(false)
   const mobileResizeCorrectionTimeout = useRef<number | null>(null)
   const mobileScrollSettleTimeout = useRef<number | null>(null)
+  const mobileLastScrollTimestamp = useRef(0)
 
   const { scrollY } = useScroll()
   const { scrollYProgress: mobileScrollProgress } = useScroll({
@@ -564,10 +565,23 @@ export function HeroProjectSlideshow({ projects }: Props) {
       // Mobile browser chrome changes the dynamic viewport after a swipe has
       // already snapped. Re-anchor the settled project to the newly measured
       // viewport so two slides can never remain visible at once.
-      mobileResizeCorrectionTimeout.current = window.setTimeout(() => {
+      const settleAfterViewportResize = () => {
+        const idleTime = performance.now() - mobileLastScrollTimestamp.current
+        const remainingIdleTime = 64 - idleTime
+
+        if (remainingIdleTime > 0) {
+          mobileResizeCorrectionTimeout.current = window.setTimeout(
+            settleAfterViewportResize,
+            remainingIdleTime,
+          )
+          return
+        }
+
         mobileResizeCorrectionTimeout.current = null
-        settleMobileScroll('auto')
-      }, 160)
+        settleMobileScroll(prefersReducedMotion ? 'auto' : 'smooth')
+      }
+
+      mobileResizeCorrectionTimeout.current = window.setTimeout(settleAfterViewportResize, 64)
     }
 
     updateViewport()
@@ -584,7 +598,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
         mobileResizeCorrectionTimeout.current = null
       }
     }
-  }, [mobileSlideHeight, settleMobileScroll])
+  }, [mobileSlideHeight, prefersReducedMotion, settleMobileScroll])
 
   useEffect(() => {
     if (!isMobileViewport || projects.length < 2) return
@@ -641,7 +655,12 @@ export function HeroProjectSlideshow({ projects }: Props) {
   useEffect(() => {
     if (!isMobileViewport || projects.length < 2) return
 
-    const settle = () => {
+    let settleFrame: number | null = null
+    const settle = (event: Event) => {
+      if (event.type === 'scroll') {
+        mobileLastScrollTimestamp.current = performance.now()
+      }
+
       if (mobileScrollSettleTimeout.current !== null) {
         window.clearTimeout(mobileScrollSettleTimeout.current)
       }
@@ -649,7 +668,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
       mobileScrollSettleTimeout.current = window.setTimeout(() => {
         mobileScrollSettleTimeout.current = null
         settleMobileScroll(prefersReducedMotion ? 'auto' : 'smooth')
-      }, 140)
+      }, 32)
     }
 
     const settleImmediately = () => {
@@ -657,21 +676,26 @@ export function HeroProjectSlideshow({ projects }: Props) {
         window.clearTimeout(mobileScrollSettleTimeout.current)
         mobileScrollSettleTimeout.current = null
       }
-      settleMobileScroll(prefersReducedMotion ? 'auto' : 'smooth')
+      if (settleFrame !== null) cancelAnimationFrame(settleFrame)
+      settleFrame = requestAnimationFrame(() => {
+        settleFrame = null
+        settleMobileScroll(prefersReducedMotion ? 'auto' : 'smooth')
+      })
     }
 
     window.addEventListener('scroll', settle, { passive: true })
     window.addEventListener('scrollend', settleImmediately)
-    window.addEventListener('touchend', settle, { passive: true })
+    window.addEventListener('touchend', settleImmediately, { passive: true })
 
     return () => {
       window.removeEventListener('scroll', settle)
       window.removeEventListener('scrollend', settleImmediately)
-      window.removeEventListener('touchend', settle)
+      window.removeEventListener('touchend', settleImmediately)
       if (mobileScrollSettleTimeout.current !== null) {
         window.clearTimeout(mobileScrollSettleTimeout.current)
         mobileScrollSettleTimeout.current = null
       }
+      if (settleFrame !== null) cancelAnimationFrame(settleFrame)
     }
   }, [isMobileViewport, prefersReducedMotion, projects.length, settleMobileScroll])
 
