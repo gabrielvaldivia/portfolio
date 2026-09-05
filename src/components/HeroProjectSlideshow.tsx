@@ -17,6 +17,7 @@ import {
 import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
+  type TouchEvent as ReactTouchEvent,
   useCallback,
   useEffect,
   useId,
@@ -52,6 +53,7 @@ type Props = {
 
 const AUTOPLAY_DELAY_MS = 6000
 const CURSOR_IDLE_ROTATION_SPEED = 14
+const MOBILE_PAGE_SWIPE_THRESHOLD = 24
 
 function SilentBackgroundVideo({ src, label, playing = true }: { src: string; label: string; playing?: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -289,6 +291,8 @@ export function HeroProjectSlideshow({ projects }: Props) {
   const [cursorPortalRoot, setCursorPortalRoot] = useState<HTMLElement | null>(null)
   const [heroGradientColor, setHeroGradientColor] = useState('24 24 24')
   const mobileScrollControlledRef = useRef(false)
+  const mobilePageGestureRef = useRef<{ startY: number; startStep: number } | null>(null)
+  const suppressIdleSnapUntilRef = useRef(0)
 
   const { scrollY } = useScroll()
   const { scrollYProgress: mobileScrollProgress } = useScroll({
@@ -342,6 +346,48 @@ export function HeroProjectSlideshow({ projects }: Props) {
       scrollToMobileStep(index)
     }
   }, [isMobileViewport, scrollToMobileStep])
+
+  const handleMobilePageStart = useCallback((event: ReactTouchEvent<HTMLElement>) => {
+    if (!isMobileViewport || (event.target as HTMLElement).closest('button')) return
+
+    const region = regionRef.current
+    const touch = event.touches[0]
+    if (!region || !touch) return
+
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight
+    const regionRect = region.getBoundingClientRect()
+    const pinned = regionRect.top <= 1 && regionRect.bottom > viewportHeight + 1
+    if (!pinned) return
+
+    const regionTop = regionRect.top + window.scrollY
+    const startStep = Math.max(
+      0,
+      Math.min(projects.length - 1, Math.round((window.scrollY - regionTop) / viewportHeight)),
+    )
+    mobilePageGestureRef.current = { startY: touch.clientY, startStep }
+  }, [isMobileViewport, projects.length])
+
+  const handleMobilePageEnd = useCallback((event: ReactTouchEvent<HTMLElement>) => {
+    const gesture = mobilePageGestureRef.current
+    mobilePageGestureRef.current = null
+    if (!gesture) return
+
+    const touch = event.changedTouches[0]
+    const distance = touch ? gesture.startY - touch.clientY : 0
+    const movedEnough = Math.abs(distance) >= MOBILE_PAGE_SWIPE_THRESHOLD
+
+    if (gesture.startStep === 0 && distance < -MOBILE_PAGE_SWIPE_THRESHOLD) {
+      suppressIdleSnapUntilRef.current = Date.now() + 900
+      return
+    }
+
+    const targetStep = movedEnough
+      ? gesture.startStep + (distance > 0 ? 1 : -1)
+      : gesture.startStep
+
+    suppressIdleSnapUntilRef.current = Date.now() + 900
+    scrollToMobileStep(Math.max(0, Math.min(projects.length, targetStep)))
+  }, [projects.length, scrollToMobileStep])
 
   const updateHeroGradientColor = useCallback((image: HTMLImageElement, projectId: string) => {
     const activeProject = projects[activeIndex]
@@ -526,6 +572,8 @@ export function HeroProjectSlideshow({ projects }: Props) {
 
     let snapTimeout: number | undefined
     const snapToNearestSlide = () => {
+      if (Date.now() < suppressIdleSnapUntilRef.current) return
+
       const region = regionRef.current
       if (!region) return
 
@@ -660,6 +708,9 @@ export function HeroProjectSlideshow({ projects }: Props) {
         onPointerEnter={updateCaseStudyCursor}
         onPointerMove={updateCaseStudyCursor}
         onPointerLeave={handleCaseStudyCursorLeave}
+        onTouchStart={handleMobilePageStart}
+        onTouchEnd={handleMobilePageEnd}
+        onTouchCancel={() => { mobilePageGestureRef.current = null }}
         onFocusCapture={() => setIsFocusPaused(true)}
         onBlurCapture={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setIsFocusPaused(false)
