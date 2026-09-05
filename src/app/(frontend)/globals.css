@@ -742,6 +742,11 @@ a {
   color: var(--color-content);
 }
 
+.note-page .rich-text a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .note-page .rich-text ul li::before {
   opacity: 1;
 }
