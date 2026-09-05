@@ -518,7 +518,7 @@ export default async function HomePage() {
                     index={j}
                     title={title}
                   >
-                    <div className="home-approach-copy max-w-[900px] text-body-large text-pretty">
+                    <div className="home-approach-copy ml-10 max-w-[900px] text-body-large text-pretty tablet:ml-0">
                       <RichText data={description} />
                     </div>
                   </ApproachTimelineItem>

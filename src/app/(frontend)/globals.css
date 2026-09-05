@@ -317,7 +317,7 @@ h1 {
   position: absolute;
   right: calc(var(--approach-screen-gutter) * -1);
   bottom: calc(var(--approach-row-gap) / -2);
-  left: 0;
+  left: 40px;
   height: 1px;
   background: var(--color-border-strong);
 }
