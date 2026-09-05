@@ -1,9 +1,10 @@
 import { Container } from '@/components/Container'
 import { RichText } from '@/components/RichText'
 import { buildPageMetadata } from '@/lib/pageMetadata'
-import { getPublishedNoteBySlug, getPublishedNoteSlugs } from '@/lib/queries'
+import { getPublishedNoteBySlug, getPublishedNoteSlugs, getReadNextNote } from '@/lib/queries'
 import type { Metadata } from 'next'
 import Image from 'next/image'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 export const revalidate = 60
@@ -50,6 +51,7 @@ export default async function NotePage({ params }: NotePageProps) {
   if (!note) notFound()
 
   const coverImage = typeof note.coverImage === 'object' ? note.coverImage : null
+  const readNextNote = await getReadNextNote(note.id, note.publishedAt)
 
   return (
     <article className="note-page pb-20 text-content">
@@ -78,6 +80,27 @@ export default async function NotePage({ params }: NotePageProps) {
         <div className="max-w-[760px] [&_.rich-text]:text-[18px] [&_.rich-text]:leading-[1.65] [&_.rich-text]:text-content tablet:[&_.rich-text]:text-[20px] [&_.rich-text_h2]:mb-5 [&_.rich-text_h2]:pt-16 [&_.rich-text_h3]:mb-4 [&_.rich-text_h3]:pt-12 [&_.rich-text_blockquote]:my-10 [&_.rich-text_blockquote]:border-l [&_.rich-text_blockquote]:border-border-strong [&_.rich-text_blockquote]:pl-6 [&_.rich-text_blockquote]:text-muted">
           <RichText data={note.body} />
         </div>
+
+        {readNextNote?.slug ? (
+          <section className="mt-20 max-w-[760px] tablet:mt-28" aria-labelledby="read-next-heading">
+            <p className="mb-4 text-caption" id="read-next-heading">
+              Read next
+            </p>
+            <Link
+              className="block rounded-[16px] bg-background-alt p-6 transition-colors hover:bg-background-alt-hover tablet:p-8"
+              href={`/notes/${readNextNote.slug}`}
+            >
+              <h2 className="text-balance text-[28px] leading-[1.1] tablet:text-[36px]">
+                {readNextNote.title}
+              </h2>
+              {readNextNote.excerpt ? (
+                <p className="mt-4 line-clamp-3 text-pretty text-[18px] leading-[1.5] tablet:text-[20px]">
+                  {readNextNote.excerpt}
+                </p>
+              ) : null}
+            </Link>
+          </section>
+        ) : null}
       </Container>
     </article>
   )

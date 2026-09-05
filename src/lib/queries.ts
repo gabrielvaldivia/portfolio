@@ -1,4 +1,5 @@
 import { cache } from 'react'
+import type { Where } from 'payload'
 import { getPayload } from './payload'
 import type { PageLike } from './pageMetadata'
 import { getPagePath, sortPagesByOrder, type OrderedPage } from './pageOrdering'
@@ -94,6 +95,45 @@ export const getPublishedNoteBySlug = cache(async function getPublishedNoteBySlu
   })
 
   return result.docs[0] || null
+})
+
+export const getReadNextNote = cache(async function getReadNextNote(
+  currentNoteId: number,
+  publishedAt?: string | null,
+) {
+  const payload = await getPayload()
+  const sharedFilters: Where[] = [
+    { id: { not_equals: currentNoteId } },
+    { _status: { equals: 'published' } },
+  ]
+
+  if (publishedAt) {
+    const olderResult = await payload.find({
+      collection: 'notes',
+      where: {
+        and: [...sharedFilters, { publishedAt: { less_than: publishedAt } }],
+      },
+      sort: '-publishedAt',
+      limit: 1,
+      depth: 0,
+      draft: false,
+      select: { title: true, slug: true, excerpt: true },
+    })
+
+    if (olderResult.docs[0]) return olderResult.docs[0]
+  }
+
+  const newestResult = await payload.find({
+    collection: 'notes',
+    where: { and: sharedFilters },
+    sort: '-publishedAt',
+    limit: 1,
+    depth: 0,
+    draft: false,
+    select: { title: true, slug: true, excerpt: true },
+  })
+
+  return newestResult.docs[0] || null
 })
 
 export const getPublishedNoteSlugs = cache(async function getPublishedNoteSlugs() {
