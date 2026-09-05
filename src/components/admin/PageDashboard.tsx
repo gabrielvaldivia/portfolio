@@ -3,7 +3,11 @@ import { formatAdminURL } from 'payload/shared'
 import { getPagePath, sortPagesByOrder } from '@/lib/pageOrdering'
 
 type DashboardPage = {
+  bioImage?: unknown
   id: number | string
+  meta?: {
+    image?: unknown
+  } | null
   order?: number | null
   slug?: string | null
   title?: string | null
@@ -17,6 +21,7 @@ type RecentItem = {
   icon: DashboardCardIcon
   id: string
   label: string
+  thumbnailURL?: string
   title: string
   updatedAt: string
 }
@@ -25,19 +30,20 @@ type RecentCollectionSource = {
   icon: DashboardCardIcon
   label: string
   slug: string
+  thumbnailFields: string[]
   titleFields: string[]
 }
 
 const recentCollectionSources: RecentCollectionSource[] = [
-  { icon: 'document', label: 'Note', slug: 'notes', titleFields: ['title'] },
-  { icon: 'folder', label: 'Project', slug: 'projects', titleFields: ['title', 'slug'] },
-  { icon: 'grid', label: 'Playground', slug: 'side-projects', titleFields: ['title', 'slug'] },
-  { icon: 'people', label: 'Client', slug: 'clients', titleFields: ['name'] },
-  { icon: 'people', label: 'Person', slug: 'people', titleFields: ['name'] },
-  { icon: 'gear', label: 'Service', slug: 'services', titleFields: ['title'] },
-  { icon: 'link', label: 'Conversation', slug: 'conversations', titleFields: ['title'] },
-  { icon: 'upload', label: 'Photo', slug: 'photos', titleFields: ['filename', 'slug'] },
-  { icon: 'upload', label: 'Media', slug: 'media', titleFields: ['alt', 'filename'] },
+  { icon: 'document', label: 'Note', slug: 'notes', thumbnailFields: ['coverImage'], titleFields: ['title'] },
+  { icon: 'folder', label: 'Project', slug: 'projects', thumbnailFields: ['featuredImage'], titleFields: ['title', 'slug'] },
+  { icon: 'grid', label: 'Playground', slug: 'side-projects', thumbnailFields: ['featuredImage'], titleFields: ['title', 'slug'] },
+  { icon: 'people', label: 'Client', slug: 'clients', thumbnailFields: ['logo'], titleFields: ['name'] },
+  { icon: 'people', label: 'Person', slug: 'people', thumbnailFields: ['photo'], titleFields: ['name'] },
+  { icon: 'gear', label: 'Service', slug: 'services', thumbnailFields: [], titleFields: ['title'] },
+  { icon: 'link', label: 'Conversation', slug: 'conversations', thumbnailFields: [], titleFields: ['title'] },
+  { icon: 'upload', label: 'Photo', slug: 'photos', thumbnailFields: ['$self'], titleFields: ['filename', 'slug'] },
+  { icon: 'upload', label: 'Media', slug: 'media', thumbnailFields: ['$self'], titleFields: ['alt', 'filename'] },
 ]
 
 const recentGlobalSources = [
@@ -61,6 +67,36 @@ function getItemTitle(doc: Record<string, unknown>, fields: string[], fallback: 
   return fallback
 }
 
+function getMediaThumbnail(value: unknown): string | undefined {
+  if (!value || typeof value !== 'object') {
+    return undefined
+  }
+
+  const media = value as {
+    mimeType?: unknown
+    sizes?: { thumbnail?: { url?: unknown } }
+    thumbnailURL?: unknown
+    url?: unknown
+  }
+  if (typeof media.mimeType === 'string' && !media.mimeType.startsWith('image/')) {
+    return undefined
+  }
+
+  const candidates = [media.sizes?.thumbnail?.url, media.thumbnailURL, media.url]
+  return candidates.find((candidate): candidate is string => typeof candidate === 'string' && candidate.length > 0)
+}
+
+function getItemThumbnail(doc: Record<string, unknown>, fields: string[]) {
+  for (const field of fields) {
+    const thumbnail = getMediaThumbnail(field === '$self' ? doc : doc[field])
+    if (thumbnail) {
+      return thumbnail
+    }
+  }
+
+  return undefined
+}
+
 export async function PageDashboard({ permissions, req }: WidgetServerProps) {
   if (!permissions?.collections?.pages?.read) {
     return null
@@ -77,7 +113,7 @@ export async function PageDashboard({ permissions, req }: WidgetServerProps) {
 
   const { docs } = await payload.find({
     collection: 'pages',
-    depth: 0,
+    depth: 1,
     limit: 100,
     overrideAccess: false,
     pagination: false,
@@ -87,10 +123,15 @@ export async function PageDashboard({ permissions, req }: WidgetServerProps) {
       slug: true,
       title: true,
       updatedAt: true,
+      bioImage: true,
+      meta: {
+        image: true,
+      },
     },
     sort: 'order',
   })
   const pages = sortPagesByOrder(docs as DashboardPage[])
+  const showTimelineShortcut = Boolean(permissions?.globals?.timeline?.read)
   const recentCollectionGroups = await Promise.all(
     recentCollectionSources
       .filter((source) => permissions?.collections?.[source.slug]?.read)
@@ -98,13 +139,19 @@ export async function PageDashboard({ permissions, req }: WidgetServerProps) {
         try {
           const result = await payload.find({
             collection: source.slug,
-            depth: 0,
+            depth: 1,
             limit: 5,
             overrideAccess: false,
             pagination: false,
             req,
             select: Object.fromEntries([
               ...source.titleFields.map((field) => [field, true]),
+              ...source.thumbnailFields
+                .filter((field) => field !== '$self')
+                .map((field) => [field, true]),
+              ...(source.thumbnailFields.includes('$self')
+                ? [['mimeType', true], ['sizes', true], ['thumbnailURL', true], ['url', true]]
+                : []),
               ['updatedAt', true],
             ]),
             sort: '-updatedAt',
@@ -123,6 +170,7 @@ export async function PageDashboard({ permissions, req }: WidgetServerProps) {
               icon: source.icon,
               id: `${source.slug}-${doc.id}`,
               label: source.label,
+              thumbnailURL: getItemThumbnail(doc, source.thumbnailFields),
               title: getItemTitle(doc, source.titleFields, `Untitled ${source.label.toLowerCase()}`),
               updatedAt: doc.updatedAt,
             }]
@@ -171,6 +219,7 @@ export async function PageDashboard({ permissions, req }: WidgetServerProps) {
       icon: 'document' as const,
       id: `pages-${page.id}`,
       label: 'Page',
+      thumbnailURL: getMediaThumbnail(page.meta?.image) || getMediaThumbnail(page.bioImage),
       title: page.title || page.slug || 'Untitled page',
       updatedAt: page.updatedAt,
     })),
@@ -191,9 +240,12 @@ export async function PageDashboard({ permissions, req }: WidgetServerProps) {
                 <li key={item.id}>
                   <a
                     aria-label={`Edit ${item.title}`}
-                    className={`card card--has-onclick page-dashboard__card dashboard-card--with-icon dashboard-card--icon-${item.icon} recent-content-dashboard__card`}
+                    className={`card card--has-onclick page-dashboard__card dashboard-card--with-icon dashboard-card--icon-${item.icon} ${item.thumbnailURL ? 'dashboard-card--has-thumbnail' : ''} recent-content-dashboard__card`}
                     href={item.href}
                   >
+                    {item.thumbnailURL ? (
+                      <img alt="" aria-hidden="true" className="dashboard-card__thumbnail" src={item.thumbnailURL} />
+                    ) : null}
                     <span className="card__title page-dashboard__title">{item.title}</span>
                     <span className="page-dashboard__meta">
                       {item.label} · <time dateTime={item.updatedAt}>Edited {editedDateFormatter.format(new Date(item.updatedAt))}</time>
@@ -206,10 +258,11 @@ export async function PageDashboard({ permissions, req }: WidgetServerProps) {
         ) : null}
         <div className="collections__group">
           <h2 className="collections__label">Pages</h2>
-          {pages.length > 0 ? (
+          {pages.length > 0 || showTimelineShortcut ? (
             <ul className="collections__card-list page-dashboard__list">
               {pages.map((page) => {
                 const slug = getPagePath(page.slug)
+                const thumbnailURL = getMediaThumbnail(page.meta?.image) || getMediaThumbnail(page.bioImage)
                 const href = formatAdminURL({
                   adminRoute,
                   path: `/collections/pages/${page.id}`,
@@ -219,10 +272,13 @@ export async function PageDashboard({ permissions, req }: WidgetServerProps) {
                   <li key={page.id}>
                     <a
                       aria-label={`Edit ${page.title || page.slug || 'page'}`}
-                      className="card card--has-onclick page-dashboard__card dashboard-card--with-icon dashboard-card--icon-document"
+                      className={`card card--has-onclick page-dashboard__card dashboard-card--with-icon dashboard-card--icon-document ${thumbnailURL ? 'dashboard-card--has-thumbnail' : ''}`}
                       href={href}
                       id={`card-page-${page.slug || page.id}`}
                     >
+                      {thumbnailURL ? (
+                        <img alt="" aria-hidden="true" className="dashboard-card__thumbnail" src={thumbnailURL} />
+                      ) : null}
                       <span className="card__title page-dashboard__title">
                         {page.title || page.slug || 'Untitled page'}
                       </span>
@@ -233,6 +289,19 @@ export async function PageDashboard({ permissions, req }: WidgetServerProps) {
                   </li>
                 )
               })}
+              {showTimelineShortcut ? (
+                <li>
+                  <a
+                    aria-label="Edit Timeline"
+                    className="card card--has-onclick page-dashboard__card dashboard-card--with-icon dashboard-card--icon-calendar"
+                    href={formatAdminURL({ adminRoute, path: '/globals/timeline' })}
+                    id="card-page-timeline"
+                  >
+                    <span className="card__title page-dashboard__title">Timeline</span>
+                    <span className="page-dashboard__meta">/timeline</span>
+                  </a>
+                </li>
+              ) : null}
             </ul>
           ) : (
             <a

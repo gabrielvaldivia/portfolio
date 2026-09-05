@@ -795,7 +795,7 @@ body:has(.collections) .collections .card__actions * {
   display: none !important;
 }
 
-body:has(.collections) .collections:not(.page-dashboard) .collections__card-list > li:has(#card-pages) {
+body:has(.collections) .collections:not(.page-dashboard) .collections__group:has(#card-pages) {
   display: none !important;
 }
 
@@ -834,6 +834,14 @@ body:has(.collections) .collections:not(.page-dashboard) .collections__card-list
 .recent-content-dashboard__list {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+body:has(.dashboard) {
+  --dashboard-card-columns: 5;
+}
+
+body:has(.dashboard) .collections__card-list {
+  grid-template-columns: repeat(var(--dashboard-card-columns), minmax(0, 1fr));
 }
 
 .page-dashboard__list > li {
@@ -890,6 +898,20 @@ body:has(.dashboard) .collections:not(.page-dashboard) .card::before {
   mask-position: center;
   mask-repeat: no-repeat;
   mask-size: 100% 100%;
+}
+
+.dashboard-card--has-thumbnail::before {
+  display: none;
+}
+
+.dashboard-card__thumbnail {
+  display: block;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  margin-bottom: 2px;
+  border-radius: 4px;
+  object-fit: cover;
 }
 
 .dashboard-card--icon-calendar::before,
@@ -972,6 +994,10 @@ body:has(.dashboard) .collections:not(.page-dashboard) .card {
 }
 
 @media (max-width: 768px) {
+  body:has(.dashboard) {
+    --dashboard-card-columns: 2;
+  }
+
   .collections__wrap {
     gap: 20px;
   }
@@ -984,14 +1010,6 @@ body:has(.dashboard) .collections:not(.page-dashboard) .card {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .recent-content-dashboard__list {
-    grid-auto-columns: minmax(190px, 72vw);
-    grid-auto-flow: column;
-    grid-template-columns: none;
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-  }
-
   .page-dashboard__card {
     min-height: 88px;
     padding: 14px 16px;
@@ -1001,6 +1019,18 @@ body:has(.dashboard) .collections:not(.page-dashboard) .card {
   .page-dashboard__title {
     font-size: 17px;
     line-height: 24px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  body:has(.dashboard) {
+    --dashboard-card-columns: 3;
+  }
+}
+
+@media (max-width: 480px) {
+  body:has(.dashboard) {
+    --dashboard-card-columns: 1;
   }
 }
 
