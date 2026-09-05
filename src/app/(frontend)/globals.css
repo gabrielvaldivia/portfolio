@@ -435,8 +435,13 @@ h2 {
     scroll-margin-top: 94px;
   }
 
+  .hero-approach-snap-point {
+    scroll-margin-top: 80px;
+  }
+
   .hero-intro-snap-point,
-  .hero-project-snap-point {
+  .hero-project-snap-point,
+  .hero-approach-snap-point {
     scroll-snap-align: start;
     scroll-snap-stop: always;
   }

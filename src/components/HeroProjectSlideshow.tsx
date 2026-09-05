@@ -311,7 +311,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
   })
   const mobileTrackY = useTransform(() => (
     -Math.min(
-      mobileScrollProgress.get() * projects.length,
+      mobileScrollProgress.get() * Math.max(0, projects.length - 1),
       Math.max(0, projects.length - 1),
     ) * mobileSlideHeight.get()
   ))
@@ -329,10 +329,10 @@ export function HeroProjectSlideshow({ projects }: Props) {
     if (!region) return
 
     const regionTop = region.getBoundingClientRect().top + window.scrollY
-    const clampedStep = Math.max(0, Math.min(projects.length, step))
+    const clampedStep = Math.max(0, Math.min(projects.length - 1, step))
     const viewportHeight = window.visualViewport?.height ?? window.innerHeight
     window.scrollTo({
-      top: regionTop + clampedStep * viewportHeight + (clampedStep === projects.length ? 2 : 0),
+      top: regionTop + clampedStep * viewportHeight,
       behavior: prefersReducedMotion ? 'auto' : 'smooth',
     })
   }, [prefersReducedMotion, projects.length])
@@ -344,27 +344,35 @@ export function HeroProjectSlideshow({ projects }: Props) {
     const currentScrollY = window.scrollY
     const viewportHeight = window.visualViewport?.height ?? window.innerHeight
     const regionTop = region.getBoundingClientRect().top + currentScrollY
-    const sequenceEnd = regionTop + projects.length * viewportHeight
     const intro = region.closest<HTMLElement>('#hero')?.querySelector<HTMLElement>('.hero-intro-snap-point')
     const introScrollMargin = intro ? Number.parseFloat(getComputedStyle(intro).scrollMarginTop) || 0 : 0
     const introTop = intro
       ? Math.max(0, intro.getBoundingClientRect().top + currentScrollY - introScrollMargin)
       : regionTop
+    const approach = document.querySelector<HTMLElement>('.hero-approach-snap-point')
+    const approachScrollMargin = approach
+      ? Number.parseFloat(getComputedStyle(approach).scrollMarginTop) || 0
+      : 0
+    const approachTop = approach
+      ? approach.getBoundingClientRect().top + currentScrollY - approachScrollMargin
+      : null
+    const snapPositions = [
+      introTop,
+      ...Array.from(
+        { length: projects.length },
+        (_, index) => regionTop + index * viewportHeight,
+      ),
+      ...(approachTop !== null ? [approachTop] : []),
+    ]
+    const sequenceEnd = snapPositions[snapPositions.length - 1]
 
     if (currentScrollY < introTop - 1 || currentScrollY > sequenceEnd + 1) return
 
-    let targetScrollY: number
-    if (currentScrollY < regionTop) {
-      targetScrollY = Math.abs(currentScrollY - introTop) <= Math.abs(currentScrollY - regionTop)
-        ? introTop
-        : regionTop
-    } else {
-      const nearestStep = Math.max(
-        0,
-        Math.min(projects.length, Math.round((currentScrollY - regionTop) / viewportHeight)),
-      )
-      targetScrollY = regionTop + nearestStep * viewportHeight
-    }
+    const targetScrollY = snapPositions.reduce((nearest, position) => (
+      Math.abs(currentScrollY - position) < Math.abs(currentScrollY - nearest)
+        ? position
+        : nearest
+    ))
 
     if (Math.abs(currentScrollY - targetScrollY) <= 1) return
     window.scrollTo({ top: targetScrollY, behavior })
@@ -582,23 +590,32 @@ export function HeroProjectSlideshow({ projects }: Props) {
     if (!isMobileViewport || projects.length < 2) return
 
     const root = document.documentElement
+    const region = regionRef.current
+    if (!region) return
+
+    const sequence = region.closest<HTMLElement>('#hero') ?? region
+    const approach = document.querySelector<HTMLElement>('.hero-approach-snap-point')
+    const approachScrollMargin = approach
+      ? Number.parseFloat(getComputedStyle(approach).scrollMarginTop) || 0
+      : 0
     let updateFrame: number | null = null
     const updateScrollSnap = () => {
-      const region = regionRef.current
-      if (!region) return
-
       const visualViewport = window.visualViewport
       const viewportTop = visualViewport?.offsetTop ?? 0
       const viewportBottom = viewportTop + (visualViewport?.height ?? window.innerHeight)
-      const sequence = region.closest<HTMLElement>('#hero') ?? region
       const sequenceRect = sequence.getBoundingClientRect()
       const regionRect = region.getBoundingClientRect()
+      const approachSnapTop = approach
+        ? approach.getBoundingClientRect().top - approachScrollMargin
+        : null
       const sequenceIsInRange = sequenceRect.top < viewportBottom - 1
-      const slideshowHasNotPassed = regionRect.bottom > viewportBottom + 1
+      const sequenceHasNotFinished = approachSnapTop !== null
+        ? approachSnapTop > viewportTop + 1
+        : regionRect.bottom > viewportBottom + 1
 
       root.classList.toggle(
         'hero-project-pagination-active',
-        sequenceIsInRange && slideshowHasNotPassed,
+        sequenceIsInRange && sequenceHasNotFinished,
       )
     }
 
@@ -669,7 +686,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
 
     if (!scrollControlled) return
 
-    const scaledProgress = latest * projects.length
+    const scaledProgress = latest * Math.max(0, projects.length - 1)
     const nextIndex = Math.min(projects.length - 1, Math.round(scaledProgress))
     const nextSlideProgress = Math.min(1, Math.max(0, scaledProgress - nextIndex))
 
@@ -748,7 +765,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
       ref={regionRef}
       className="hero-project-scroll-region relative w-full"
       style={{
-        '--hero-mobile-scroll-height': `${(projects.length + 1) * 100}dvh`,
+        '--hero-mobile-scroll-height': `${Math.max(1, projects.length) * 100}dvh`,
       } as CSSProperties}
     >
       <div
@@ -934,7 +951,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
         </motion.section>
       </div>
 
-      {Array.from({ length: projects.length }, (_, index) => (
+      {Array.from({ length: Math.max(0, projects.length - 1) }, (_, index) => (
         <div
           key={`hero-snap-${index + 1}`}
           aria-hidden="true"

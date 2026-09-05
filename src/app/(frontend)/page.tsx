@@ -554,7 +554,7 @@ export default async function HomePage() {
         const items = (block.items || []) as any[]
         if (!items.length) return null
         return (
-          <HomeContainer key={block.id || i}>
+          <HomeContainer key={block.id || i} className="hero-approach-snap-point">
             <h2 className="text-balance">{block.title || 'Approach'}</h2>
             <ol className="mt-16 flex list-none flex-col gap-16 p-0 tablet:mt-24 tablet:gap-20 desktop:mt-32 desktop:gap-24">
               {items.map((item: any, j: number) => {
