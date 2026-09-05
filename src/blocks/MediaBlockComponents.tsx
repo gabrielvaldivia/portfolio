@@ -35,6 +35,7 @@ const paddingClasses: Record<string, string> = {
 const ROW_HEIGHT = 200
 const ROW_GAP = 40
 const VIDEO_LIGHTBOX_VERTICAL_OFFSET = 72
+const BROWSER_REFERENCE_WIDTH = 1280
 
 export function ModuleLikeOverlay({ targetId }: { targetId: string }) {
   return (
@@ -253,13 +254,17 @@ export function BrowserBlockComponent({
   const isContainedLightbox = isLightbox && _containedInLightbox
   const scaledLength = (pixels: number) => isContainedLightbox && _sourceContentWidth
     ? `${(pixels / _sourceContentWidth) * 100}cqw`
-    : undefined
-  const scaledToolbarPadding = isContainedLightbox && _sourceContentWidth
-    ? `${scaledLength(8)} ${scaledLength(16)}`
-    : undefined
+    : `min(${pixels}px, ${(pixels / BROWSER_REFERENCE_WIDTH) * 100}cqw)`
+  const scaledToolbarPadding = `${scaledLength(8)} ${scaledLength(16)}`
 
   return (
-    <div className={cn('w-full', isLightbox ? 'mx-auto' : '')} style={isLightbox && !isContainedLightbox ? { width: getConstrainedWidth(aspectRatio) } : undefined}>
+    <div
+      className={cn('w-full', isLightbox ? 'mx-auto' : '')}
+      style={{
+        containerType: 'inline-size',
+        ...(isLightbox && !isContainedLightbox ? { width: getConstrainedWidth(aspectRatio) } : {}),
+      }}
+    >
       <div className={cn('relative w-full', isLightbox && !isContainedLightbox ? 'bg-background-alt p-5 tablet:p-8 desktop:p-10' : '')}>
         <div
           className={cn(
@@ -322,10 +327,12 @@ function framedLightboxSizeStyle(aspectRatio: number, contained: boolean) {
     : lightboxFrameSizeStyle(aspectRatio)
 }
 
-function framedHeightStyle(isLightbox: boolean, rowHeight: number, aspectRatio: number, contained = false) {
+function framedDesktopSizeStyle(isLightbox: boolean, rowHeight: number, aspectRatio: number, contained = false) {
+  const rowWidth = (rowHeight * aspectRatio).toFixed(2)
+
   return isLightbox
     ? framedLightboxSizeStyle(aspectRatio, contained)
-    : `height: ${rowHeight}px; width: auto;`
+    : `width: min(${rowWidth}px, 100%); height: auto;`
 }
 
 function FramedVideoOrImage({
@@ -382,7 +389,7 @@ export function DC1Block({ id: blockId, video, rows, _containedInLightbox, _mode
       <style dangerouslySetInnerHTML={{ __html: `
         #${id} { aspect-ratio: 718 / 960; ${isLightbox ? framedLightboxSizeStyle(aspectRatio, isContainedLightbox) : 'width: 100%;'} }
         @media (min-width: 1280px) {
-          #${id} { aspect-ratio: 718 / 960; ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
+          #${id} { aspect-ratio: 718 / 960; ${framedDesktopSizeStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
       ` }} />
       <div id={id} className="relative mx-auto overflow-hidden">
@@ -414,7 +421,7 @@ export function iPhone15Block({ id: blockId, video, image, rows, showNotch, _con
           #${id} { ${isLightbox ? framedLightboxSizeStyle(aspectRatio, isContainedLightbox) : 'height: 600px;'} }
         }
         @media (min-width: 1280px) {
-          #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
+          #${id} { ${framedDesktopSizeStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
         ${phoneOverlaySizeStyle(id)}
       ` }} />
@@ -458,7 +465,7 @@ export function iPhone13MiniBlock({ id: blockId, video, image, rows, _containedI
           #${id} { ${isLightbox ? framedLightboxSizeStyle(aspectRatio, isContainedLightbox) : 'height: 600px;'} }
         }
         @media (min-width: 1280px) {
-          #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
+          #${id} { ${framedDesktopSizeStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
         ${phoneOverlaySizeStyle(id)}
       ` }} />
@@ -492,7 +499,7 @@ export function iPhone5Block({ id: blockId, video, image, rows, _containedInLigh
           #${id} { ${isLightbox ? framedLightboxSizeStyle(aspectRatio, isContainedLightbox) : 'height: 600px;'} }
         }
         @media (min-width: 1280px) {
-          #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
+          #${id} { ${framedDesktopSizeStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
         ${phoneOverlaySizeStyle(id)}
       ` }} />
@@ -526,7 +533,7 @@ export function iPhone6Block({ id: blockId, video, image, rows, _containedInLigh
           #${id} { ${isLightbox ? framedLightboxSizeStyle(aspectRatio, isContainedLightbox) : 'height: 600px;'} }
         }
         @media (min-width: 1280px) {
-          #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
+          #${id} { ${framedDesktopSizeStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
         ${phoneOverlaySizeStyle(id)}
       ` }} />
@@ -560,7 +567,7 @@ export function iPhoneXBlock({ id: blockId, video, image, rows, _containedInLigh
           #${id} { ${isLightbox ? framedLightboxSizeStyle(aspectRatio, isContainedLightbox) : 'height: 600px;'} }
         }
         @media (min-width: 1280px) {
-          #${id} { ${framedHeightStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
+          #${id} { ${framedDesktopSizeStyle(isLightbox, rowHeight, aspectRatio, isContainedLightbox)} }
         }
         ${phoneOverlaySizeStyle(id)}
       ` }} />

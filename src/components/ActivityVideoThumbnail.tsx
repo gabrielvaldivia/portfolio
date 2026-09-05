@@ -30,14 +30,17 @@ export function ActivityVideoThumbnail({
   src,
   className = '',
   playOnHover = false,
+  autoplayWhenVisible = false,
 }: {
   src: string
   className?: string
   playOnHover?: boolean
+  autoplayWhenVisible?: boolean
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const hasLoadedVideoRef = useRef(false)
   const isHoveringRef = useRef(false)
+  const isVisibleRef = useRef(false)
   const targetTimeRef = useRef<number | null>(null)
   const videoSrc = useMemo(() => getVideoSrc(src), [src])
 
@@ -54,7 +57,11 @@ export function ActivityVideoThumbnail({
 
   const seekToRandomMiddleFrame = useCallback(() => {
     const video = videoRef.current
-    if (!video || (playOnHover && isHoveringRef.current)) return
+    if (
+      !video
+      || (playOnHover && isHoveringRef.current)
+      || (autoplayWhenVisible && isVisibleRef.current)
+    ) return
 
     video.pause()
 
@@ -67,7 +74,17 @@ export function ActivityVideoThumbnail({
     } catch {
       // Some browsers reject seeks before enough video data is available.
     }
-  }, [playOnHover])
+  }, [autoplayWhenVisible, playOnHover])
+
+  const playVideo = useCallback(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    loadVideo()
+    void video.play().catch(() => {
+      // Muted inline playback can still be rejected by browser policy.
+    })
+  }, [loadVideo])
 
   function handlePointerEnter() {
     if (!playOnHover) return
@@ -76,11 +93,7 @@ export function ActivityVideoThumbnail({
     if (!video) return
 
     isHoveringRef.current = true
-    loadVideo()
-
-    void video.play().catch(() => {
-      // Muted hover playback can still be rejected by browser policy.
-    })
+    playVideo()
   }
 
   function handlePointerLeave() {
@@ -99,6 +112,7 @@ export function ActivityVideoThumbnail({
 
     hasLoadedVideoRef.current = false
     isHoveringRef.current = false
+    isVisibleRef.current = false
     targetTimeRef.current = null
 
     const loadRandomMiddleFrame = () => {
@@ -118,12 +132,20 @@ export function ActivityVideoThumbnail({
     if ('IntersectionObserver' in window) {
       observer = new IntersectionObserver(
         ([entry]) => {
-          if (entry.isIntersecting) {
+          isVisibleRef.current = entry.isIntersecting
+
+          if (entry.isIntersecting && autoplayWhenVisible) {
+            playVideo()
+          } else if (entry.isIntersecting) {
             loadRandomMiddleFrame()
             observer?.disconnect()
+          } else if (autoplayWhenVisible) {
+            seekToRandomMiddleFrame()
           }
         },
-        { rootMargin: '300px' },
+        autoplayWhenVisible
+          ? { threshold: 0.05 }
+          : { rootMargin: '300px' },
       )
       observer.observe(video)
     } else {
@@ -137,13 +159,14 @@ export function ActivityVideoThumbnail({
       video.removeEventListener('loadeddata', seekToRandomMiddleFrame)
       video.removeEventListener('canplay', seekToRandomMiddleFrame)
     }
-  }, [loadVideo, seekToRandomMiddleFrame, videoSrc])
+  }, [autoplayWhenVisible, loadVideo, playVideo, seekToRandomMiddleFrame, videoSrc])
 
   return (
     <video
       ref={videoRef}
       muted
       playsInline
+      loop={autoplayWhenVisible}
       preload="metadata"
       disablePictureInPicture
       className={className}

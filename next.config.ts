@@ -2,6 +2,19 @@ import { withPayload } from '@payloadcms/next/withPayload'
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    if (process.env.NODE_ENV === 'development' && process.env.PAYLOAD_SKIP_DATABASE === '1') {
+      return [
+        {
+          source: '/admin/:path*',
+          destination: '/studio/hero',
+          permanent: false,
+        },
+      ]
+    }
+
+    return []
+  },
   turbopack: {
     root: process.cwd(),
   },

@@ -1,0 +1,20 @@
+{
+  "slides": [
+    {
+      "slug": "twinsi",
+      "image": "/hero/twinsi.webp"
+    },
+    {
+      "slug": "dex",
+      "image": "/hero/dex.webp"
+    },
+    {
+      "slug": "daylight",
+      "image": "/hero/daylight.webp"
+    },
+    {
+      "slug": "slingshot",
+      "image": "/hero/slingshot.webp"
+    }
+  ]
+}

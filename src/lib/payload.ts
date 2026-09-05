@@ -40,6 +40,17 @@ export function isPayloadUnavailable(payload: Payload) {
 }
 
 export const getPayload = () => {
+  if (
+    process.env.NODE_ENV === 'development' &&
+    process.env.PAYLOAD_SKIP_DATABASE === '1'
+  ) {
+    if (!payloadPromise) {
+      payloadPromise = Promise.resolve(getUnavailablePayload())
+    }
+
+    return payloadPromise
+  }
+
   if (!payloadPromise) {
     payloadPromise = getPayloadInstance({ config: configPromise }).catch((error) => {
       payloadPromise = null

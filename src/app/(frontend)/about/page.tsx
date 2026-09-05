@@ -8,16 +8,41 @@ import type { ReactNode } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { HoverArrow, HoverChevron } from '@/components/Icons'
+import { SprayPaintPortrait } from '@/components/SprayPaintPortrait'
 import { cn } from '@/lib/cn'
+
+const PUBLIC_CMS_API = 'https://www.gabrielvaldivia.com/api'
+
+async function getPublicAboutPreview() {
+  const request = async (path: string) => {
+    const response = await fetch(`${PUBLIC_CMS_API}${path}`, { cache: 'no-store' })
+    if (!response.ok) throw new Error(`Public CMS request failed with ${response.status}`)
+    return response.json()
+  }
+
+  const [aboutResult, homeResult, sideProjectsResult] = await Promise.all([
+    request('/pages?where%5Bslug%5D%5Bequals%5D=about&depth=2&limit=1'),
+    request('/pages?where%5Bslug%5D%5Bequals%5D=home&depth=2&limit=1'),
+    request('/side-projects?sort=order&depth=2&limit=100'),
+  ])
+
+  return {
+    aboutPage: aboutResult.docs?.[0] || null,
+    homePage: homeResult.docs?.[0] || null,
+    sideProjects: sideProjectsResult.docs || [],
+  }
+}
 
 function AboutSection({
   title,
   children,
   alignBaseline = true,
+  aside,
 }: {
   title: string
   children: ReactNode
   alignBaseline?: boolean
+  aside?: ReactNode
 }) {
   return (
     <div className={cn(
@@ -25,11 +50,33 @@ function AboutSection({
       alignBaseline ? 'tablet:items-baseline' : 'tablet:items-start',
     )}>
       <div className="tablet:col-span-2">
-        <h3 className="sticky top-5">{title}</h3>
+        {aside || <h2 className="sticky top-5 text-balance">{title}</h2>}
       </div>
       <div className="tablet:col-span-4">
         {children}
       </div>
+    </div>
+  )
+}
+
+function AboutBio() {
+  return (
+    <div className="rich-text text-pretty text-body-large">
+      <p>
+        I’ve spent 15 years designing for some of the world’s top tech companies while building products of my own. From{' '}
+        <Link href="/work/automatic">Automatic</Link> to{' '}
+        <Link href="/work/fb-sharing">Meta</Link>,{' '}
+        <Link href="/work/assembler">Google</Link>,{' '}
+        <Link href="/work/tonic">CNN</Link>, and{' '}
+        <Link href="/work/patreon">Patreon</Link>, I’ve worked across product, brand, and emerging technology, helping teams turn ambitious ideas into products people use.
+      </p>
+      <p>
+        Today, I bring that experience to early-stage teams building their first generation of products. I work fractionally with companies like{' '}
+        <Link href="/work/daylight">Daylight Computer</Link>,{' '}
+        <Link href="/work/workmate">Workmate</Link>,{' '}
+        <Link href="/work/slingshot">Slingshot AI</Link>, and{' '}
+        <a href="https://www.gv.com/" target="_blank" rel="noopener noreferrer">Google Ventures</a>, helping founders avoid attractive wrong turns, make better decisions, and move quickly from idea to product.
+      </p>
     </div>
   )
 }
@@ -46,12 +93,34 @@ export async function generateMetadata(): Promise<Metadata> {
 export const revalidate = 60
 
 export default async function AboutPage() {
-  const [page, sideProjectsResult] = await Promise.all([
+  const [localPage, localHomePage, sideProjectsResult] = await Promise.all([
     getPageBySlug('about'),
+    getPageBySlug('home'),
     getSideProjects(),
   ])
-  const sideProjects = sideProjectsResult.docs as any[]
+  const publicPreview = process.env.NODE_ENV === 'development' && (!localPage || !localHomePage)
+    ? await getPublicAboutPreview().catch((error) => {
+        console.error('Public about preview unavailable.', error)
+        return null
+      })
+    : null
+  const page = localPage || publicPreview?.aboutPage
+  const homePage = localHomePage || publicPreview?.homePage
+  const sideProjects = (sideProjectsResult.docs.length
+    ? sideProjectsResult.docs
+    : publicPreview?.sideProjects || []) as any[]
   const aboutSections = (page?.aboutSections as any[]) || []
+  const homeAboutSection = ((homePage?.sections as any[]) || []).find(
+    (section: any) => section.blockType === 'aboutSection',
+  )
+  const portraitImage = typeof homeAboutSection?.image === 'object'
+    ? homeAboutSection.image
+    : typeof page?.bioImage === 'object'
+      ? page.bioImage
+      : { url: '/media/about-photo.png', alt: 'Portrait of Gabriel Valdivia' }
+  const portraitImageDark = typeof homeAboutSection?.imageDark === 'object'
+    ? homeAboutSection.imageDark
+    : null
 
   const renderMediaList = (items: any[]) => (
     <div className="flex flex-col gap-8">
@@ -134,13 +203,37 @@ export default async function AboutPage() {
   const renderSection = (section: any) => {
     switch (section.blockType) {
       case 'aboutBioSection': {
-        const bio = section.bio
-        if (!bio) return null
         return (
-          <AboutSection title={section.title || 'Bio'}>
-            <div className="text-body-large">
-              <RichText data={bio} />
-            </div>
+          <AboutSection
+            title={section.title || 'Bio'}
+            alignBaseline={false}
+            aside={(
+              <div className="w-full tablet:sticky tablet:top-5 tablet:max-w-[360px]">
+                <SprayPaintPortrait
+                  image={portraitImage}
+                  imageDark={portraitImageDark}
+                  eager
+                />
+              </div>
+            )}
+          >
+            <AboutBio />
+            <Link
+              href="/timeline"
+              className="mt-8 inline-flex items-center gap-2 text-body-large text-muted transition-opacity duration-150 hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
+            >
+              View timeline
+              <svg
+                aria-hidden="true"
+                className="size-6 shrink-0 translate-y-px"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
+                <path d="M6 4l4 4-4 4" />
+              </svg>
+            </Link>
           </AboutSection>
         )
       }

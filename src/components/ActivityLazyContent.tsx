@@ -137,6 +137,7 @@ function getActivitySectionTitle(value: string, now: Date) {
 
 function getActivityMergeKey(item: ModuleLikeActivityItem) {
   return [
+    item.eventType,
     item.targetId,
     item.amount,
     item.location,
@@ -162,7 +163,11 @@ function mergeConsecutiveActivityItems(items: ModuleLikeActivityItem[]) {
       return mergedItems
     }
 
-    mergedItems.push({ ...item, count: 1, mergeKey })
+    mergedItems.push({
+      ...item,
+      count: item.eventType === 'chat' ? item.amount : 1,
+      mergeKey,
+    })
     return mergedItems
   }, [])
 }
@@ -190,7 +195,16 @@ function getLikePhrase(noun: string, isSuperlike: boolean) {
 }
 
 function getActivitySentenceParts(item: ActivityDisplayItem) {
-  const location = item.location ? ` from ${item.location}` : ''
+  const location = item.location
+  if (item.eventType === 'chat') {
+    return {
+      action: item.count > 1 ? `started ${item.count} chats` : 'started a chat',
+      location,
+      repetitions: '',
+      source: '',
+    }
+  }
+
   const source = item.target.noun === 'photo' ? '' : item.target.sourceTitle
   const repetitions = item.count > 1 ? ` ${item.count} times` : ''
   const isSuperlike = item.amount > 1
@@ -205,17 +219,57 @@ function getActivitySentenceParts(item: ActivityDisplayItem) {
 
 function getActivitySentence(item: ActivityDisplayItem) {
   const { action, location, repetitions, source } = getActivitySentenceParts(item)
+  const locationText = location ? ` from ${location}` : ''
   const sourceText = source ? ` in ${source}` : ''
 
-  return `Someone${location} ${action}${sourceText}${repetitions}`
+  return `Someone${locationText} ${action}${sourceText}${repetitions}`
+}
+
+function getCountryFlagUrl(country: string) {
+  const code = country.trim().toUpperCase()
+  if (!/^[A-Z]{2}$/.test(code)) return ''
+
+  const extension = code === 'SA' ? 'png' : 'svg'
+
+  return `/flags/figma/${code.toLowerCase()}.${extension}`
 }
 
 function ActivitySentence({ item }: { item: ActivityDisplayItem }) {
   const { action, location, repetitions, source } = getActivitySentenceParts(item)
+  const countryFlagUrl = getCountryFlagUrl(item.country)
 
   return (
     <p className="text-body text-pretty">
-      Someone{location} {action}
+      Someone
+      {location ? (
+        <>
+          {' from '}
+          <span className="font-medium">
+            {countryFlagUrl ? (
+              <span
+                aria-hidden="true"
+                style={{
+                  display: 'inline-block',
+                  height: '0.8em',
+                  marginLeft: '0.25em',
+                  marginRight: '0.25em',
+                  verticalAlign: '-0.05em',
+                }}
+              >
+                <img
+                  src={countryFlagUrl}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  style={{ display: 'block', height: '100%', width: 'auto' }}
+                />
+              </span>
+            ) : null}
+            {location}
+          </span>
+        </>
+      ) : null}
+      {' '}{action}
       {source ? (
         <>
           {' in '}
@@ -262,7 +316,7 @@ function ActivityFramedThumbnail({
   const resolvedMediaClassName = getThumbnailMediaClassName(mediaClassName, thumbnail)
   const isDC1Frame = frame.id === 'dc1'
   const paddingClassName = paddingMode === 'feed'
-    ? isDC1Frame ? 'px-1.5 py-5 tablet:py-1.5' : 'p-1.5'
+    ? isDC1Frame ? 'px-1.5 py-5 tablet:py-1.5' : 'p-5'
     : cn('px-1 tablet:px-1.5', isDC1Frame ? 'py-2 tablet:py-3' : 'py-1 tablet:py-1.5')
   const imageSizes = paddingMode === 'feed'
     ? '(max-width: 810px) 100vw, (max-width: 1280px) 50vw, 33vw'
@@ -361,6 +415,35 @@ function ActivityMediaThumbnail({
     const imageSizes = framedPaddingMode === 'feed'
       ? '(max-width: 810px) 100vw, (max-width: 1280px) 50vw, 33vw'
       : '80px'
+
+    if (
+      thumbnail.padding
+      && thumbnail.imageBorder
+      && thumbnail.width
+      && thumbnail.height
+    ) {
+      return (
+        <div
+          className={cn(className, 'flex items-center justify-center')}
+          style={containerStyle}
+          aria-hidden="true"
+        >
+          <Image
+            src={thumbnail.url}
+            alt=""
+            width={thumbnail.width}
+            height={thumbnail.height}
+            unoptimized
+            sizes={imageSizes}
+            quality={90}
+            className={cn(
+              'block h-auto max-h-full w-auto max-w-full border border-border object-contain object-center',
+              thumbnail.rounded ? 'rounded-md' : '',
+            )}
+          />
+        </div>
+      )
+    }
 
     if (thumbnail.padding) {
       return (
@@ -475,13 +558,14 @@ function ActivityText({ item, nowMs }: { item: ActivityDisplayItem; nowMs: numbe
 
 function ActivityRow({ item, nowMs, isFirst = false }: { item: ActivityDisplayItem; nowMs: number; isFirst?: boolean }) {
   const rowClassName = cn(
-    'group grid grid-cols-[1fr_auto] items-center gap-5 py-4 transition-opacity duration-150 tablet:py-5 tablet:hover:opacity-60',
+    'group py-4 transition-opacity duration-150 tablet:py-5 tablet:hover:opacity-60',
+    item.eventType === 'chat' ? 'block' : 'grid grid-cols-[1fr_auto] items-center gap-5',
     !isFirst && 'border-t border-border',
   )
   const content = (
     <>
       <ActivityText item={item} nowMs={nowMs} />
-      <ActivityThumbnail item={item} />
+      {item.eventType === 'chat' ? null : <ActivityThumbnail item={item} />}
     </>
   )
 
@@ -593,7 +677,7 @@ function FeedGrid({ items }: { items: ModuleLikeFeedItem[] }) {
 function EmptyState({ view, unavailable = false }: { view: ActivityView; unavailable?: boolean }) {
   const message = unavailable
     ? view === 'feed' ? 'Feed is temporarily unavailable.' : 'Activity is temporarily unavailable.'
-    : view === 'feed' ? 'No liked images yet.' : 'No likes yet.'
+    : view === 'feed' ? 'No liked images yet.' : 'No activity yet.'
 
   return (
     <div className="border-t border-border py-6">

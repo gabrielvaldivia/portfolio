@@ -26,8 +26,46 @@
 }
 
 .captionLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   font-size: 13px;
   font-weight: 500;
+}
+
+.dropdowns {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.dropdownRoot {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 4px;
+}
+
+.dropdownRoot:hover {
+  background: var(--color-background-alt-hover);
+}
+
+.dropdown {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.chevron {
+  width: 13px;
+  height: 13px;
+  color: var(--color-muted);
 }
 
 .nav {
@@ -135,6 +173,7 @@
 }
 
 .dayButton:focus-visible,
+.dropdown:focus-visible + .captionLabel,
 .previousButton:focus-visible,
 .nextButton:focus-visible {
   outline: 1px solid var(--color-border-strong);

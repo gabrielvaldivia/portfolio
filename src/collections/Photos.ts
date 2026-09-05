@@ -68,10 +68,11 @@ export const Photos: CollectionConfig = {
   upload: {
     bulkUpload: false,
     mimeTypes: ['image/*'],
-    imageSizes: [
-      // EXIF-stripped web rendition; the untouched original stays in R2
-      { name: 'web', width: 2000, height: undefined, position: 'centre' },
-    ],
+    // Keep the CMS save request lightweight on Vercel. Payload otherwise
+    // downloads the just-uploaded original, runs Sharp, and uploads a second
+    // rendition before it can create the document, which can leave the mobile
+    // admin waiting until the serverless request times out.
+    focalPoint: false,
   },
   hooks: {
     beforeChange: [

@@ -52,7 +52,7 @@ export async function extractPhotoExif(buffer: Buffer): Promise<ExtractedPhotoEx
     result.camera = formatCamera(image.Make as string | undefined, image.Model as string | undefined)
     result.lens = (photo.LensModel as string | undefined)?.trim() || undefined
     result.shutter = formatShutter(photo.ExposureTime as number | undefined)
-    if (typeof photo.FNumber === 'number') result.aperture = `f/${Number(photo.FNumber.toFixed(1))}`
+    if (typeof photo.FNumber === 'number') result.aperture = `ƒ/${Number(photo.FNumber.toFixed(1))}`
     const iso = (photo as any).ISOSpeedRatings ?? (photo as any).PhotographicSensitivity ?? (photo as any).ISO
     if (iso != null) result.iso = String(Array.isArray(iso) ? iso[0] : iso)
     if (typeof photo.FocalLength === 'number') result.focal = `${Number(photo.FocalLength.toFixed(1))}mm`

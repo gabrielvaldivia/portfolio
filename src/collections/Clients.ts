@@ -6,7 +6,7 @@ export const Clients: CollectionConfig = {
     pagination: { defaultLimit: 100 },
     group: 'Collections',
     useAsTitle: 'name',
-    defaultColumns: ['name', 'active', 'website'],
+    defaultColumns: ['name', 'tags', 'active', 'website'],
   },
   access: {
     read: () => true,
@@ -16,6 +16,15 @@ export const Clients: CollectionConfig = {
     { name: 'logo', type: 'upload', relationTo: 'media' },
     { name: 'website', type: 'text' },
     { name: 'description', type: 'textarea' },
+    {
+      name: 'tags',
+      type: 'text',
+      hasMany: true,
+      admin: {
+        description: 'Used to filter clients on the public Clients page.',
+        placeholder: 'Add a tag',
+      },
+    },
     { name: 'details', type: 'textarea', admin: { description: 'Longer description used as context for the AI chat. Not shown on the site.' } },
     { name: 'active', type: 'checkbox', defaultValue: false, label: 'Active Client' },
     {

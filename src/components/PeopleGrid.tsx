@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Avatar } from '@/components/Avatar'
+import { HScrollContainer } from '@/components/HScrollContainer'
 
 type Person = {
   id: number
@@ -24,27 +25,33 @@ export function PeopleGrid({ people }: { people: Person[] }) {
   return (
     <>
       {/* Filter pills */}
-      <div className="flex flex-wrap gap-2 pb-10">
-        <button
-          onClick={() => setActiveRole(null)}
-          className={`px-4 py-2 text-caption rounded-full transition-colors cursor-pointer ${
-            !activeRole ? 'bg-content text-background' : 'bg-background-alt text-muted hover:text-content'
-          }`}
-        >
-          All
-        </button>
-        {roles.map((role) => (
+      <HScrollContainer className="pb-10">
+        <div className="flex w-max gap-2" aria-label="Filter people by role">
           <button
-            key={role}
-            onClick={() => setActiveRole(activeRole === role ? null : role)}
-            className={`px-4 py-2 text-caption rounded-full transition-colors cursor-pointer ${
-              activeRole === role ? 'bg-content text-background' : 'bg-background-alt text-muted hover:text-content'
+            type="button"
+            onClick={() => setActiveRole(null)}
+            aria-pressed={!activeRole}
+            className={`shrink-0 whitespace-nowrap px-4 py-2 text-caption rounded-full transition-colors cursor-pointer ${
+              !activeRole ? 'bg-content text-background' : 'bg-background-alt text-muted hover:text-content'
             }`}
           >
-            {role}
+            All
           </button>
-        ))}
-      </div>
+          {roles.map((role) => (
+            <button
+              type="button"
+              key={role}
+              onClick={() => setActiveRole(activeRole === role ? null : role)}
+              aria-pressed={activeRole === role}
+              className={`shrink-0 whitespace-nowrap px-4 py-2 text-caption rounded-full transition-colors cursor-pointer ${
+                activeRole === role ? 'bg-content text-background' : 'bg-background-alt text-muted hover:text-content'
+              }`}
+            >
+              {role}
+            </button>
+          ))}
+        </div>
+      </HScrollContainer>
 
       {/* Grid — flows top-to-bottom per column */}
       <div className="columns-1 tablet:columns-2 desktop:columns-3 gap-10">

@@ -1,7 +1,8 @@
 import './globals.css'
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { NavMenu } from '@/components/NavMenu'
-import { SiteHeader } from '@/components/SiteHeader'
+import { SiteHeader, SiteHeaderFallback } from '@/components/SiteHeader'
 import { Footer } from '@/components/Footer'
 import { AgentationToolbar } from '@/components/AgentationToolbar'
 import { OverlayManager } from '@/components/OverlayManager'
@@ -10,6 +11,22 @@ import { getNavigationPages, getPageBySlug, getSiteSettings } from '@/lib/querie
 import { normalizeSocialLink } from '@/lib/socialLinks'
 
 export const revalidate = 60
+
+const PUBLIC_CMS_API = 'https://www.gabrielvaldivia.com/api'
+
+async function getPublicHomepagePreview() {
+  const response = await fetch(
+    `${PUBLIC_CMS_API}/pages?where%5Bslug%5D%5Bequals%5D=home&depth=2&limit=1`,
+    { cache: 'no-store' },
+  )
+
+  if (!response.ok) {
+    throw new Error(`Public homepage preview failed with ${response.status}`)
+  }
+
+  const result = await response.json()
+  return result.docs?.[0] || null
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings() as any
@@ -40,11 +57,17 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [settings, homePage, navigationPages] = await Promise.all([
+  const [settings, localHomePage, navigationPages] = await Promise.all([
     getSiteSettings(),
     getPageBySlug('home'),
     getNavigationPages(),
   ])
+  const homePage = localHomePage || (process.env.NODE_ENV === 'development'
+    ? await getPublicHomepagePreview().catch((error) => {
+        console.warn('Public homepage layout preview unavailable.', error)
+        return null
+      })
+    : null)
 
   const s = settings as any
   const contactBlock = ((homePage as any)?.sections || []).find(
@@ -75,7 +98,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="bg-background text-content">
         <OverlayManager overlays={(s?.overlays as any[]) || []} />
         <NavMenu pages={navigationPages} />
-        <SiteHeader />
+        <Suspense fallback={<SiteHeaderFallback />}>
+          <SiteHeader />
+        </Suspense>
         <PageTransition>{children}</PageTransition>
         <Footer email={footerEmail} socialLinks={footerSocialLinks} />
         <AgentationToolbar />

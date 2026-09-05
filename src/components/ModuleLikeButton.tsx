@@ -193,7 +193,15 @@ function AnimatedCount({ value }: { value: number }) {
   )
 }
 
-export function ModuleLikeButton({ targetId, initialCount = 0 }: { targetId: string; initialCount?: number }) {
+export function ModuleLikeButton({
+  targetId,
+  initialCount = 0,
+  tabIndex,
+}: {
+  targetId: string
+  initialCount?: number
+  tabIndex?: number
+}) {
   const initialLikeData = {
     ...emptyLikeData,
     count: initialCount,
@@ -236,8 +244,9 @@ export function ModuleLikeButton({ targetId, initialCount = 0 }: { targetId: str
       try {
         const loadedData = await requestModuleLikeData(targetId)
         if (!isActive) return
-        setData(loadedData)
-        setDisplayCount(loadedData.count)
+        const count = Math.max(initialCount, loadedData.count)
+        setData({ ...loadedData, count })
+        setDisplayCount(count)
         setError('')
       } catch (caught) {
         if (!isActive) return
@@ -267,7 +276,7 @@ export function ModuleLikeButton({ targetId, initialCount = 0 }: { targetId: str
         // The oscillator may already have ended.
       }
     }
-  }, [targetId])
+  }, [initialCount, targetId])
 
   const updateSuperLikeChargeVisible = useCallback((isVisible: boolean) => {
     superLikeChargeVisibleRef.current = isVisible
@@ -727,6 +736,7 @@ export function ModuleLikeButton({ targetId, initialCount = 0 }: { targetId: str
     <div className="relative pointer-events-auto">
       <motion.button
         type="button"
+        tabIndex={tabIndex}
         onClick={handleLike}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerEnd}

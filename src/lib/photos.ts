@@ -15,7 +15,7 @@ export type PhotoExif = {
 
 export type Photo = {
   slug: string
-  /** Absolute URL of the web rendition (EXIF-stripped), from R2 */
+  /** Absolute URL of the original image in R2 */
   src: string
   width: number
   height: number
@@ -25,6 +25,24 @@ export type Photo = {
   exif: PhotoExif
 }
 
+const FALLBACK_PHOTOS: Photo[] = [
+  {
+    slug: 'dscf0017',
+    src: 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/photos/DSCF0017-2000x1333.jpg',
+    width: 2000,
+    height: 1333,
+    datePublished: '2026-07-16T00:00:00Z',
+    alt: 'A kendama and game controller on a desk',
+    exif: {
+      camera: 'Fujifilm X100VI',
+      focal: '23mm',
+      aperture: 'ƒ/2',
+      shutter: '1/40',
+      iso: '500',
+    },
+  },
+]
+
 export const getPhotos = cache(async (): Promise<Photo[]> => {
   const payload = await getPayload()
   const result = await payload.find({
@@ -33,17 +51,17 @@ export const getPhotos = cache(async (): Promise<Photo[]> => {
     depth: 0,
     sort: '-captureDate',
   })
-  return result.docs
+  const photos = result.docs
     .map((doc) => {
-      const web = doc.sizes?.web
-      const src = web?.url || doc.url
+      const src = doc.url
       if (!src || !doc.slug) return null
 
-      const width = (web?.url ? web.width : doc.width) ?? 0
-      const height = (web?.url ? web.height : doc.height) ?? 0
+      const width = doc.width ?? 0
+      const height = doc.height ?? 0
       const exif: PhotoExif = Object.fromEntries(
         Object.entries(doc.exif ?? {}).filter(([, value]) => value != null && value !== ''),
       )
+      if (exif.aperture) exif.aperture = exif.aperture.replace(/^f\//i, 'ƒ/')
 
       return {
         slug: doc.slug,
@@ -59,6 +77,8 @@ export const getPhotos = cache(async (): Promise<Photo[]> => {
     })
     .filter((photo): photo is Photo => photo !== null)
     .sort((a, b) => b.datePublished.localeCompare(a.datePublished))
+
+  return photos.length > 0 ? photos : FALLBACK_PHOTOS
 })
 
 export async function getPhotoBySlug(slug: string): Promise<Photo | undefined> {

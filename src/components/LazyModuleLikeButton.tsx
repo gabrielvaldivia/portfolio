@@ -6,6 +6,7 @@ import { cn } from '@/lib/cn'
 type ModuleLikeButtonProps = {
   targetId: string
   initialCount?: number
+  tabIndex?: number
 }
 
 const HEART_ICON_SIZE = 18
@@ -28,11 +29,18 @@ function HeartIcon({ className, size = HEART_ICON_SIZE }: { className?: string; 
   )
 }
 
-export function ModuleLikeButtonShell({ initialCount = 0 }: { initialCount?: number }) {
+export function ModuleLikeButtonShell({
+  initialCount = 0,
+  tabIndex,
+}: {
+  initialCount?: number
+  tabIndex?: number
+}) {
   return (
     <div className="relative pointer-events-auto">
       <button
         type="button"
+        tabIndex={tabIndex}
         disabled
         aria-label={`Like this module. ${initialCount} total likes.`}
         className={cn(
@@ -105,7 +113,7 @@ export function LazyModuleLikeButton(props: ModuleLikeButtonProps) {
     >
       {LoadedButton
         ? <LoadedButton {...props} />
-        : <ModuleLikeButtonShell initialCount={props.initialCount} />}
+        : <ModuleLikeButtonShell initialCount={props.initialCount} tabIndex={props.tabIndex} />}
     </div>
   )
 }

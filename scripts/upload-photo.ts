@@ -1,6 +1,6 @@
 // Upload a photo into the Photos collection via the Payload local API.
-// EXIF, capture date, slug, and the web rendition are handled by the
-// collection's hooks. Usage: npx payload run scripts/upload-photo.ts -- <file>
+// EXIF, capture date, and slug are handled by the collection's hooks.
+// Usage: npx payload run scripts/upload-photo.ts -- <file>
 import path from 'node:path'
 import { getPayload } from 'payload'
 import config from '@payload-config'
@@ -30,5 +30,5 @@ const doc = await payload.create({
   data: {},
   filePath: path.resolve(filePath),
 })
-console.log(JSON.stringify({ id: doc.id, slug: doc.slug, captureDate: doc.captureDate, exif: doc.exif, url: doc.url, web: doc.sizes?.web?.url }, null, 2))
+console.log(JSON.stringify({ id: doc.id, slug: doc.slug, captureDate: doc.captureDate, exif: doc.exif, url: doc.url }, null, 2))
 process.exit(0)

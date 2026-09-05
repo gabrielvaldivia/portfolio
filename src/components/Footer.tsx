@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useReducedMotion } from 'motion/react'
-import { Container } from './Container'
 import { SocialIcon } from './Icons'
 
 const ALTERNATE_COPYRIGHT = '© Copyright is a fallacy'
@@ -110,7 +109,7 @@ export function Footer({
 
   return (
     <footer className="pt-5 pb-24 tablet:pb-20">
-      <Container>
+      <div className="w-full px-5 tablet:px-10">
         <div className="flex flex-col items-center gap-5 tablet:grid tablet:grid-cols-3 tablet:items-center">
           <div className="tablet:justify-self-start">
             <button
@@ -166,7 +165,7 @@ export function Footer({
             ))}
           </nav>
         </div>
-      </Container>
+      </div>
     </footer>
   )
 }

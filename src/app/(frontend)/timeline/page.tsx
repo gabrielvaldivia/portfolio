@@ -27,6 +27,20 @@ export const metadata: Metadata = {
 
 export const revalidate = 60
 
+const getCurrentDateInNewYork = () => {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    day: '2-digit',
+    month: '2-digit',
+    timeZone: 'America/New_York',
+    year: 'numeric',
+  }).formatToParts(new Date())
+  const value = (type: Intl.DateTimeFormatPartTypes) => (
+    parts.find((part) => part.type === type)?.value ?? ''
+  )
+
+  return `${value('year')}-${value('month')}-${value('day')}`
+}
+
 export default async function TimelinePage() {
   let chapters = normalizeTimelineChapters(undefined, DEFAULT_TIMELINE_CHAPTERS)
 
@@ -41,5 +55,10 @@ export default async function TimelinePage() {
     console.error('Timeline CMS content unavailable; serving the bundled copy.', error)
   }
 
-  return <TimelineExperience chapters={chapters} />
+  return (
+    <TimelineExperience
+      chapters={chapters}
+      presentDate={getCurrentDateInNewYork()}
+    />
+  )
 }

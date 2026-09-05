@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { cn } from '@/lib/cn'
 
 type Props = {
   title: string
@@ -9,14 +10,32 @@ type Props = {
   href?: string
   icon?: React.ReactNode
   priority?: boolean
+  variant?: 'default' | 'hero'
+  tabIndex?: number
 }
 
-export function ProjectCard({ title, slug, subtitle, featuredImage, href, icon, priority }: Props) {
+export function ProjectCard({ title, slug, subtitle, featuredImage, href, icon, priority, variant = 'default', tabIndex }: Props) {
+  const isHero = variant === 'hero'
+
   return (
-    <Link href={href || `/work/${slug}`} className="group block tablet:p-2">
-      <div className="rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] overflow-hidden bg-background-alt group-hover:bg-alt-hover transition-colors flex flex-col">
-        {/* Square image area */}
-        <div className="aspect-square rounded-[14px] tablet:rounded-[26px] desktop:rounded-[32px] overflow-hidden m-1.5 tablet:m-2 relative">
+    <Link
+      href={href || `/work/${slug}`}
+      tabIndex={tabIndex}
+      className={cn('group block tablet:p-2', isHero && 'h-full')}
+    >
+      <div
+        className={cn(
+          'flex flex-col overflow-hidden rounded-[20px] bg-background-alt transition-colors group-hover:bg-alt-hover tablet:rounded-[30px] desktop:rounded-[40px]',
+          isHero && 'h-full',
+        )}
+      >
+        {/* Project image */}
+        <div
+          className={cn(
+            'relative m-1.5 overflow-hidden rounded-[14px] tablet:m-2 tablet:rounded-[26px] desktop:rounded-[32px]',
+            isHero ? 'min-h-0 flex-1' : 'aspect-square',
+          )}
+        >
           {icon ? (
             <div className="absolute inset-0 flex items-center justify-center p-16 text-content">
               {icon}
@@ -38,7 +57,7 @@ export function ProjectCard({ title, slug, subtitle, featuredImage, href, icon, 
           )}
         </div>
         {/* Title and description */}
-        <div className="p-5 tablet:p-7">
+        <div className="shrink-0 p-5 tablet:p-7">
           <h4 className="text-content">
             {title}
           </h4>

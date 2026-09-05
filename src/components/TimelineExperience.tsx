@@ -2,7 +2,7 @@
 
 import { Calendar04Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
   DEFAULT_TIMELINE_CHAPTERS,
@@ -20,9 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/Popover'
 import styles from './TimelineExperience.module.css'
 
 const BIRTH_YEAR = 1987
-const PRESENT_YEAR = 2026
 const BIRTH_TIMESTAMP = Date.UTC(1987, 2, 23)
-const PRESENT_TIMESTAMP = Date.UTC(2026, 7, 19)
 const TICKS_PER_YEAR = 1
 const CHAPTER_PULL_THRESHOLD = 200
 const DESKTOP_CHAPTER_PULL_INPUT_FACTOR = 0.5
@@ -35,9 +33,9 @@ const CHAPTER_BACKWARD_WHEEL_QUIET_MS = 220
 const CHAPTER_EXIT_DURATION = 200
 const CHAPTER_ENTER_DURATION = 420
 const METADATA_SCRUB_PIXELS_PER_YEAR = 16
+const AGE_SCRUB_PIXELS_PER_YEAR = 6
 const METADATA_SCRUB_PIXELS_PER_STOP = 28
 const METADATA_SCRUB_DRAG_THRESHOLD = 4
-const LOCATION_GLOBE_RUBBER_BAND_FACTOR = 0.25
 const LOCATION_GLOBE_MAX_LONGITUDE_OFFSET = 16
 const LOCATION_GLOBE_ROTATION_DISTANCE = 90
 const TIMELINE_TAP_DRAG_THRESHOLD = 8
@@ -78,6 +76,7 @@ type DatedTimelinePeriod = {
 }
 
 type MetadataScrubSource = 'date' | 'age' | 'location' | 'education' | 'work'
+type MetadataWheelSource = Extract<MetadataScrubSource, 'age' | 'location'>
 
 type MetadataScrubSession = {
   pointerId: number
@@ -86,6 +85,12 @@ type MetadataScrubSession = {
   startPosition: number
   startStopIndex: number | null
   didDrag: boolean
+}
+
+type MetadataWheelSession = {
+  source: MetadataWheelSource | null
+  accumulatedDelta: number
+  position: number
 }
 
 type TimelinePointerSession = {
@@ -104,8 +109,7 @@ const dayStart = (year: number, month: number, day: number) => (
 
 const LOCATION_HISTORY: DatedTimelinePeriod[] = [
   { start: BIRTH_TIMESTAMP, end: dayStart(1989, 3, 23), label: 'Fomento, Cuba', contextLabel: 'Cuba', globeLocation: [22.1, -79.72] },
-  { start: dayStart(1989, 3, 23), end: dayStart(1992, 3, 23), label: 'Colón, Cuba', contextLabel: 'Cuba', globeLocation: [22.72, -80.91] },
-  { start: dayStart(1992, 3, 23), end: dayStart(1995, 7, 25), label: 'Marcos García, Cuba', contextLabel: 'Cuba', globeLocation: [21.93, -79.44] },
+  { start: dayStart(1989, 3, 23), end: dayStart(1995, 7, 25), label: 'Sancti Spíritus, Cuba', contextLabel: 'Cuba', globeLocation: [21.93, -79.44] },
   { start: dayStart(1995, 7, 25), end: monthStart(1995, 10), label: 'Uruca, Costa Rica', contextLabel: 'Costa Rica', globeLocation: [9.95, -84.11] },
   { start: monthStart(1995, 10), end: monthStart(1996, 1), label: 'Tibás, Costa Rica', contextLabel: 'Costa Rica', globeLocation: [9.96, -84.08] },
   { start: monthStart(1996, 1), end: monthStart(1998, 1), label: 'Ciudad Quesada, Costa Rica', contextLabel: 'Costa Rica', globeLocation: [10.32, -84.43] },
@@ -117,7 +121,7 @@ const LOCATION_HISTORY: DatedTimelinePeriod[] = [
   { start: monthStart(2015, 2), end: monthStart(2016, 1), label: 'London, England', globeLocation: [51.51, -0.13] },
   { start: monthStart(2016, 1), end: dayStart(2017, 11, 17), label: 'San Francisco, CA', contextLabel: 'San Francisco', globeLocation: [37.77, -122.42] },
   { start: dayStart(2017, 11, 17), end: monthStart(2021, 3), label: 'New York, NY', contextLabel: 'New York City', globeLocation: [40.71, -74.01] },
-  { start: monthStart(2021, 3), end: PRESENT_TIMESTAMP + 1, label: 'Brooklyn, NY', contextLabel: 'New York City', globeLocation: [40.68, -73.94] },
+  { start: monthStart(2021, 3), end: Number.POSITIVE_INFINITY, label: 'Brooklyn, NY', contextLabel: 'New York City', globeLocation: [40.68, -73.94] },
 ]
 
 const getDatedPeriodGlobeLocation = (
@@ -161,7 +165,7 @@ const WORK_HISTORY: DatedTimelinePeriod[] = [
   { start: monthStart(2019, 7), end: monthStart(2020, 4), label: 'Canopy' },
   { start: monthStart(2020, 4), end: monthStart(2021, 3), label: 'CNN' },
   { start: monthStart(2021, 3), end: monthStart(2023, 9), label: 'Patreon' },
-  { start: monthStart(2023, 9), end: PRESENT_TIMESTAMP + 1, label: 'Valdivia Works' },
+  { start: monthStart(2023, 9), end: Number.POSITIVE_INFINITY, label: 'Valdivia Works' },
 ]
 
 const getMetadataScrubStops = (source: MetadataScrubSource) => {
@@ -240,53 +244,58 @@ const getChapterRangeLabel = (chapterIndex: number) => {
 const CHAPTER_YEARS = new Set(
   CHAPTER_STARTS.map((timestamp) => new Date(timestamp).getUTCFullYear()),
 )
-const YEAR_TICKS = Array.from(
-  { length: (PRESENT_YEAR - BIRTH_YEAR) * TICKS_PER_YEAR + 1 },
-  (_, index) => ({
-    id: index === 0 ? 'prologue' : `year-${BIRTH_YEAR + index}`,
-    position: index / ((PRESENT_YEAR - BIRTH_YEAR) * TICKS_PER_YEAR),
-    year: BIRTH_YEAR + index,
-    isChapter: index === 0,
-    compactIndex: index === 0 ? 0 : null,
-  }),
-).filter(({ year }) => !CHAPTER_YEARS.has(year))
-const CHAPTER_TICKS = CHAPTER_STARTS.map((timestamp, index) => ({
-  id: `chapter-${index + 1}`,
-  position: (timestamp - BIRTH_TIMESTAMP) / (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP),
-  year: new Date(timestamp).getUTCFullYear(),
-  isChapter: true,
-  compactIndex: index + 1,
-}))
-const RAIL_TICKS = [...YEAR_TICKS, ...CHAPTER_TICKS]
-  .sort((a, b) => a.position - b.position)
-
-const getNearestTickIndex = (position: number) => {
-  let nearestIndex = 0
-  let nearestDistance = Number.POSITIVE_INFINITY
-
-  RAIL_TICKS.forEach((tick, index) => {
-    const distance = Math.abs(tick.position - position)
-    if (distance < nearestDistance) {
-      nearestDistance = distance
-      nearestIndex = index
-    }
-  })
-
-  return nearestIndex
-}
-
 export function TimelineExperience({
   chapters = DEFAULT_TIMELINE_CHAPTERS,
+  presentDate,
 }: {
   chapters?: readonly TimelineChapter[]
+  presentDate: string
 }) {
-  const lastIndex = PRESENT_YEAR - BIRTH_YEAR
+  const [presentYear, presentMonth, presentDay] = presentDate.split('-').map(Number)
+  const presentTimestamp = Date.UTC(presentYear, presentMonth - 1, presentDay)
+  const lastIndex = presentYear - BIRTH_YEAR
+  const railTicks = useMemo(() => {
+    const yearTicks = Array.from(
+      { length: (presentYear - BIRTH_YEAR) * TICKS_PER_YEAR + 1 },
+      (_, index) => ({
+        id: index === 0 ? 'prologue' : `year-${BIRTH_YEAR + index}`,
+        position: index / ((presentYear - BIRTH_YEAR) * TICKS_PER_YEAR),
+        year: BIRTH_YEAR + index,
+        isChapter: index === 0,
+        compactIndex: index === 0 ? 0 : null,
+      }),
+    ).filter(({ year }) => !CHAPTER_YEARS.has(year))
+    const chapterTicks = CHAPTER_STARTS.map((timestamp, index) => ({
+      id: `chapter-${index + 1}`,
+      position: (timestamp - BIRTH_TIMESTAMP) / (presentTimestamp - BIRTH_TIMESTAMP),
+      year: new Date(timestamp).getUTCFullYear(),
+      isChapter: true,
+      compactIndex: index + 1,
+    }))
+
+    return [...yearTicks, ...chapterTicks].sort((a, b) => a.position - b.position)
+  }, [presentTimestamp, presentYear])
+  const getNearestTickIndex = useCallback((position: number) => {
+    let nearestIndex = 0
+    let nearestDistance = Number.POSITIVE_INFINITY
+
+    railTicks.forEach((tick, index) => {
+      const distance = Math.abs(tick.position - position)
+      if (distance < nearestDistance) {
+        nearestDistance = distance
+        nearestIndex = index
+      }
+    })
+
+    return nearestIndex
+  }, [railTicks])
   const [displayPosition, setDisplayPosition] = useState(0)
   const [hoverProgress, setHoverProgress] = useState<number | null>(null)
   const [isTimelineDragging, setIsTimelineDragging] = useState(false)
   const [isDateEditing, setIsDateEditing] = useState(false)
-  const [dateDraft, setDateDraft] = useState('')
   const [metadataScrubSource, setMetadataScrubSource] = useState<MetadataScrubSource | null>(null)
+  const [isAgePortraitVisible, setIsAgePortraitVisible] = useState(false)
+  const [isBeyondPresentPreview, setIsBeyondPresentPreview] = useState(false)
   const [isLocationGlobeVisible, setIsLocationGlobeVisible] = useState(false)
   const [locationGlobePortalRoot, setLocationGlobePortalRoot] = useState<HTMLElement | null>(null)
   const hoverProgressRef = useRef<number | null>(null)
@@ -300,7 +309,6 @@ export function TimelineExperience({
   const chapterScrollRef = useRef<HTMLDivElement | null>(null)
   const chapterMotionRef = useRef<HTMLDivElement | null>(null)
   const chapterDescriptionRef = useRef<HTMLDivElement | null>(null)
-  const dateInputRef = useRef<HTMLInputElement | null>(null)
   const hoverLockRef = useRef(false)
   const hapticTickRef = useRef<number | null>(null)
   const scrollSyncLockRef = useRef(false)
@@ -330,11 +338,23 @@ export function TimelineExperience({
   const pendingUrlDateRef = useRef<string | null>(null)
   const urlSyncTimerRef = useRef<number | null>(null)
   const metadataScrubSessionRef = useRef<MetadataScrubSession | null>(null)
+  const metadataWheelSessionRef = useRef<MetadataWheelSession>({
+    source: null,
+    accumulatedDelta: 0,
+    position: 0,
+  })
+  const metadataWheelResetTimerRef = useRef<number | null>(null)
   const metadataScrubFrameRef = useRef<number | null>(null)
   const pendingMetadataPositionRef = useRef<number | null>(null)
   const suppressDateClickRef = useRef(false)
   const suppressDateClickTimerRef = useRef<number | null>(null)
   const timelinePointerSessionRef = useRef<TimelinePointerSession | null>(null)
+  const ageValueRef = useRef<HTMLSpanElement | null>(null)
+  const agePortraitRef = useRef<HTMLDivElement | null>(null)
+  const agePortraitFrameRef = useRef<number | null>(null)
+  const pendingAgePortraitPositionRef = useRef<{ x: number; y: number } | null>(null)
+  const agePortraitAnchorXRef = useRef<number | null>(null)
+  const agePortraitAnchorYRef = useRef<number | null>(null)
   const locationGlobeRef = useRef<HTMLDivElement | null>(null)
   const locationGlobeFrameRef = useRef<number | null>(null)
   const pendingLocationGlobePositionRef = useRef<{ x: number; y: number } | null>(null)
@@ -380,7 +400,7 @@ export function TimelineExperience({
 
   const prepareHapticPosition = useCallback((position: number) => {
     hapticTickRef.current = getNearestTickIndex(position)
-  }, [])
+  }, [getNearestTickIndex])
 
   const pulseHapticAt = useCallback((position: number) => {
     const nextTickIndex = getNearestTickIndex(position)
@@ -395,13 +415,13 @@ export function TimelineExperience({
 
     const firstCrossedIndex = Math.min(previousTickIndex, nextTickIndex)
     const lastCrossedIndex = Math.max(previousTickIndex, nextTickIndex)
-    const crossedChapter = RAIL_TICKS
+    const crossedChapter = railTicks
       .slice(firstCrossedIndex, lastCrossedIndex + 1)
       .some((tick) => tick.isChapter)
 
     hapticTickRef.current = nextTickIndex
     navigator.vibrate?.(crossedChapter ? 12 : 5)
-  }, [])
+  }, [getNearestTickIndex, railTicks])
 
   const animate = useCallback(() => {
     const distance = targetRef.current - positionRef.current
@@ -420,6 +440,7 @@ export function TimelineExperience({
   }, [])
 
   const moveTo = useCallback((next: number) => {
+    setIsBeyondPresentPreview(false)
     targetRef.current = Math.max(0, Math.min(lastIndex, next))
 
     if (animationRef.current === null) {
@@ -428,6 +449,7 @@ export function TimelineExperience({
   }, [animate, lastIndex])
 
   const snapTo = useCallback((next: number) => {
+    setIsBeyondPresentPreview(false)
     const clamped = Math.max(0, Math.min(lastIndex, next))
     if (animationRef.current !== null) {
       cancelAnimationFrame(animationRef.current)
@@ -459,8 +481,14 @@ export function TimelineExperience({
       if (metadataScrubFrameRef.current !== null) {
         cancelAnimationFrame(metadataScrubFrameRef.current)
       }
+      if (metadataWheelResetTimerRef.current !== null) {
+        window.clearTimeout(metadataWheelResetTimerRef.current)
+      }
       if (suppressDateClickTimerRef.current !== null) {
         window.clearTimeout(suppressDateClickTimerRef.current)
+      }
+      if (agePortraitFrameRef.current !== null) {
+        cancelAnimationFrame(agePortraitFrameRef.current)
       }
       if (locationGlobeFrameRef.current !== null) {
         cancelAnimationFrame(locationGlobeFrameRef.current)
@@ -510,7 +538,7 @@ export function TimelineExperience({
   const progress = displayPosition / lastIndex
   const pillProgress = hoverProgress ?? progress
   const contentTimestamp = Math.round(
-    BIRTH_TIMESTAMP + progress * (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP),
+    BIRTH_TIMESTAMP + progress * (presentTimestamp - BIRTH_TIMESTAMP),
   )
   const contentDate = new Date(contentTimestamp)
   const contentYear = contentDate.getUTCFullYear()
@@ -518,10 +546,11 @@ export function TimelineExperience({
     || (contentDate.getUTCMonth() === 2 && contentDate.getUTCDate() < 23)
   const contentAge = contentYear - BIRTH_YEAR - (isBeforeBirthday ? 1 : 0)
   const contentAgeLabel = contentAge === 0 ? 'Newborn' : contentAge
+  const contentAgePortrait = `/timeline-faces/age-${String(contentAge).padStart(2, '0')}.webp`
   const contentDateLabel = FULL_DATE_FORMATTER.format(contentDate)
   const contentDateTime = contentDate.toISOString().slice(0, 10)
   const pillTimestamp = Math.round(
-    BIRTH_TIMESTAMP + pillProgress * (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP),
+    BIRTH_TIMESTAMP + pillProgress * (presentTimestamp - BIRTH_TIMESTAMP),
   )
   const pillDate = new Date(pillTimestamp)
   const pillLabel = PILL_DATE_FORMATTER.format(pillDate)
@@ -557,7 +586,7 @@ export function TimelineExperience({
 
   const getChapterTimestampRange = (chapterIndex: number) => {
     const start = CHAPTER_BOUNDARIES[chapterIndex]
-    const boundaryEnd = CHAPTER_BOUNDARIES[chapterIndex + 1] ?? PRESENT_TIMESTAMP
+    const boundaryEnd = CHAPTER_BOUNDARIES[chapterIndex + 1] ?? presentTimestamp
     const end = chapterIndex === CHAPTER_BOUNDARIES.length - 1
       ? boundaryEnd
       : boundaryEnd - 1
@@ -666,7 +695,7 @@ export function TimelineExperience({
     const { start, end } = getChapterTimestampRange(contentChapterIndex)
     const selectedTimestamp = Math.round(
       BIRTH_TIMESTAMP
-        + (positionRef.current / lastIndex) * (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP),
+        + (positionRef.current / lastIndex) * (presentTimestamp - BIRTH_TIMESTAMP),
     )
     const selectedRatio = end === start
       ? 0
@@ -739,7 +768,7 @@ export function TimelineExperience({
     const clampedScrollRatio = Math.max(0, Math.min(1, scrollRatio))
     const timestamp = Math.round(start + (end - start) * clampedScrollRatio)
     const nextProgress = (timestamp - BIRTH_TIMESTAMP)
-      / (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP)
+      / (presentTimestamp - BIRTH_TIMESTAMP)
 
     pendingChapterScrollRef.current = {
       index: nextChapterIndex,
@@ -764,27 +793,22 @@ export function TimelineExperience({
     navigator.vibrate?.(12)
   }
 
-  const cancelDateEdit = () => {
-    setIsDateEditing(false)
-    setDateDraft('')
-  }
-
-  const navigateToDate = (dateValue = dateDraft) => {
+  const navigateToDate = (dateValue: string) => {
     const [year, month, day] = dateValue.split('-').map(Number)
     if (!year || !month || !day) {
-      cancelDateEdit()
+      setIsDateEditing(false)
       return
     }
 
     const requestedTimestamp = Date.UTC(year, month - 1, day)
     if (new Date(requestedTimestamp).toISOString().slice(0, 10) !== dateValue) {
-      cancelDateEdit()
+      setIsDateEditing(false)
       return
     }
 
     const timestamp = Math.max(
       BIRTH_TIMESTAMP,
-      Math.min(PRESENT_TIMESTAMP, requestedTimestamp),
+      Math.min(presentTimestamp, requestedTimestamp),
     )
     const nextChapterIndex = getChapterIndex(timestamp)
     const { start, end } = getChapterTimestampRange(nextChapterIndex)
@@ -792,7 +816,7 @@ export function TimelineExperience({
       ? 0
       : Math.max(0, Math.min(1, (timestamp - start) / (end - start)))
     const nextProgress = (timestamp - BIRTH_TIMESTAMP)
-      / (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP)
+      / (presentTimestamp - BIRTH_TIMESTAMP)
 
     if (nextChapterIndex === contentChapterIndex) {
       pendingChapterScrollRef.current = null
@@ -817,10 +841,9 @@ export function TimelineExperience({
     }
 
     setIsDateEditing(false)
-    setDateDraft('')
     hoverProgressRef.current = null
     setHoverProgress(null)
-    moveTo(nextProgress * lastIndex)
+    snapTo(nextProgress * lastIndex)
     navigator.vibrate?.(12)
   }
 
@@ -845,7 +868,7 @@ export function TimelineExperience({
 
     const timestamp = Math.max(
       BIRTH_TIMESTAMP,
-      Math.min(PRESENT_TIMESTAMP, requestedTimestamp),
+      Math.min(presentTimestamp, requestedTimestamp),
     )
     const normalizedDate = new Date(timestamp).toISOString().slice(0, 10)
     pendingUrlDateRef.current = normalizedDate
@@ -899,7 +922,7 @@ export function TimelineExperience({
     const { start, end } = getChapterTimestampRange(contentChapterIndex)
     const timestamp = Math.round(start + (end - start) * scrollRatio)
     const nextPosition = ((timestamp - BIRTH_TIMESTAMP)
-      / (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP)) * lastIndex
+      / (presentTimestamp - BIRTH_TIMESTAMP)) * lastIndex
 
     if (hoverProgressRef.current !== null) {
       hoverProgressRef.current = null
@@ -1237,7 +1260,7 @@ export function TimelineExperience({
     if (isMobileTap && pointerSession) {
       const timestamp = Math.round(
         BIRTH_TIMESTAMP
-          + pointerSession.startRatio * (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP),
+          + pointerSession.startRatio * (presentTimestamp - BIRTH_TIMESTAMP),
       )
       moveToChapter(getChapterIndex(timestamp), 0)
     }
@@ -1301,9 +1324,59 @@ export function TimelineExperience({
   }
 
   const scheduleMetadataScrub = (nextPosition: number) => {
+    setIsBeyondPresentPreview(false)
     pendingMetadataPositionRef.current = nextPosition
     if (metadataScrubFrameRef.current === null) {
       metadataScrubFrameRef.current = requestAnimationFrame(flushMetadataScrub)
+    }
+  }
+
+  const scheduleAgePortraitPosition = (clientX: number) => {
+    const anchorX = agePortraitAnchorXRef.current
+    const anchorY = agePortraitAnchorYRef.current
+    if (anchorX === null || anchorY === null) return
+
+    pendingAgePortraitPositionRef.current = {
+      x: anchorX,
+      y: anchorY,
+    }
+    if (agePortraitFrameRef.current !== null) return
+
+    agePortraitFrameRef.current = requestAnimationFrame(() => {
+      const position = pendingAgePortraitPositionRef.current
+      const portrait = agePortraitRef.current
+      agePortraitFrameRef.current = null
+      pendingAgePortraitPositionRef.current = null
+      if (!position || !portrait) return
+
+      portrait.style.transform = `translate3d(${position.x}px, ${position.y}px, 0) translate(-50%, calc(-100% - 10px))`
+    })
+  }
+
+  const handleAgePointerEnter = (event: React.PointerEvent<HTMLElement>) => {
+    if (
+      event.pointerType !== 'mouse'
+      || !window.matchMedia('(min-width: 1280px) and (hover: hover)').matches
+    ) return
+
+    const ageBounds = (ageValueRef.current ?? event.currentTarget).getBoundingClientRect()
+    agePortraitAnchorXRef.current = ageBounds.left + ageBounds.width / 2
+    agePortraitAnchorYRef.current = ageBounds.top
+    scheduleAgePortraitPosition(event.clientX)
+    setIsLocationGlobeVisible(false)
+    setIsAgePortraitVisible(true)
+  }
+
+  const handleAgePointerMove = (event: React.PointerEvent<HTMLElement>) => {
+    if (event.pointerType === 'mouse') {
+      scheduleAgePortraitPosition(event.clientX)
+    }
+    handleMetadataPointerMove(event)
+  }
+
+  const handleAgePointerLeave = (event: React.PointerEvent<HTMLElement>) => {
+    if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
+      setIsAgePortraitVisible(false)
     }
   }
 
@@ -1321,7 +1394,7 @@ export function TimelineExperience({
     const scrubStops = getMetadataScrubStops(source)
     const startTimestamp = Math.round(
       BIRTH_TIMESTAMP
-        + (positionRef.current / lastIndex) * (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP),
+        + (positionRef.current / lastIndex) * (presentTimestamp - BIRTH_TIMESTAMP),
     )
 
     metadataScrubSessionRef.current = {
@@ -1351,7 +1424,6 @@ export function TimelineExperience({
       if (session.source === 'date') {
         suppressDateClickRef.current = true
         setIsDateEditing(false)
-        setDateDraft('')
       }
     }
 
@@ -1364,8 +1436,20 @@ export function TimelineExperience({
         Math.min(scrubStops.length - 1, session.startStopIndex + stopOffset),
       )
       const stopPosition = ((scrubStops[stopIndex] - BIRTH_TIMESTAMP)
-        / (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP)) * lastIndex
+        / (presentTimestamp - BIRTH_TIMESTAMP)) * lastIndex
       scheduleMetadataScrub(stopPosition)
+      return
+    }
+
+    const pixelsPerYear = session.source === 'age'
+      ? AGE_SCRUB_PIXELS_PER_YEAR
+      : METADATA_SCRUB_PIXELS_PER_YEAR
+    const requestedPosition = session.startPosition + deltaX / pixelsPerYear
+    if (session.source === 'age' && requestedPosition > lastIndex) {
+      snapTo(lastIndex)
+      pulseHapticAt(1)
+      setIsBeyondPresentPreview(true)
+      setIsAgePortraitVisible(true)
       return
     }
 
@@ -1373,7 +1457,7 @@ export function TimelineExperience({
       0,
       Math.min(
         lastIndex,
-        session.startPosition + deltaX / METADATA_SCRUB_PIXELS_PER_YEAR,
+        requestedPosition,
       ),
     ))
   }
@@ -1384,7 +1468,6 @@ export function TimelineExperience({
     if (anchorX === null || anchorY === null) return
 
     const rubberBandedX = anchorX
-      + (clientX - anchorX) * LOCATION_GLOBE_RUBBER_BAND_FACTOR
     locationGlobeLongitudeOffsetRef.current = Math.max(
       -LOCATION_GLOBE_MAX_LONGITUDE_OFFSET,
       Math.min(
@@ -1417,6 +1500,7 @@ export function TimelineExperience({
     locationGlobeAnchorXRef.current = locationBounds.left + locationBounds.width / 2
     locationGlobeAnchorYRef.current = locationBounds.top
     scheduleLocationGlobePosition(event.clientX)
+    setIsAgePortraitVisible(false)
     setIsLocationGlobeVisible(true)
   }
 
@@ -1502,7 +1586,7 @@ export function TimelineExperience({
 
     const timestamp = Math.round(
       BIRTH_TIMESTAMP
-        + (positionRef.current / lastIndex) * (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP),
+        + (positionRef.current / lastIndex) * (presentTimestamp - BIRTH_TIMESTAMP),
     )
     const currentIndex = getScrubStopIndex(scrubStops, timestamp)
     const direction = event.key === 'ArrowLeft' || event.key === 'ArrowDown'
@@ -1519,8 +1603,89 @@ export function TimelineExperience({
     event.preventDefault()
     const stopIndex = Math.max(0, Math.min(scrubStops.length - 1, currentIndex + direction))
     const stopPosition = ((scrubStops[stopIndex] - BIRTH_TIMESTAMP)
-      / (PRESENT_TIMESTAMP - BIRTH_TIMESTAMP)) * lastIndex
+      / (presentTimestamp - BIRTH_TIMESTAMP)) * lastIndex
     snapTo(stopPosition)
+  }
+
+  const handleMetadataWheel = (
+    event: React.WheelEvent<HTMLElement>,
+    source: MetadataWheelSource,
+  ) => {
+    const horizontalDelta = -(event.deltaMode === 1
+      ? event.deltaX * 16
+      : event.deltaMode === 2
+        ? event.deltaX * window.innerWidth
+        : event.deltaX)
+    const verticalDelta = event.deltaMode === 1
+      ? event.deltaY * 16
+      : event.deltaMode === 2
+        ? event.deltaY * window.innerHeight
+        : event.deltaY
+
+    if (Math.abs(horizontalDelta) < 1 || Math.abs(horizontalDelta) <= Math.abs(verticalDelta)) {
+      return
+    }
+
+    event.preventDefault()
+    event.stopPropagation()
+
+    const session = metadataWheelSessionRef.current
+    if (session.source !== source) {
+      session.source = source
+      session.accumulatedDelta = 0
+      session.position = positionRef.current
+      prepareHapticPosition(positionRef.current / lastIndex)
+    }
+
+    const scrubStops = getMetadataScrubStops(source)
+    if (scrubStops) {
+      session.accumulatedDelta += horizontalDelta
+      const stopOffset = Math.trunc(
+        session.accumulatedDelta / METADATA_SCRUB_PIXELS_PER_STOP,
+      )
+      if (stopOffset !== 0) {
+        const timestamp = Math.round(
+          BIRTH_TIMESTAMP
+            + (session.position / lastIndex) * (presentTimestamp - BIRTH_TIMESTAMP),
+        )
+        const currentIndex = getScrubStopIndex(scrubStops, timestamp)
+        const stopIndex = Math.max(
+          0,
+          Math.min(scrubStops.length - 1, currentIndex + stopOffset),
+        )
+        session.position = ((scrubStops[stopIndex] - BIRTH_TIMESTAMP)
+          / (presentTimestamp - BIRTH_TIMESTAMP)) * lastIndex
+        session.accumulatedDelta -= stopOffset * METADATA_SCRUB_PIXELS_PER_STOP
+        scheduleMetadataScrub(session.position)
+      }
+    } else {
+      const requestedPosition = session.position
+        + horizontalDelta / AGE_SCRUB_PIXELS_PER_YEAR
+
+      if (requestedPosition > lastIndex) {
+        session.position = lastIndex
+        snapTo(lastIndex)
+        pulseHapticAt(1)
+        setIsBeyondPresentPreview(true)
+        setIsAgePortraitVisible(true)
+      } else {
+        session.position = Math.max(0, Math.min(lastIndex, requestedPosition))
+        scheduleMetadataScrub(session.position)
+      }
+    }
+
+    if (metadataWheelResetTimerRef.current !== null) {
+      window.clearTimeout(metadataWheelResetTimerRef.current)
+    }
+    metadataWheelResetTimerRef.current = window.setTimeout(() => {
+      metadataWheelSessionRef.current = {
+        source: null,
+        accumulatedDelta: 0,
+        position: positionRef.current,
+      }
+      metadataWheelResetTimerRef.current = null
+      hapticTickRef.current = null
+    }, 180)
   }
 
   useEffect(() => {
@@ -1557,7 +1722,7 @@ export function TimelineExperience({
           aria-label="Timeline — scrub through Gabriel’s life"
           aria-orientation="vertical"
           aria-valuemin={BIRTH_YEAR}
-          aria-valuemax={PRESENT_YEAR}
+          aria-valuemax={presentYear}
           aria-valuenow={contentYear}
           aria-valuetext={`${contentDateLabel}. Age ${contentAgeLabel}. Location: ${locationDetails}.${educationDetails !== '—' ? ` Education: ${educationDetails}.` : ''}${workDetails !== '—' ? ` Work: ${workDetails}.` : ''}`}
           onKeyDown={handleKeyDown}
@@ -1568,7 +1733,7 @@ export function TimelineExperience({
           onPointerLeave={handlePointerLeave}
         >
           <div className={styles.ticks} aria-hidden="true">
-            {RAIL_TICKS.map((tick) => {
+            {railTicks.map((tick) => {
               const distance = hoverProgress === null ? 1 : Math.abs(tick.position - pillProgress)
               const radius = 0.05
               const influence = distance >= radius
@@ -1635,7 +1800,7 @@ export function TimelineExperience({
             style={{ top: `${pillProgress * 100}%` }}
             aria-hidden="true"
           >
-            {pillLabel}
+            {isBeyondPresentPreview ? '??' : pillLabel}
           </span>
         </div>
       </aside>
@@ -1712,16 +1877,13 @@ export function TimelineExperience({
                 <span className={styles.contextHeading}>Date</span>
                 <Popover
                   open={isDateEditing}
-                  onOpenChange={(open) => {
-                    setIsDateEditing(open)
-                    setDateDraft(open ? contentDateTime : '')
-                  }}
+                  onOpenChange={setIsDateEditing}
                 >
                   <PopoverTrigger asChild>
                     <button
                       type="button"
                       className={styles.dateButton}
-                      aria-label={`Date: ${contentDateLabel}. Drag horizontally to scrub, or click to open the calendar.`}
+                      aria-label={`Date: ${isBeyondPresentPreview ? 'unknown' : contentDateLabel}. Drag horizontally to scrub, or click to open the calendar.`}
                       onClickCapture={(event) => {
                         if (!suppressDateClickRef.current) return
                         event.preventDefault()
@@ -1735,14 +1897,20 @@ export function TimelineExperience({
                       onPointerCancel={endMetadataScrub}
                       onLostPointerCapture={endMetadataScrub}
                     >
-                      <time dateTime={contentDateTime}>{contentDateLabel}</time>
-                      <HugeiconsIcon
-                        className={styles.dateCalendarIcon}
-                        icon={Calendar04Icon}
-                        size={20}
-                        strokeWidth={1.5}
-                        aria-hidden="true"
-                      />
+                      {isBeyondPresentPreview ? (
+                        <span className={styles.unknownDate}>??</span>
+                      ) : (
+                        <>
+                          <time dateTime={contentDateTime}>{contentDateLabel}</time>
+                          <HugeiconsIcon
+                            className={styles.dateCalendarIcon}
+                            icon={Calendar04Icon}
+                            size={20}
+                            strokeWidth={1.5}
+                            aria-hidden="true"
+                          />
+                        </>
+                      )}
                     </button>
                   </PopoverTrigger>
                   <PopoverContent
@@ -1751,39 +1919,11 @@ export function TimelineExperience({
                     sideOffset={8}
                     onOpenAutoFocus={(event) => {
                       event.preventDefault()
-                      dateInputRef.current?.focus()
                     }}
                   >
-                    <div className={styles.dateEditor}>
-                    <input
-                      ref={dateInputRef}
-                      className={styles.dateInput}
-                      type="text"
-                      inputMode="numeric"
-                      value={dateDraft}
-                      aria-label="Go to date"
-                      placeholder="YYYY-MM-DD"
-                      onChange={(event) => setDateDraft(event.currentTarget.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter') {
-                          event.preventDefault()
-                          navigateToDate()
-                        } else if (event.key === 'Escape') {
-                          event.preventDefault()
-                          cancelDateEdit()
-                        }
-                      }}
-                    />
-                      <HugeiconsIcon
-                        className={styles.dateEditorIcon}
-                        icon={Calendar04Icon}
-                        size={20}
-                        strokeWidth={1.5}
-                        aria-hidden="true"
-                      />
-                    </div>
                     <Calendar
                       mode="single"
+                      captionLayout="dropdown"
                       defaultMonth={new Date(
                         contentDate.getUTCFullYear(),
                         contentDate.getUTCMonth(),
@@ -1795,10 +1935,10 @@ export function TimelineExperience({
                         contentDate.getUTCDate(),
                       )}
                       startMonth={new Date(1987, 2, 1)}
-                      endMonth={new Date(2026, 7, 1)}
+                      endMonth={new Date(presentYear, presentMonth - 1, 1)}
                       disabled={{
                         before: new Date(1987, 2, 23),
-                        after: new Date(2026, 7, 19),
+                        after: new Date(presentYear, presentMonth - 1, presentDay),
                       }}
                       onSelect={(date) => {
                         if (!date) return
@@ -1819,22 +1959,40 @@ export function TimelineExperience({
                   <dt>Age</dt>
                   <dd>
                     <span
-                      className={styles.metadataScrubber}
+                      className={`${styles.metadataScrubber} ${styles.ageScrubber}`}
                       role="slider"
                       tabIndex={0}
                       aria-label="Age"
                       aria-valuemin={0}
-                      aria-valuemax={PRESENT_YEAR - BIRTH_YEAR}
+                      aria-valuemax={presentYear - BIRTH_YEAR}
                       aria-valuenow={contentAge}
-                      aria-valuetext={String(contentAgeLabel)}
+                      aria-valuetext={isBeyondPresentPreview ? 'Beyond the present' : String(contentAgeLabel)}
                       onKeyDown={(event) => handleMetadataKeyDown(event, 1)}
+                      onPointerEnter={handleAgePointerEnter}
+                      onWheel={(event) => handleMetadataWheel(event, 'age')}
                       onPointerDown={(event) => handleMetadataPointerDown(event, 'age')}
-                      onPointerMove={handleMetadataPointerMove}
-                      onPointerUp={endMetadataScrub}
-                      onPointerCancel={endMetadataScrub}
-                      onLostPointerCapture={endMetadataScrub}
+                      onPointerMove={handleAgePointerMove}
+                      onPointerUp={(event) => {
+                        endMetadataScrub(event)
+                        if (!event.currentTarget.matches(':hover')) {
+                          setIsAgePortraitVisible(false)
+                        }
+                      }}
+                      onPointerLeave={handleAgePointerLeave}
+                      onPointerCancel={(event) => {
+                        endMetadataScrub(event)
+                        setIsAgePortraitVisible(false)
+                      }}
+                      onLostPointerCapture={(event) => {
+                        endMetadataScrub(event)
+                        if (!event.currentTarget.matches(':hover')) {
+                          setIsAgePortraitVisible(false)
+                        }
+                      }}
                     >
-                      {contentAgeLabel}
+                      <span ref={ageValueRef}>
+                        {isBeyondPresentPreview ? '??' : contentAgeLabel}
+                      </span>
                     </span>
                   </dd>
                 </div>
@@ -1847,11 +2005,12 @@ export function TimelineExperience({
                       tabIndex={0}
                       aria-label="Location"
                       aria-valuemin={BIRTH_TIMESTAMP}
-                      aria-valuemax={PRESENT_TIMESTAMP}
+                      aria-valuemax={presentTimestamp}
                       aria-valuenow={contentTimestamp}
-                      aria-valuetext={`${locationDetails}, ${contentDateLabel}`}
+                      aria-valuetext={isBeyondPresentPreview ? 'Unknown' : `${locationDetails}, ${contentDateLabel}`}
                       onKeyDown={(event) => handleDiscreteMetadataKeyDown(event, 'location')}
                       onPointerEnter={handleLocationPointerEnter}
+                      onWheel={(event) => handleMetadataWheel(event, 'location')}
                       onPointerDown={(event) => handleMetadataPointerDown(event, 'location')}
                       onPointerMove={handleLocationPointerMove}
                       onPointerUp={(event) => {
@@ -1875,7 +2034,7 @@ export function TimelineExperience({
                         }
                       }}
                     >
-                      {locationDetails}
+                      {isBeyondPresentPreview ? '??' : locationDetails}
                     </span>
                   </dd>
                 </div>
@@ -1889,7 +2048,7 @@ export function TimelineExperience({
                         tabIndex={0}
                         aria-label="Education"
                         aria-valuemin={BIRTH_TIMESTAMP}
-                        aria-valuemax={PRESENT_TIMESTAMP}
+                        aria-valuemax={presentTimestamp}
                         aria-valuenow={contentTimestamp}
                         aria-valuetext={`${educationDetails}, ${contentDateLabel}`}
                         onKeyDown={(event) => handleDiscreteMetadataKeyDown(event, 'education')}
@@ -1914,9 +2073,9 @@ export function TimelineExperience({
                         tabIndex={0}
                         aria-label="Work"
                         aria-valuemin={BIRTH_TIMESTAMP}
-                        aria-valuemax={PRESENT_TIMESTAMP}
+                        aria-valuemax={presentTimestamp}
                         aria-valuenow={contentTimestamp}
-                        aria-valuetext={`${workDetails}, ${contentDateLabel}`}
+                        aria-valuetext={isBeyondPresentPreview ? 'Unknown' : `${workDetails}, ${contentDateLabel}`}
                         onKeyDown={(event) => handleDiscreteMetadataKeyDown(event, 'work')}
                         onPointerDown={(event) => handleMetadataPointerDown(event, 'work')}
                         onPointerMove={handleMetadataPointerMove}
@@ -1924,31 +2083,33 @@ export function TimelineExperience({
                         onPointerCancel={endMetadataScrub}
                         onLostPointerCapture={endMetadataScrub}
                       >
-                        {workDetails}
+                        {isBeyondPresentPreview ? '??' : workDetails}
                       </span>
                     </dd>
                   </div>
                 )}
               </dl>
             </div>
-            <div className={styles.newsBlock}>
-              <span className={styles.contextHeading}>News</span>
-              <p className={styles.note}>
-                {worldContext ? (
-                  <a
-                    className={styles.newsLink}
-                    href={worldContext.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <span className={styles.newsLinkText}>{worldContext.summary}</span>
-                    <HoverArrow
-                      className={styles.newsLinkIcon}
-                    />
-                  </a>
-                ) : 'The story of this year is still being written.'}
-              </p>
-            </div>
+            {!isBeyondPresentPreview && (
+              <div className={styles.newsBlock}>
+                <span className={styles.contextHeading}>News</span>
+                <p className={styles.note}>
+                  {worldContext ? (
+                    <a
+                      className={styles.newsLink}
+                      href={worldContext.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <span className={styles.newsLinkText}>{worldContext.summary}</span>
+                      <HoverArrow
+                        className={styles.newsLinkIcon}
+                      />
+                    </a>
+                  ) : 'The story of this year is still being written.'}
+                </p>
+              </div>
+            )}
           </aside>
         </article>
       </div>
@@ -2003,26 +2164,49 @@ export function TimelineExperience({
                 <dd>{previewWorkDetails}</dd>
               </div>
             )}
-            <div className={styles.mobileNews}>
-              <dt>News</dt>
-              <dd>
-                {previewWorldContext ? (
-                  <a
-                    className={styles.newsLink}
-                    href={previewWorldContext.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <span className={styles.newsLinkText}>{previewWorldContext.summary}</span>
-                    <HoverArrow
-                      className={styles.newsLinkIcon}
-                    />
-                  </a>
-                ) : 'The story of this year is still being written.'}
-              </dd>
-            </div>
+            {!isBeyondPresentPreview && (
+              <div className={styles.mobileNews}>
+                <dt>News</dt>
+                <dd>
+                  {previewWorldContext ? (
+                    <a
+                      className={styles.newsLink}
+                      href={previewWorldContext.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <span className={styles.newsLinkText}>{previewWorldContext.summary}</span>
+                      <HoverArrow
+                        className={styles.newsLinkIcon}
+                      />
+                    </a>
+                  ) : 'The story of this year is still being written.'}
+                </dd>
+              </div>
+            )}
           </dl>
         </aside>
+      )}
+
+      {locationGlobePortalRoot && createPortal(
+        <div
+          ref={agePortraitRef}
+          className={styles.ageCursorPortrait}
+          data-visible={isAgePortraitVisible}
+          data-beyond-present={isBeyondPresentPreview}
+          aria-hidden="true"
+        >
+          {isBeyondPresentPreview ? (
+            <img
+              className={styles.ageCursorSkeleton}
+              src="/timeline-faces/skeleton.webp"
+              alt=""
+            />
+          ) : (
+            <img src={contentAgePortrait} alt="" />
+          )}
+        </div>,
+        locationGlobePortalRoot,
       )}
 
       {locationGlobePortalRoot && createPortal(

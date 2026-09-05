@@ -418,7 +418,6 @@ export function Chat({
   const linksRef = useRef<HTMLDivElement>(null)
   const hasRandomized = useRef(false)
   const locationRef = useRef('')
-  const retryRef = useRef(0)
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
   const blogIndexRequested = useRef(false)
   const [suggestions] = useState<string[]>(() => getSuggestedQuestions(faqItems))
@@ -456,39 +455,10 @@ export function Chat({
             cacheConversation(doc)
             const lastMsg = doc.messages[doc.messages.length - 1]
             if (lastMsg.role === 'assistant' && !lastMsg.content) {
-              // Retry the failed response
               const withoutEmpty = doc.messages.filter((m: Message) => m.content)
-              setMessages([...withoutEmpty, { role: 'assistant', content: '' }])
+              setMessages(withoutEmpty)
               setConversationId(doc.id)
-              setIsStreaming(true)
               setTimeout(() => setAnimateBubbles(true), 100)
-              fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messages: withoutEmpty }),
-              }).then(async (res) => {
-                const reader = res.body?.getReader()
-                const decoder = new TextDecoder()
-                let accumulated = ''
-                while (reader) {
-                  const { done, value } = await reader.read()
-                  if (done) break
-                  const chunk = decoder.decode(value)
-                  for (const line of chunk.split('\n')) {
-                    if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-                      try {
-                        accumulated += JSON.parse(line.slice(6)).text
-                        setMessages((prev) => {
-                          const updated = [...prev]
-                          updated[updated.length - 1] = { role: 'assistant', content: accumulated }
-                          return updated
-                        })
-                      } catch {}
-                    }
-                  }
-                }
-                setIsStreaming(false)
-              }).catch(() => setIsStreaming(false))
             } else {
               setMessages(doc.messages)
               setConversationId(doc.id)
@@ -566,7 +536,6 @@ export function Chat({
   async function sendMessage(text: string) {
     if (!text.trim() || isStreaming) return
     userScrolledUp.current = false
-    retryRef.current = 0
     const userMessage: Message = { role: 'user', content: text.trim() }
     const newMessages = [...messages, userMessage]
     setMessages(newMessages)
@@ -576,9 +545,11 @@ export function Chat({
     const assistantMessage: Message = { role: 'assistant', content: '' }
     setMessages([...newMessages, assistantMessage])
 
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 30000)
+    let errorMessage = "I'm having trouble answering right now. Please try again in a moment."
+
     try {
-      const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 30000)
 
       const res = await fetch('/api/chat', {
         method: 'POST',
@@ -587,17 +558,26 @@ export function Chat({
         signal: controller.signal,
       })
 
-      clearTimeout(timeout)
+      if (!res.ok) {
+        if (res.status === 429) {
+          errorMessage = "I've reached the hourly chat limit. Please try again a little later."
+        }
+        throw new Error(`Chat request failed with ${res.status}`)
+      }
+
       const reader = res.body?.getReader()
+      if (!reader) throw new Error('Chat response had no body')
       const decoder = new TextDecoder()
       let accumulated = ''
+      let buffer = ''
 
-      while (reader) {
+      while (true) {
         const { done, value } = await reader.read()
         if (done) break
 
-        const chunk = decoder.decode(value)
-        const lines = chunk.split('\n')
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
 
         for (const line of lines) {
           if (line.startsWith('data: ') && line !== 'data: [DONE]') {
@@ -616,28 +596,17 @@ export function Chat({
         }
       }
 
-      // If we got no content, retry once
-      if (!accumulated) {
-        retryRef.current++
-        if (retryRef.current <= 2) {
-          setMessages((prev) => prev.slice(0, -1))
-          setIsStreaming(false)
-          setTimeout(() => sendMessage(text), 500)
-          return
-        }
-      }
+      if (!accumulated.trim()) throw new Error('Chat response was empty')
     } catch {
-      // On error/timeout, retry once
-      retryRef.current++
-      if (retryRef.current <= 2) {
-        setMessages((prev) => prev.slice(0, -1))
-        setIsStreaming(false)
-        setTimeout(() => sendMessage(text), 500)
-        return
-      }
+      setMessages((previous) => {
+        const updated = [...previous]
+        updated[updated.length - 1] = { role: 'assistant', content: errorMessage }
+        return updated
+      })
+    } finally {
+      clearTimeout(timeout)
+      setIsStreaming(false)
     }
-
-    setIsStreaming(false)
   }
 
   // Save conversation after streaming completes (debounced)

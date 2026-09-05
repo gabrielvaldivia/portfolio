@@ -1,16 +1,21 @@
 import { Avatar } from '@/components/Avatar'
+import { cn } from '@/lib/cn'
 
 type Props = {
   quote: string
   name: string
   company?: string
   companyLogo?: { url: string; alt?: string } | null
-  photo?: { url: string; alt: string }
+  photo?: { url: string; alt?: string }
   linkedIn?: string
+  variant?: 'default' | 'hero'
 }
 
-export function Testimonial({ quote, name, company, companyLogo, photo, linkedIn }: Props) {
-  const authorBlock = (
+export function Testimonial({ quote, name, company, companyLogo, photo, linkedIn, variant = 'default' }: Props) {
+  const isHero = variant === 'hero'
+  const authorBlock = isHero ? (
+    <p className="text-caption font-medium text-muted">{name}</p>
+  ) : (
     <div className="flex items-center justify-between gap-3">
       <div>
         {companyLogo?.url ? (
@@ -28,8 +33,22 @@ export function Testimonial({ quote, name, company, companyLogo, photo, linkedIn
   )
 
   return (
-    <div className="bg-background-alt rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] p-6 tablet:p-8 desktop:p-10 flex flex-col h-full">
-      <p className="text-content text-[18px] tablet:text-[22px] desktop:text-[26px] leading-[1.4] flex-1 pb-10" style={{ textIndent: '-0.4em' }}>
+    <div
+      className={cn(
+        isHero
+          ? 'flex flex-col gap-4'
+          : 'flex h-full flex-col rounded-[20px] bg-background-alt p-6 tablet:rounded-[30px] tablet:p-8 desktop:rounded-[40px] desktop:p-10',
+      )}
+    >
+      <p
+        className={cn(
+          'text-content leading-[1.4]',
+          isHero
+            ? 'text-balance text-[16px] tablet:text-[18px] desktop:text-[20px]'
+            : 'flex-1 pb-10 text-[18px] tablet:text-[22px] desktop:text-[26px]',
+        )}
+        style={{ textIndent: '-0.4em' }}
+      >
         &ldquo;{quote}&rdquo;
       </p>
       {linkedIn ? (

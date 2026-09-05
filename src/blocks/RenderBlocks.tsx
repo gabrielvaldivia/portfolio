@@ -149,7 +149,9 @@ export function RenderBlocks({ blocks, likeNamespace }: { blocks?: any[]; likeNa
           ? getBlockSlideId(block, i)
           : null
         const slideLabel = slideId ? getModuleLabel(block, `Open ${block.blockType} module fullscreen`) : ''
-        const content = <Component {...block} _likeTargetId={rendersOwnLikeButton ? likeTargetId : null} />
+        const rendersCaptionOutsideSurface = block.blockType === 'browser' && Boolean(block.caption)
+        const componentProps = rendersCaptionOutsideSurface ? { ...block, caption: undefined } : block
+        const content = <Component {...componentProps} _likeTargetId={rendersOwnLikeButton ? likeTargetId : null} />
 
         return (
           <div
@@ -170,7 +172,7 @@ export function RenderBlocks({ blocks, likeNamespace }: { blocks?: any[]; likeNa
                 <ModuleLightboxTrigger
                   slideId={slideId}
                   label={slideLabel}
-                  className="h-full"
+                  className={rendersCaptionOutsideSurface ? '' : 'h-full'}
                   surfaceClassName={cn(
                     'relative',
                     isFramedBlock ? moduleBackgroundClass : '',
@@ -207,6 +209,11 @@ export function RenderBlocks({ blocks, likeNamespace }: { blocks?: any[]; likeNa
               <div className={isFramedBlock ? 'h-full flex items-center justify-center' : ''}>
                 {content}
               </div>
+            )}
+            {rendersCaptionOutsideSurface && (
+              <p className="text-muted text-caption" style={{ marginTop: 10 }}>
+                {block.caption}
+              </p>
             )}
             {likeTargetId && !rendersOwnLikeButton && !usesMovableSurface && <ModuleLikeOverlay targetId={likeTargetId} />}
           </div>

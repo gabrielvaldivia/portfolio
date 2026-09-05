@@ -137,6 +137,7 @@ const NumberedGridBlock: Block = {
       name: 'items',
       type: 'array',
       fields: [
+        { name: 'title', type: 'text', required: true },
         { name: 'text', type: 'richText', required: true },
       ],
     },
@@ -171,9 +172,6 @@ const AccordionBlock: Block = {
     sizeFields,
     { name: 'fixedHeight', type: 'text', label: 'Fixed Height', defaultValue: '80dvh', admin: { description: 'CSS height value (e.g. 70dvh, 600px, auto). Applied on mobile, overridden by rows on desktop.' } },
     { name: 'title', type: 'text', defaultValue: 'Ask me anything' },
-    { name: 'apiKey', type: 'text', label: 'Anthropic API Key', admin: { description: 'Your Claude API key (sk-ant-...)' } },
-    { name: 'model', type: 'text', label: 'Model', defaultValue: 'claude-haiku-4-5-20251001', admin: { description: 'Claude model ID (e.g. claude-haiku-4-5-20251001, claude-sonnet-4-5-20250514)' } },
-    { name: 'gabosApiUrl', type: 'text', label: 'Content API URL', defaultValue: 'https://gabos.vercel.app', admin: { description: 'URL for the gabos content API (blog + tweets)' } },
     { name: 'systemPromptExtra', type: 'textarea', label: 'Extra Instructions', admin: { description: 'Additional instructions appended to the system prompt' } },
     {
       name: 'items',
