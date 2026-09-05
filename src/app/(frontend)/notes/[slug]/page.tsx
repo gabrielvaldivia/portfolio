@@ -85,10 +85,10 @@ export default async function NotePage({ params }: NotePageProps) {
 
         {readNextNote?.slug ? (
           <section
-            className="mt-20 mb-16 max-w-[760px] tablet:mt-28 tablet:mb-24"
+            className="mt-20 max-w-[760px] tablet:mt-28"
             aria-labelledby="continue-reading-heading"
           >
-            <p className="mb-4 text-caption" id="continue-reading-heading">
+            <p className="mb-8 text-caption" id="continue-reading-heading">
               Continue reading
             </p>
             <Link
