@@ -276,7 +276,7 @@ export function LikedWorkMarquee({ items }: { items: LikedWorkMarqueeItem[] }) {
     <div
       ref={marqueeRef}
       className={cn(
-        'liked-work-marquee hscroll-masked -my-2 w-full min-w-0 overflow-hidden py-2',
+        'liked-work-marquee -my-2 w-full min-w-0 overflow-hidden py-2',
         prefersReducedMotion && 'overflow-x-auto',
       )}
       role="region"
