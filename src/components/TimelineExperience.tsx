@@ -1855,7 +1855,7 @@ export function TimelineExperience({
                 <h1>{contentTitle}</h1>
                 <div
                   ref={chapterDescriptionRef}
-                  className={styles.chapterDescription}
+                  className={`${styles.chapterDescription} longform-body`}
                 >
                   <RichText data={contentRichText} />
                 </div>

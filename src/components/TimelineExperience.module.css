@@ -237,10 +237,6 @@
 .chapterDescription {
   max-width: 68ch;
   margin: 24px 0 0;
-  color: var(--color-muted);
-  font-size: clamp(16px, 1.25vw, 20px);
-  line-height: 1.5;
-  text-wrap: pretty;
 }
 
 .chapterDescription p {
@@ -249,10 +245,6 @@
 
 .chapterDescription p + p {
   margin-top: 1em;
-}
-
-.chapterDescription :global(.rich-text) {
-  color: inherit;
 }
 
 .chapterDescription :global(.rich-text a) {
@@ -1059,8 +1051,6 @@
 
   .chapterDescription {
     margin-top: 20px;
-    font-size: 16px;
-    line-height: 1.45;
   }
 
 }
@@ -1099,8 +1089,6 @@
 
   .chapterDescription {
     margin-top: 18px;
-    font-size: 15px;
-    line-height: 1.4;
   }
 
   .details dd {
