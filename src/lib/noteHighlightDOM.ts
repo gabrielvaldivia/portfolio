@@ -2,8 +2,14 @@ import { makeHighlightAnchor, type HighlightAnchor } from './noteHighlightAnchor
 
 export function indexHighlightText(root: HTMLElement) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-    acceptNode: (node) => node.parentElement?.closest('[aria-hidden="true"], script, style')
-      ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT,
+    acceptNode: (node) => {
+      const excluded = node.parentElement?.closest('[aria-hidden="true"], script, style')
+      // Modal dialogs temporarily hide the article's ancestors from assistive
+      // technology. That must not change its text offsets or erase its marks.
+      // Only exclude decorative/hidden content inside the article itself.
+      return excluded && excluded !== root && root.contains(excluded)
+        ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT
+    },
   })
   const nodes: { node: Text; start: number; end: number }[] = []
   let raw = ''

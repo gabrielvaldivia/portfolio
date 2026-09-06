@@ -13,6 +13,9 @@ at the top. The handle also toggles expansion by tapping. Safe-area spacing,
 reduced motion, focus containment, and background scroll locking are respected.
 Desktop keeps the anchored popover. Selecting a quote closes either panel before
 scrolling to the passage.
+Text indexing ignores modal accessibility hiding on the article or its ancestors,
+while still excluding hidden decorations inside the article. Opening the sheet or
+refreshing highlights while it is open must not erase the visible marks.
 Ownership uses the existing HTTP-only `gv_module_liker` cookie:
 it is remembered in that browser, not synced between devices. No accounts, emails,
 comments, or raw IP addresses are collected by this feature.
