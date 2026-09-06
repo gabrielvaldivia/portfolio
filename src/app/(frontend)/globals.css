@@ -98,7 +98,7 @@
 
 :root {
   --color-content-rgb: 0 0 0;
-  --color-muted-rgb: 0 0 0 / 0.6;
+  --color-muted-rgb: 0 0 0 / 0.9;
   --color-background-rgb: 255 255 255;
   --color-background-alt-rgb: 0 0 0 / 0.03;
   --color-background-alt-hover-rgb: 0 0 0 / 0.06;
