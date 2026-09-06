@@ -27,7 +27,7 @@ before(async () => {
   await client.exec('CREATE TABLE notes (id integer PRIMARY KEY, title text, slug text, body jsonb, _status text);')
   await up({ db: { execute: (query: Parameters<typeof db.execute>[0]) => client.exec(new PgDialect().sqlToQuery(query as ReturnType<typeof sql>).sql) } } as unknown as Parameters<typeof up>[0])
   await addLocations({ db } as unknown as Parameters<typeof addLocations>[0])
-  for (const id of [1, 2, 3]) {
+  for (const id of [1, 2, 3, 4]) {
     await db.execute(sql`INSERT INTO notes VALUES (${id}, ${`Note ${id}`}, ${`note-${id}`}, ${JSON.stringify(body(text))}::jsonb, ${id === 2 ? 'draft' : 'published'})`)
     await writeHighlight(db, id, text, 'private-reader-one', anchor, false)
   }
@@ -43,9 +43,25 @@ test('includes pre-existing saved quotes, grouped per passage, with no reader id
   const first = rows.find(row => row.activity_id.startsWith('highlight:1:') && row.highlight.anchor && (row.highlight.anchor as {exact: string}).exact === anchor.exact)!
   assert.equal(first.amount, 2)
   assert.equal(rows.filter(row => row.activity_id.startsWith('highlight:1:')).length, 2)
-  assert.deepEqual(resolveHighlightActivity(first.highlight), {quote: anchor.exact, title: 'Note 1', href: '/notes/note-1'})
+  assert.deepEqual(resolveHighlightActivity(first.highlight), {quote: anchor.exact, title: 'Note 1', href: '/notes/note-1', locations: [{location: '', count: 2}]})
   assert.equal(JSON.stringify(rows).includes('private-reader'), false)
   assert.equal(JSON.stringify(resolveHighlightActivity(first.highlight)).includes('body'), false)
+})
+
+test('retains each location and unknown reader without assigning all readers to the latest city', async () => {
+  await writeHighlight(db, 4, text, 'private-reader-spain', anchor, false, 'Mislata, Spain')
+  await writeHighlight(db, 4, text, 'private-reader-new-york', anchor, false, 'Newburgh, NY')
+  await writeHighlight(db, 4, text, 'private-reader-spain-two', anchor, false, 'Mislata, Spain')
+  let row = (await load()).find(row => row.activity_id.startsWith('highlight:4:'))!
+  const locations = resolveHighlightActivity(row.highlight)!.locations
+  assert.equal(row.amount, 4)
+  assert.deepEqual(locations.find(group => group.location === 'Mislata, Spain'), {location: 'Mislata, Spain', count: 2})
+  assert.deepEqual(locations.find(group => group.location === 'Newburgh, NY'), {location: 'Newburgh, NY', count: 1})
+  assert.deepEqual(locations.find(group => !group.location), {location: '', count: 1})
+  assert.equal(JSON.stringify(row).includes('private-reader'), false)
+  await writeHighlight(db, 4, text, 'private-reader-new-york', anchor, true)
+  row = (await load()).find(row => row.activity_id.startsWith('highlight:4:'))!
+  assert.equal(resolveHighlightActivity(row.highlight)!.locations.some(group => group.location === 'Newburgh, NY'), false)
 })
 
 test('excludes unpublished notes and quotes removed from the published text', async () => {

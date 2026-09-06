@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityVideoThumbnail } from '@/components/ActivityVideoThumbnail'
 import { LazyModuleLikeButton } from '@/components/LazyModuleLikeButton'
 import { ModuleLightboxProvider, ModuleLightboxTrigger, type ModuleLightboxSlide } from '@/components/ModuleLightbox'
@@ -200,7 +200,7 @@ function getActivitySentenceParts(item: ActivityDisplayItem) {
   if (item.eventType === 'highlight') {
     return {
       action: `highlighted a passage in “${item.target.sourceTitle}”`,
-      location: '', repetitions: '', source: '',
+      location, repetitions: '', source: '',
     }
   }
   if (item.eventType === 'chat') {
@@ -235,6 +235,11 @@ function getActivitySentenceParts(item: ActivityDisplayItem) {
 }
 
 function getActivitySubject(item: ActivityDisplayItem) {
+  if (item.eventType === 'highlight' && (item.highlightLocations?.length || 0) > 1) {
+    return item.highlightLocations!.map((group, index) =>
+      `${group.count > 1 ? `${group.count} readers` : index === 0 ? 'Someone' : 'someone'}${group.location ? ` from ${group.location}` : ''}`,
+    ).join(' and ')
+  }
   return item.eventType === 'highlight' && item.count > 1 ? `${item.count} readers` : 'Someone'
 }
 
@@ -261,7 +266,13 @@ function ActivitySentence({ item }: { item: ActivityDisplayItem }) {
 
   return (
     <p className="text-body text-pretty">
-      {getActivitySubject(item)}
+      {item.eventType === 'highlight' && (item.highlightLocations?.length || 0) > 1 ? item.highlightLocations!.map((group, index) => (
+        <Fragment key={group.location}>
+          {index > 0 ? ' and ' : null}
+          {group.count > 1 ? `${group.count} readers` : index === 0 ? 'Someone' : 'someone'}
+          {group.location ? <> from <span className="font-medium">{group.location}</span></> : null}
+        </Fragment>
+      )) : getActivitySubject(item)}
       {location ? (
         <>
           {' from '}
@@ -570,7 +581,11 @@ function ActivityText({ item, nowMs }: { item: ActivityDisplayItem; nowMs: numbe
   return (
     <div className="min-w-0">
       <ActivitySentence item={item} />
-      {item.quote ? <p className="line-clamp-3 pt-2 text-body text-muted">“{item.quote}”</p> : null}
+      {item.quote ? (
+        <blockquote className="mt-3 border-l border-border-strong pl-6 text-body text-muted">
+          <p className="line-clamp-3">{item.quote}</p>
+        </blockquote>
+      ) : null}
       <p className="pt-2 truncate text-caption text-muted tabular-nums">
         <time dateTime={item.createdAt}>{timeLabel}</time>
       </p>

@@ -18,6 +18,9 @@ New saves retain coarse city/region/country labels from Vercel's edge headers;
 there is no GPS request or external IP lookup. Old highlights retain their saved
 dates and show no invented location. Repeated saves do not overwrite attribution.
 The public API exposes only location/date records, never reader identifiers.
+Activity shows those saved locations alongside highlight events, grouping readers
+by location without attributing unknown readers to someone else's city. Highlight
+excerpts use the same indented, left-bordered quote treatment as note bodies.
 
 ## Implementation
 

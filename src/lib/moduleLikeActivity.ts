@@ -18,7 +18,7 @@ import {
   normalizeActivityCursor,
 } from '@/lib/moduleLikeActivityPagination'
 import { getPhotos, type Photo, type PhotoExif } from '@/lib/photos'
-import { noteHighlightActivityRows, resolveHighlightActivity, type HighlightActivityData } from '@/lib/noteHighlightActivity'
+import { noteHighlightActivityRows, resolveHighlightActivity, type HighlightActivityData, type HighlightActivityLocation } from '@/lib/noteHighlightActivity'
 
 type PortfolioActivityRow = {
   activity_id: string
@@ -95,6 +95,7 @@ export type ModuleLikeActivityItem = {
   id: string
   eventType: 'chat' | 'like' | 'highlight'
   quote?: string
+  highlightLocations?: HighlightActivityLocation[]
   targetId: string
   amount: number
   createdAt: string
@@ -757,13 +758,18 @@ function getActivityItem(row: PortfolioActivityRow, targetIndex: Map<string, Act
   if (row.event_type === 'highlight') {
     const highlight = resolveHighlightActivity(row.highlight)
     if (!highlight) return null
+    // Only use the shared location when every reader is in the same group.
+    // Mixed/unknown locations stay separate so we don't attribute everyone to one city.
+    const location = highlight.locations.length === 1 ? highlight.locations[0].location : ''
     return {
       id: row.activity_id,
       eventType: 'highlight' as const,
       targetId: row.target_id,
       amount: Math.max(1, Number(row.amount) || 1),
       createdAt: normalizedCreatedAt,
-      location: '', city: '', region: '', country: '',
+      location, city: '', region: '',
+      country: countryCodeByName.get(location.split(',').at(-1)?.trim().toLocaleLowerCase('en') || '') || '',
+      highlightLocations: highlight.locations,
       quote: highlight.quote,
       target: {
         href: highlight.href,
