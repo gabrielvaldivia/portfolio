@@ -6,6 +6,7 @@ import * as Switch from '@radix-ui/react-switch'
 import { LazyModuleLikeButton, ModuleLikeButtonShell } from '@/components/LazyModuleLikeButton'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover'
 import type { PublicHighlight } from '@/lib/noteHighlightAnchors'
+import { cn } from '@/lib/cn'
 
 type NoteActionsProps = {
   noteId: string
@@ -75,7 +76,7 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, hi
             <button type="button" aria-label={highlightsReady ? `${highlights.length} highlighted passages. Show highlights` : 'Show highlights'}
               className="inline-flex h-11 min-w-16 items-center justify-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted hover:bg-background-alt hover:text-content focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content">
               <Highlighter className="size-[18px]" aria-hidden="true" />
-              <span className="tabular-nums" aria-hidden="true">{highlightsReady ? highlights.length : '—'}</span>
+              <span className={cn('w-8 shrink-0 text-left tabular-nums', highlightsReady && highlights.length === 0 && 'invisible')} aria-hidden="true">{highlightsReady ? highlights.length : '—'}</span>
             </button>
           </PopoverTrigger>
           <PopoverContent ref={popoverRef} side="top" sideOffset={14} collisionPadding={16} aria-label="Highlighted passages"

@@ -60,8 +60,8 @@ export function ModuleLikeButtonShell({
         <span className="relative inline-flex size-[18px] items-center justify-center overflow-visible">
           <HeartIcon className="size-[18px] opacity-45" />
         </span>
-        <span className="relative inline-flex h-[1em] min-w-[1ch] items-center overflow-hidden tabular-nums leading-none">
-          <span className="inline-block">{initialCount}</span>
+        <span aria-hidden="true" className={cn('relative inline-flex h-[1em] min-w-[1ch] items-center overflow-hidden tabular-nums leading-none', variant === 'pill' && 'w-8 shrink-0', initialCount === 0 && 'invisible')}>
+          <span className="inline-block">{variant === 'pill' ? initialCount.toLocaleString('en-US', { notation: 'compact' }) : initialCount}</span>
         </span>
       </button>
     </div>

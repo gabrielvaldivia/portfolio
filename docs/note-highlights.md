@@ -1,8 +1,8 @@
 # Public note highlights
 
 Readers select 3–1,000 characters in a published note and choose **Highlight**.
-Marks are public and visible by default; tapping one shows its reader count and an
-add/remove action. A minimal switch beside “Highlights” in the activity popover
+Marks are public and visible by default; tapping one shows a text-only attribution
+tooltip, dismissed by tapping outside or pressing Escape. A minimal switch beside “Highlights” in the activity popover
 hides or shows the marks, without changing saved quotes or counts. Visibility is
 remembered across notes and reloads in `gv-note-highlights-visible-v1` local storage.
 The quote list and jump-to-passage actions still work when marks are hidden.
@@ -10,9 +10,9 @@ Ownership uses the existing HTTP-only `gv_module_liker` cookie:
 it is remembered in that browser, not synced between devices. No accounts, emails,
 comments, or raw IP addresses are collected by this feature.
 
-Tapping a saved passage shows “Highlighted by someone from [location]” with its
-date and time in the viewer's timezone. Multiple people are grouped by location,
-with per-highlight timestamps (same-minute contributions share a counted line).
+Tapping a saved passage shows “Highlighted by someone from [location] on [date and time]”
+in the viewer's timezone, with no close or highlight buttons. Multiple people are
+grouped by location, with per-highlight timestamps (same-minute timestamps are combined).
 New saves retain coarse city/region/country labels from Vercel's edge headers;
 there is no GPS request or external IP lookup. Old highlights retain their saved
 dates and show no invented location. Repeated saves do not overwrite attribution.

@@ -174,9 +174,9 @@ function createHeartFragments(intensity: number): Particle[] {
   })
 }
 
-function AnimatedCount({ value }: { value: number }) {
+function AnimatedCount({ value, pill }: { value: number; pill: boolean }) {
   return (
-    <span className="relative inline-flex h-[1em] min-w-[1ch] items-center overflow-hidden tabular-nums leading-none">
+    <span aria-hidden="true" className={cn('relative inline-flex h-[1em] min-w-[1ch] items-center overflow-hidden tabular-nums leading-none', pill && 'w-8 shrink-0', value === 0 && 'invisible')}>
       <AnimatePresence mode="popLayout" initial={false}>
         <motion.span
           key={value}
@@ -186,7 +186,7 @@ function AnimatedCount({ value }: { value: number }) {
           transition={{ duration: 0.16, ease: 'easeOut' }}
           className="inline-block"
         >
-          {value}
+          {pill ? value.toLocaleString('en-US', { notation: 'compact' }) : value}
         </motion.span>
       </AnimatePresence>
     </span>
@@ -895,7 +895,7 @@ export function ModuleLikeButton({
           </AnimatePresence>
         </span>
 
-        <AnimatedCount value={displayCount} />
+        <AnimatedCount value={displayCount} pill={variant === 'pill'} />
       </motion.button>
 
       <AnimatePresence>

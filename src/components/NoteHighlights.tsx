@@ -2,18 +2,16 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Anchor as PopoverAnchor } from '@radix-ui/react-popover'
-import { Highlighter, X } from 'lucide-react'
 import { Popover, PopoverContent } from '@/components/ui/Popover'
 import { NoteActions } from '@/components/NoteActions'
 import { HighlightAttributionDetails } from '@/components/HighlightAttributionDetails'
-import { getHighlightAttributionHeading } from '@/lib/noteHighlightAttribution'
 import { anchorFromRange, indexHighlightText, rangeFromAnchor } from '@/lib/noteHighlightDOM'
 import { MAX_HIGHLIGHT_LENGTH, type HighlightAnchor, type HighlightResponse, type PublicHighlight } from '@/lib/noteHighlightAnchors'
 import { cn } from '@/lib/cn'
 
 type ActivePassage = { anchor: HighlightAnchor; range: Range; fromSelection: boolean }
 const visibilityStorageKey = 'gv-note-highlights-visible-v1'
-const panelClass = 'z-50 flex w-72 max-w-[calc(100vw-32px)] max-h-[calc(100dvh-2rem-env(safe-area-inset-bottom))] flex-col gap-3 overflow-y-auto rounded-2xl border border-border bg-background p-4 text-sm text-content shadow-lg outline-none'
+const panelClass = 'z-50 w-72 max-w-[calc(100vw-32px)] max-h-[var(--radix-popover-content-available-height)] overflow-y-auto rounded-lg bg-content px-3 py-2 text-sm leading-relaxed text-background shadow-lg outline-none'
 const actionClass = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-content px-4 py-2 text-background disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content'
 
 export function NoteHighlights({ noteId, likeTargetId, version, children }: { noteId: string; likeTargetId: string; version: string; children: ReactNode }) {
@@ -246,7 +244,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
           className={cn(active?.fromSelection ? 'z-50 outline-none' : panelClass, 'note-highlight-action')}
           side="top" sideOffset={8}
           updatePositionStrategy="always"
-          collisionPadding={16} aria-label="Highlight passage"
+          collisionPadding={16} role={active?.fromSelection ? 'dialog' : 'tooltip'} aria-label={active?.fromSelection ? 'Highlight passage' : 'Highlight attribution'}
           onOpenAutoFocus={(event) => event.preventDefault()}
           onCloseAutoFocus={(event) => {
             event.preventDefault()
@@ -271,20 +269,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
               </button>
               {error ? <p role="alert" className="mt-2 max-w-64 rounded-lg bg-background p-3 text-sm text-content shadow-lg">{error}</p> : null}
             </>
-          ) : <>
-          <div className="flex items-start justify-between gap-3">
-            <span className="min-w-0 font-medium">{current ? getHighlightAttributionHeading(current) : 'Highlight passage'}</span>
-            <button type="button" aria-label="Close highlight actions" className="inline-flex size-11 shrink-0 items-center justify-center rounded-full hover:bg-background-alt" onClick={() => { setActive(null); window.getSelection()?.removeAllRanges() }}><X className="size-4" aria-hidden="true" /></button>
-          </div>
-          {current ? <HighlightAttributionDetails highlight={current} /> : null}
-          {error ? <p role="alert">{error}</p> : null}
-          {active && active.anchor.exact.length > MAX_HIGHLIGHT_LENGTH ? <p role="alert">Select a shorter passage (up to 1,000 characters).</p> :
-            <button type="button" className={actionClass} disabled={!ready || saving}
-              onPointerDown={(event) => event.preventDefault()} onClick={() => void save(Boolean(current?.mine))}>
-              <Highlighter className="size-4" aria-hidden="true" />
-              {saving ? 'Saving…' : current?.mine ? 'Remove my highlight' : 'Highlight'}
-            </button>}
-          </>}
+          ) : current ? <HighlightAttributionDetails highlight={current} /> : null}
         </PopoverContent>
       </Popover>
       <span role="status" aria-live="polite" className="sr-only">{announcement}</span>
