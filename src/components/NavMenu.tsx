@@ -40,7 +40,12 @@ function orderNavigationPages(pages: NavMenuPage[]) {
     ['/work', 2],
   ])
 
-  return pages
+  const notesPage = pages.find((page) => page.url === '/notes') ?? {
+    label: 'Notes',
+    url: '/notes',
+  }
+  const orderedPages = pages
+    .filter((page) => page.url !== '/notes')
     .map((page, index) => ({ page, index }))
     .sort((a, b) => (
       (priority.get(a.page.url) ?? Number.MAX_SAFE_INTEGER)
@@ -48,6 +53,11 @@ function orderNavigationPages(pages: NavMenuPage[]) {
       || a.index - b.index
     ))
     .map(({ page }) => page)
+
+  const playgroundIndex = orderedPages.findIndex((page) => page.url === '/playground')
+  orderedPages.splice(playgroundIndex >= 0 ? playgroundIndex + 1 : orderedPages.length, 0, notesPage)
+
+  return orderedPages
 }
 
 export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
