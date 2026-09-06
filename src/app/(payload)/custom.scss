@@ -4460,7 +4460,7 @@ body:has(.collection-edit--notes) .template-default__wrap,
 .collection-edit--notes,
 .collection-edit--notes .document-fields,
 .collection-edit--notes .document-fields__main {
-  background: #fff !important;
+  background: var(--cms-bg-main) !important;
 }
 
 body:has(.collection-edit--notes) .app-header__step-nav .step-nav__last {
@@ -4484,8 +4484,8 @@ body:has(.collection-edit--notes) .app-header__step-nav .step-nav__last {
   margin-inline: auto;
   padding: clamp(52px, 7vw, 96px) clamp(28px, 7vw, 88px) 180px !important;
   border: 0 !important;
-  background: #fff;
-  color: #171717;
+  background: var(--cms-bg-main);
+  color: var(--cms-text-primary);
 }
 
 .collection-edit--notes .notes-editor-tabs {
@@ -4518,7 +4518,7 @@ body:has(.collection-edit--notes) .app-header__step-nav .step-nav__last {
   border: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
-  color: #171717 !important;
+  color: var(--cms-text-primary) !important;
   box-shadow: none !important;
   outline: 0 !important;
 }
@@ -4554,7 +4554,7 @@ body:has(.collection-edit--notes) .app-header__step-nav .step-nav__last {
 }
 
 .collection-edit--notes .field-type.textarea.notes-editor-title textarea::placeholder {
-  color: #b8b8b8 !important;
+  color: var(--cms-text-quaternary) !important;
   font-family: 'Inter Display', 'Inter', var(--font-body), system-ui, sans-serif !important;
   font-size: 32px !important;
   font-weight: 500;
@@ -4584,7 +4584,7 @@ body:has(.collection-edit--notes) .app-header__step-nav .step-nav__last {
 .collection-edit--notes .notes-editor-body .ContentEditable__root {
   min-height: 58vh;
   padding: 0;
-  color: #242424;
+  color: var(--cms-text-primary);
   font-family: Georgia, 'Times New Roman', serif;
   font-size: 19px;
   line-height: 1.72;
@@ -4601,7 +4601,7 @@ body:has(.collection-edit--notes) .app-header__step-nav .step-nav__last {
 
 .collection-edit--notes .notes-editor-body .LexicalEditorTheme__placeholder {
   top: 0;
-  color: #aaa;
+  color: var(--cms-text-quaternary);
   font-family: Georgia, 'Times New Roman', serif;
   font-size: 19px;
   line-height: 1.72;
@@ -4693,7 +4693,7 @@ body:has(.collection-edit--notes) .popup__content:has(#notes-edit-menu-writing) 
   content: 'Metadata';
   display: block;
   margin-bottom: 44px;
-  color: #171717;
+  color: var(--cms-text-primary);
   font-size: 32px;
   font-weight: 500;
   line-height: 1.2;
