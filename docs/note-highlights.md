@@ -1,9 +1,9 @@
 # Public note highlights
 
 Readers select 3–1,000 characters in a published note and choose **Highlight**.
-Marks are public; tapping one shows its reader count and an add/remove action.
-The **Highlights** menu includes a visibility preference and a keyboard-accessible
-list of passages. Ownership uses the existing HTTP-only `gv_module_liker` cookie:
+Marks are public and always visible; tapping one shows its reader count and an
+add/remove action. There is no show/hide menu, and the former local visibility
+preference is ignored. Ownership uses the existing HTTP-only `gv_module_liker` cookie:
 it is remembered in that browser, not synced between devices. No accounts, emails,
 comments, or raw IP addresses are collected by this feature.
 
@@ -45,4 +45,4 @@ by the specific `note_id` and `anchor_key`. No public moderation endpoint exists
 `npm run test:highlights` runs anchor and storage tests against isolated in-memory
 Postgres (PGlite), without accessing the portfolio database. Also run
 `npm run build`. Browser checks should cover two anonymous sessions, selection
-across inline links, save/reload, join/remove, visibility, mobile, and dark mode.
+across inline links, save/reload, join/remove, mobile, and dark mode.

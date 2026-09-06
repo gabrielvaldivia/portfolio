@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Anchor as PopoverAnchor } from '@radix-ui/react-popover'
 import { Highlighter, X } from 'lucide-react'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover'
+import { Popover, PopoverContent } from '@/components/ui/Popover'
 import { anchorFromRange, indexHighlightText, rangeFromAnchor } from '@/lib/noteHighlightDOM'
 import { MAX_HIGHLIGHT_LENGTH, type HighlightAnchor, type HighlightResponse, type PublicHighlight } from '@/lib/noteHighlightAnchors'
 import { cn } from '@/lib/cn'
@@ -15,14 +15,11 @@ const actionClass = 'inline-flex min-h-11 items-center justify-center gap-2 roun
 export function NoteHighlights({ noteId, version, children }: { noteId: string; version: string; children: ReactNode }) {
   const rootRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
-  const menuRef = useRef<HTMLButtonElement>(null)
   const requestRef = useRef(0)
   const savingRef = useRef(false)
   const mountedRef = useRef(true)
   const [highlights, setHighlights] = useState<PublicHighlight[]>([])
   const [active, setActive] = useState<ActivePassage | null>(null)
-  const [showHighlights, setShowHighlights] = useState(true)
-  const [menuOpen, setMenuOpen] = useState(false)
   const [ready, setReady] = useState(false)
   const [saving, setSaving] = useState(false)
   const [touchSelection, setTouchSelection] = useState(false)
@@ -72,7 +69,6 @@ export function NoteHighlights({ noteId, version, children }: { noteId: string; 
 
   useEffect(() => {
     mountedRef.current = true
-    try { setShowHighlights(localStorage.getItem('gv-note-highlights-visible') !== 'false') } catch { /* Storage can be disabled. */ }
     void refresh()
     const onFocus = () => { if (document.visibilityState === 'visible') void refresh() }
     // Refresh on returning to the page and while reading, without caching visitor ownership.
@@ -90,7 +86,7 @@ export function NoteHighlights({ noteId, version, children }: { noteId: string; 
 
   useEffect(() => {
     const root = rootRef.current
-    if (!root || !showHighlights || !ready || !highlights.length) return
+    if (!root || !ready || !highlights.length) return
     let disposed = false
     const handles: { remove(): void }[] = []
     void import('@highlighters/core').then(({ highlight }) => {
@@ -112,7 +108,7 @@ export function NoteHighlights({ noteId, version, children }: { noteId: string; 
       }
     }).catch(() => { if (!disposed) setError('Highlights could not be displayed. Please refresh to try again.') })
     return () => { disposed = true; handles.forEach((handle) => handle.remove()) }
-  }, [highlights, ready, showHighlights])
+  }, [highlights, ready])
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>
@@ -130,7 +126,6 @@ export function NoteHighlights({ noteId, version, children }: { noteId: string; 
         const range = selection.getRangeAt(0).cloneRange()
         const anchor = anchorFromRange(root, range)
         if (!anchor || anchor.exact.length < 3 || anchor.exact.length > MAX_HIGHLIGHT_LENGTH) { setActive(null); return }
-        setMenuOpen(false)
         setActive({ anchor, range, fromSelection: true })
       }, 180)
     }
@@ -167,10 +162,6 @@ export function NoteHighlights({ noteId, version, children }: { noteId: string; 
       if (!mountedRef.current) return
       if (!response.ok || !data) throw new Error(data?.error || 'Unable to save your highlight. Please try again.')
       setHighlights(data.highlights)
-      if (!remove) {
-        setShowHighlights(true)
-        try { localStorage.setItem('gv-note-highlights-visible', 'true') } catch { /* Optional preference. */ }
-      }
       setAnnouncement(remove ? 'Your highlight was removed.' : 'Highlight saved. It is now visible to everyone.')
       setActive(null)
       window.getSelection()?.removeAllRanges()
@@ -182,54 +173,10 @@ export function NoteHighlights({ noteId, version, children }: { noteId: string; 
     }
   }
 
-  function openPassage(mark: PublicHighlight) {
-    const root = rootRef.current
-    if (!root) return
-    const range = rangeFromAnchor(root, mark)
-    if (!range) return
-    setMenuOpen(false)
-    window.getSelection()?.removeAllRanges()
-    const parent = range.startContainer.parentElement
-    parent?.scrollIntoView({ block: 'center', behavior: 'instant' })
-    setActive({ anchor: mark, range, fromSelection: false })
-  }
-
   return (
     <div className="note-highlights">
-      <div className="flex justify-end pb-4 text-sm">
-        <Popover open={menuOpen} onOpenChange={setMenuOpen}>
-          <PopoverTrigger asChild>
-            <button ref={menuRef} type="button" className="inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-muted hover:text-content focus-visible:outline-2 focus-visible:outline-content">
-              <Highlighter className="size-4" aria-hidden="true" />
-              Highlights{highlights.length ? ` · ${highlights.length}` : ''}
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className={panelClass} align="end" collisionPadding={16} aria-label="Reader highlights">
-            <label className="flex min-h-11 cursor-pointer items-center justify-between gap-4">
-              Show highlights
-              <input type="checkbox" checked={showHighlights} onChange={(event) => {
-                setShowHighlights(event.target.checked)
-                try { localStorage.setItem('gv-note-highlights-visible', String(event.target.checked)) } catch { /* Optional preference. */ }
-              }} className="size-5 accent-current" />
-            </label>
-            <p className="text-muted">Select text to highlight it publicly. Your highlights are remembered in this browser.</p>
-            {error ? <div role="alert" className="flex flex-col gap-2"><p>{error}</p><button type="button" className={actionClass} onClick={() => void refresh()}>Try again</button></div> : null}
-            {!ready && !error ? <p role="status">Loading highlights…</p> : null}
-            {ready && !highlights.length ? <p className="text-muted">No highlights yet.</p> : null}
-            {highlights.length ? <ul className="flex max-h-64 flex-col gap-1 overflow-y-auto overscroll-contain">
-              {highlights.map((mark) => <li key={mark.id}>
-                <button type="button" onClick={() => openPassage(mark)} className="flex w-full flex-col gap-2 rounded-lg p-3 text-left hover:bg-background-alt focus-visible:outline-2 focus-visible:outline-content">
-                  <span className="line-clamp-2">“{mark.exact}”</span>
-                  <span className="text-xs text-muted">{mark.count} {mark.count === 1 ? 'reader' : 'readers'}{mark.mine ? ' · Including you' : ''}</span>
-                </button>
-              </li>)}
-            </ul> : null}
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      <div ref={rootRef} data-note-highlight-body className="relative" onClick={(event) => {
-        if (!showHighlights || !ready || window.getSelection()?.toString() || (event.target as Element).closest('a, button')) return
+      <div ref={rootRef} data-note-highlight-body tabIndex={-1} className="relative outline-none" onClick={(event) => {
+        if (!ready || window.getSelection()?.toString() || (event.target as Element).closest('a, button')) return
         const root = rootRef.current
         if (!root) return
         // Overlays are non-interactive; hit-test real text without changing links or selection.
@@ -256,7 +203,10 @@ export function NoteHighlights({ noteId, version, children }: { noteId: string; 
           updatePositionStrategy="always"
           collisionPadding={16} aria-label="Highlight passage"
           onOpenAutoFocus={(event) => { if (active?.fromSelection) event.preventDefault() }}
-          onCloseAutoFocus={(event) => { event.preventDefault(); if (panelRef.current?.contains(document.activeElement)) menuRef.current?.focus({ preventScroll: true }) }}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault()
+            if (document.activeElement === document.body || panelRef.current?.contains(document.activeElement)) rootRef.current?.focus({ preventScroll: true })
+          }}
           onInteractOutside={(event) => { if (savingRef.current || window.getSelection()?.toString()) event.preventDefault() }}
         >
           {active?.fromSelection ? (
