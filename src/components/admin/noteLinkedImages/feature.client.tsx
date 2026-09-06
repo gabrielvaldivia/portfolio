@@ -1,7 +1,8 @@
 'use client'
 
-import { createClientFeature, LinkNode } from '@payloadcms/richtext-lexical/client'
-import type { EditorConfig } from '@payloadcms/richtext-lexical/lexical'
+import { createClientFeature } from '@payloadcms/richtext-lexical/client'
+import { useLexicalComposerContext } from '@payloadcms/richtext-lexical/lexical/react/LexicalComposerContext'
+import { useEffect } from 'react'
 
 const linkedImageHosts = new Set(['cdn-images-1.medium.com', 'substackcdn.com'])
 const linkedImageClass = 'notes-editor-linked-image'
@@ -59,38 +60,45 @@ function renderLinkedImage(anchor: HTMLAnchorElement, url?: string | null) {
   image.src = imageURL
 }
 
-class NoteLinkedImageLinkNode extends LinkNode {
-  static clone(node: NoteLinkedImageLinkNode) {
-    return new NoteLinkedImageLinkNode({
-      fields: node.getFields(),
-      id: node.getID(),
-      key: node.getKey(),
-    })
-  }
-
-  createDOM(config: EditorConfig) {
-    const anchor = super.createDOM(config)
-    renderLinkedImage(anchor, this.getFields()?.url)
-    return anchor
-  }
-
-  updateDOM(previousNode: this, anchor: HTMLAnchorElement, config: EditorConfig) {
-    const shouldReplace = super.updateDOM(previousNode, anchor, config)
-    renderLinkedImage(anchor, this.getFields()?.url)
-    return shouldReplace
+function renderLinkedImages(root: HTMLElement) {
+  for (const anchor of root.querySelectorAll<HTMLAnchorElement>('a[href]')) {
+    renderLinkedImage(anchor, anchor.href)
   }
 }
 
+function NoteLinkedImagesPlugin() {
+  const [editor] = useLexicalComposerContext()
+
+  useEffect(() => {
+    let animationFrame: number | undefined
+
+    const render = () => {
+      if (animationFrame !== undefined) cancelAnimationFrame(animationFrame)
+      animationFrame = requestAnimationFrame(() => {
+        const root = editor.getRootElement()
+        if (root) renderLinkedImages(root)
+      })
+    }
+
+    const unregisterRootListener = editor.registerRootListener(render)
+    const unregisterUpdateListener = editor.registerUpdateListener(render)
+    render()
+
+    return () => {
+      unregisterRootListener()
+      unregisterUpdateListener()
+      if (animationFrame !== undefined) cancelAnimationFrame(animationFrame)
+    }
+  }, [editor])
+
+  return null
+}
+
 export const NoteLinkedImagesFeatureClient = createClientFeature({
-  nodes: [
+  plugins: [
     {
-      replace: LinkNode,
-      with: (node) =>
-        new NoteLinkedImageLinkNode({
-          fields: node.getFields(),
-          id: node.getID(),
-        }),
-      withKlass: NoteLinkedImageLinkNode,
+      Component: NoteLinkedImagesPlugin,
+      position: 'normal',
     },
   ],
 })
