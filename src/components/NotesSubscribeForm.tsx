@@ -48,12 +48,12 @@ export function NotesSubscribeForm({ initialMessage }: { initialMessage?: Subscr
   }
 
   return (
-    <section className="max-w-[760px] border-t border-border pt-8" id="email-updates" aria-labelledby="email-updates-heading">
-      <h3 className="text-[24px] leading-[1.2] tablet:text-[30px]" id="email-updates-heading">
+    <section className="max-w-[760px] rounded-[16px] bg-background-alt p-6 tablet:p-8" id="email-updates" aria-labelledby="email-updates-heading">
+      <h3 className="text-balance text-[24px] leading-[1.2] tablet:text-[30px]" id="email-updates-heading">
         Get new notes by email
       </h3>
-      <p className="mt-3 text-[16px] leading-[1.5] text-muted tablet:text-[18px]">
-        One email whenever I publish something new.
+      <p className="mt-3 text-pretty text-[16px] leading-[1.5] text-muted tablet:text-[18px]">
+        No spam—just an email when there’s a new note to read.
       </p>
 
       <form className="mt-6 flex flex-col gap-3 tablet:flex-row" onSubmit={handleSubmit} noValidate>
