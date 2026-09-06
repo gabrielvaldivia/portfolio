@@ -197,9 +197,7 @@ export function NoteHighlights({ noteId, version, children }: { noteId: string; 
         <PopoverContent
           ref={panelRef}
           className={cn(active?.fromSelection ? 'z-50 outline-none' : panelClass, 'note-highlight-action')}
-          // Leave room for the native Copy/Look Up menu, which is drawn above
-          // the webpage and cannot be covered with a higher CSS z-index.
-          side="top" sideOffset={active?.fromSelection && touchSelection ? 64 : 8}
+          side="top" sideOffset={8}
           updatePositionStrategy="always"
           collisionPadding={16} aria-label="Highlight passage"
           onOpenAutoFocus={(event) => { if (active?.fromSelection) event.preventDefault() }}
