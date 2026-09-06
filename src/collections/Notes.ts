@@ -61,7 +61,7 @@ export const Notes: CollectionConfig = {
     ],
     afterChange: [
       async ({ context, doc, operation, previousDoc, req }) => {
-        const wasPublished = previousDoc?._status === 'published'
+        const wasPublished = previousDoc?._status === 'published' || Boolean(previousDoc?.publishedAt)
         const isFirstPublish = doc._status === 'published' && !doc.newsletterSentAt && !wasPublished
 
         if (context.skipNoteNewsletter || !isFirstPublish || (operation !== 'create' && operation !== 'update')) {
@@ -77,6 +77,7 @@ export const Notes: CollectionConfig = {
             context: { skipNoteNewsletter: true },
             draft: false,
             overrideAccess: true,
+            req,
           })
           req.payload.logger.info(`Sent note ${doc.id} to ${recipientCount} email subscriber(s)`)
         } catch (error) {
