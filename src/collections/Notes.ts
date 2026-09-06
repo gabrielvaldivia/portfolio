@@ -1,6 +1,7 @@
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import type { CollectionConfig } from 'payload'
 import { NoteLinkedImagesFeature } from '../components/admin/noteLinkedImages/feature.server'
+import { sendPublishedNoteNewsletter } from '../lib/noteNewsletter'
 
 function slugify(value: string) {
   return value
@@ -56,6 +57,33 @@ export const Notes: CollectionConfig = {
         }
 
         return data
+      },
+    ],
+    afterChange: [
+      async ({ context, doc, operation, previousDoc, req }) => {
+        const wasPublished = previousDoc?._status === 'published'
+        const isFirstPublish = doc._status === 'published' && !doc.newsletterSentAt && !wasPublished
+
+        if (context.skipNoteNewsletter || !isFirstPublish || (operation !== 'create' && operation !== 'update')) {
+          return doc
+        }
+
+        try {
+          const { recipientCount } = await sendPublishedNoteNewsletter(doc, req.payload)
+          await req.payload.update({
+            collection: 'notes',
+            id: doc.id,
+            data: { newsletterSentAt: new Date().toISOString() },
+            context: { skipNoteNewsletter: true },
+            draft: false,
+            overrideAccess: true,
+          })
+          req.payload.logger.info(`Sent note ${doc.id} to ${recipientCount} email subscriber(s)`)
+        } catch (error) {
+          req.payload.logger.error({ err: error, msg: `Could not send newsletter for note ${doc.id}` })
+        }
+
+        return doc
       },
     ],
   },
@@ -176,6 +204,13 @@ export const Notes: CollectionConfig = {
           ],
         },
       ],
+    },
+    {
+      name: 'newsletterSentAt',
+      type: 'date',
+      admin: {
+        hidden: true,
+      },
     },
   ],
 }

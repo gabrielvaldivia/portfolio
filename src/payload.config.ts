@@ -17,6 +17,7 @@ import { Pages } from './collections/Pages'
 import { Conversations } from './collections/Conversations'
 import { Photos } from './collections/Photos'
 import { Notes } from './collections/Notes'
+import { NoteSubscribers } from './collections/NoteSubscribers'
 
 import { SiteSettings } from './globals/SiteSettings'
 import { Timeline } from './globals/Timeline'
@@ -125,7 +126,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Pages, Notes, Projects, SideProjects, Clients, People, Services, Conversations, Photos, Users, Media],
+  collections: [Pages, Notes, NoteSubscribers, Projects, SideProjects, Clients, People, Services, Conversations, Photos, Users, Media],
   globals: [SiteSettings, Timeline],
   editor: lexicalEditor(),
   secret: getPayloadSecret(),

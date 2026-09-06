@@ -13,6 +13,7 @@ import {
   Image03Icon,
   Layers01Icon,
   LayoutGridIcon,
+  Mail01Icon,
   Setting06Icon,
   User03Icon,
   UserMultiple02Icon,
@@ -39,6 +40,7 @@ export type DashboardSidebarIconKey =
   | 'services'
   | 'settings'
   | 'sideProjects'
+  | 'subscribers'
   | 'timeline'
   | 'users'
 
@@ -71,6 +73,7 @@ const icons: Record<DashboardSidebarIconKey, IconSvgElement> = {
   services: CustomerService01Icon,
   settings: Setting06Icon,
   sideProjects: Layers01Icon,
+  subscribers: Mail01Icon,
   timeline: Calendar04Icon,
   users: User03Icon,
 }

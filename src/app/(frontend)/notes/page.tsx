@@ -1,5 +1,6 @@
 import { Container } from '@/components/Container'
 import { FitText } from '@/components/FitText'
+import { NotesSubscribeForm, type SubscriptionMessage } from '@/components/NotesSubscribeForm'
 import { buildPageMetadata } from '@/lib/pageMetadata'
 import { getPublishedNotes } from '@/lib/queries'
 import type { Metadata } from 'next'
@@ -15,13 +16,35 @@ function getNoteYear(value?: string | null) {
 }
 
 export function generateMetadata(): Metadata {
-  return buildPageMetadata(null, {
+  const metadata = buildPageMetadata(null, {
     fallbackTitle: 'Notes',
     fallbackDescription: 'Essays and notes by Gabriel Valdivia.',
   })
+
+  return {
+    ...metadata,
+    alternates: {
+      ...metadata.alternates,
+      types: {
+        ...metadata.alternates?.types,
+        'application/rss+xml': '/notes/rss.xml',
+      },
+    },
+  }
 }
 
-export default async function NotesPage() {
+type NotesPageProps = {
+  searchParams: Promise<{ subscription?: string | string[] }>
+}
+
+export default async function NotesPage({ searchParams }: NotesPageProps) {
+  const rawSubscription = (await searchParams).subscription
+  const subscription = Array.isArray(rawSubscription) ? rawSubscription[0] : rawSubscription
+  const initialMessage = (
+    subscription === 'confirmed' || subscription === 'unsubscribed' || subscription === 'invalid'
+      ? subscription
+      : undefined
+  ) as SubscriptionMessage | undefined
   const { docs: notes } = await getPublishedNotes()
   const grouped: Record<string, typeof notes> = {}
 
@@ -74,6 +97,10 @@ export default async function NotesPage() {
             <p className="text-body text-muted">No notes published yet.</p>
           </div>
         )}
+
+        <div className="mt-20 tablet:mt-28">
+          <NotesSubscribeForm initialMessage={initialMessage} />
+        </div>
       </Container>
     </section>
   )

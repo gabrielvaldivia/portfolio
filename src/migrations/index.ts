@@ -15,6 +15,7 @@ import * as migration_20260819_010000_timeline_rich_text from './20260819_010000
 import * as migration_20260904_000000_add_approach_item_titles from './20260904_000000_add_approach_item_titles';
 import * as migration_20260905_121312 from './20260905_121312';
 import * as migration_20260905_145858_add_notes_collection from './20260905_145858_add_notes_collection';
+import * as migration_20260906_034551_add_note_subscribers_and_newsletter from './20260906_034551_add_note_subscribers_and_newsletter';
 
 export const migrations = [
   {
@@ -65,41 +66,46 @@ export const migrations = [
   {
     up: migration_20260718_194126_add_page_meta_image.up,
     down: migration_20260718_194126_add_page_meta_image.down,
-    name: '20260718_194126_add_page_meta_image'
+    name: '20260718_194126_add_page_meta_image',
   },
   {
     up: migration_20260728_000000_add_client_tags.up,
     down: migration_20260728_000000_add_client_tags.down,
-    name: '20260728_000000_add_client_tags'
+    name: '20260728_000000_add_client_tags',
   },
   {
     up: migration_20260811_000000_secure_chat_ai.up,
     down: migration_20260811_000000_secure_chat_ai.down,
-    name: '20260811_000000_secure_chat_ai'
+    name: '20260811_000000_secure_chat_ai',
   },
   {
     up: migration_20260819_000000_add_timeline_global.up,
     down: migration_20260819_000000_add_timeline_global.down,
-    name: '20260819_000000_add_timeline_global'
+    name: '20260819_000000_add_timeline_global',
   },
   {
     up: migration_20260819_010000_timeline_rich_text.up,
     down: migration_20260819_010000_timeline_rich_text.down,
-    name: '20260819_010000_timeline_rich_text'
+    name: '20260819_010000_timeline_rich_text',
   },
   {
     up: migration_20260904_000000_add_approach_item_titles.up,
     down: migration_20260904_000000_add_approach_item_titles.down,
-    name: '20260904_000000_add_approach_item_titles'
+    name: '20260904_000000_add_approach_item_titles',
   },
   {
     up: migration_20260905_121312.up,
     down: migration_20260905_121312.down,
-    name: '20260905_121312'
+    name: '20260905_121312',
   },
   {
     up: migration_20260905_145858_add_notes_collection.up,
     down: migration_20260905_145858_add_notes_collection.down,
     name: '20260905_145858_add_notes_collection',
+  },
+  {
+    up: migration_20260906_034551_add_note_subscribers_and_newsletter.up,
+    down: migration_20260906_034551_add_note_subscribers_and_newsletter.down,
+    name: '20260906_034551_add_note_subscribers_and_newsletter',
   },
 ];

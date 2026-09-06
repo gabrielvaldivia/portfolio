@@ -25,6 +25,7 @@ const contentCollections: CollectionNavItem[] = [
   { icon: 'projects', label: 'Projects', slug: 'projects' },
   { icon: 'sideProjects', label: 'Playground', slug: 'side-projects' },
   { icon: 'notes', label: 'Notes', slug: 'notes' },
+  { icon: 'subscribers', label: 'Subscribers', slug: 'note-subscribers' },
   { icon: 'clients', label: 'Clients', slug: 'clients' },
   { icon: 'people', label: 'People', slug: 'people' },
   { icon: 'services', label: 'Services', slug: 'services' },
