@@ -1,5 +1,6 @@
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import type { CollectionConfig } from 'payload'
+import { NoteLinkedImagesFeature } from '../components/admin/noteLinkedImages/feature.server'
 
 function slugify(value: string) {
   return value
@@ -94,6 +95,10 @@ export const Notes: CollectionConfig = {
                   hideInsertParagraphAtEnd: true,
                   placeholder: 'Start writing…',
                 },
+                features: ({ defaultFeatures }) => [
+                  ...defaultFeatures,
+                  NoteLinkedImagesFeature(),
+                ],
               }),
               admin: {
                 className: 'notes-editor-body',

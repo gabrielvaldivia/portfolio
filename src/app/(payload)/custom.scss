@@ -4599,6 +4599,24 @@ body:has(.collection-edit--notes) .app-header__step-nav .step-nav__last {
   letter-spacing: inherit;
 }
 
+.collection-edit--notes .notes-editor-body .notes-editor-linked-image {
+  display: block;
+  width: 100%;
+  margin: 32px 0;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--cms-bg-secondary);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  color: var(--cms-text-tertiary);
+  text-decoration: none;
+}
+
+.collection-edit--notes .notes-editor-body .notes-editor-linked-image--loaded > span {
+  display: none;
+}
+
 .collection-edit--notes .notes-editor-body .LexicalEditorTheme__placeholder {
   top: 0;
   color: var(--cms-text-quaternary);

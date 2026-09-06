@@ -22,6 +22,7 @@ import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997e
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { PagesEditMenuTabs as PagesEditMenuTabs_f53d9e879e971bb835b4c9dfd1fb5507 } from '../../../components/admin/PagesEditMenuTabs'
+import { NoteLinkedImagesFeatureClient as NoteLinkedImagesFeatureClient_5452c6b940874c466522fb36b3c7470b } from '../../../components/admin/noteLinkedImages/feature.client'
 import { NotesEditMenu as NotesEditMenu_700407adcaec769c26df3a5ea9f889d5 } from '../../../components/admin/NotesEditMenu'
 import { NotesPublishButton as NotesPublishButton_700407adcaec769c26df3a5ea9f889d5 } from '../../../components/admin/NotesEditMenu'
 import { PhotosListUploadStatus as PhotosListUploadStatus_96d485995b7b3edb90cf326c4478039d } from '../../../components/admin/PhotosListActions'
@@ -65,6 +66,7 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "./components/admin/PagesEditMenuTabs#PagesEditMenuTabs": PagesEditMenuTabs_f53d9e879e971bb835b4c9dfd1fb5507,
+  "./components/admin/noteLinkedImages/feature.client#NoteLinkedImagesFeatureClient": NoteLinkedImagesFeatureClient_5452c6b940874c466522fb36b3c7470b,
   "./components/admin/NotesEditMenu#NotesEditMenu": NotesEditMenu_700407adcaec769c26df3a5ea9f889d5,
   "./components/admin/NotesEditMenu#NotesPublishButton": NotesPublishButton_700407adcaec769c26df3a5ea9f889d5,
   "./components/admin/PhotosListActions#PhotosListUploadStatus": PhotosListUploadStatus_96d485995b7b3edb90cf326c4478039d,
