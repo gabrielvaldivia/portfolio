@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Anchor as PopoverAnchor } from '@radix-ui/react-popover'
 import { Highlighter, X } from 'lucide-react'
 import { Popover, PopoverContent } from '@/components/ui/Popover'
+import { NoteActions } from '@/components/NoteActions'
 import { anchorFromRange, indexHighlightText, rangeFromAnchor } from '@/lib/noteHighlightDOM'
 import { MAX_HIGHLIGHT_LENGTH, type HighlightAnchor, type HighlightResponse, type PublicHighlight } from '@/lib/noteHighlightAnchors'
 import { cn } from '@/lib/cn'
@@ -12,7 +13,7 @@ type ActivePassage = { anchor: HighlightAnchor; range: Range; fromSelection: boo
 const panelClass = 'z-50 flex w-72 max-w-[calc(100vw-32px)] max-h-[calc(100dvh-2rem-env(safe-area-inset-bottom))] flex-col gap-3 overflow-y-auto rounded-2xl border border-border bg-background p-4 text-sm text-content shadow-lg outline-none'
 const actionClass = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-content px-4 py-2 text-background disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content'
 
-export function NoteHighlights({ noteId, version, children }: { noteId: string; version: string; children: ReactNode }) {
+export function NoteHighlights({ noteId, likeTargetId, version, children }: { noteId: string; likeTargetId: string; version: string; children: ReactNode }) {
   const rootRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const requestRef = useRef(0)
@@ -21,6 +22,7 @@ export function NoteHighlights({ noteId, version, children }: { noteId: string; 
   const [highlights, setHighlights] = useState<PublicHighlight[]>([])
   const [active, setActive] = useState<ActivePassage | null>(null)
   const [ready, setReady] = useState(false)
+  const [visitorReady, setVisitorReady] = useState(false)
   const [saving, setSaving] = useState(false)
   const [touchSelection, setTouchSelection] = useState(false)
   const [error, setError] = useState('')
@@ -64,6 +66,9 @@ export function NoteHighlights({ noteId, version, children }: { noteId: string; 
         setReady(false)
         setError(error instanceof Error ? error.message : 'Unable to load highlights.')
       }
+    } finally {
+      // Establish the shared visitor cookie before starting likes and views.
+      if (mountedRef.current && requestId === requestRef.current) setVisitorReady(true)
     }
   }, [noteId, version])
 
@@ -191,6 +196,24 @@ export function NoteHighlights({ noteId, version, children }: { noteId: string; 
           if (range) setActive({ anchor: match, range, fromSelection: false })
         }
       }}>{children}</div>
+
+      <NoteActions noteId={noteId} likeTargetId={likeTargetId} visitorReady={visitorReady}
+        highlights={highlights} highlightsReady={ready} error={error}
+        onRefreshHighlights={() => void refresh()}
+        onOpenHighlights={() => { setActive(null); window.getSelection()?.removeAllRanges() }}
+        onSelectHighlight={(mark) => {
+          const root = rootRef.current
+          if (!root) return
+          const range = rangeFromAnchor(root, mark)
+          if (!range) { setAnnouncement('This passage changed. Refresh the note to find it.'); return }
+          setActive(null)
+          window.getSelection()?.removeAllRanges()
+          root.focus({ preventScroll: true })
+          const rect = Array.from(range.getClientRects()).find((rect) => rect.width && rect.height) || range.getBoundingClientRect()
+          const viewport = window.visualViewport
+          window.scrollBy({ top: rect.top - (viewport?.offsetTop || 0) - (viewport?.height || window.innerHeight) / 3, behavior: 'instant' })
+          setAnnouncement(`Jumped to highlighted passage: ${mark.exact}`)
+        }} />
 
       <Popover open={Boolean(active)} onOpenChange={(open) => { if (!open && !savingRef.current) setActive(null) }}>
         <PopoverAnchor virtualRef={anchorRef} />

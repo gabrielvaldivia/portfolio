@@ -8,6 +8,7 @@ type ModuleLikeButtonProps = {
   initialCount?: number
   noun?: string
   tabIndex?: number
+  variant?: 'default' | 'pill'
 }
 
 const HEART_ICON_SIZE = 18
@@ -34,10 +35,12 @@ export function ModuleLikeButtonShell({
   initialCount = 0,
   noun = 'module',
   tabIndex,
+  variant = 'default',
 }: {
   initialCount?: number
   noun?: string
   tabIndex?: number
+  variant?: 'default' | 'pill'
 }) {
   return (
     <div className="relative pointer-events-auto">
@@ -47,7 +50,10 @@ export function ModuleLikeButtonShell({
         disabled
         aria-label={`Like this ${noun}. ${initialCount} total likes.`}
         className={cn(
-          'inline-flex h-8 touch-manipulation select-none items-center gap-1.5 rounded-full bg-elevated px-2.5 text-caption font-medium text-muted shadow-sm outline outline-1 outline-offset-0 outline-gray-400/40 transition-colors duration-150',
+          'inline-flex touch-manipulation select-none items-center gap-1.5 rounded-full font-medium text-muted transition-colors duration-150',
+          variant === 'pill'
+            ? 'h-11 min-w-16 justify-center px-3 text-sm'
+            : 'h-8 bg-elevated px-2.5 text-caption shadow-sm outline outline-1 outline-offset-0 outline-gray-400/40',
           'disabled:cursor-default disabled:opacity-70',
         )}
       >
@@ -121,6 +127,7 @@ export function LazyModuleLikeButton(props: ModuleLikeButtonProps) {
             initialCount={props.initialCount}
             noun={props.noun}
             tabIndex={props.tabIndex}
+            variant={props.variant}
           />
         )}
     </div>

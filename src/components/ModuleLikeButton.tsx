@@ -198,11 +198,13 @@ export function ModuleLikeButton({
   initialCount = 0,
   noun = 'module',
   tabIndex,
+  variant = 'default',
 }: {
   targetId: string
   initialCount?: number
   noun?: string
   tabIndex?: number
+  variant?: 'default' | 'pill'
 }) {
   const initialLikeData = {
     ...emptyLikeData,
@@ -749,7 +751,10 @@ export function ModuleLikeButton({
         disabled={isLoading}
         aria-label={`Like this ${noun}. Hold for a super like worth ${SUPER_MODULE_LIKE_AMOUNT} likes. ${data.count} total likes. You have liked it ${data.userLikes} times.`}
         className={cn(
-          'inline-flex h-8 touch-manipulation select-none items-center gap-1.5 rounded-full bg-elevated px-2.5 text-caption font-medium text-muted shadow-sm outline outline-1 outline-offset-0 outline-gray-400/40 transition-colors duration-150',
+          'inline-flex touch-manipulation select-none items-center gap-1.5 rounded-full font-medium text-muted transition-colors duration-150',
+          variant === 'pill'
+            ? 'h-11 min-w-16 justify-center px-3 text-sm'
+            : 'h-8 bg-elevated px-2.5 text-caption shadow-sm outline outline-1 outline-offset-0 outline-gray-400/40',
           'hover:text-content focus-visible:ring-2 focus-visible:ring-content/30 disabled:cursor-default disabled:opacity-70',
           isHeartActive && 'text-red-500 hover:text-red-600',
         )}
@@ -901,7 +906,7 @@ export function ModuleLikeButton({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -2 }}
             transition={{ duration: 0.14, ease: 'easeOut' }}
-            className="absolute right-0 top-full mt-1 whitespace-nowrap rounded-full bg-content px-2 py-1 text-[11px] leading-none text-inverse shadow-sm"
+            className={cn('absolute rounded-full bg-content px-2 py-1 text-[11px] leading-none text-inverse shadow-sm', variant === 'pill' ? 'bottom-full left-0 mb-3 w-60' : 'right-0 top-full mt-1 whitespace-nowrap')}
           >
             {error}
           </motion.span>

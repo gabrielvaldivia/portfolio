@@ -8,6 +8,7 @@
   },
   "scripts": {
     "test:highlights": "tsx --test tests/note-highlights.test.ts",
+    "test:views": "tsx --test tests/note-views.test.ts",
     "dev": "next dev",
     "build": "next build",
     "build:with-migrations": "npm run migrate && next build",
