@@ -4,9 +4,7 @@ import { NotesSubscribeForm } from '@/components/NotesSubscribeForm'
 import { RichText } from '@/components/RichText'
 import { getNoteLikeTargetId } from '@/lib/moduleLikes'
 import { buildPageMetadata } from '@/lib/pageMetadata'
-import { getPublishedNoteBySlug, getPublishedNoteSlugs, getReadNextNote } from '@/lib/queries'
-import { ArrowRight02Icon } from '@hugeicons/core-free-icons'
-import { HugeiconsIcon } from '@hugeicons/react'
+import { getPublishedNoteBySlug, getPublishedNoteSlugs, getReadNextNotes } from '@/lib/queries'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -56,7 +54,7 @@ export default async function NotePage({ params }: NotePageProps) {
   if (!note) notFound()
 
   const coverImage = typeof note.coverImage === 'object' ? note.coverImage : null
-  const readNextNote = await getReadNextNote(note.id, note.publishedAt)
+  const readNextNotes = await getReadNextNotes(note.id, note.publishedAt)
 
   return (
     <article className="note-page pb-20 text-content">
@@ -86,29 +84,32 @@ export default async function NotePage({ params }: NotePageProps) {
           <RichText data={note.body} renderLinkedImages />
         </div>
 
-        <div className="mt-12 flex max-w-[760px] items-center justify-between gap-4 border-t border-border pt-6">
-          <div className="shrink-0">
-            <LazyModuleLikeButton
-              noun="note"
-              targetId={getNoteLikeTargetId(note.slug)}
-            />
-          </div>
-          {readNextNote?.slug ? (
-            <Link
-              className="ml-auto inline-flex min-w-0 items-center justify-end gap-2 text-right text-[16px] font-medium transition-opacity hover:opacity-60"
-              href={`/notes/${readNextNote.slug}`}
-            >
-              <span className="min-w-0 truncate">{readNextNote.title}</span>
-              <HugeiconsIcon
-                aria-hidden="true"
-                className="shrink-0"
-                icon={ArrowRight02Icon}
-                size={18}
-                strokeWidth={1.5}
-              />
-            </Link>
-          ) : null}
+        <div className="mt-12 max-w-[760px] border-t border-border pt-6">
+          <LazyModuleLikeButton
+            noun="note"
+            targetId={getNoteLikeTargetId(note.slug)}
+          />
         </div>
+
+        {readNextNotes.length > 0 ? (
+          <section aria-labelledby="continue-reading-heading" className="mt-16 max-w-[760px]">
+            <h2 id="continue-reading-heading" className="text-[16px] font-medium">
+              Continue reading
+            </h2>
+            <ul className="mt-5 flex flex-col gap-4">
+              {readNextNotes.map((readNextNote) => (
+                <li key={readNextNote.slug}>
+                  <Link
+                    className="inline-block text-[20px] leading-snug transition-opacity hover:opacity-60 tablet:text-[24px]"
+                    href={`/notes/${readNextNote.slug}`}
+                  >
+                    {readNextNote.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         <div className="mt-20 tablet:mt-28">
           <NotesSubscribeForm />

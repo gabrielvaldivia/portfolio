@@ -21,7 +21,6 @@ type NavigationPageResult = OrderedPage & {
 type ReadNextNote = {
   title: string
   slug: string
-  excerpt?: string | null
 }
 
 type NoteMedia = {
@@ -130,7 +129,7 @@ export const getPublishedNoteBySlug = cache(async function getPublishedNoteBySlu
   return (result.docs[0] as unknown as PublishedNote | undefined) || null
 })
 
-export const getReadNextNote = cache(async function getReadNextNote(
+export const getReadNextNotes = cache(async function getReadNextNotes(
   currentNoteId: string | number,
   publishedAt?: string | null,
 ) {
@@ -140,6 +139,8 @@ export const getReadNextNote = cache(async function getReadNextNote(
     { _status: { equals: 'published' } },
   ]
 
+  const recommendations: ReadNextNote[] = []
+
   if (publishedAt) {
     const olderResult = await payload.find({
       collection: 'notes',
@@ -147,26 +148,36 @@ export const getReadNextNote = cache(async function getReadNextNote(
         and: [...sharedFilters, { publishedAt: { less_than: publishedAt } }],
       },
       sort: '-publishedAt',
-      limit: 1,
+      limit: 3,
       depth: 0,
       draft: false,
-      select: { title: true, slug: true, excerpt: true },
+      select: { title: true, slug: true },
     })
 
-    if (olderResult.docs[0]) return olderResult.docs[0] as ReadNextNote
+    recommendations.push(...olderResult.docs as ReadNextNote[])
   }
+
+  if (recommendations.length >= 3) return recommendations.slice(0, 3)
 
   const newestResult = await payload.find({
     collection: 'notes',
     where: { and: sharedFilters },
     sort: '-publishedAt',
-    limit: 1,
+    limit: 6,
     depth: 0,
     draft: false,
-    select: { title: true, slug: true, excerpt: true },
+    select: { title: true, slug: true },
   })
 
-  return (newestResult.docs[0] as ReadNextNote | undefined) || null
+  const seenSlugs = new Set(recommendations.map((note) => note.slug))
+  for (const note of newestResult.docs as ReadNextNote[]) {
+    if (seenSlugs.has(note.slug)) continue
+    recommendations.push(note)
+    seenSlugs.add(note.slug)
+    if (recommendations.length >= 3) break
+  }
+
+  return recommendations
 })
 
 export const getPublishedNoteSlugs = cache(async function getPublishedNoteSlugs() {
