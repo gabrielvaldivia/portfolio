@@ -185,14 +185,12 @@ function MobileHeroSlide({
   active,
   fallbackGradientColor,
   onImageLoad,
-  pagination,
   visualStyle,
 }: {
   project: HeroProjectSlide
   active: boolean
   fallbackGradientColor: string
   onImageLoad: (image: HTMLImageElement, projectId: string) => void
-  pagination: React.ReactNode
   visualStyle?: MotionStyle
 }) {
   const media = project.featuredImage
@@ -257,7 +255,6 @@ function MobileHeroSlide({
             <path d="M6 16h20M18 8l8 8-8 8" />
           </svg>
         </Link>
-        {pagination}
       </motion.div>
     </div>
   )
@@ -697,33 +694,39 @@ export function HeroProjectSlideshow({ projects }: Props) {
       ref={regionRef}
       className="hero-project-scroll-region relative w-full"
     >
-      <div role="region" aria-label="Featured projects" aria-roledescription="carousel" className="tablet:hidden">
-        {projects.map((project, index) => (
-          <MobileHeroSlide
-            key={project.id}
-            project={project}
-            active={isMobileViewport && index === activeIndex}
-            fallbackGradientColor={index === activeIndex ? heroGradientColor : '24 24 24'}
-            onImageLoad={updateHeroGradientColor}
-            visualStyle={index === 0 ? { scale: slideshowScale, borderRadius: slideshowRadius } : undefined}
-            pagination={projects.length > 1 ? (
-              <div className="absolute right-3 top-1/2 z-20 flex -translate-y-1/2 flex-col gap-1">
-                {projects.map((destination, destinationIndex) => (
-                  <button
-                    key={destination.id}
-                    type="button"
-                    aria-label={`Show ${destination.title}, slide ${destinationIndex + 1} of ${projects.length}`}
-                    aria-current={destinationIndex === index ? 'true' : undefined}
-                    onClick={() => selectSlide(destinationIndex)}
-                    className="group inline-flex w-8 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                  >
-                    <span aria-hidden="true" className={`block h-7 w-0.5 shadow-sm transition-opacity duration-150 group-hover:opacity-75 ${destinationIndex === index ? 'bg-white' : 'bg-black/35'}`} />
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          />
-        ))}
+      <div role="region" aria-label="Featured projects" aria-roledescription="carousel" className="grid tablet:hidden">
+        <div className="col-start-1 row-start-1 min-w-0">
+          {projects.map((project, index) => (
+            <MobileHeroSlide
+              key={project.id}
+              project={project}
+              active={isMobileViewport && index === activeIndex}
+              fallbackGradientColor={index === activeIndex ? heroGradientColor : '24 24 24'}
+              onImageLoad={updateHeroGradientColor}
+              visualStyle={index === 0 ? { scale: slideshowScale, borderRadius: slideshowRadius } : undefined}
+            />
+          ))}
+        </div>
+        {projects.length > 1 ? (
+          // Share one viewport-height overlay without adding scroll height.
+          // Sticky keeps the lines still between slides, but scoped to the hero.
+          <div className="pointer-events-none sticky top-0 z-20 col-start-1 row-start-1 h-dvh self-start">
+            <div role="group" aria-label="Project pagination" className="hero-mobile-pagination absolute right-3 top-1/2 flex -translate-y-1/2 flex-col gap-1">
+              {projects.map((project, index) => (
+                <button
+                  key={project.id}
+                  type="button"
+                  aria-label={`Show ${project.title}, slide ${index + 1} of ${projects.length}`}
+                  aria-current={index === activeIndex ? 'true' : undefined}
+                  onClick={() => selectSlide(index)}
+                  className="pointer-events-auto group inline-flex w-8 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                >
+                  <span aria-hidden="true" className={`block h-7 w-0.5 shadow-sm transition-opacity duration-150 group-hover:opacity-75 ${index === activeIndex ? 'bg-white' : 'bg-black/35'}`} />
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
 
         <motion.section
