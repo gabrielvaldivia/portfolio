@@ -201,7 +201,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
 
   return (
     <div className="note-highlights">
-      <div ref={rootRef} data-note-highlight-body tabIndex={-1} className="relative outline-none" onClick={(event) => {
+      <div ref={rootRef} data-note-highlight-body tabIndex={-1} className="relative max-w-[760px] outline-none" onClick={(event) => {
         if (!ready || !highlightsVisible || window.getSelection()?.toString() || (event.target as Element).closest('a, button')) return
         const root = rootRef.current
         if (!root) return

@@ -1,8 +1,12 @@
 # Note activity pill
 
-Public note pages show one viewport-fixed, bottom-centered pill, 24px above the
-bottom safe area. It is portaled outside the page transition so transforms do
-not make it scroll with the article.
+Public note pages show one bottom-centered pill, sticky 24px above the bottom
+safe area while reading. It lives in a natural footer slot 48px after the essay
+body: when that slot reaches the pill, it docks there and scrolls away before
+the recommendations and site footer. Native CSS sticky positioning keeps the
+same controls mounted without scroll listeners or duplicated counters. The
+essay retains its 760px reading width; the pill is centered in the full page
+container on desktop as well as mobile.
 
 - Likes use the existing module-like target, counters, super likes, and activity events.
 - The highlight count is the number of distinct, currently resolvable passages,

@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { Eye, Highlighter } from 'lucide-react'
 import * as Switch from '@radix-ui/react-switch'
 import { LazyModuleLikeButton, ModuleLikeButtonShell } from '@/components/LazyModuleLikeButton'
@@ -57,15 +56,13 @@ function NoteViews({ noteId, enabled }: { noteId: string; enabled: boolean }) {
 }
 
 export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, highlightsReady, highlightsVisible, onHighlightsVisibleChange, error, onSelectHighlight, onRefreshHighlights, onOpenHighlights }: NoteActionsProps) {
-  const [mounted, setMounted] = useState(false)
   const [open, setOpen] = useState(false)
   const popoverRef = useRef<HTMLDivElement>(null)
-  useEffect(() => { setMounted(true) }, [])
-  if (!mounted) return null
 
-  // Portal out of the page-transition transform so fixed means viewport-fixed.
-  return createPortal(
-    <div data-note-actions className="pointer-events-none fixed inset-x-0 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-40 flex justify-center px-4">
+  // Bottom-sticky within the essay: float while reading, then dock in this
+  // natural end-of-note slot and scroll away before the recommendations.
+  return (
+    <div data-note-actions className="pointer-events-none sticky bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-40 mt-12 flex justify-center px-4">
       <div role="group" aria-label="Note activity" className="pointer-events-auto flex max-w-full items-center gap-1 rounded-full bg-floating p-1.5 backdrop-blur-[40px]">
         {visitorReady
           ? <LazyModuleLikeButton targetId={likeTargetId} noun="note" variant="pill" />
@@ -119,6 +116,6 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, hi
         </Popover>
         <NoteViews key={noteId} noteId={noteId} enabled={visitorReady} />
       </div>
-    </div>, document.body,
+    </div>
   )
 }

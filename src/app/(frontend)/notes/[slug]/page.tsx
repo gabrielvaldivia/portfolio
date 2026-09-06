@@ -97,7 +97,7 @@ export default async function NotePage({ params }: NotePageProps) {
           </figure>
         ) : null}
 
-        <div className="longform-body max-w-[760px] [&_.rich-text_h2]:mb-8 [&_.rich-text_h2]:pb-4 [&_.rich-text_h2]:pt-16 [&_.rich-text_h3]:mb-6 [&_.rich-text_h3]:pb-4 [&_.rich-text_h3]:pt-12 [&_.rich-text_blockquote]:my-10 [&_.rich-text_blockquote]:border-l [&_.rich-text_blockquote]:border-border-strong [&_.rich-text_blockquote]:pl-6 [&_.rich-text_blockquote]:text-muted">
+        <div className="longform-body [&_.rich-text_h2]:mb-8 [&_.rich-text_h2]:pb-4 [&_.rich-text_h2]:pt-16 [&_.rich-text_h3]:mb-6 [&_.rich-text_h3]:pb-4 [&_.rich-text_h3]:pt-12 [&_.rich-text_blockquote]:my-10 [&_.rich-text_blockquote]:border-l [&_.rich-text_blockquote]:border-border-strong [&_.rich-text_blockquote]:pl-6 [&_.rich-text_blockquote]:text-muted">
           <NoteHighlights key={note.id} noteId={String(note.id)} likeTargetId={getNoteLikeTargetId(note.slug)} version={highlightTextVersion(getNoteHighlightText(note.body))}>
             <RichText data={note.body} renderLinkedImages />
           </NoteHighlights>
