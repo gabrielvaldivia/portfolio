@@ -12,7 +12,8 @@ comments, or raw IP addresses are collected by this feature.
 
 Tapping a saved passage shows “Highlighted by someone from [location] on [date and time]”
 in the viewer's timezone, with no close or highlight buttons. Multiple people are
-grouped by location, with per-highlight timestamps (same-minute timestamps are combined).
+shown one at a time; a single right chevron cycles through every reader and loops
+back to the first. Opening another passage resets to its first reader.
 New saves retain coarse city/region/country labels from Vercel's edge headers;
 there is no GPS request or external IP lookup. Old highlights retain their saved
 dates and show no invented location. Repeated saves do not overwrite attribution.

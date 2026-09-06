@@ -11,7 +11,7 @@ import { cn } from '@/lib/cn'
 
 type ActivePassage = { anchor: HighlightAnchor; range: Range; fromSelection: boolean }
 const visibilityStorageKey = 'gv-note-highlights-visible-v1'
-const panelClass = 'z-50 w-72 max-w-[calc(100vw-32px)] max-h-[var(--radix-popover-content-available-height)] overflow-y-auto rounded-lg bg-content px-3 py-2 text-sm leading-relaxed text-background shadow-lg outline-none'
+const panelClass = 'z-50 w-72 max-w-[calc(100vw-32px)] max-h-[var(--radix-popover-content-available-height)] overflow-y-auto rounded-xl bg-content px-3 py-2 text-center text-sm leading-relaxed text-background shadow-lg outline-none'
 const actionClass = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-content px-4 py-2 text-background disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content'
 
 export function NoteHighlights({ noteId, likeTargetId, version, children }: { noteId: string; likeTargetId: string; version: string; children: ReactNode }) {
@@ -244,7 +244,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
           className={cn(active?.fromSelection ? 'z-50 outline-none' : panelClass, 'note-highlight-action')}
           side="top" sideOffset={8}
           updatePositionStrategy="always"
-          collisionPadding={16} role={active?.fromSelection ? 'dialog' : 'tooltip'} aria-label={active?.fromSelection ? 'Highlight passage' : 'Highlight attribution'}
+          collisionPadding={16} role={active?.fromSelection || (current?.attributions?.length || 0) > 1 ? 'dialog' : 'tooltip'} aria-label={active?.fromSelection ? 'Highlight passage' : 'Highlight attribution'}
           onOpenAutoFocus={(event) => event.preventDefault()}
           onCloseAutoFocus={(event) => {
             event.preventDefault()
@@ -269,7 +269,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
               </button>
               {error ? <p role="alert" className="mt-2 max-w-64 rounded-lg bg-background p-3 text-sm text-content shadow-lg">{error}</p> : null}
             </>
-          ) : current ? <HighlightAttributionDetails highlight={current} /> : null}
+          ) : current ? <HighlightAttributionDetails key={current.id} highlight={current} /> : null}
         </PopoverContent>
       </Popover>
       <span role="status" aria-live="polite" className="sr-only">{announcement}</span>
