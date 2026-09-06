@@ -110,7 +110,12 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, hi
       <button type="button" onClick={onRefreshHighlights} className="mt-2 min-h-11 underline">Try again</button>
     </div>
   ) : !highlightsReady ? <p role="status" className="px-5 pb-5 text-muted">Loading highlights…</p>
-    : highlights.length === 0 ? <p className="px-5 pb-5 text-muted">No highlights yet.</p>
+    : highlights.length === 0 ? (
+      <div className={cn('flex flex-col items-center justify-center gap-2 px-8 text-center', mobile ? 'min-h-full py-8' : 'min-h-48 py-6')}>
+        <p className="text-sm font-medium text-content">No highlights yet.</p>
+        <p className="max-w-64 text-sm leading-relaxed text-muted">Select text in the note, then choose Highlight.</p>
+      </div>
+    )
     : <ul className={cn('min-h-0 px-2 pb-2', !mobile && 'overflow-y-auto overscroll-contain')}>
       {highlights.map((highlight) => (
         <li key={highlight.id}>
