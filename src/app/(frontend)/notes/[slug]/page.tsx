@@ -75,11 +75,11 @@ export default async function NotePage({ params }: NotePageProps) {
     <article className="note-page pb-20 text-content">
       <Container>
         <div className="max-w-[880px]">
-          <header className="pb-12 tablet:pb-16">
+          <header className="flex flex-col gap-8 pb-12 tablet:pb-16">
             <h1 className="max-w-[1100px] text-balance text-[40px] leading-[1.05] tablet:text-[64px] desktop:text-[80px]">
               {note.title}
             </h1>
-            {noteDate ? <p className="mt-8 text-[16px] text-muted opacity-60 tablet:text-[18px]">{noteDate}</p> : null}
+            {noteDate ? <p className="text-[16px] text-muted opacity-60 tablet:text-[18px]">{noteDate}</p> : null}
           </header>
         </div>
 
