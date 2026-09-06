@@ -6,6 +6,13 @@ tooltip, dismissed by tapping outside or pressing Escape. A minimal switch besid
 hides or shows the marks, without changing saved quotes or counts. Visibility is
 remembered across notes and reloads in `gv-note-highlights-visible-v1` local storage.
 The quote list and jump-to-passage actions still work when marks are hidden.
+On phones, the highlights control opens a modal bottom sheet with a small spring
+entrance. Swipe up to expand it, or down to dismiss it. The quote list scrolls
+natively inside the sheet; a downward list gesture dismisses only when it starts
+at the top. The handle also toggles expansion by tapping. Safe-area spacing,
+reduced motion, focus containment, and background scroll locking are respected.
+Desktop keeps the anchored popover. Selecting a quote closes either panel before
+scrolling to the passage.
 Ownership uses the existing HTTP-only `gv_module_liker` cookie:
 it is remembered in that browser, not synced between devices. No accounts, emails,
 comments, or raw IP addresses are collected by this feature.
@@ -63,3 +70,5 @@ by the specific `note_id` and `anchor_key`. No public moderation endpoint exists
 Postgres (PGlite), without accessing the portfolio database. Also run
 `npm run build` and `npm run test:highlight-attribution`. Browser checks should cover two anonymous sessions, selection
 across inline links, save/reload, join/remove, mobile, and dark mode.
+`npm run test:bottom-sheet` checks swipe thresholds; browser checks should also
+cover touch expansion/dismissal, long-list scrolling, and quote navigation.
