@@ -199,8 +199,8 @@ function getActivitySentenceParts(item: ActivityDisplayItem) {
   const location = item.location
   if (item.eventType === 'highlight') {
     return {
-      action: `highlighted a passage in “${item.target.sourceTitle}”`,
-      location, repetitions: '', source: '',
+      action: 'highlighted a passage',
+      location, repetitions: '', source: item.target.sourceTitle,
     }
   }
   if (item.eventType === 'chat') {
@@ -219,10 +219,10 @@ function getActivitySentenceParts(item: ActivityDisplayItem) {
   if (item.target.noun === 'note') {
     const verb = isSuperlike ? 'superliked' : 'liked'
     return {
-      action: `${verb} the note “${item.target.sourceTitle}”`,
+      action: `${verb} the note`,
       location,
       repetitions,
-      source: '',
+      source: item.target.sourceTitle,
     }
   }
 
@@ -243,10 +243,14 @@ function getActivitySubject(item: ActivityDisplayItem) {
   return item.eventType === 'highlight' && item.count > 1 ? `${item.count} readers` : 'Someone'
 }
 
+function getActivitySourcePrefix(item: ActivityDisplayItem) {
+  return item.eventType === 'like' && item.target.noun === 'note' ? ' ' : ' in '
+}
+
 function getActivitySentence(item: ActivityDisplayItem) {
   const { action, location, repetitions, source } = getActivitySentenceParts(item)
   const locationText = location ? ` from ${location}` : ''
-  const sourceText = source ? ` in ${source}` : ''
+  const sourceText = source ? `${getActivitySourcePrefix(item)}${source}` : ''
 
   return `${getActivitySubject(item)}${locationText} ${action}${sourceText}${repetitions}${item.quote ? `: “${item.quote}”` : ''}`
 }
@@ -304,7 +308,7 @@ function ActivitySentence({ item }: { item: ActivityDisplayItem }) {
       {' '}{action}
       {source ? (
         <>
-          {' in '}
+          {getActivitySourcePrefix(item)}
           <span className="font-medium">{source}</span>
         </>
       ) : null}
