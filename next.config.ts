@@ -16,6 +16,14 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'pub-0c00865d02c1476494008dbb74525b2a.r2.dev',
       },
+      {
+        protocol: 'https',
+        hostname: 'substackcdn.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn-images-1.medium.com',
+      },
     ],
   },
 }
