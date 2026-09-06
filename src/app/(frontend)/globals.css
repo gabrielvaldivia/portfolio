@@ -117,7 +117,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --color-content-rgb: 255 255 255;
-    --color-muted-rgb: 255 255 255 / 0.7;
+    --color-muted-rgb: 255 255 255 / 0.8;
     --color-background-rgb: 0 0 0;
     --color-background-alt-rgb: 255 255 255 / 0.1;
     --color-background-alt-hover-rgb: 255 255 255 / 0.15;
