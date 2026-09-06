@@ -176,7 +176,7 @@ function createHeartFragments(intensity: number): Particle[] {
 
 function AnimatedCount({ value, pill }: { value: number; pill: boolean }) {
   return (
-    <span aria-hidden="true" className={cn('relative inline-flex h-[1em] min-w-[1ch] items-center overflow-hidden tabular-nums leading-none', pill && 'w-8 shrink-0', value === 0 && 'invisible')}>
+    <span aria-hidden="true" className={cn('relative inline-flex h-[1em] min-w-[1ch] items-center overflow-hidden tabular-nums leading-none', pill && 'shrink-0', value === 0 && 'invisible')}>
       <AnimatePresence mode="popLayout" initial={false}>
         <motion.span
           key={value}
@@ -753,7 +753,7 @@ export function ModuleLikeButton({
         className={cn(
           'inline-flex touch-manipulation select-none items-center gap-1.5 rounded-full font-medium text-muted transition-colors duration-150',
           variant === 'pill'
-            ? 'h-11 min-w-16 justify-center px-1 text-sm'
+            ? 'h-11 min-w-11 justify-center px-3 text-sm'
             : 'h-8 bg-elevated px-2.5 text-caption shadow-sm outline outline-1 outline-offset-0 outline-gray-400/40',
           'hover:text-content focus-visible:ring-2 focus-visible:ring-content/30 disabled:cursor-default disabled:opacity-70',
           isHeartActive && 'text-red-500 hover:text-red-600',

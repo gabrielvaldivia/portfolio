@@ -57,7 +57,7 @@ function NoteViews({ noteId, enabled }: { noteId: string; enabled: boolean }) {
   }, [noteId, enabled])
 
   return (
-    <span role="img" className="inline-flex h-11 min-w-16 items-center justify-center gap-1.5 px-1 text-sm font-medium text-muted"
+    <span role="img" className="inline-flex h-11 min-w-11 items-center justify-center gap-1.5 px-3 text-sm font-medium text-muted"
       aria-label={count === null ? 'Views unavailable' : `${count.toLocaleString('en-US')} ${count === 1 ? 'view' : 'views'}`}
       title="Views since launch. Each browser counts once per day.">
       <Eye className="size-[18px]" aria-hidden="true" />
@@ -91,9 +91,9 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, hi
 
   const trigger = (
     <button type="button" aria-label={highlightsReady ? `${highlights.length} highlighted passages. Show highlights` : 'Show highlights'}
-      className="inline-flex h-11 min-w-16 items-center justify-center gap-1.5 rounded-full px-1 text-sm font-medium text-muted hover:bg-background-alt hover:text-content focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content">
+      className="inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted hover:bg-background-alt hover:text-content focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content">
       <Highlighter className="size-[18px]" aria-hidden="true" />
-      <span className={cn('w-8 shrink-0 text-left tabular-nums', highlightsReady && highlights.length === 0 && 'invisible')} aria-hidden="true">{highlightsReady ? highlights.length : '—'}</span>
+      <span className={cn('min-w-[1ch] shrink-0 text-left tabular-nums', highlightsReady && highlights.length === 0 && 'invisible')} aria-hidden="true">{highlightsReady ? highlights.length : '—'}</span>
     </button>
   )
   const visibilitySwitch = (
