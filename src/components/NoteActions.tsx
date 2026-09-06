@@ -120,7 +120,10 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, hi
               skipRestoreFocus.current = true
               setOpen(false)
             }}>
-            “{highlight.exact}”
+            <span className="relative block">
+              <span aria-hidden="true" className="absolute right-full">“</span>
+              {highlight.exact}<span aria-hidden="true" className="inline-block w-0">”</span>
+            </span>
           </button>
         </li>
       ))}
