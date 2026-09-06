@@ -79,7 +79,7 @@ export default async function NotePage({ params }: NotePageProps) {
             <h1 className="max-w-[1100px] text-balance text-[40px] leading-[1.05] tablet:text-[64px] desktop:text-[80px]">
               {note.title}
             </h1>
-            {noteDate ? <p className="mt-6 text-[16px] text-muted tablet:text-[18px]">{noteDate}</p> : null}
+            {noteDate ? <p className="mt-8 text-[16px] text-muted opacity-60 tablet:text-[18px]">{noteDate}</p> : null}
           </header>
         </div>
 
@@ -100,7 +100,7 @@ export default async function NotePage({ params }: NotePageProps) {
           <RichText data={note.body} renderLinkedImages />
         </div>
 
-        <div className="mt-12 max-w-[760px] border-t border-border pt-6">
+        <div className="mt-12 max-w-[760px]">
           <LazyModuleLikeButton
             noun="note"
             targetId={getNoteLikeTargetId(note.slug)}
@@ -108,7 +108,7 @@ export default async function NotePage({ params }: NotePageProps) {
         </div>
 
         {readNextNotes.length > 0 ? (
-          <section aria-labelledby="continue-reading-heading" className="mt-16 max-w-[760px]">
+          <section aria-labelledby="continue-reading-heading" className="mt-6 max-w-[760px] border-t border-border pt-12">
             <h2 id="continue-reading-heading" className="text-[16px] font-medium">
               Continue reading
             </h2>
