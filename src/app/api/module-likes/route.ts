@@ -1,12 +1,11 @@
-import { createHash, randomUUID } from 'crypto'
 import { sql } from '@payloadcms/db-postgres'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import {
   getModuleLikeRequestLocation,
   readRows,
 } from '@/lib/moduleLikeActivity'
 import { getPayload } from '@/lib/payload'
-import { getPayloadSecret } from '@/lib/payloadSecret'
+import { getVisitor, getVisitorHash, withVisitorCookie } from '@/lib/anonymousVisitor'
 import {
   MAX_MODULE_LIKES_PER_VISITOR,
   SUPER_MODULE_LIKE_AMOUNT,
@@ -15,8 +14,6 @@ import {
 
 export const runtime = 'nodejs'
 
-const COOKIE_NAME = 'gv_module_liker'
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 const MAX_BATCH_IDS = 80
 const MAX_TARGET_ID_LENGTH = 180
 const targetIdPattern = /^[a-z0-9:_./-]+$/i
@@ -25,11 +22,6 @@ type ModuleLikeRow = {
   target_id: string
   count: number | string
   user_likes: number | string
-}
-
-type Visitor = {
-  id: string
-  shouldSetCookie: boolean
 }
 
 function normalizeTargetId(value: unknown) {
@@ -44,37 +36,6 @@ function normalizeLikeAmount(value: unknown) {
   const amount = typeof value === 'number' ? value : Number(value)
   if (!Number.isFinite(amount)) return 1
   return Math.min(Math.max(Math.trunc(amount), 1), SUPER_MODULE_LIKE_AMOUNT)
-}
-
-function getVisitor(req: NextRequest): Visitor {
-  const existing = req.cookies.get(COOKIE_NAME)?.value
-
-  if (existing && /^[a-f0-9-]{36}$/i.test(existing)) {
-    return { id: existing, shouldSetCookie: false }
-  }
-
-  return { id: randomUUID(), shouldSetCookie: true }
-}
-
-function getVisitorHash(visitorId: string) {
-  const secret = getPayloadSecret()
-  return createHash('sha256').update(`${secret}:${visitorId}`).digest('hex')
-}
-
-function withVisitorCookie<T>(data: T, visitor: Visitor, init?: ResponseInit) {
-  const response = NextResponse.json(data, init)
-
-  if (visitor.shouldSetCookie) {
-    response.cookies.set(COOKIE_NAME, visitor.id, {
-      httpOnly: true,
-      maxAge: COOKIE_MAX_AGE,
-      path: '/',
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-    })
-  }
-
-  return response
 }
 
 function logModuleLikeError(message: string, error: unknown) {

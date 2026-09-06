@@ -1,6 +1,9 @@
 import { Container } from '@/components/Container'
 import { LazyModuleLikeButton } from '@/components/LazyModuleLikeButton'
 import { RichText } from '@/components/RichText'
+import { NoteHighlights } from '@/components/NoteHighlights'
+import { getNoteHighlightText } from '@/lib/noteHighlightAnchors'
+import { highlightTextVersion } from '@/lib/noteHighlightStore'
 import { getNoteLikeTargetId } from '@/lib/moduleLikes'
 import { buildPageMetadata } from '@/lib/pageMetadata'
 import { getPublishedNoteBySlug, getPublishedNoteSlugs, getReadNextNotes } from '@/lib/queries'
@@ -96,7 +99,9 @@ export default async function NotePage({ params }: NotePageProps) {
         ) : null}
 
         <div className="longform-body max-w-[760px] [&_.rich-text_h2]:mb-8 [&_.rich-text_h2]:pb-4 [&_.rich-text_h2]:pt-16 [&_.rich-text_h3]:mb-6 [&_.rich-text_h3]:pb-4 [&_.rich-text_h3]:pt-12 [&_.rich-text_blockquote]:my-10 [&_.rich-text_blockquote]:border-l [&_.rich-text_blockquote]:border-border-strong [&_.rich-text_blockquote]:pl-6 [&_.rich-text_blockquote]:text-muted">
-          <RichText data={note.body} renderLinkedImages />
+          <NoteHighlights key={note.id} noteId={String(note.id)} version={highlightTextVersion(getNoteHighlightText(note.body))}>
+            <RichText data={note.body} renderLinkedImages />
+          </NoteHighlights>
         </div>
 
         <div className="mt-12 max-w-[760px]">
