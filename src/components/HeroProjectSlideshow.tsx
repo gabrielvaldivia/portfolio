@@ -51,6 +51,8 @@ type Props = {
 
 const AUTOPLAY_DELAY_MS = 6000
 const CURSOR_IDLE_ROTATION_SPEED = 14
+const MOBILE_BROWSER_INSET = 'max(0px, 100lvh - 100dvh)'
+const MOBILE_CONTENT_BOTTOM = `calc(1.25rem + ${MOBILE_BROWSER_INSET})`
 
 function SilentBackgroundVideo({ src, label, playing = true }: { src: string; label: string; playing?: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -197,7 +199,9 @@ function MobileHeroSlide({
   const gradientColor = hexToRgbChannels(project.gradientColor) ?? fallbackGradientColor
 
   return (
-    <div className="hero-mobile-slide relative h-dvh w-full text-white" data-project-id={project.id}>
+    // Keep snap targets stable when Safari changes dvh after a swipe. Only
+    // inset the foreground content for browser chrome; don't resize the pages.
+    <div className="hero-mobile-slide relative h-lvh w-full text-white" data-project-id={project.id}>
       {/* Snap to the actual slide's start. A one-pixel target cannot become an
           oversized snap area with intermediate stops when browser chrome changes. */}
       <div aria-hidden="true" className="hero-project-snap-point pointer-events-none absolute inset-x-0 top-0 h-px" />
@@ -231,15 +235,17 @@ function MobileHeroSlide({
 
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-1/2"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-0"
           style={{
-            backgroundImage: `linear-gradient(to bottom, rgb(${gradientColor} / 0) 0%, rgb(${gradientColor} / 0.01) 18%, rgb(${gradientColor} / 0.04) 34%, rgb(${gradientColor} / 0.12) 48%, rgb(${gradientColor} / 0.26) 61%, rgb(${gradientColor} / 0.45) 74%, rgb(${gradientColor} / 0.66) 86%, rgb(${gradientColor} / 0.86) 95%, rgb(${gradientColor}) 100%)`,
+            height: `calc(50dvh + ${MOBILE_BROWSER_INSET})`,
+            backgroundImage: `linear-gradient(to bottom, rgb(${gradientColor} / 0) 0, rgb(${gradientColor} / 0.01) 9dvh, rgb(${gradientColor} / 0.04) 17dvh, rgb(${gradientColor} / 0.12) 24dvh, rgb(${gradientColor} / 0.26) 30.5dvh, rgb(${gradientColor} / 0.45) 37dvh, rgb(${gradientColor} / 0.66) 43dvh, rgb(${gradientColor} / 0.86) 47.5dvh, rgb(${gradientColor}) 50dvh)`,
           }}
         />
 
         <Link
           href={`/work/${project.slug}`}
-          className="absolute bottom-5 left-5 right-24 z-10 flex flex-col gap-2 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+          className="absolute left-5 right-24 z-10 flex flex-col gap-2 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+          style={{ bottom: MOBILE_CONTENT_BOTTOM }}
         >
           <h2 className="hero-project-title text-balance">{project.title}</h2>
           {project.subtitle ? (
@@ -249,7 +255,8 @@ function MobileHeroSlide({
         <Link
           href={`/work/${project.slug}`}
           aria-label={`Open ${project.title} project`}
-          className="absolute bottom-5 right-5 z-20 flex size-12 items-center justify-center rounded-full bg-white transition-colors duration-150 hover:bg-white/90 active:bg-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+          className="absolute right-5 z-20 flex size-12 items-center justify-center rounded-full bg-white transition-colors duration-150 hover:bg-white/90 active:bg-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+          style={{ bottom: MOBILE_CONTENT_BOTTOM }}
         >
           <svg aria-hidden="true" className="size-6 text-black" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
             <path d="M6 16h20M18 8l8 8-8 8" />
