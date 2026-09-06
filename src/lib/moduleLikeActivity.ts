@@ -6,6 +6,7 @@ import { getPayload, isPayloadUnavailable } from '@/lib/payload'
 import {
   getModuleLikeAnchorId,
   getModuleLikeTargetId,
+  getNoteLikeTargetId,
   getPhotoLikeTargetId,
   isLikeableModuleBlock,
   SUPER_MODULE_LIKE_AMOUNT,
@@ -583,19 +584,56 @@ function indexPhotoTargets(index: Map<string, ActivityTarget>, photos: Photo[]) 
   })
 }
 
+function indexNoteTargets(index: Map<string, ActivityTarget>, notes: any[]) {
+  notes.forEach((note) => {
+    const slug = typeof note?.slug === 'string' ? note.slug : ''
+    if (!slug) return
+
+    const title = typeof note?.title === 'string' ? note.title : slug
+    const coverImage = normalizeMedia(note?.coverImage)
+    const preferredCoverImage = coverImage ? getPreferredImage(coverImage) : null
+
+    index.set(getNoteLikeTargetId(slug), {
+      href: `/notes/${slug}`,
+      sourceTitle: title,
+      label: title,
+      noun: 'note',
+      thumbnail: preferredCoverImage?.url
+        ? {
+            type: 'image',
+            url: preferredCoverImage.url,
+            alt: coverImage?.alt || title,
+            width: preferredCoverImage.width,
+            height: preferredCoverImage.height,
+            fit: 'cover',
+          }
+        : null,
+    })
+  })
+}
+
 const getActivityTargetIndex = cache(async function getActivityTargetIndex() {
   const payload = await getPayload()
   if (isPayloadUnavailable(payload)) throw new Error('Activity target data is temporarily unavailable')
-  const [projects, sideProjects, photos] = await Promise.all([
+  const [projects, sideProjects, photos, notes] = await Promise.all([
     payload.find({ collection: 'projects', limit: 200, depth: 1, select: { title: true, slug: true, content: true } }),
     payload.find({ collection: 'side-projects', limit: 200, depth: 1, select: { title: true, slug: true, content: true } }),
     getPhotos(),
+    payload.find({
+      collection: 'notes',
+      depth: 1,
+      draft: false,
+      limit: 200,
+      select: { title: true, slug: true, coverImage: true },
+      where: { _status: { equals: 'published' } },
+    }),
   ])
   const index = new Map<string, ActivityTarget>()
 
   projects.docs.forEach((project: any) => indexDocumentTargets(index, project, 'project'))
   sideProjects.docs.forEach((project: any) => indexDocumentTargets(index, project, 'side-project'))
   indexPhotoTargets(index, photos)
+  indexNoteTargets(index, notes.docs)
 
   return index
 })
@@ -609,10 +647,18 @@ function getFallbackTarget(targetId: string): ActivityTarget {
       ? `/playground/${parsed.slug}`
       : parsed?.sourceType === 'photo'
         ? `/photo/${parsed.slug}`
-      : '#'
+        : parsed?.sourceType === 'note'
+          ? `/notes/${parsed.slug}`
+          : '#'
+
+  const href = baseHref === '#'
+    ? '#'
+    : parsed?.sourceType === 'note'
+      ? baseHref
+      : `${baseHref}#${getModuleLikeAnchorId(targetId)}`
 
   return {
-    href: baseHref === '#' ? '#' : `${baseHref}#${getModuleLikeAnchorId(targetId)}`,
+    href,
     sourceTitle,
     label: sourceTitle,
     noun: parsed ? getBlockNoun(parsed.blockType) : 'module',

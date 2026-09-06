@@ -1,5 +1,7 @@
 import { Container } from '@/components/Container'
+import { LazyModuleLikeButton } from '@/components/LazyModuleLikeButton'
 import { RichText } from '@/components/RichText'
+import { getNoteLikeTargetId } from '@/lib/moduleLikes'
 import { buildPageMetadata } from '@/lib/pageMetadata'
 import { getPublishedNoteBySlug, getPublishedNoteSlugs, getReadNextNote } from '@/lib/queries'
 import { ArrowRight02Icon } from '@hugeicons/core-free-icons'
@@ -81,6 +83,13 @@ export default async function NotePage({ params }: NotePageProps) {
 
         <div className="max-w-[760px] [&_.rich-text]:text-[18px] [&_.rich-text]:leading-[1.65] [&_.rich-text]:text-content tablet:[&_.rich-text]:text-[20px] [&_.rich-text_h2]:mb-8 [&_.rich-text_h2]:pt-16 [&_.rich-text_h3]:mb-6 [&_.rich-text_h3]:pb-4 [&_.rich-text_h3]:pt-12 [&_.rich-text_blockquote]:my-10 [&_.rich-text_blockquote]:border-l [&_.rich-text_blockquote]:border-border-strong [&_.rich-text_blockquote]:pl-6 [&_.rich-text_blockquote]:text-muted">
           <RichText data={note.body} renderLinkedImages />
+        </div>
+
+        <div className="mt-12 max-w-[760px] border-t border-border pt-6">
+          <LazyModuleLikeButton
+            noun="note"
+            targetId={getNoteLikeTargetId(note.slug)}
+          />
         </div>
 
         {readNextNote?.slug ? (

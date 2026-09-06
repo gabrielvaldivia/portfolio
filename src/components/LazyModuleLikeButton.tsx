@@ -6,6 +6,7 @@ import { cn } from '@/lib/cn'
 type ModuleLikeButtonProps = {
   targetId: string
   initialCount?: number
+  noun?: string
   tabIndex?: number
 }
 
@@ -31,9 +32,11 @@ function HeartIcon({ className, size = HEART_ICON_SIZE }: { className?: string; 
 
 export function ModuleLikeButtonShell({
   initialCount = 0,
+  noun = 'module',
   tabIndex,
 }: {
   initialCount?: number
+  noun?: string
   tabIndex?: number
 }) {
   return (
@@ -42,7 +45,7 @@ export function ModuleLikeButtonShell({
         type="button"
         tabIndex={tabIndex}
         disabled
-        aria-label={`Like this module. ${initialCount} total likes.`}
+        aria-label={`Like this ${noun}. ${initialCount} total likes.`}
         className={cn(
           'inline-flex h-8 touch-manipulation select-none items-center gap-1.5 rounded-full bg-elevated px-2.5 text-caption font-medium text-muted shadow-sm outline outline-1 outline-offset-0 outline-gray-400/40 transition-colors duration-150',
           'disabled:cursor-default disabled:opacity-70',
@@ -113,7 +116,13 @@ export function LazyModuleLikeButton(props: ModuleLikeButtonProps) {
     >
       {LoadedButton
         ? <LoadedButton {...props} />
-        : <ModuleLikeButtonShell initialCount={props.initialCount} tabIndex={props.tabIndex} />}
+        : (
+          <ModuleLikeButtonShell
+            initialCount={props.initialCount}
+            noun={props.noun}
+            tabIndex={props.tabIndex}
+          />
+        )}
     </div>
   )
 }

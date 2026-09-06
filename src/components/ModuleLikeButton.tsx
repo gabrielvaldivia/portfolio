@@ -196,10 +196,12 @@ function AnimatedCount({ value }: { value: number }) {
 export function ModuleLikeButton({
   targetId,
   initialCount = 0,
+  noun = 'module',
   tabIndex,
 }: {
   targetId: string
   initialCount?: number
+  noun?: string
   tabIndex?: number
 }) {
   const initialLikeData = {
@@ -745,7 +747,7 @@ export function ModuleLikeButton({
           if (isChargingSuperLike || hasPoppedSuperLike) event.preventDefault()
         }}
         disabled={isLoading}
-        aria-label={`Like this module. Hold for a super like worth ${SUPER_MODULE_LIKE_AMOUNT} likes. ${data.count} total likes. You have liked it ${data.userLikes} times.`}
+        aria-label={`Like this ${noun}. Hold for a super like worth ${SUPER_MODULE_LIKE_AMOUNT} likes. ${data.count} total likes. You have liked it ${data.userLikes} times.`}
         className={cn(
           'inline-flex h-8 touch-manipulation select-none items-center gap-1.5 rounded-full bg-elevated px-2.5 text-caption font-medium text-muted shadow-sm outline outline-1 outline-offset-0 outline-gray-400/40 transition-colors duration-150',
           'hover:text-content focus-visible:ring-2 focus-visible:ring-content/30 disabled:cursor-default disabled:opacity-70',

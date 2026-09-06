@@ -27,6 +27,10 @@ export function getPhotoLikeTargetId(slug: string) {
   return `photo:${slug}:image:${slug}`
 }
 
+export function getNoteLikeTargetId(slug: string) {
+  return `note:${slug}:note:${slug}`
+}
+
 export function getModuleLikeAnchorId(targetId: string) {
   return `module-${targetId.replace(/[^a-z0-9_-]+/gi, '-')}`
 }
@@ -36,7 +40,12 @@ export function parseModuleLikeTargetId(targetId: string) {
   const blockId = blockIdParts.join(':')
 
   if (!sourceType || !slug || !blockType || !blockId) return null
-  if (sourceType !== 'project' && sourceType !== 'side-project' && sourceType !== 'photo') return null
+  if (
+    sourceType !== 'project'
+    && sourceType !== 'side-project'
+    && sourceType !== 'photo'
+    && sourceType !== 'note'
+  ) return null
 
   return { sourceType, slug, blockType, blockId }
 }

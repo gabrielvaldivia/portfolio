@@ -209,6 +209,16 @@ function getActivitySentenceParts(item: ActivityDisplayItem) {
   const repetitions = item.count > 1 ? ` ${item.count} times` : ''
   const isSuperlike = item.amount > 1
 
+  if (item.target.noun === 'note') {
+    const verb = isSuperlike ? 'superliked' : 'liked'
+    return {
+      action: `${verb} the note “${item.target.sourceTitle}”`,
+      location,
+      repetitions,
+      source: '',
+    }
+  }
+
   return {
     action: getLikePhrase(item.target.noun, isSuperlike),
     location,
@@ -557,15 +567,16 @@ function ActivityText({ item, nowMs }: { item: ActivityDisplayItem; nowMs: numbe
 }
 
 function ActivityRow({ item, nowMs, isFirst = false }: { item: ActivityDisplayItem; nowMs: number; isFirst?: boolean }) {
+  const hasThumbnail = item.eventType !== 'chat' && Boolean(item.target.thumbnail)
   const rowClassName = cn(
     'group py-4 transition-opacity duration-150 tablet:py-5 tablet:hover:opacity-60',
-    item.eventType === 'chat' ? 'block' : 'grid grid-cols-[1fr_auto] items-center gap-5',
+    hasThumbnail ? 'grid grid-cols-[1fr_auto] items-center gap-5' : 'block',
     !isFirst && 'border-t border-border',
   )
   const content = (
     <>
       <ActivityText item={item} nowMs={nowMs} />
-      {item.eventType === 'chat' ? null : <ActivityThumbnail item={item} />}
+      {hasThumbnail ? <ActivityThumbnail item={item} /> : null}
     </>
   )
 
