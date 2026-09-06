@@ -247,10 +247,6 @@
   margin-top: 1em;
 }
 
-.chapterDescription :global(.rich-text a) {
-  font-weight: 600;
-}
-
 .chapterEyebrow {
   position: relative;
   display: flex;

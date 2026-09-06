@@ -725,9 +725,10 @@ a {
 
 .rich-text a {
   color: var(--color-content);
+  text-decoration: none;
 }
 
-.rich-text a:hover {
+.rich-text a:is(:hover, :focus-visible) {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -744,16 +745,6 @@ a {
 
 .longform-body .rich-text :is(h1, h2, h3, h4, h5, h6) {
   color: var(--color-content);
-}
-
-.longform-body .rich-text a {
-  color: var(--color-content);
-  text-decoration: none;
-}
-
-.longform-body .rich-text a:is(:hover, :focus-visible) {
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }
 
 @media (min-width: 810px) {
