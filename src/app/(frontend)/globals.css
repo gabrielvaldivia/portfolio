@@ -427,8 +427,8 @@ h2 {
     scroll-snap-type: y mandatory;
   }
 
-  html.hero-project-pagination-active.hero-project-pagination-relaxed {
-    scroll-snap-type: y proximity;
+  html.hero-project-pagination-active.hero-project-pagination-free {
+    scroll-snap-type: none;
   }
 
   .hero-intro-snap-point {

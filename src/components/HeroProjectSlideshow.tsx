@@ -544,52 +544,86 @@ export function HeroProjectSlideshow({ projects }: Props) {
     if (!region) return
 
     const approach = document.querySelector<HTMLElement>('.hero-approach-snap-point')
-    const approachScrollMargin = approach
-      ? Number.parseFloat(getComputedStyle(approach).scrollMarginTop) || 0
-      : 0
-    let lastSettledScrollY = window.scrollY
+    if (!approach) return
 
-    const updatePaginationMode = (currentScrollY: number, scrollDelta: number) => {
-      if (!approach) return
-
-      const approachSnapY = approach.getBoundingClientRect().top
-        + currentScrollY
-        - approachScrollMargin
-      const reachedApproach = currentScrollY >= approachSnapY - 1
-      const returningToSlideshow = scrollDelta < 0 && currentScrollY <= approachSnapY + 1
-
-      root.classList.toggle(
-        'hero-project-pagination-relaxed',
-        reachedApproach && !returningToSlideshow,
-      )
+    let approachSnapY = 0
+    let touchY: number | null = null
+    const measureBoundary = () => {
+      const margin = Number.parseFloat(getComputedStyle(approach).scrollMarginTop) || 0
+      approachSnapY = approach.getBoundingClientRect().top + window.scrollY - margin
+    }
+    const setFreeScroll = (free: boolean) => {
+      root.classList.toggle('hero-project-pagination-free', free)
+    }
+    const updateGestureMode = (deltaY: number) => {
+      if (!deltaY) return
+      const distancePastApproach = window.scrollY - approachSnapY
+      setFreeScroll(distancePastApproach > 1 || (distancePastApproach >= -1 && deltaY > 0))
     }
 
     const handleScrollEnd = () => {
-      const currentScrollY = window.scrollY
-      const scrollDelta = currentScrollY - lastSettledScrollY
-      lastSettledScrollY = currentScrollY
-      updatePaginationMode(currentScrollY, scrollDelta)
+      measureBoundary()
+      // Keep pagination ready at the exact boundary for the next upward swipe.
+      // Downward input disables it before moving into Approach. Switching it
+      // on during an upward gesture can consume that first gesture in WebKit.
+      setFreeScroll(window.scrollY > approachSnapY + 1)
+    }
+    // Choose the mode from input direction before the browser handles the swipe.
+    // Proximity snapping still catches downward swipes, so Approach uses none.
+    // These listeners never move the page or cancel native scrolling.
+    const handleTouchStart = (event: TouchEvent) => {
+      measureBoundary()
+      touchY = event.touches.length === 1 ? event.touches[0].clientY : null
+    }
+    const handleTouchMove = (event: TouchEvent) => {
+      if (touchY === null || event.touches.length !== 1) return
+      const nextY = event.touches[0].clientY
+      updateGestureMode(touchY - nextY)
+      touchY = nextY
+    }
+    const handleTouchEnd = () => { touchY = null }
+    const handleWheel = (event: WheelEvent) => {
+      if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return
+      measureBoundary()
+      updateGestureMode(event.deltaY)
     }
 
     // Safari before 26.2 has no scrollend. This fallback only changes snap
     // strictness at Approach; it never moves the page or resizes the slides.
     let settleTimeout: ReturnType<typeof setTimeout> | undefined
-    const scheduleScrollEnd = () => {
-      clearTimeout(settleTimeout)
-      settleTimeout = setTimeout(handleScrollEnd, 180)
-    }
     const supportsScrollEnd = 'onscrollend' in window
+    const handleScroll = () => {
+      // Also catch re-entry during momentum or keyboard scrolling. Use the
+      // cached boundary so the scroll listener doesn't measure layout.
+      if (window.scrollY < approachSnapY - 1) setFreeScroll(false)
+      if (!supportsScrollEnd) {
+        clearTimeout(settleTimeout)
+        settleTimeout = setTimeout(handleScrollEnd, 180)
+      }
+    }
     root.classList.add('hero-project-pagination-active')
     handleScrollEnd()
     if (supportsScrollEnd) window.addEventListener('scrollend', handleScrollEnd)
-    else window.addEventListener('scroll', scheduleScrollEnd, { passive: true })
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('touchstart', handleTouchStart, { passive: true })
+    window.addEventListener('touchmove', handleTouchMove, { passive: true })
+    window.addEventListener('touchend', handleTouchEnd, { passive: true })
+    window.addEventListener('touchcancel', handleTouchEnd, { passive: true })
+    window.addEventListener('wheel', handleWheel, { passive: true })
+    window.addEventListener('resize', measureBoundary, { passive: true })
 
     return () => {
       window.removeEventListener('scrollend', handleScrollEnd)
-      window.removeEventListener('scroll', scheduleScrollEnd)
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('touchstart', handleTouchStart)
+      window.removeEventListener('touchmove', handleTouchMove)
+      window.removeEventListener('touchend', handleTouchEnd)
+      window.removeEventListener('touchcancel', handleTouchEnd)
+      window.removeEventListener('wheel', handleWheel)
+      window.removeEventListener('resize', measureBoundary)
       clearTimeout(settleTimeout)
       root.classList.remove('hero-project-pagination-active')
-      root.classList.remove('hero-project-pagination-relaxed')
+      root.classList.remove('hero-project-pagination-free')
     }
   }, [isMobileViewport, projects.length])
 
