@@ -12,6 +12,10 @@ comments, or raw IP addresses are collected by this feature.
 - The essay remains server-rendered. Highlighte.rs loads only when marks exist;
   it paints overlays without modifying the text or links. Overlapping passages
   are painted once. Native mobile selection remains available.
+- The selection button leaves 64px for the native touch-selection menu (8px on
+  desktop), follows selection-handle adjustments and viewport movement, and
+  falls below the visible passage when there isn't room above. Touch release
+  also refreshes the selection so it doesn't depend on `selectionchange` alone.
 - `GET /api/notes/highlights?noteId=…` returns public anchors, distinct reader
   counts, browser-specific ownership, and the text version. Responses are private
   and not cached. The client refreshes on focus and every minute while visible.

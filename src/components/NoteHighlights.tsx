@@ -25,16 +25,28 @@ export function NoteHighlights({ noteId, version, children }: { noteId: string; 
   const [menuOpen, setMenuOpen] = useState(false)
   const [ready, setReady] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [touchSelection, setTouchSelection] = useState(false)
   const [error, setError] = useState('')
   const [announcement, setAnnouncement] = useState('')
   const activeRef = useRef(active)
   activeRef.current = active
-  const anchorRef = useRef({ getBoundingClientRect: () => new DOMRect() })
+  const anchorRef = useRef<{ contextElement?: Element; getBoundingClientRect: () => DOMRect }>({ getBoundingClientRect: () => new DOMRect() })
+  anchorRef.current.contextElement = rootRef.current || undefined
   anchorRef.current.getBoundingClientRect = () => {
     const range = activeRef.current?.range
-    // Keep the selection action just above the first selected line.
-    const rects = range?.getClientRects()
-    return rects?.length ? rects[0] : range?.getBoundingClientRect() || new DOMRect()
+    const viewport = window.visualViewport
+    const top = viewport?.offsetTop || 0
+    const bottom = top + (viewport?.height || window.innerHeight)
+    const rects = Array.from(range?.getClientRects() || []).filter((rect) => rect.width && rect.height && rect.bottom > top && rect.top < bottom)
+    if (!rects.length) return range?.getBoundingClientRect() || new DOMRect()
+    if (!touchSelection) return rects[0]
+    // On touch screens, anchor to the visible selection as a whole. If there
+    // isn't room above it, Radix can place the action below the last line.
+    const left = Math.min(...rects.map((rect) => rect.left))
+    const right = Math.max(...rects.map((rect) => rect.right))
+    const first = Math.max(top, Math.min(...rects.map((rect) => rect.top)))
+    const last = Math.min(bottom, Math.max(...rects.map((rect) => rect.bottom)))
+    return new DOMRect(left, first, right - left, last - first)
   }
   const current = active ? highlights.find((h) => h.start === active.anchor.start && h.end === active.anchor.end) : null
 
@@ -104,6 +116,7 @@ export function NoteHighlights({ noteId, version, children }: { noteId: string; 
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>
+    setTouchSelection(navigator.maxTouchPoints > 0 || window.matchMedia('(pointer: coarse)').matches)
     const updateSelection = () => {
       clearTimeout(timer)
       timer = setTimeout(() => {
@@ -121,8 +134,22 @@ export function NoteHighlights({ noteId, version, children }: { noteId: string; 
         setActive({ anchor, range, fromSelection: true })
       }, 180)
     }
+    // Mobile browsers can finalize a long-press or selection-handle drag only
+    // on release. Don't rely on selectionchange alone, or cancel native selection.
+    const onTouchEnd = () => { setTouchSelection(true); updateSelection() }
+    const onPointerUp = (event: PointerEvent) => {
+      setTouchSelection(event.pointerType === 'touch' || event.pointerType === 'pen')
+      updateSelection()
+    }
     document.addEventListener('selectionchange', updateSelection)
-    return () => { clearTimeout(timer); document.removeEventListener('selectionchange', updateSelection) }
+    document.addEventListener('touchend', onTouchEnd, { passive: true })
+    document.addEventListener('pointerup', onPointerUp, { passive: true })
+    return () => {
+      clearTimeout(timer)
+      document.removeEventListener('selectionchange', updateSelection)
+      document.removeEventListener('touchend', onTouchEnd)
+      document.removeEventListener('pointerup', onPointerUp)
+    }
   }, [])
 
   async function save(remove = false) {
@@ -223,7 +250,10 @@ export function NoteHighlights({ noteId, version, children }: { noteId: string; 
         <PopoverContent
           ref={panelRef}
           className={cn(active?.fromSelection ? 'z-50 outline-none' : panelClass, 'note-highlight-action')}
-          side="top" sideOffset={8}
+          // Leave room for the native Copy/Look Up menu, which is drawn above
+          // the webpage and cannot be covered with a higher CSS z-index.
+          side="top" sideOffset={active?.fromSelection && touchSelection ? 64 : 8}
+          updatePositionStrategy="always"
           collisionPadding={16} aria-label="Highlight passage"
           onOpenAutoFocus={(event) => { if (active?.fromSelection) event.preventDefault() }}
           onCloseAutoFocus={(event) => { event.preventDefault(); if (panelRef.current?.contains(document.activeElement)) menuRef.current?.focus({ preventScroll: true }) }}
@@ -232,7 +262,16 @@ export function NoteHighlights({ noteId, version, children }: { noteId: string; 
           {active?.fromSelection ? (
             <>
               <button type="button" className={cn(actionClass, 'shadow-lg')} disabled={!ready || saving}
-                onPointerDown={(event) => event.preventDefault()} onClick={() => void save()}>
+                onPointerDown={(event) => event.preventDefault()}
+                onPointerUp={(event) => {
+                  // Commit on touch release before Safari can collapse the
+                  // selection and remove the button ahead of its delayed click.
+                  if (event.pointerType === 'touch' || event.pointerType === 'pen') {
+                    event.preventDefault()
+                    void save()
+                  }
+                }}
+                onClick={() => void save()}>
                 {saving ? 'Saving…' : 'Highlight'}
               </button>
               {error ? <p role="alert" className="mt-2 max-w-64 rounded-lg bg-background p-3 text-sm text-content shadow-lg">{error}</p> : null}
