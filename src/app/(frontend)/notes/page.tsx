@@ -1,6 +1,5 @@
 import { Container } from '@/components/Container'
 import { FitText } from '@/components/FitText'
-import { NotesSubscribeForm, type SubscriptionMessage } from '@/components/NotesSubscribeForm'
 import { buildPageMetadata } from '@/lib/pageMetadata'
 import { getPublishedNotes } from '@/lib/queries'
 import type { Metadata } from 'next'
@@ -33,18 +32,7 @@ export function generateMetadata(): Metadata {
   }
 }
 
-type NotesPageProps = {
-  searchParams: Promise<{ subscription?: string | string[] }>
-}
-
-export default async function NotesPage({ searchParams }: NotesPageProps) {
-  const rawSubscription = (await searchParams).subscription
-  const subscription = Array.isArray(rawSubscription) ? rawSubscription[0] : rawSubscription
-  const initialMessage = (
-    subscription === 'confirmed' || subscription === 'unsubscribed' || subscription === 'invalid'
-      ? subscription
-      : undefined
-  ) as SubscriptionMessage | undefined
+export default async function NotesPage() {
   const { docs: notes } = await getPublishedNotes()
   const grouped: Record<string, typeof notes> = {}
 
@@ -97,10 +85,6 @@ export default async function NotesPage({ searchParams }: NotesPageProps) {
             <p className="text-body text-muted">No notes published yet.</p>
           </div>
         )}
-
-        <div className="mt-20 tablet:mt-28">
-          <NotesSubscribeForm initialMessage={initialMessage} />
-        </div>
       </Container>
     </section>
   )

@@ -1,6 +1,5 @@
 import { Container } from '@/components/Container'
 import { LazyModuleLikeButton } from '@/components/LazyModuleLikeButton'
-import { NotesSubscribeForm } from '@/components/NotesSubscribeForm'
 import { RichText } from '@/components/RichText'
 import { getNoteLikeTargetId } from '@/lib/moduleLikes'
 import { buildPageMetadata } from '@/lib/pageMetadata'
@@ -127,9 +126,6 @@ export default async function NotePage({ params }: NotePageProps) {
           </section>
         ) : null}
 
-        <div className="mt-20 tablet:mt-28">
-          <NotesSubscribeForm />
-        </div>
       </Container>
     </article>
   )
