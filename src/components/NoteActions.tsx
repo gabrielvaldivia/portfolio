@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Eye, Highlighter } from 'lucide-react'
+import * as Switch from '@radix-ui/react-switch'
 import { LazyModuleLikeButton, ModuleLikeButtonShell } from '@/components/LazyModuleLikeButton'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover'
 import type { PublicHighlight } from '@/lib/noteHighlightAnchors'
@@ -13,6 +14,8 @@ type NoteActionsProps = {
   visitorReady: boolean
   highlights: PublicHighlight[]
   highlightsReady: boolean
+  highlightsVisible: boolean
+  onHighlightsVisibleChange: (visible: boolean) => void
   error: string
   onSelectHighlight: (highlight: PublicHighlight) => void
   onRefreshHighlights: () => void
@@ -53,9 +56,10 @@ function NoteViews({ noteId, enabled }: { noteId: string; enabled: boolean }) {
   )
 }
 
-export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, highlightsReady, error, onSelectHighlight, onRefreshHighlights, onOpenHighlights }: NoteActionsProps) {
+export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, highlightsReady, highlightsVisible, onHighlightsVisibleChange, error, onSelectHighlight, onRefreshHighlights, onOpenHighlights }: NoteActionsProps) {
   const [mounted, setMounted] = useState(false)
   const [open, setOpen] = useState(false)
+  const popoverRef = useRef<HTMLDivElement>(null)
   useEffect(() => { setMounted(true) }, [])
   if (!mounted) return null
 
@@ -77,9 +81,23 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, hi
               <span className="tabular-nums" aria-hidden="true">{highlightsReady ? highlights.length : '—'}</span>
             </button>
           </PopoverTrigger>
-          <PopoverContent side="top" sideOffset={14} collisionPadding={16} aria-label="Highlighted passages"
-            className="z-50 flex max-h-[min(28rem,var(--radix-popover-content-available-height))] w-80 max-w-[calc(100vw-32px)] flex-col overflow-hidden rounded-2xl border border-border bg-elevated text-sm text-content shadow-lg outline-none">
-            <p className="shrink-0 px-5 py-4 text-sm font-medium">Highlights</p>
+          <PopoverContent ref={popoverRef} side="top" sideOffset={14} collisionPadding={16} aria-label="Highlighted passages"
+            onOpenAutoFocus={(event) => {
+              // Open neutrally, rather than drawing a focus ring around the first
+              // control. Tab still moves into the switch and quotes normally.
+              event.preventDefault()
+              popoverRef.current?.focus({ preventScroll: true })
+            }}
+            className="z-50 flex max-h-[min(28rem,var(--radix-popover-content-available-height))] w-80 max-w-[calc(100vw-32px)] flex-col overflow-hidden rounded-2xl bg-elevated text-sm text-content shadow-lg outline-none">
+            <div className="flex shrink-0 items-center justify-between gap-4 px-5 py-2">
+              <p className="text-sm font-medium">Highlights</p>
+              <Switch.Root checked={highlightsVisible} onCheckedChange={onHighlightsVisibleChange} aria-label="Show highlights"
+                className="group flex size-11 shrink-0 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content">
+                <span aria-hidden="true" className="flex h-5 w-9 rounded-full bg-border-strong p-0.5 group-data-[state=checked]:bg-content">
+                  <Switch.Thumb className="block size-4 rounded-full bg-background data-[state=checked]:translate-x-4" />
+                </span>
+              </Switch.Root>
+            </div>
             {error && !highlightsReady ? (
               <div className="px-5 pb-4">
                 <p role="alert">{error}</p>

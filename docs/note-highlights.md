@@ -1,9 +1,12 @@
 # Public note highlights
 
 Readers select 3–1,000 characters in a published note and choose **Highlight**.
-Marks are public and always visible; tapping one shows its reader count and an
-add/remove action. There is no show/hide menu, and the former local visibility
-preference is ignored. Ownership uses the existing HTTP-only `gv_module_liker` cookie:
+Marks are public and visible by default; tapping one shows its reader count and an
+add/remove action. A minimal switch beside “Highlights” in the activity popover
+hides or shows the marks, without changing saved quotes or counts. Visibility is
+remembered across notes and reloads in `gv-note-highlights-visible-v1` local storage.
+The quote list and jump-to-passage actions still work when marks are hidden.
+Ownership uses the existing HTTP-only `gv_module_liker` cookie:
 it is remembered in that browser, not synced between devices. No accounts, emails,
 comments, or raw IP addresses are collected by this feature.
 

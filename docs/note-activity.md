@@ -8,6 +8,10 @@ not make it scroll with the article.
 - The highlight count is the number of distinct, currently resolvable passages,
   not the number of readers. The popover lists every quote in document order;
   selecting one jumps to its first line. Existing selection/highlight actions remain.
+  A switch beside the popover title shows/hides marks and remembers the reader's
+  preference across notes. It does not delete highlights or hide the quote list.
+  The borderless popover opens with neutral focus on its container, not an outlined
+  control. Keyboard users can Tab into the switch and quote list with visible focus.
 - Views begin at launch. A browser counts once per note per UTC calendar day.
   Only visible, mounted note pages record views, not server renders or prefetches.
   Unavailable counts display a dash, never a fabricated zero.

@@ -10,6 +10,7 @@ import { MAX_HIGHLIGHT_LENGTH, type HighlightAnchor, type HighlightResponse, typ
 import { cn } from '@/lib/cn'
 
 type ActivePassage = { anchor: HighlightAnchor; range: Range; fromSelection: boolean }
+const visibilityStorageKey = 'gv-note-highlights-visible-v1'
 const panelClass = 'z-50 flex w-72 max-w-[calc(100vw-32px)] max-h-[calc(100dvh-2rem-env(safe-area-inset-bottom))] flex-col gap-3 overflow-y-auto rounded-2xl border border-border bg-background p-4 text-sm text-content shadow-lg outline-none'
 const actionClass = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-content px-4 py-2 text-background disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content'
 
@@ -23,6 +24,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
   const [active, setActive] = useState<ActivePassage | null>(null)
   const [ready, setReady] = useState(false)
   const [visitorReady, setVisitorReady] = useState(false)
+  const [highlightsVisible, setHighlightsVisible] = useState(true)
   const [saving, setSaving] = useState(false)
   const [touchSelection, setTouchSelection] = useState(false)
   const [error, setError] = useState('')
@@ -48,6 +50,25 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
     return new DOMRect(left, first, right - left, last - first)
   }
   const current = active ? highlights.find((h) => h.start === active.anchor.start && h.end === active.anchor.end) : null
+
+  useEffect(() => {
+    try { setHighlightsVisible(localStorage.getItem(visibilityStorageKey) !== 'false') } catch { /* Storage is optional. */ }
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === visibilityStorageKey || event.key === null) {
+        const visible = event.newValue !== 'false'
+        setHighlightsVisible(visible)
+        if (!visible) setActive((current) => current?.fromSelection ? current : null)
+      }
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
+
+  function changeHighlightsVisible(visible: boolean) {
+    setHighlightsVisible(visible)
+    if (!visible) setActive((current) => current?.fromSelection ? current : null)
+    try { localStorage.setItem(visibilityStorageKey, String(visible)) } catch { /* Still works for this visit. */ }
+  }
 
   const refresh = useCallback(async () => {
     if (savingRef.current) return
@@ -91,7 +112,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
 
   useEffect(() => {
     const root = rootRef.current
-    if (!root || !ready || !highlights.length) return
+    if (!root || !ready || !highlightsVisible || !highlights.length) return
     let disposed = false
     const handles: { remove(): void }[] = []
     void import('@highlighters/core').then(({ highlight }) => {
@@ -113,7 +134,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
       }
     }).catch(() => { if (!disposed) setError('Highlights could not be displayed. Please refresh to try again.') })
     return () => { disposed = true; handles.forEach((handle) => handle.remove()) }
-  }, [highlights, ready])
+  }, [highlights, ready, highlightsVisible])
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>
@@ -181,7 +202,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
   return (
     <div className="note-highlights">
       <div ref={rootRef} data-note-highlight-body tabIndex={-1} className="relative outline-none" onClick={(event) => {
-        if (!ready || window.getSelection()?.toString() || (event.target as Element).closest('a, button')) return
+        if (!ready || !highlightsVisible || window.getSelection()?.toString() || (event.target as Element).closest('a, button')) return
         const root = rootRef.current
         if (!root) return
         // Overlays are non-interactive; hit-test real text without changing links or selection.
@@ -199,6 +220,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
 
       <NoteActions noteId={noteId} likeTargetId={likeTargetId} visitorReady={visitorReady}
         highlights={highlights} highlightsReady={ready} error={error}
+        highlightsVisible={highlightsVisible} onHighlightsVisibleChange={changeHighlightsVisible}
         onRefreshHighlights={() => void refresh()}
         onOpenHighlights={() => { setActive(null); window.getSelection()?.removeAllRanges() }}
         onSelectHighlight={(mark) => {
