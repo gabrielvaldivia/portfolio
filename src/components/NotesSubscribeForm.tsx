@@ -1,7 +1,5 @@
 'use client'
 
-import { ArrowRight02Icon } from '@hugeicons/core-free-icons'
-import { HugeiconsIcon } from '@hugeicons/react'
 import { useState } from 'react'
 
 export type SubscriptionMessage = 'confirmed' | 'invalid' | 'unsubscribed'
@@ -55,14 +53,14 @@ export function NotesSubscribeForm({ initialMessage }: { initialMessage?: Subscr
         Get new notes by email
       </h3>
 
-      <form className="mt-6" onSubmit={handleSubmit} noValidate>
-        <div className="relative flex min-h-12 min-w-0 items-center border-b border-border">
-          <label className="sr-only" htmlFor="notes-subscribe-email">Email address</label>
+      <form className="mt-6 flex flex-col gap-4 tablet:flex-row tablet:items-end" onSubmit={handleSubmit} noValidate>
+        <label className="flex min-h-12 min-w-0 flex-1 items-center border-b border-border">
+          <span className="sr-only">Email address</span>
           <input
             aria-describedby={error ? 'notes-subscribe-error' : undefined}
             aria-invalid={Boolean(error)}
             autoComplete="email"
-            className="w-full bg-transparent pr-12 text-left text-body text-content outline-none placeholder:text-muted"
+            className="w-full bg-transparent text-left text-body text-content outline-none placeholder:text-muted"
             id="notes-subscribe-email"
             name="email"
             onChange={(event) => setEmail(event.target.value)}
@@ -70,21 +68,18 @@ export function NotesSubscribeForm({ initialMessage }: { initialMessage?: Subscr
             type="email"
             value={email}
           />
-          {email.length > 0 ? (
-            <button
-              aria-label="Subscribe to Notes"
-              className="absolute right-0 flex size-10 cursor-pointer items-center justify-center rounded-full text-content transition-opacity duration-150 hover:opacity-60 disabled:cursor-default disabled:opacity-50"
-              disabled={submitting}
-              type="submit"
-            >
-              <HugeiconsIcon aria-hidden="true" icon={ArrowRight02Icon} size={20} strokeWidth={1.5} />
-            </button>
-          ) : null}
-        </div>
+        </label>
         <div className="absolute -left-[9999px]" aria-hidden="true">
           <label htmlFor="notes-subscribe-website">Website</label>
           <input id="notes-subscribe-website" name="website" tabIndex={-1} type="text" />
         </div>
+        <button
+          className="w-fit cursor-pointer rounded-full border border-border-strong px-5 py-2.5 text-body transition-colors duration-150 hover:bg-background-alt-hover disabled:cursor-default disabled:opacity-50"
+          disabled={submitting}
+          type="submit"
+        >
+          {submitting ? 'Subscribing…' : 'Subscribe'}
+        </button>
       </form>
 
       <div className="mt-3 text-center text-[14px] leading-6" aria-live="polite">
