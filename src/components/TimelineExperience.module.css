@@ -237,7 +237,7 @@
 .chapterDescription {
   max-width: 68ch;
   margin: 24px 0 0;
-  color: var(--color-content);
+  color: var(--color-muted);
   font-size: clamp(16px, 1.25vw, 20px);
   line-height: 1.5;
   text-wrap: pretty;
