@@ -86,46 +86,33 @@ export default async function NotePage({ params }: NotePageProps) {
           <RichText data={note.body} renderLinkedImages />
         </div>
 
-        <div className="mt-12 max-w-[760px] border-t border-border pt-6">
-          <LazyModuleLikeButton
-            noun="note"
-            targetId={getNoteLikeTargetId(note.slug)}
-          />
+        <div className="mt-12 flex max-w-[760px] items-center justify-between gap-4 border-t border-border pt-6">
+          <div className="shrink-0">
+            <LazyModuleLikeButton
+              noun="note"
+              targetId={getNoteLikeTargetId(note.slug)}
+            />
+          </div>
+          {readNextNote?.slug ? (
+            <Link
+              className="ml-auto inline-flex min-w-0 items-center justify-end gap-2 text-right text-[16px] font-medium transition-opacity hover:opacity-60"
+              href={`/notes/${readNextNote.slug}`}
+            >
+              <span className="line-clamp-2">{readNextNote.title}</span>
+              <HugeiconsIcon
+                aria-hidden="true"
+                className="shrink-0"
+                icon={ArrowRight02Icon}
+                size={18}
+                strokeWidth={1.5}
+              />
+            </Link>
+          ) : null}
         </div>
 
         <div className="mt-20 tablet:mt-28">
           <NotesSubscribeForm />
         </div>
-
-        {readNextNote?.slug ? (
-          <section
-            className="mt-20 flex max-w-[760px] flex-col gap-5 tablet:mt-28"
-            aria-labelledby="continue-reading-heading"
-          >
-            <p className="text-[16px] font-medium" id="continue-reading-heading">
-              Continue reading
-            </p>
-            <Link
-              className="block rounded-[16px] bg-background-alt p-6 transition-colors hover:bg-background-alt-hover tablet:p-8"
-              href={`/notes/${readNextNote.slug}`}
-            >
-              <div className="flex flex-col gap-4">
-                <h3 className="text-balance text-[24px] leading-[1.2] tablet:text-[30px]">
-                  {readNextNote.title}
-                </h3>
-                {readNextNote.excerpt ? (
-                  <p className="text-pretty text-[18px] leading-[1.5] text-muted tablet:text-[20px]">
-                    {readNextNote.excerpt}
-                  </p>
-                ) : null}
-              </div>
-              <span className="mt-6 inline-flex items-center gap-2 text-[16px] font-medium">
-                Read now
-                <HugeiconsIcon aria-hidden="true" icon={ArrowRight02Icon} size={18} strokeWidth={1.5} />
-              </span>
-            </Link>
-          </section>
-        ) : null}
       </Container>
     </article>
   )
