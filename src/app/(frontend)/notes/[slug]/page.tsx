@@ -16,6 +16,20 @@ type NotePageProps = {
   params: Promise<{ slug: string }>
 }
 
+const noteDateFormatter = new Intl.DateTimeFormat('en-US', {
+  day: 'numeric',
+  month: 'long',
+  timeZone: 'UTC',
+  year: 'numeric',
+})
+
+function formatNoteDate(value?: string | null) {
+  if (!value) return null
+
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? null : noteDateFormatter.format(date)
+}
+
 export async function generateStaticParams() {
   try {
     const slugs = await getPublishedNoteSlugs()
@@ -54,6 +68,7 @@ export default async function NotePage({ params }: NotePageProps) {
   if (!note) notFound()
 
   const coverImage = typeof note.coverImage === 'object' ? note.coverImage : null
+  const noteDate = formatNoteDate(note.publishedAt || note.createdAt)
   const readNextNotes = await getReadNextNotes(note.id, note.publishedAt)
 
   return (
@@ -64,6 +79,7 @@ export default async function NotePage({ params }: NotePageProps) {
             <h1 className="max-w-[1100px] text-balance text-[40px] leading-[1.05] tablet:text-[64px] desktop:text-[80px]">
               {note.title}
             </h1>
+            {noteDate ? <p className="mt-6 text-[16px] text-muted tablet:text-[18px]">{noteDate}</p> : null}
           </header>
         </div>
 
