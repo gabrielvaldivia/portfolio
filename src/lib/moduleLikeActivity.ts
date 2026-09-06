@@ -15,12 +15,14 @@ import {
 import {
   MODULE_LIKE_ACTIVITY_PAGE_SIZE,
   MODULE_LIKE_FEED_PAGE_SIZE,
+  normalizeActivityCursor,
 } from '@/lib/moduleLikeActivityPagination'
 import { getPhotos, type Photo, type PhotoExif } from '@/lib/photos'
+import { noteHighlightActivityRows, resolveHighlightActivity, type HighlightActivityData } from '@/lib/noteHighlightActivity'
 
 type PortfolioActivityRow = {
   activity_id: string
-  event_type: 'chat' | 'like'
+  event_type: 'chat' | 'like' | 'highlight'
   entity_id: number | string
   target_id: string | null
   amount: number | string | null
@@ -31,6 +33,7 @@ type PortfolioActivityRow = {
   latitude: number | string | null
   longitude: number | string | null
   activity_at: string | Date
+  highlight: HighlightActivityData | null
 }
 
 type ModuleLikeFeedRow = {
@@ -90,7 +93,8 @@ type ActivityTarget = {
 
 export type ModuleLikeActivityItem = {
   id: string
-  eventType: 'chat' | 'like'
+  eventType: 'chat' | 'like' | 'highlight'
+  quote?: string
   targetId: string
   amount: number
   createdAt: string
@@ -681,20 +685,6 @@ function normalizePageLimit(limit: number | null | undefined) {
   return normalizedLimit > 0 ? normalizedLimit : null
 }
 
-function normalizeActivityCursor(cursor: ModuleLikeActivityCursor | null | undefined) {
-  if (!cursor) return null
-
-  const createdAt = new Date(cursor.createdAt)
-  const id = typeof cursor.id === 'string' ? cursor.id.trim() : ''
-
-  if (Number.isNaN(createdAt.getTime()) || !/^(chat|like):\d+$/.test(id)) return null
-
-  return {
-    createdAt: createdAt.toISOString(),
-    id,
-  }
-}
-
 function normalizeFeedCursor(cursor: ModuleLikeFeedCursor | null | undefined) {
   if (!cursor) return null
 
@@ -764,6 +754,26 @@ function getActivityItem(row: PortfolioActivityRow, targetIndex: Map<string, Act
   }
 
   if (!row.target_id) return null
+  if (row.event_type === 'highlight') {
+    const highlight = resolveHighlightActivity(row.highlight)
+    if (!highlight) return null
+    return {
+      id: row.activity_id,
+      eventType: 'highlight' as const,
+      targetId: row.target_id,
+      amount: Math.max(1, Number(row.amount) || 1),
+      createdAt: normalizedCreatedAt,
+      location: '', city: '', region: '', country: '',
+      quote: highlight.quote,
+      target: {
+        href: highlight.href,
+        sourceTitle: highlight.title,
+        label: highlight.title,
+        noun: 'note',
+        thumbnail: targetIndex.get(row.target_id)?.thumbnail || null,
+      },
+    }
+  }
   const target = getResolvedActivityTarget(targetIndex, row.target_id)
   if (!target) return null
 
@@ -878,8 +888,13 @@ export async function getModuleLikeActivityPage({
           "country",
           NULL::numeric AS "latitude",
           NULL::numeric AS "longitude",
-          "created_at" AS "activity_at"
+          "created_at" AS "activity_at",
+          NULL::jsonb AS "highlight"
         FROM "module_like_events"
+
+        UNION ALL
+
+        ${noteHighlightActivityRows}
 
         UNION ALL
 
@@ -895,11 +910,12 @@ export async function getModuleLikeActivityPage({
           NULL::varchar AS "country",
           "latitude",
           "longitude",
-          "created_at" AS "activity_at"
+          "created_at" AS "activity_at",
+          NULL::jsonb AS "highlight"
         FROM "grouped_conversations"
         WHERE "session_rank" = 1
       )
-      SELECT "activity_id", "event_type", "entity_id", "target_id", "amount", "location", "city", "region", "country", "latitude", "longitude", "activity_at"
+      SELECT "activity_id", "event_type", "entity_id", "target_id", "amount", "location", "city", "region", "country", "latitude", "longitude", "activity_at", "highlight"
       FROM "activity_rows"
       ${cursorFilter}
       ORDER BY "activity_at" DESC, "activity_id" DESC
@@ -963,8 +979,13 @@ export async function getModuleLikeActivityPage({
           "country",
           NULL::numeric AS "latitude",
           NULL::numeric AS "longitude",
-          "created_at" AS "activity_at"
+          "created_at" AS "activity_at",
+          NULL::jsonb AS "highlight"
         FROM "module_like_events"
+
+        UNION ALL
+
+        ${noteHighlightActivityRows}
 
         UNION ALL
 
@@ -980,11 +1001,12 @@ export async function getModuleLikeActivityPage({
           NULL::varchar AS "country",
           "latitude",
           "longitude",
-          "created_at" AS "activity_at"
+          "created_at" AS "activity_at",
+          NULL::jsonb AS "highlight"
         FROM "grouped_conversations"
         WHERE "session_rank" = 1
       )
-      SELECT "activity_id", "event_type", "entity_id", "target_id", "amount", "location", "city", "region", "country", "latitude", "longitude", "activity_at"
+      SELECT "activity_id", "event_type", "entity_id", "target_id", "amount", "location", "city", "region", "country", "latitude", "longitude", "activity_at", "highlight"
       FROM "activity_rows"
       ${cursorFilter}
       ORDER BY "activity_at" DESC, "activity_id" DESC

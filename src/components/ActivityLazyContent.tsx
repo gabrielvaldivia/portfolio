@@ -136,6 +136,7 @@ function getActivitySectionTitle(value: string, now: Date) {
 }
 
 function getActivityMergeKey(item: ModuleLikeActivityItem) {
+  if (item.eventType === 'highlight') return item.id
   return [
     item.eventType,
     item.targetId,
@@ -165,7 +166,7 @@ function mergeConsecutiveActivityItems(items: ModuleLikeActivityItem[]) {
 
     mergedItems.push({
       ...item,
-      count: item.eventType === 'chat' ? item.amount : 1,
+      count: item.eventType === 'like' ? 1 : item.amount,
       mergeKey,
     })
     return mergedItems
@@ -196,6 +197,12 @@ function getLikePhrase(noun: string, isSuperlike: boolean) {
 
 function getActivitySentenceParts(item: ActivityDisplayItem) {
   const location = item.location
+  if (item.eventType === 'highlight') {
+    return {
+      action: `highlighted a passage in “${item.target.sourceTitle}”`,
+      location: '', repetitions: '', source: '',
+    }
+  }
   if (item.eventType === 'chat') {
     return {
       action: item.count > 1 ? `started ${item.count} chats` : 'started a chat',
@@ -227,12 +234,16 @@ function getActivitySentenceParts(item: ActivityDisplayItem) {
   }
 }
 
+function getActivitySubject(item: ActivityDisplayItem) {
+  return item.eventType === 'highlight' && item.count > 1 ? `${item.count} readers` : 'Someone'
+}
+
 function getActivitySentence(item: ActivityDisplayItem) {
   const { action, location, repetitions, source } = getActivitySentenceParts(item)
   const locationText = location ? ` from ${location}` : ''
   const sourceText = source ? ` in ${source}` : ''
 
-  return `Someone${locationText} ${action}${sourceText}${repetitions}`
+  return `${getActivitySubject(item)}${locationText} ${action}${sourceText}${repetitions}${item.quote ? `: “${item.quote}”` : ''}`
 }
 
 function getCountryFlagUrl(country: string) {
@@ -250,7 +261,7 @@ function ActivitySentence({ item }: { item: ActivityDisplayItem }) {
 
   return (
     <p className="text-body text-pretty">
-      Someone
+      {getActivitySubject(item)}
       {location ? (
         <>
           {' from '}
@@ -559,6 +570,7 @@ function ActivityText({ item, nowMs }: { item: ActivityDisplayItem; nowMs: numbe
   return (
     <div className="min-w-0">
       <ActivitySentence item={item} />
+      {item.quote ? <p className="line-clamp-3 pt-2 text-body text-muted">“{item.quote}”</p> : null}
       <p className="pt-2 truncate text-caption text-muted tabular-nums">
         <time dateTime={item.createdAt}>{timeLabel}</time>
       </p>

@@ -8,6 +8,15 @@ same controls mounted without scroll listeners or duplicated counters. The
 essay retains its 760px reading width; the pill is centered in the full page
 container on desktop as well as mobile.
 
+The chronological `/activity` view includes saved highlights alongside likes and
+chats. Each distinct passage shows the note title, a quote preview, a reader count
+when more than one reader highlighted it, and the latest highlight date. Entries
+link to the note. Existing highlights are included automatically; removing the
+last reader's highlight removes the entry. Unpublished notes and quotes that no
+longer resolve in the published body are omitted. Reader identities and full note
+bodies are never returned by the activity API. The image-only Feed view is unchanged.
+Run `npm run test:highlight-activity` for isolated query and pagination checks.
+
 - Likes use the existing module-like target, counters, super likes, and activity events.
 - The highlight count is the number of distinct, currently resolvable passages,
   not the number of readers. The popover lists every quote in document order;
