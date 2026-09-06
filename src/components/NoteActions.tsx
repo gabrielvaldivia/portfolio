@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
 import { Eye, Highlighter } from 'lucide-react'
 import * as Switch from '@radix-ui/react-switch'
 import { LazyModuleLikeButton, ModuleLikeButtonShell } from '@/components/LazyModuleLikeButton'
@@ -34,6 +34,14 @@ type NoteActionsProps = {
 
 function NoteViews({ noteId, enabled }: { noteId: string; enabled: boolean }) {
   const [count, setCount] = useState<number | null>(null)
+  const [tooltipOpen, setTooltipOpen] = useState(false)
+  const tooltipId = useId()
+
+  useEffect(() => {
+    if (!tooltipOpen) return
+    const timer = setTimeout(() => setTooltipOpen(false), 2000)
+    return () => clearTimeout(timer)
+  }, [tooltipOpen])
 
   useEffect(() => {
     if (!enabled) return
@@ -57,12 +65,23 @@ function NoteViews({ noteId, enabled }: { noteId: string; enabled: boolean }) {
   }, [noteId, enabled])
 
   return (
-    <span role="img" className="inline-flex h-11 min-w-11 items-center justify-center gap-1.5 px-3 text-sm font-medium text-muted"
-      aria-label={count === null ? 'Views unavailable' : `${count.toLocaleString('en-US')} ${count === 1 ? 'view' : 'views'}`}
-      title="Views since launch. Each browser counts once per day.">
-      <Eye className="size-[18px]" aria-hidden="true" />
-      <span className="tabular-nums" aria-hidden="true">{count === null ? '—' : count.toLocaleString('en-US', { notation: 'compact' })}</span>
-    </span>
+    <Popover open={tooltipOpen} onOpenChange={setTooltipOpen}>
+      <PopoverTrigger asChild>
+        <button type="button" data-note-views
+          className="inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted hover:bg-background-alt hover:text-content focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content"
+          aria-label={count === null ? 'Views unavailable' : `${count.toLocaleString('en-US')} ${count === 1 ? 'view' : 'views'}`}
+          aria-describedby={tooltipOpen ? tooltipId : undefined} aria-controls={tooltipOpen ? tooltipId : undefined} aria-haspopup={undefined}>
+          <Eye className="size-[18px]" aria-hidden="true" />
+          <span className="tabular-nums" aria-hidden="true">{count === null ? '—' : count.toLocaleString('en-US', { notation: 'compact' })}</span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent id={tooltipId} role="tooltip" side="top" sideOffset={10} collisionPadding={16}
+        onOpenAutoFocus={(event) => event.preventDefault()}
+        onCloseAutoFocus={(event) => event.preventDefault()}
+        className="note-views-tooltip z-50 rounded-xl bg-content px-3 py-2 text-center text-sm font-medium text-inverse shadow-sm outline-none">
+        Views
+      </PopoverContent>
+    </Popover>
   )
 }
 
