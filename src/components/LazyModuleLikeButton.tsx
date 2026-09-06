@@ -52,7 +52,7 @@ export function ModuleLikeButtonShell({
         className={cn(
           'inline-flex touch-manipulation select-none items-center gap-1.5 rounded-full font-medium text-muted transition-colors duration-150',
           variant === 'pill'
-            ? 'h-11 min-w-16 justify-center px-3 text-sm'
+            ? 'h-11 min-w-16 justify-center px-1 text-sm'
             : 'h-8 bg-elevated px-2.5 text-caption shadow-sm outline outline-1 outline-offset-0 outline-gray-400/40',
           'disabled:cursor-default disabled:opacity-70',
         )}
