@@ -32,9 +32,9 @@ export function NoteHighlights({ noteId, version, children }: { noteId: string; 
   const anchorRef = useRef({ getBoundingClientRect: () => new DOMRect() })
   anchorRef.current.getBoundingClientRect = () => {
     const range = activeRef.current?.range
-    // Anchor to the final selected line, not the full multi-paragraph rectangle.
+    // Keep the selection action just above the first selected line.
     const rects = range?.getClientRects()
-    return rects?.length ? rects[rects.length - 1] : range?.getBoundingClientRect() || new DOMRect()
+    return rects?.length ? rects[0] : range?.getBoundingClientRect() || new DOMRect()
   }
   const current = active ? highlights.find((h) => h.start === active.anchor.start && h.end === active.anchor.end) : null
 
@@ -116,7 +116,7 @@ export function NoteHighlights({ noteId, version, children }: { noteId: string; 
         }
         const range = selection.getRangeAt(0).cloneRange()
         const anchor = anchorFromRange(root, range)
-        if (!anchor || anchor.exact.length < 3) { setActive(null); return }
+        if (!anchor || anchor.exact.length < 3 || anchor.exact.length > MAX_HIGHLIGHT_LENGTH) { setActive(null); return }
         setMenuOpen(false)
         setActive({ anchor, range, fromSelection: true })
       }, 180)
@@ -221,12 +221,23 @@ export function NoteHighlights({ noteId, version, children }: { noteId: string; 
       <Popover open={Boolean(active)} onOpenChange={(open) => { if (!open && !savingRef.current) setActive(null) }}>
         <PopoverAnchor virtualRef={anchorRef} />
         <PopoverContent
-          ref={panelRef} className={cn(panelClass, 'note-highlight-action')} side="bottom" sideOffset={12}
+          ref={panelRef}
+          className={cn(active?.fromSelection ? 'z-50 outline-none' : panelClass, 'note-highlight-action')}
+          side="top" sideOffset={8}
           collisionPadding={16} aria-label="Highlight passage"
           onOpenAutoFocus={(event) => { if (active?.fromSelection) event.preventDefault() }}
           onCloseAutoFocus={(event) => { event.preventDefault(); if (panelRef.current?.contains(document.activeElement)) menuRef.current?.focus({ preventScroll: true }) }}
           onInteractOutside={(event) => { if (savingRef.current || window.getSelection()?.toString()) event.preventDefault() }}
         >
+          {active?.fromSelection ? (
+            <>
+              <button type="button" className={cn(actionClass, 'shadow-lg')} disabled={!ready || saving}
+                onPointerDown={(event) => event.preventDefault()} onClick={() => void save()}>
+                {saving ? 'Saving…' : 'Highlight'}
+              </button>
+              {error ? <p role="alert" className="mt-2 max-w-64 rounded-lg bg-background p-3 text-sm text-content shadow-lg">{error}</p> : null}
+            </>
+          ) : <>
           <div className="flex items-center justify-between gap-3">
             <span className="font-medium">{current ? `Highlighted by ${current.count} ${current.count === 1 ? 'reader' : 'readers'}` : 'Highlight passage'}</span>
             <button type="button" aria-label="Close highlight actions" className="inline-flex size-11 shrink-0 items-center justify-center rounded-full hover:bg-background-alt" onClick={() => { setActive(null); window.getSelection()?.removeAllRanges() }}><X className="size-4" aria-hidden="true" /></button>
@@ -239,6 +250,7 @@ export function NoteHighlights({ noteId, version, children }: { noteId: string; 
               <Highlighter className="size-4" aria-hidden="true" />
               {saving ? 'Saving…' : current?.mine ? 'Remove my highlight' : 'Highlight'}
             </button>}
+          </>}
         </PopoverContent>
       </Popover>
       <span role="status" aria-live="polite" className="sr-only">{announcement}</span>
