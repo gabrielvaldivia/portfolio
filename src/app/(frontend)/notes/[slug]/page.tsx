@@ -97,21 +97,23 @@ export default async function NotePage({ params }: NotePageProps) {
             className="mt-20 flex max-w-[760px] flex-col gap-5 tablet:mt-28"
             aria-labelledby="continue-reading-heading"
           >
-            <p className="text-caption" id="continue-reading-heading">
+            <p className="text-[16px] font-medium" id="continue-reading-heading">
               Continue reading
             </p>
             <Link
               className="block rounded-[16px] bg-background-alt p-6 transition-colors hover:bg-background-alt-hover tablet:p-8"
               href={`/notes/${readNextNote.slug}`}
             >
-              <h3 className="text-balance text-[24px] leading-[1.2] tablet:text-[30px]">
-                {readNextNote.title}
-              </h3>
-              {readNextNote.excerpt ? (
-                <p className="mt-6 text-pretty text-[18px] leading-[1.5] text-muted tablet:text-[20px]">
-                  {readNextNote.excerpt}
-                </p>
-              ) : null}
+              <div className="flex flex-col gap-4">
+                <h3 className="text-balance text-[24px] leading-[1.2] tablet:text-[30px]">
+                  {readNextNote.title}
+                </h3>
+                {readNextNote.excerpt ? (
+                  <p className="text-pretty text-[18px] leading-[1.5] text-muted tablet:text-[20px]">
+                    {readNextNote.excerpt}
+                  </p>
+                ) : null}
+              </div>
               <span className="mt-6 inline-flex items-center gap-2 text-[16px] font-medium">
                 Read now
                 <HugeiconsIcon aria-hidden="true" icon={ArrowRight02Icon} size={18} strokeWidth={1.5} />
