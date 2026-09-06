@@ -736,7 +736,16 @@ a {
   font-weight: 600;
 }
 
+.note-page .rich-text :is(h1, h2, h3, h4, h5, h6) {
+  color: var(--color-content);
+}
+
 .note-page .rich-text a {
+  color: var(--color-content);
+  text-decoration: none;
+}
+
+.note-page .rich-text a:is(:hover, :focus-visible) {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
