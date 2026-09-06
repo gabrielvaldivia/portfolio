@@ -3,6 +3,7 @@ import { getVisitor, getVisitorHash, withVisitorCookie } from '@/lib/anonymousVi
 import { getPayload, isPayloadUnavailable } from '@/lib/payload'
 import { getPayloadSecret } from '@/lib/payloadSecret'
 import { getNoteHighlightText, parseHighlightAnchor } from '@/lib/noteHighlightAnchors'
+import { getHighlightRequestLocation } from '@/lib/noteHighlightAttribution'
 import { checkHighlightRateLimit, HighlightError, highlightTextVersion, loadPublicHighlights, writeHighlight } from '@/lib/noteHighlightStore'
 
 export const runtime = 'nodejs'
@@ -57,7 +58,7 @@ async function respond(req: NextRequest, mutate: boolean) {
       if (!await checkHighlightRateLimit(note.db, [`visitor:${visitor.id}`, `ip:${ip}`], getPayloadSecret())) {
         throw new HighlightError('Too many highlights at once. Please try again later.', 429)
       }
-      await writeHighlight(note.db, note.id, note.text, visitorHash, anchor, req.method === 'DELETE')
+      await writeHighlight(note.db, note.id, note.text, visitorHash, anchor, req.method === 'DELETE', getHighlightRequestLocation(req.headers))
     }
     return withVisitorCookie({
       highlights: await loadPublicHighlights(note.db, note.id, note.text, visitorHash), version: note.version,

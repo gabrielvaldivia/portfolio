@@ -5,6 +5,7 @@ import { drizzle } from 'drizzle-orm/pglite'
 import { PgDialect } from 'drizzle-orm/pg-core'
 import { sql } from '@payloadcms/db-postgres'
 import { up } from '../src/migrations/20260906_120000_add_note_highlights'
+import { up as addLocations } from '../src/migrations/20260906_180000_add_highlight_locations'
 import { getNoteHighlightText, makeHighlightAnchor, normalizeHighlightText, parseHighlightAnchor, resolveHighlightAnchor } from '../src/lib/noteHighlightAnchors'
 import { checkHighlightRateLimit, highlightTextVersion, loadPublicHighlights, writeHighlight } from '../src/lib/noteHighlightStore'
 
@@ -18,6 +19,7 @@ const anchor = makeHighlightAnchor(text, start, start + exact.length)
 before(async () => {
   await client.exec('CREATE TABLE notes (id integer PRIMARY KEY); INSERT INTO notes VALUES (1), (2), (3), (4);')
   await up({ db: { execute: (query: Parameters<typeof db.execute>[0]) => client.exec(new PgDialect().sqlToQuery(query as ReturnType<typeof sql>).sql) } } as unknown as Parameters<typeof up>[0])
+  await addLocations({ db } as unknown as Parameters<typeof addLocations>[0])
 })
 after(async () => { await client.close() })
 

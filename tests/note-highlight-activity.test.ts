@@ -5,6 +5,7 @@ import { drizzle } from 'drizzle-orm/pglite'
 import { PgDialect } from 'drizzle-orm/pg-core'
 import { sql } from '@payloadcms/db-postgres'
 import { up } from '../src/migrations/20260906_120000_add_note_highlights'
+import { up as addLocations } from '../src/migrations/20260906_180000_add_highlight_locations'
 import { makeHighlightAnchor } from '../src/lib/noteHighlightAnchors'
 import { writeHighlight } from '../src/lib/noteHighlightStore'
 import { noteHighlightActivityRows, resolveHighlightActivity, type HighlightActivityData } from '../src/lib/noteHighlightActivity'
@@ -25,6 +26,7 @@ const load = async () => (await db.execute(noteHighlightActivityRows)).rows as A
 before(async () => {
   await client.exec('CREATE TABLE notes (id integer PRIMARY KEY, title text, slug text, body jsonb, _status text);')
   await up({ db: { execute: (query: Parameters<typeof db.execute>[0]) => client.exec(new PgDialect().sqlToQuery(query as ReturnType<typeof sql>).sql) } } as unknown as Parameters<typeof up>[0])
+  await addLocations({ db } as unknown as Parameters<typeof addLocations>[0])
   for (const id of [1, 2, 3]) {
     await db.execute(sql`INSERT INTO notes VALUES (${id}, ${`Note ${id}`}, ${`note-${id}`}, ${JSON.stringify(body(text))}::jsonb, ${id === 2 ? 'draft' : 'published'})`)
     await writeHighlight(db, id, text, 'private-reader-one', anchor, false)

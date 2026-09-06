@@ -10,6 +10,14 @@ Ownership uses the existing HTTP-only `gv_module_liker` cookie:
 it is remembered in that browser, not synced between devices. No accounts, emails,
 comments, or raw IP addresses are collected by this feature.
 
+Tapping a saved passage shows “Highlighted by someone from [location]” with its
+date and time in the viewer's timezone. Multiple people are grouped by location,
+with per-highlight timestamps (same-minute contributions share a counted line).
+New saves retain coarse city/region/country labels from Vercel's edge headers;
+there is no GPS request or external IP lookup. Old highlights retain their saved
+dates and show no invented location. Repeated saves do not overwrite attribution.
+The public API exposes only location/date records, never reader identifiers.
+
 ## Implementation
 
 - The essay remains server-rendered. Highlighte.rs loads only when marks exist;
@@ -42,10 +50,12 @@ comments, or raw IP addresses are collected by this feature.
 Run `npm run migrate` before deploying the feature. The additive migration
 `20260906_120000_add_note_highlights` creates `note_highlights` and
 `note_highlight_rate_limits`; deleting a note cascades to its highlights.
+Apply `20260906_180000_add_highlight_locations` before deploying attribution support;
+it adds one nullable location column without modifying historical timestamps.
 To moderate a passage, an administrator can remove its rows in `note_highlights`
 by the specific `note_id` and `anchor_key`. No public moderation endpoint exists.
 
 `npm run test:highlights` runs anchor and storage tests against isolated in-memory
 Postgres (PGlite), without accessing the portfolio database. Also run
-`npm run build`. Browser checks should cover two anonymous sessions, selection
+`npm run build` and `npm run test:highlight-attribution`. Browser checks should cover two anonymous sessions, selection
 across inline links, save/reload, join/remove, mobile, and dark mode.

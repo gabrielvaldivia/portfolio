@@ -5,6 +5,8 @@ import { Anchor as PopoverAnchor } from '@radix-ui/react-popover'
 import { Highlighter, X } from 'lucide-react'
 import { Popover, PopoverContent } from '@/components/ui/Popover'
 import { NoteActions } from '@/components/NoteActions'
+import { HighlightAttributionDetails } from '@/components/HighlightAttributionDetails'
+import { getHighlightAttributionHeading } from '@/lib/noteHighlightAttribution'
 import { anchorFromRange, indexHighlightText, rangeFromAnchor } from '@/lib/noteHighlightDOM'
 import { MAX_HIGHLIGHT_LENGTH, type HighlightAnchor, type HighlightResponse, type PublicHighlight } from '@/lib/noteHighlightAnchors'
 import { cn } from '@/lib/cn'
@@ -245,7 +247,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
           side="top" sideOffset={8}
           updatePositionStrategy="always"
           collisionPadding={16} aria-label="Highlight passage"
-          onOpenAutoFocus={(event) => { if (active?.fromSelection) event.preventDefault() }}
+          onOpenAutoFocus={(event) => event.preventDefault()}
           onCloseAutoFocus={(event) => {
             event.preventDefault()
             if (document.activeElement === document.body || panelRef.current?.contains(document.activeElement)) rootRef.current?.focus({ preventScroll: true })
@@ -270,11 +272,11 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
               {error ? <p role="alert" className="mt-2 max-w-64 rounded-lg bg-background p-3 text-sm text-content shadow-lg">{error}</p> : null}
             </>
           ) : <>
-          <div className="flex items-center justify-between gap-3">
-            <span className="font-medium">{current ? `Highlighted by ${current.count} ${current.count === 1 ? 'reader' : 'readers'}` : 'Highlight passage'}</span>
+          <div className="flex items-start justify-between gap-3">
+            <span className="min-w-0 font-medium">{current ? getHighlightAttributionHeading(current) : 'Highlight passage'}</span>
             <button type="button" aria-label="Close highlight actions" className="inline-flex size-11 shrink-0 items-center justify-center rounded-full hover:bg-background-alt" onClick={() => { setActive(null); window.getSelection()?.removeAllRanges() }}><X className="size-4" aria-hidden="true" /></button>
           </div>
-          <p className="text-muted">{current?.mine ? 'You highlighted this passage.' : 'Visible to everyone. No account needed.'}</p>
+          {current ? <HighlightAttributionDetails highlight={current} /> : null}
           {error ? <p role="alert">{error}</p> : null}
           {active && active.anchor.exact.length > MAX_HIGHLIGHT_LENGTH ? <p role="alert">Select a shorter passage (up to 1,000 characters).</p> :
             <button type="button" className={actionClass} disabled={!ready || saving}

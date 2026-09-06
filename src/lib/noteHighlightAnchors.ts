@@ -12,10 +12,13 @@ export type HighlightAnchor = {
   end: number
 }
 
+export type HighlightAttribution = { location: string | null; createdAt: string }
+
 export type PublicHighlight = HighlightAnchor & {
   id: string
   count: number
   mine: boolean
+  attributions: HighlightAttribution[]
 }
 
 export type HighlightResponse = { highlights: PublicHighlight[]; version: string }

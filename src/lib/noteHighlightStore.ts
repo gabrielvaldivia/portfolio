@@ -1,14 +1,15 @@
 import { createHash } from 'node:crypto'
 import { sql } from '@payloadcms/db-postgres'
 import type { SQL } from 'drizzle-orm'
-import { makeHighlightAnchor, resolveHighlightAnchor, type HighlightAnchor, type PublicHighlight } from './noteHighlightAnchors'
+import { makeHighlightAnchor, resolveHighlightAnchor, type HighlightAnchor, type HighlightAttribution, type PublicHighlight } from './noteHighlightAnchors'
 
 export type HighlightDB = { execute: (query: SQL) => Promise<unknown> }
 type StoredHighlight = {
   anchor_key: string; quote: string; prefix: string; suffix: string
-  start_offset: number; end_offset: number; readers: string[]
+  start_offset: number; end_offset: number
+  readers: (HighlightAttribution & { visitorHash: string })[]
 }
-type ResolvedHighlight = PublicHighlight & { keys: string[]; readers: Set<string> }
+type ResolvedHighlight = Omit<PublicHighlight, 'attributions'> & { keys: string[]; readers: Map<string, HighlightAttribution> }
 
 export class HighlightError extends Error {
   constructor(message: string, public status: number) { super(message) }
@@ -25,7 +26,7 @@ function rows<T>(result: unknown): T[] {
 export async function loadHighlightGroups(db: HighlightDB, noteId: number, text: string, visitorHash: string) {
   const result = await db.execute(sql`
     SELECT anchor_key, quote, prefix, suffix, start_offset, end_offset,
-      array_agg(visitor_hash) AS readers
+      jsonb_agg(jsonb_build_object('visitorHash', visitor_hash, 'location', location, 'createdAt', created_at)) AS readers
     FROM note_highlights WHERE note_id = ${noteId}
     GROUP BY anchor_key, quote, prefix, suffix, start_offset, end_offset
   `)
@@ -37,8 +38,14 @@ export async function loadHighlightGroups(db: HighlightDB, noteId: number, text:
     })
     if (!anchor) continue // Deleted/ambiguous passages must never mark unrelated text.
     const id = `${anchor.start}:${anchor.end}`
-    const group = groups.get(id) || { ...anchor, id, count: 0, mine: false, readers: new Set<string>(), keys: [] }
-    row.readers.forEach((reader) => group.readers.add(reader))
+    const group = groups.get(id) || { ...anchor, id, count: 0, mine: false, readers: new Map<string, HighlightAttribution>(), keys: [] }
+    row.readers.forEach((reader) => {
+      const attribution = { location: reader.location || null, createdAt: new Date(reader.createdAt).toISOString() }
+      const previous = group.readers.get(reader.visitorHash)
+      // If old anchors converge after an edit, each reader still counts once,
+      // using their first saved attribution rather than a later duplicate.
+      if (!previous || attribution.createdAt < previous.createdAt) group.readers.set(reader.visitorHash, attribution)
+    })
     group.count = group.readers.size
     group.mine = group.readers.has(visitorHash)
     group.keys.push(row.anchor_key)
@@ -50,13 +57,15 @@ export async function loadHighlightGroups(db: HighlightDB, noteId: number, text:
 export async function loadPublicHighlights(db: HighlightDB, noteId: number, text: string, visitorHash: string) {
   const groups = await loadHighlightGroups(db, noteId, text, visitorHash)
   // Explicit allowlist: never send anonymous reader identities or ownership keys to clients.
-  return groups.map(({ id, exact, prefix, suffix, start, end, count, mine }): PublicHighlight =>
-    ({ id, exact, prefix, suffix, start, end, count, mine }))
+  return groups.map(({ id, exact, prefix, suffix, start, end, count, mine, readers }): PublicHighlight =>
+    ({ id, exact, prefix, suffix, start, end, count, mine,
+      attributions: [...readers.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    }))
 }
 
 export async function writeHighlight(
   db: HighlightDB, noteId: number, text: string, visitorHash: string,
-  input: HighlightAnchor, remove: boolean,
+  input: HighlightAnchor, remove: boolean, location: string | null = null,
 ) {
   // The API checks the document version; do not accept a fabricated quote or position.
   if (text.slice(input.start, input.end) !== input.exact) {
@@ -76,8 +85,8 @@ export async function writeHighlight(
   if (!existing && groups.length >= 500) throw new HighlightError('This note has reached its highlight limit.', 429)
   const key = existing?.keys[0] || highlightTextVersion(`${anchor.start}:${anchor.end}:${anchor.exact}`)
   const result = await db.execute(sql`
-    INSERT INTO note_highlights (note_id, anchor_key, visitor_hash, quote, prefix, suffix, start_offset, end_offset)
-    SELECT ${noteId}, ${key}, ${visitorHash}, ${anchor.exact}, ${anchor.prefix}, ${anchor.suffix}, ${anchor.start}, ${anchor.end}
+    INSERT INTO note_highlights (note_id, anchor_key, visitor_hash, quote, prefix, suffix, start_offset, end_offset, location)
+    SELECT ${noteId}, ${key}, ${visitorHash}, ${anchor.exact}, ${anchor.prefix}, ${anchor.suffix}, ${anchor.start}, ${anchor.end}, ${location?.slice(0, 180) || null}
     WHERE (SELECT count(*) FROM note_highlights WHERE note_id = ${noteId} AND visitor_hash = ${visitorHash}) < 50
     ON CONFLICT (note_id, anchor_key, visitor_hash) DO NOTHING
     RETURNING anchor_key

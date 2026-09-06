@@ -18,6 +18,7 @@ import * as migration_20260905_145858_add_notes_collection from './20260905_1458
 import * as migration_20260906_034551_add_note_subscribers_and_newsletter from './20260906_034551_add_note_subscribers_and_newsletter';
 import * as migration_20260906_120000_add_note_highlights from './20260906_120000_add_note_highlights';
 import * as migration_20260906_160000_add_note_views from './20260906_160000_add_note_views';
+import * as migration_20260906_180000_add_highlight_locations from './20260906_180000_add_highlight_locations';
 
 export const migrations = [
   {
@@ -119,5 +120,10 @@ export const migrations = [
     up: migration_20260906_160000_add_note_views.up,
     down: migration_20260906_160000_add_note_views.down,
     name: '20260906_160000_add_note_views',
+  },
+  {
+    up: migration_20260906_180000_add_highlight_locations.up,
+    down: migration_20260906_180000_add_highlight_locations.down,
+    name: '20260906_180000_add_highlight_locations',
   },
 ];
