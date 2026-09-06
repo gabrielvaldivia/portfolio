@@ -98,7 +98,7 @@ export default async function NotePage({ params }: NotePageProps) {
               className="ml-auto inline-flex min-w-0 items-center justify-end gap-2 text-right text-[16px] font-medium transition-opacity hover:opacity-60"
               href={`/notes/${readNextNote.slug}`}
             >
-              <span className="line-clamp-2">{readNextNote.title}</span>
+              <span className="min-w-0 truncate">{readNextNote.title}</span>
               <HugeiconsIcon
                 aria-hidden="true"
                 className="shrink-0"
