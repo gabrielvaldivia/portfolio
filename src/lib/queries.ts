@@ -24,6 +24,31 @@ type ReadNextNote = {
   excerpt?: string | null
 }
 
+type NoteMedia = {
+  alt?: string | null
+  height?: number | null
+  url?: string | null
+  width?: number | null
+}
+
+export type PublishedNote = {
+  _status?: 'draft' | 'published' | null
+  body: unknown
+  coverImage?: number | string | NoteMedia | null
+  createdAt: string
+  excerpt?: string | null
+  id: number | string
+  meta?: {
+    description?: string | null
+    image?: number | string | NoteMedia | null
+    title?: string | null
+  } | null
+  publishedAt?: string | null
+  slug: string
+  title: string
+  updatedAt: string
+}
+
 export async function getProjects(options: GetProjectsOptions = {}) {
   const payload = await getPayload()
   const filters = []
@@ -75,7 +100,7 @@ export async function getSideProjects() {
 
 export const getPublishedNotes = cache(async function getPublishedNotes() {
   const payload = await getPayload()
-  return payload.find({
+  const result = await payload.find({
     collection: 'notes',
     where: { _status: { equals: 'published' } },
     sort: '-publishedAt',
@@ -83,6 +108,8 @@ export const getPublishedNotes = cache(async function getPublishedNotes() {
     depth: 1,
     draft: false,
   })
+
+  return { ...result, docs: result.docs as unknown as PublishedNote[] }
 })
 
 export const getPublishedNoteBySlug = cache(async function getPublishedNoteBySlug(slug: string) {
@@ -100,7 +127,7 @@ export const getPublishedNoteBySlug = cache(async function getPublishedNoteBySlu
     draft: false,
   })
 
-  return result.docs[0] || null
+  return (result.docs[0] as unknown as PublishedNote | undefined) || null
 })
 
 export const getReadNextNote = cache(async function getReadNextNote(
