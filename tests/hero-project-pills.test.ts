@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { getHeroProjectPills } from '../src/lib/heroProjectPills'
+import { getHeroProjectPills, normalizeHeroPills } from '../src/lib/heroProjectPills'
+
+test('public pills use only the selected labels, including an intentional empty selection', () => {
+  assert.deepEqual(normalizeHeroPills([' Strategy ', 'Healthcare', 'strategy', '']), ['Strategy', 'Healthcare'])
+  assert.deepEqual(normalizeHeroPills([]), [])
+  assert.deepEqual(normalizeHeroPills(undefined), [])
+})
 
 test('lists project capabilities before its own client industry tags', () => {
   assert.deepEqual(getHeroProjectPills({

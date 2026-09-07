@@ -16,7 +16,7 @@ import { getPayload, isPayloadUnavailable } from '@/lib/payload'
 import { getFAQItemsFromSections } from '@/lib/buildContext'
 import { getModuleLikeFeed } from '@/lib/moduleLikeActivity'
 import { resolveHeroTestimonial } from '@/lib/heroTestimonial'
-import { getHeroProjectPills } from '@/lib/heroProjectPills'
+import { normalizeHeroPills } from '@/lib/heroProjectPills'
 import { cn } from '@/lib/cn'
 import Link from 'next/link'
 import type { Metadata } from 'next'
@@ -179,7 +179,7 @@ function buildHeroProjectSlides(projects: any[], testimonials: any[]) {
       title: project.title,
       slug: project.slug,
       subtitle: project.subtitle || undefined,
-      pills: getHeroProjectPills(project),
+      pills: normalizeHeroPills(project.heroPills),
       gradientColor: typeof project.heroGradientColor === 'string'
         ? project.heroGradientColor
         : undefined,
@@ -228,6 +228,7 @@ function resolveHeroProjects(slides: any[], projects: any[]) {
         : undefined,
       heroTestimonialQuote: slide.testimonialQuote,
       heroTestimonialName: slide.testimonialName,
+      heroPills: slide.pills,
     }]
   })
 }

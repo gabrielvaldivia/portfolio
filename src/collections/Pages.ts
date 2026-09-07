@@ -96,6 +96,19 @@ const HeroBlock: Block = {
           label: 'Project description override',
         },
         {
+          name: 'pills',
+          type: 'text',
+          hasMany: true,
+          label: 'Pills',
+          admin: {
+            description: 'Only these pills appear below the description. Select suggestions, or type a label and press Enter. Click a pill to rename it; drag to reorder. Leave empty to hide all pills.',
+            placeholder: 'Add a pill',
+            components: {
+              Field: './components/admin/HeroSlidePillsField#HeroSlidePillsField',
+            },
+          },
+        },
+        {
           name: 'gradientColor',
           type: 'text',
           label: 'Mobile gradient color',
