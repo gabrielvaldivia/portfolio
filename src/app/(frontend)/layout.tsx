@@ -7,27 +7,11 @@ import { Footer } from '@/components/Footer'
 import { AgentationToolbar } from '@/components/AgentationToolbar'
 import { OverlayManager } from '@/components/OverlayManager'
 import { PageTransition } from '@/components/PageTransition'
-import { getNavigationPages, getPageBySlug, getSiteSettings } from '@/lib/queries'
+import { getFooterSocialLinks, getNavigationPages, getSiteSettings } from '@/lib/queries'
 import { normalizeSocialLink } from '@/lib/socialLinks'
 import { SITE_ORIGIN, SITE_TAGLINE } from '@/lib/siteMetadata'
 
 export const revalidate = 60
-
-const PUBLIC_CMS_API = 'https://www.gabrielvaldivia.com/api'
-
-async function getPublicHomepagePreview() {
-  const response = await fetch(
-    `${PUBLIC_CMS_API}/pages?where%5Bslug%5D%5Bequals%5D=home&depth=2&limit=1`,
-    { cache: 'no-store' },
-  )
-
-  if (!response.ok) {
-    throw new Error(`Public homepage preview failed with ${response.status}`)
-  }
-
-  const result = await response.json()
-  return result.docs?.[0] || null
-}
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings() as any
@@ -58,23 +42,16 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [settings, localHomePage, navigationPages] = await Promise.all([
+  const [settings, footerLinks, navigationPages] = await Promise.all([
     getSiteSettings(),
-    getPageBySlug('home'),
+    getFooterSocialLinks(),
     getNavigationPages(),
   ])
-  const homePage = localHomePage || (process.env.NODE_ENV === 'development'
-    ? await getPublicHomepagePreview().catch((error) => {
-        console.warn('Public homepage layout preview unavailable.', error)
-        return null
-      })
-    : null)
 
   const s = settings as any
-  const contactBlock = ((homePage as any)?.sections || []).find(
-    (section: any) => section.blockType === 'socialLinks',
-  )
-  const contactLinks = ((contactBlock?.links || []) as any[]).map(normalizeSocialLink)
+  const contactLinks = footerLinks
+    .filter((link): link is { platform: string; url: string } => Boolean(link.platform && link.url))
+    .map(normalizeSocialLink)
   const emailLink = contactLinks.find((link: any) =>
     ['email', 'mail'].includes(link.platform?.toLowerCase()),
   )

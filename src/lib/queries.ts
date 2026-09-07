@@ -1,4 +1,6 @@
 import { cache } from 'react'
+import { unstable_cache } from 'next/cache'
+import { sql } from '@payloadcms/db-postgres'
 import type { Where } from 'payload'
 import { getPayload } from './payload'
 import type { PageLike } from './pageMetadata'
@@ -16,6 +18,11 @@ type PageQueryResult = PageLike & {
 
 type NavigationPageResult = OrderedPage & {
   status?: string | null
+}
+
+export type FooterSocialLink = {
+  platform: string | null
+  url: string | null
 }
 
 type ReadNextNote = {
@@ -273,7 +280,7 @@ export const getPublishedPageBySlug = cache(async function getPublishedPageBySlu
   return (result.docs[0] as unknown as PageQueryResult | undefined) || null
 })
 
-export const getNavigationPages = cache(async function getNavigationPages() {
+export const getNavigationPages = unstable_cache(async function getNavigationPages() {
   const payload = await getPayload()
   const result = await payload.find({
     collection: 'pages',
@@ -308,9 +315,38 @@ export const getNavigationPages = cache(async function getNavigationPages() {
   }
 
   return pages
-})
+}, ['navigation-pages'], { revalidate: 60, tags: ['navigation-pages'] })
 
-export const getSiteSettings = cache(async function getSiteSettings() {
+export const getSiteSettings = unstable_cache(async function getSiteSettings() {
   const payload = await getPayload()
   return payload.findGlobal({ slug: 'site-settings' })
-})
+}, ['site-settings'], { revalidate: 60, tags: ['site-settings'] })
+
+export const getFooterSocialLinks = unstable_cache(async function getFooterSocialLinks() {
+  const payload = await getPayload()
+  const result = await payload.db.drizzle.execute(sql`
+    SELECT link.platform::text AS platform, link.url
+    FROM pages AS page
+    INNER JOIN pages_blocks_social_links AS block
+      ON block._parent_id = page.id
+    INNER JOIN pages_blocks_social_links_links AS link
+      ON link._parent_id = block.id
+    WHERE page.slug = ${'home'}
+    ORDER BY block._order ASC, link._order ASC
+    LIMIT 8
+  `)
+
+  const rows = Array.isArray(result)
+    ? result
+    : result && typeof result === 'object' && 'rows' in result && Array.isArray(result.rows)
+      ? result.rows
+      : []
+
+  return rows.map((row) => {
+    const value = row as Record<string, unknown>
+    return {
+      platform: typeof value.platform === 'string' ? value.platform : null,
+      url: typeof value.url === 'string' ? value.url : null,
+    } satisfies FooterSocialLink
+  })
+}, ['footer-social-links'], { revalidate: 60, tags: ['footer-social-links'] })
