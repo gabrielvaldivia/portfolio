@@ -1,3 +1,5 @@
+@use '../../styles/note-typography';
+
 /* Hide blockName input only within blocks */
 .blocks-field .section-title {
   display: none !important;
@@ -4478,11 +4480,11 @@ body:has(.collection-edit--notes) .app-header__step-nav .step-nav__last {
 }
 
 .collection-edit--notes .document-fields__edit {
-  width: min(100%, 900px);
-  max-width: 900px;
+  width: min(100%, 840px);
+  max-width: 840px;
   min-height: calc(100vh - var(--cms-header-height));
   margin-inline: auto;
-  padding: clamp(52px, 7vw, 96px) clamp(28px, 7vw, 88px) 180px !important;
+  padding: clamp(52px, 7vw, 96px) 40px 180px !important;
   border: 0 !important;
   background: var(--cms-bg-main);
   color: var(--cms-text-primary);
@@ -4502,7 +4504,7 @@ body:has(.collection-edit--notes) .app-header__step-nav .step-nav__last {
 }
 
 .collection-edit--notes .notes-editor-title {
-  margin: 0 0 28px;
+  margin: 0 0 var(--note-title-body-gap);
 }
 
 .collection-edit--notes .notes-editor-title > .field-label,
@@ -4518,7 +4520,7 @@ body:has(.collection-edit--notes) .app-header__step-nav .step-nav__last {
   border: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
-  color: var(--cms-text-primary) !important;
+  color: var(--note-content) !important;
   box-shadow: none !important;
   outline: 0 !important;
 }
@@ -4526,17 +4528,12 @@ body:has(.collection-edit--notes) .app-header__step-nav .step-nav__last {
 .collection-edit--notes .field-type.textarea.notes-editor-title textarea {
   width: 100%;
   height: auto !important;
-  min-height: 40px !important;
+  min-height: 1.1em !important;
   max-height: none;
   overflow: hidden;
   resize: none;
   appearance: none;
   field-sizing: content;
-  font-family: 'Inter Display', 'Inter', var(--font-body), system-ui, sans-serif !important;
-  font-size: 32px !important;
-  font-weight: 500;
-  line-height: 1.25;
-  letter-spacing: -0.025em;
   white-space: pre-wrap;
 }
 
@@ -4555,11 +4552,8 @@ body:has(.collection-edit--notes) .app-header__step-nav .step-nav__last {
 
 .collection-edit--notes .field-type.textarea.notes-editor-title textarea::placeholder {
   color: var(--cms-text-quaternary) !important;
-  font-family: 'Inter Display', 'Inter', var(--font-body), system-ui, sans-serif !important;
-  font-size: 32px !important;
-  font-weight: 500;
-  line-height: 1.25;
-  letter-spacing: -0.025em;
+  font: inherit;
+  letter-spacing: inherit;
   opacity: 1;
 }
 
@@ -4584,19 +4578,6 @@ body:has(.collection-edit--notes) .app-header__step-nav .step-nav__last {
 .collection-edit--notes .notes-editor-body .ContentEditable__root {
   min-height: 58vh;
   padding: 0;
-  color: var(--cms-text-primary);
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 19px;
-  line-height: 1.72;
-  letter-spacing: -0.005em;
-}
-
-.collection-edit--notes .notes-editor-body .ContentEditable__root .LexicalEditorTheme__paragraph {
-  margin-top: 0;
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  letter-spacing: inherit;
 }
 
 .collection-edit--notes .notes-editor-body .notes-editor-linked-image {
@@ -4622,9 +4603,6 @@ body:has(.collection-edit--notes) .app-header__step-nav .step-nav__last {
 .collection-edit--notes .notes-editor-body .LexicalEditorTheme__placeholder {
   top: 0;
   color: var(--cms-text-quaternary);
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 19px;
-  line-height: 1.72;
 }
 
 .collection-edit--notes .notes-editor-body .add-block-menu .icon {
@@ -4720,23 +4698,9 @@ body:has(.collection-edit--notes) .popup__content:has(#notes-edit-menu-writing) 
   letter-spacing: -0.025em;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 809px) {
   .collection-edit--notes .document-fields__edit {
     min-height: calc(100vh - var(--cms-header-height));
     padding: 40px 20px 120px !important;
-  }
-
-  .collection-edit--notes .notes-editor-title {
-    margin-bottom: 22px;
-  }
-
-  .collection-edit--notes .field-type.textarea.notes-editor-title textarea,
-  .collection-edit--notes .field-type.textarea.notes-editor-title textarea::placeholder {
-    font-size: 30px !important;
-  }
-
-  .collection-edit--notes .notes-editor-body .ContentEditable__root,
-  .collection-edit--notes .notes-editor-body .LexicalEditorTheme__placeholder {
-    font-size: 18px;
   }
 }

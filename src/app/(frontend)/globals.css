@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import '../../styles/note-typography.css';
 
 .video-player-controls {
   opacity: 1;
@@ -369,12 +370,6 @@ h1 {
     font-size: 100px;
   }
 
-  /* Unlayered heading defaults override Tailwind utilities; keep this note
-     override in the same cascade so the desktop title is actually smaller. */
-  .note-page-title {
-    font-size: 64px;
-  }
-
   .home-hero-heading {
     font-size: 100px;
     line-height: 1.05;
@@ -509,7 +504,8 @@ h3 {
   }
 }
 
-h4 {
+h4,
+.note-continue-reading-heading {
   font-size: clamp(20px, 2vw, 24px);
   line-height: 1.3;
   letter-spacing: -0.3px;

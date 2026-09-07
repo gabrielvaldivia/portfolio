@@ -76,7 +76,7 @@ export default async function NotePage({ params }: NotePageProps) {
     <article className="note-page pb-20 text-content">
       <Container>
         <div className="mx-auto max-w-[760px]">
-          <header className="flex flex-col gap-4 pb-12 tablet:pb-16">
+          <header className="flex flex-col gap-4 pb-12 text-center tablet:pb-16">
             <h1 className="note-page-title text-balance">
               {note.title}
             </h1>
@@ -97,7 +97,7 @@ export default async function NotePage({ params }: NotePageProps) {
           </figure>
         ) : null}
 
-        <div className="longform-body mx-auto max-w-[760px] [&_.rich-text_h2]:mb-8 [&_.rich-text_h2]:pb-4 [&_.rich-text_h2]:pt-16 [&_.rich-text_h3]:mb-6 [&_.rich-text_h3]:pb-4 [&_.rich-text_h3]:pt-12 [&_.rich-text_blockquote]:my-10 [&_.rich-text_blockquote]:border-l [&_.rich-text_blockquote]:border-border-strong [&_.rich-text_blockquote]:pl-6 [&_.rich-text_blockquote]:text-muted">
+        <div className="longform-body mx-auto max-w-[760px]">
           <NoteHighlights key={note.id} noteId={String(note.id)} likeTargetId={getNoteLikeTargetId(note.slug)} version={highlightTextVersion(getNoteHighlightText(note.body))}>
             <RichText data={note.body} renderLinkedImages />
           </NoteHighlights>
@@ -105,7 +105,7 @@ export default async function NotePage({ params }: NotePageProps) {
 
         {readNextNotes.length > 0 ? (
           <section aria-labelledby="continue-reading-heading" className="mx-auto mt-16 max-w-[760px] border-t border-border pt-12">
-            <h2 id="continue-reading-heading" className="text-[16px] font-medium">
+            <h2 id="continue-reading-heading" className="note-continue-reading-heading text-balance">
               Continue reading
             </h2>
             <ul className="mt-5 flex flex-col gap-4">
