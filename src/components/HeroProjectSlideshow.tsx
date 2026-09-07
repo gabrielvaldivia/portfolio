@@ -24,6 +24,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import { Testimonial } from '@/components/Testimonial'
+import { ServicePill } from '@/components/ServicePill'
 
 type HeroTestimonial = {
   id: string
@@ -36,6 +37,7 @@ type HeroProjectSlide = {
   title: string
   slug: string
   subtitle?: string
+  pills?: string[]
   gradientColor?: string
   featuredImage?: {
     url: string
@@ -183,6 +185,20 @@ function isVideoMedia(media?: HeroProjectSlide['featuredImage']) {
   )
 }
 
+function HeroProjectPills({ pills = [] }: { pills?: string[] }) {
+  if (!pills.length) return null
+
+  return (
+    <ul aria-label="Capabilities and industries" className="hero-project-pills mt-2 flex flex-wrap gap-2.5">
+      {pills.map(title => (
+        <li key={title}>
+          <ServicePill title={title} size="small" variant="on-media" />
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 function MobileHeroSlide({
   project,
   active,
@@ -252,6 +268,7 @@ function MobileHeroSlide({
           {project.subtitle ? (
             <p className="max-w-2xl text-body text-pretty text-text-on-media-muted">{project.subtitle}</p>
           ) : null}
+          <HeroProjectPills pills={project.pills} />
         </Link>
         <Link
           href={`/work/${project.slug}`}
@@ -900,6 +917,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
                     {activeProject.subtitle}
                   </p>
                 ) : null}
+                <HeroProjectPills pills={activeProject.pills} />
               </Link>
             </motion.div>
           </AnimatePresence>
