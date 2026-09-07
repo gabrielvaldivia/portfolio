@@ -75,7 +75,7 @@ export default async function NotePage({ params }: NotePageProps) {
   return (
     <article className="note-page pb-20 text-content">
       <Container>
-        <div className="mx-auto max-w-[880px]">
+        <div className="mx-auto max-w-[760px]">
           <header className="flex flex-col gap-4 pb-12 tablet:pb-16">
             <h1 className="max-w-[1100px] text-balance text-[40px] leading-[1.05] tablet:text-[64px] desktop:text-[80px]">
               {note.title}

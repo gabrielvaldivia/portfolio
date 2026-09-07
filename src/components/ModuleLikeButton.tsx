@@ -177,7 +177,7 @@ function createHeartFragments(intensity: number): Particle[] {
 
 function AnimatedCount({ value, pill }: { value: number; pill: boolean }) {
   return (
-    <span aria-hidden="true" className={cn('relative inline-flex h-[1em] min-w-[1ch] items-center overflow-hidden tabular-nums leading-none', pill && 'shrink-0', value === 0 && 'invisible')}>
+    <span aria-hidden="true" className={cn('relative inline-flex h-[1em] min-w-[1ch] items-center overflow-hidden tabular-nums leading-none', pill && 'col-start-2 row-start-1', value === 0 && 'invisible')}>
       <AnimatePresence mode="popLayout" initial={false}>
         <motion.span
           key={value}
@@ -752,10 +752,10 @@ export function ModuleLikeButton({
         disabled={isLoading}
         aria-label={`Like this ${noun}. Hold for a super like worth ${SUPER_MODULE_LIKE_AMOUNT} likes. ${data.count} total likes. You have liked it ${data.userLikes} times.`}
         className={cn(
-          'inline-flex touch-manipulation select-none items-center gap-1.5 rounded-full font-medium text-muted transition-colors duration-150',
+          'touch-manipulation select-none items-center gap-1.5 rounded-full font-medium text-muted transition-colors duration-150',
           variant === 'pill'
-            ? 'h-11 min-w-11 justify-center px-3 text-sm hover:bg-background-alt'
-            : 'h-8 bg-elevated px-2.5 text-caption shadow-sm outline outline-1 outline-offset-0 outline-gray-400/40',
+            ? 'inline-grid h-11 min-w-11 grid-cols-[18px_minmax(1ch,auto)] justify-center px-3 text-sm hover:bg-background-alt'
+            : 'inline-flex h-8 bg-elevated px-2.5 text-caption shadow-sm outline outline-1 outline-offset-0 outline-gray-400/40',
           'hover:text-content focus-visible:ring-2 focus-visible:ring-content/30 disabled:cursor-default',
           variant !== 'pill' && 'disabled:opacity-70',
           isHeartActive && 'text-red-500 hover:text-red-600',
@@ -767,7 +767,7 @@ export function ModuleLikeButton({
         }}
         transition={{ duration: 0.16, ease: 'easeOut' }}
       >
-        <span className="relative inline-flex size-[18px] items-center justify-center overflow-visible">
+        <span className={cn('relative inline-flex size-[18px] items-center justify-center overflow-visible', variant === 'pill' && 'col-start-1 row-start-1', variant === 'pill' && displayCount === 0 && 'col-span-2 justify-self-center')}>
           {isSuperHeartVisible && (
             <span className="pointer-events-none absolute bottom-0 left-1/2 z-20 inline-flex -translate-x-1/2 overflow-visible">
               <motion.span

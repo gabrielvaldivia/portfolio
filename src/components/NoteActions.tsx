@@ -110,9 +110,9 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, hi
 
   const trigger = (
     <button type="button" aria-label={highlightsReady ? `${highlights.length} highlighted passages. Show highlights` : 'Show highlights'}
-      className="inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted hover:bg-background-alt hover:text-content focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content">
-      <Highlighter className="size-[18px]" aria-hidden="true" />
-      <span className={cn('min-w-[1ch] shrink-0 text-left tabular-nums', highlightsReady && highlights.length === 0 && 'invisible')} aria-hidden="true">{highlightsReady ? highlights.length : '—'}</span>
+      className="inline-grid h-11 min-w-11 grid-cols-[18px_minmax(1ch,auto)] items-center justify-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted hover:bg-background-alt hover:text-content focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content">
+      <Highlighter className={cn('col-start-1 row-start-1 size-[18px]', highlightsReady && highlights.length === 0 && 'col-span-2 justify-self-center')} aria-hidden="true" />
+      <span className={cn('col-start-2 row-start-1 min-w-[1ch] text-left tabular-nums', highlightsReady && highlights.length === 0 && 'invisible')} aria-hidden="true">{highlightsReady ? highlights.length : '—'}</span>
     </button>
   )
   const visibilitySwitch = (
@@ -132,7 +132,7 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, hi
     : highlights.length === 0 ? (
       <div className={cn('flex flex-col items-center justify-center gap-2 px-8 text-center', mobile ? 'min-h-full py-8' : 'min-h-48 py-6')}>
         <p className="text-sm font-medium text-content">No highlights yet.</p>
-        <p className="max-w-64 text-sm leading-relaxed text-muted">Select text in the note, then choose Highlight.</p>
+        <p className="max-w-64 text-sm leading-relaxed text-muted">Select text in the note to highlight it.</p>
       </div>
     )
     : <ul className={cn('min-h-0 px-2 pb-2', !mobile && 'overflow-y-auto overscroll-contain')}>
@@ -157,7 +157,7 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, hi
   // natural end-of-note slot and scroll away before the recommendations.
   return (
     <div data-note-actions className="pointer-events-none sticky bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-40 mt-12 flex justify-center px-4">
-      <div role="group" aria-label="Note activity" className="pointer-events-auto flex max-w-full items-center rounded-full bg-floating px-4 py-1.5 backdrop-blur-[40px]">
+      <div role="group" aria-label="Note activity" className="pointer-events-auto flex max-w-full items-center rounded-full bg-floating p-1.5 backdrop-blur-[40px]">
         {visitorReady
           ? <LazyModuleLikeButton targetId={likeTargetId} noun="note" variant="pill" />
           : <ModuleLikeButtonShell noun="note" variant="pill" />}
