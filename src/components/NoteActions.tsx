@@ -188,9 +188,9 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, hi
     <div data-note-actions className="pointer-events-none sticky bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-40 mt-12 flex justify-center px-4">
       <motion.div ref={pillRef} data-note-actions-pill data-ready={revealed} role="group" aria-label="Note activity"
         aria-hidden={!revealed} inert={!revealed}
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: revealed ? 1 : 0, y: revealed || reducedMotion ? 0 : 8 }}
-        transition={reducedMotion ? { duration: 0 } : { opacity: { duration: 0.25 }, y: { type: 'spring', stiffness: 400, damping: 26, restDelta: 0.01, restSpeed: 0.01 } }}
+        initial={{ opacity: 0, y: 4 }}
+        animate={{ opacity: revealed ? 1 : 0, y: revealed || reducedMotion ? 0 : 4 }}
+        transition={reducedMotion ? { duration: 0 } : { opacity: { duration: 0.25 }, y: { type: 'spring', stiffness: 400, damping: 14, restDelta: 0.01, restSpeed: 0.01 } }}
         style={{ visibility: revealed ? 'visible' : 'hidden' }}
         className="pointer-events-auto flex max-w-full items-center rounded-full bg-floating p-1.5 backdrop-blur-[40px]">
         {visitorReady

@@ -133,8 +133,8 @@ try {
     check(Math.max(...visibleWidths) - Math.min(...visibleWidths) < 1, `${config.name}: width stays stable during entrance/count-up`)
     if (!config.reduced) {
       check(samples.some(s => s.opacity > 0 && s.opacity < 1), `${config.name}: opacity fades in`)
-      check(samples.some(s => s.y > 0 && s.y < 8), `${config.name}: gently rises`)
-      check(samples.some(s => s.y < 0 && s.y > -2), `${config.name}: subtle spring overshoot`)
+      check(samples.every(s => s.y <= 4) && samples.some(s => s.y > 0 && s.y < 4), `${config.name}: rises no more than 4px`)
+      check(samples.some(s => s.y < -0.8 && s.y > -2), `${config.name}: stronger spring bounce with limited travel`)
     }
     if (config.name === 'desktop') {
       check(last.counts.join() === '12,3,1.4K', 'nonzero counts finish at the loaded values')
