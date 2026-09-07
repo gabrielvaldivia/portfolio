@@ -83,7 +83,10 @@ const patches = [
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
-    find: 'let It={_payload:JSON.stringify(ct)};return r&&"upload"in r&&r.upload&&At&&(It.file=At),(0,UD.serialize)(It,{indices:!0,nullsAsUndefineds:!1})',
+    find: [
+      'let It={_payload:JSON.stringify(ct)};return r&&"upload"in r&&r.upload&&At&&(It.file=At),(0,UD.serialize)(It,{indices:!0,nullsAsUndefineds:!1})',
+      'let It={_payload:JSON.stringify(ut)};return r&&"upload"in r&&r.upload&&At&&(It.file=At),(0,ZD.serialize)(It,{indices:!0,nullsAsUndefineds:!1})',
+    ],
     replace: 'let It=new FormData;return It.append("_payload",JSON.stringify(ct)),r&&"upload"in r&&r.upload&&At&&It.append("file",At),It',
   },
   {
@@ -93,7 +96,10 @@ const patches = [
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
-    find: 'let i={...n,...e},l={_payload:JSON.stringify(i),file:s};return(0,iR.serialize)(l,{indices:!0,nullsAsUndefineds:!1})',
+    find: [
+      'let i={...n,...e},l={_payload:JSON.stringify(i),file:s};return(0,iR.serialize)(l,{indices:!0,nullsAsUndefineds:!1})',
+      'let i={...n,...e},l={_payload:JSON.stringify(i),file:s};return(0,cR.serialize)(l,{indices:!0,nullsAsUndefineds:!1})',
+    ],
     replace: 'let i={...n,...e},l=new FormData;return l.append("_payload",JSON.stringify(i)),s&&l.append("file",s),l',
   },
   {
@@ -632,14 +638,31 @@ import { normalizeRelationshipValue } from '../../utilities/normalizeRelationshi
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
-    findStart: 'function Vh(t){let{AfterInput:e,allowCreate:o,api:r,BeforeInput:n,className:s,Description:i,description:l,displayPreview:a,Error:c,filterOptions:u,hasMany:d,isSortable:f,Label:m,label:p,localized:h,maxRows:g,onChange:b,path:C,readOnly:y,relationTo:v,required:x,serverURL:S,showError:w,style:F,value:I}=t,[R,D]=Fn.useState()',
-    findEnd: ',[T]=Fn.useState(Array.isArray(v)?v[0]:v),{openModal:_}=ne(),',
-    replace: 'function Vh(t){let{AfterInput:e,allowCreate:o,api:r,BeforeInput:n,className:s,Description:i,description:l,displayPreview:a,Error:c,filterOptions:u,hasMany:d,isSortable:f,Label:m,label:p,localized:h,maxRows:g,onChange:b,path:C,readOnly:y,relationTo:v,required:x,serverURL:S,showError:w,style:F,value:I}=t,[R,D]=Fn.useState(),[inlineUploading,setInlineUploading]=Fn.useState(!1),[inlineUploadProgress,setInlineUploadProgress]=Fn.useState(0),[T]=Fn.useState(Array.isArray(v)?v[0]:v),{openModal:_}=ne(),',
+    variants: [
+      {
+        findStart: 'function Vh(t){let{AfterInput:e,allowCreate:o,api:r,BeforeInput:n,className:s,Description:i,description:l,displayPreview:a,Error:c,filterOptions:u,hasMany:d,isSortable:f,Label:m,label:p,localized:h,maxRows:g,onChange:b,path:C,readOnly:y,relationTo:v,required:x,serverURL:S,showError:w,style:F,value:I}=t,[R,D]=Fn.useState()',
+        findEnd: ',[T]=Fn.useState(Array.isArray(v)?v[0]:v),{openModal:_}=ne(),',
+        replace: 'function Vh(t){let{AfterInput:e,allowCreate:o,api:r,BeforeInput:n,className:s,Description:i,description:l,displayPreview:a,Error:c,filterOptions:u,hasMany:d,isSortable:f,Label:m,label:p,localized:h,maxRows:g,onChange:b,path:C,readOnly:y,relationTo:v,required:x,serverURL:S,showError:w,style:F,value:I}=t,[R,D]=Fn.useState(),[inlineUploading,setInlineUploading]=Fn.useState(!1),[inlineUploadProgress,setInlineUploadProgress]=Fn.useState(0),[T]=Fn.useState(Array.isArray(v)?v[0]:v),{openModal:_}=ne(),',
+      },
+      {
+        findStart: 'function zh(t){let{AfterInput:e,allowCreate:o,api:r,BeforeInput:n,className:s,Description:i,description:l,displayPreview:a,Error:c,filterOptions:u,hasMany:d,isSortable:f,Label:m,label:p,localized:h,maxRows:g,onChange:b,path:C,readOnly:y,relationTo:v,required:x,serverURL:I,showError:w,style:F,value:_}=t,[R,D]=Tn.useState()',
+        findEnd: ',[T]=Tn.useState(Array.isArray(v)?v[0]:v),{openModal:S}=se(),',
+        replace: 'function zh(t){let{AfterInput:e,allowCreate:o,api:r,BeforeInput:n,className:s,Description:i,description:l,displayPreview:a,Error:c,filterOptions:u,hasMany:d,isSortable:f,Label:m,label:p,localized:h,maxRows:g,onChange:b,path:C,readOnly:y,relationTo:v,required:x,serverURL:I,showError:w,style:F,value:_}=t,[R,D]=Tn.useState(),[inlineUploading,setInlineUploading]=Tn.useState(!1),[inlineUploadProgress,setInlineUploadProgress]=Tn.useState(0),[T]=Tn.useState(Array.isArray(v)?v[0]:v),{openModal:S}=se(),',
+      },
+    ],
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
-    find: '{drawerSlug:A,setCollectionSlug:k,setInitialFiles:P,setMaxFiles:L,setOnSuccess:$,setSelectableCollections:B}=Ho(),{permissions:M}=_e(),',
-    replace: '{drawerSlug:A,setCollectionSlug:k,setInitialFiles:P,setMaxFiles:L,setOnSuccess:$,setSelectableCollections:B}=Ho(),{getUploadHandler:inlineGetUploadHandler}=dd(),{permissions:M}=_e(),',
+    variants: [
+      {
+        find: '{drawerSlug:A,setCollectionSlug:k,setInitialFiles:P,setMaxFiles:L,setOnSuccess:$,setSelectableCollections:B}=Ho(),{permissions:M}=_e(),',
+        replace: '{drawerSlug:A,setCollectionSlug:k,setInitialFiles:P,setMaxFiles:L,setOnSuccess:$,setSelectableCollections:B}=Ho(),{getUploadHandler:inlineGetUploadHandler}=dd(),{permissions:M}=_e(),',
+      },
+      {
+        find: '{drawerSlug:A,setCollectionSlug:k,setInitialFiles:P,setMaxFiles:L,setOnSuccess:$,setSelectableCollections:B}=Ho(),{permissions:O}=Te(),',
+        replace: '{drawerSlug:A,setCollectionSlug:k,setInitialFiles:P,setMaxFiles:L,setOnSuccess:$,setSelectableCollections:B}=Ho(),{getUploadHandler:inlineGetUploadHandler}=md(),{permissions:O}=Te(),',
+      },
+    ],
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
@@ -656,23 +679,60 @@ import { normalizeRelationshipValue } from '../../utilities/normalizeRelationshi
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
-    find: 'Ie?oo(xa,{disabled:y||!q,multipleFiles:d,onChange:Oe,',
+    find: [
+      'Ie?oo(xa,{disabled:y||!q,multipleFiles:d,onChange:Oe,',
+      'be?oo(xa,{disabled:y||!oe,multipleFiles:d,onChange:Ae,',
+    ],
     replace: 'Ie?oo(xa,{disabled:y||!q||inlineUploading,multipleFiles:d,onChange:Oe,',
+    variants: [
+      {
+        find: 'Ie?oo(xa,{disabled:y||!q,multipleFiles:d,onChange:Oe,',
+        replace: 'Ie?oo(xa,{disabled:y||!q||inlineUploading,multipleFiles:d,onChange:Oe,',
+      },
+      {
+        find: 'be?oo(xa,{disabled:y||!oe,multipleFiles:d,onChange:Ae,',
+        replace: 'be?oo(xa,{disabled:y||!oe||inlineUploading,multipleFiles:d,onChange:Ae,',
+      },
+    ],
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
-    find: 'className:`${Un}__createNewToggler`,disabled:y||!q,onClick:()=>{y||(d?Oe():de())},',
-    replace: 'className:`${Un}__createNewToggler`,disabled:y||!q||inlineUploading,onClick:()=>{y||(d?Oe():de())},',
+    variants: [
+      {
+        find: 'className:`${Un}__createNewToggler`,disabled:y||!q,onClick:()=>{y||(d?Oe():de())},',
+        replace: 'className:`${Un}__createNewToggler`,disabled:y||!q||inlineUploading,onClick:()=>{y||(d?Oe():de())},',
+      },
+      {
+        find: 'className:`${Hn}__createNewToggler`,disabled:y||!oe,onClick:()=>{y||(d?Ae():me())},',
+        replace: 'className:`${Hn}__createNewToggler`,disabled:y||!oe||inlineUploading,onClick:()=>{y||(d?Ae():me())},',
+      },
+    ],
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
-    find: 'className:`${Un}__listToggler`,disabled:y,onClick:te,',
-    replace: 'className:`${Un}__listToggler`,disabled:y||inlineUploading,onClick:te,',
+    variants: [
+      {
+        find: 'className:`${Un}__listToggler`,disabled:y,onClick:te,',
+        replace: 'className:`${Un}__listToggler`,disabled:y||inlineUploading,onClick:te,',
+      },
+      {
+        find: 'className:`${Hn}__listToggler`,disabled:y,onClick:Q,',
+        replace: 'className:`${Hn}__listToggler`,disabled:y||inlineUploading,onClick:Q,',
+      },
+    ],
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
-    find: 'Ie?oo(xa,{disabled:y||!q||inlineUploading,multipleFiles:d,onChange:Oe,children:Fa("div",{className:`${Un}__dropzoneContent`,children:[Fa("div",{className:`${Un}__dropzoneContent__buttons`,children:[q&&Fa(Md,{children:[oo(oe,{buttonStyle:"pill",className:`${Un}__createNewToggler`,disabled:y||!q||inlineUploading,onClick:()=>{y||(d?Oe():de())},size:"small",children:O("general:createNew")}),oo("span",{className:`${Un}__dropzoneContent__orText`,children:O("general:or")})]}),oo(oe,{buttonStyle:"pill",className:`${Un}__listToggler`,disabled:y||inlineUploading,onClick:te,size:"small",children:O("fields:chooseFromExisting")}),oo(U,{onSave:Xe}),oo(Z,{allowCreate:q,enableRowSelections:d,onBulkSelect:Be,onSelect:he})]}),q&&!y&&Fa("p",{className:`${Un}__dragAndDropText`,children:[O("general:or")," ",O("upload:dragAndDrop")]})]})})',
-    replace: 'Ie?oo(xa,{disabled:y||!q||inlineUploading,multipleFiles:d,onChange:Oe,children:inlineUploading?Fa("div",{className:`${Un}__inlineUpload`,children:[oo("div",{className:`${Un}__inlineUploadText`,children:"Uploading..."}),oo("div",{"aria-label":"Upload progress","aria-valuemax":100,"aria-valuemin":0,"aria-valuenow":inlineUploadProgress,className:`${Un}__inlineUploadTrack`,role:"progressbar",children:oo("div",{className:`${Un}__inlineUploadBar`,style:{width:`${inlineUploadProgress}%`}})})]}):Fa("div",{className:`${Un}__dropzoneContent`,children:[Fa("div",{className:`${Un}__dropzoneContent__buttons`,children:[q&&Fa(Md,{children:[oo(oe,{buttonStyle:"pill",className:`${Un}__createNewToggler`,disabled:y||!q||inlineUploading,onClick:()=>{y||(d?Oe():de())},size:"small",children:O("general:createNew")}),oo("span",{className:`${Un}__dropzoneContent__orText`,children:O("general:or")})]}),oo(oe,{buttonStyle:"pill",className:`${Un}__listToggler`,disabled:y||inlineUploading,onClick:te,size:"small",children:O("fields:chooseFromExisting")}),oo(U,{onSave:Xe}),oo(Z,{allowCreate:q,enableRowSelections:d,onBulkSelect:Be,onSelect:he})]}),q&&!y&&Fa("p",{className:`${Un}__dragAndDropText`,children:[O("general:or")," ",O("upload:dragAndDrop")]})]})})',
+    variants: [
+      {
+        find: 'Ie?oo(xa,{disabled:y||!q||inlineUploading,multipleFiles:d,onChange:Oe,children:Fa("div",{className:`${Un}__dropzoneContent`,children:[Fa("div",{className:`${Un}__dropzoneContent__buttons`,children:[q&&Fa(Md,{children:[oo(oe,{buttonStyle:"pill",className:`${Un}__createNewToggler`,disabled:y||!q||inlineUploading,onClick:()=>{y||(d?Oe():de())},size:"small",children:O("general:createNew")}),oo("span",{className:`${Un}__dropzoneContent__orText`,children:O("general:or")})]}),oo(oe,{buttonStyle:"pill",className:`${Un}__listToggler`,disabled:y||inlineUploading,onClick:te,size:"small",children:O("fields:chooseFromExisting")}),oo(U,{onSave:Xe}),oo(Z,{allowCreate:q,enableRowSelections:d,onBulkSelect:Be,onSelect:he})]}),q&&!y&&Fa("p",{className:`${Un}__dragAndDropText`,children:[O("general:or")," ",O("upload:dragAndDrop")]})]})})',
+        replace: 'Ie?oo(xa,{disabled:y||!q||inlineUploading,multipleFiles:d,onChange:Oe,children:inlineUploading?Fa("div",{className:`${Un}__inlineUpload`,children:[oo("div",{className:`${Un}__inlineUploadText`,children:"Uploading..."}),oo("div",{"aria-label":"Upload progress","aria-valuemax":100,"aria-valuemin":0,"aria-valuenow":inlineUploadProgress,className:`${Un}__inlineUploadTrack`,role:"progressbar",children:oo("div",{className:`${Un}__inlineUploadBar`,style:{width:`${inlineUploadProgress}%`}})})]}):Fa("div",{className:`${Un}__dropzoneContent`,children:[Fa("div",{className:`${Un}__dropzoneContent__buttons`,children:[q&&Fa(Md,{children:[oo(oe,{buttonStyle:"pill",className:`${Un}__createNewToggler`,disabled:y||!q||inlineUploading,onClick:()=>{y||(d?Oe():de())},size:"small",children:O("general:createNew")}),oo("span",{className:`${Un}__dropzoneContent__orText`,children:O("general:or")})]}),oo(oe,{buttonStyle:"pill",className:`${Un}__listToggler`,disabled:y||inlineUploading,onClick:te,size:"small",children:O("fields:chooseFromExisting")}),oo(U,{onSave:Xe}),oo(Z,{allowCreate:q,enableRowSelections:d,onBulkSelect:Be,onSelect:he})]}),q&&!y&&Fa("p",{className:`${Un}__dragAndDropText`,children:[O("general:or")," ",O("upload:dragAndDrop")]})]})})',
+      },
+      {
+        find: 'be?oo(xa,{disabled:y||!oe||inlineUploading,multipleFiles:d,onChange:Ae,children:Ta("div",{className:`${Hn}__dropzoneContent`,children:[Ta("div",{className:`${Hn}__dropzoneContent__buttons`,children:[oe&&Ta(Bd,{children:[oo(re,{buttonStyle:"pill",className:`${Hn}__createNewToggler`,disabled:y||!oe||inlineUploading,onClick:()=>{y||(d?Ae():me())},size:"small",children:M("general:createNew")}),oo("span",{className:`${Hn}__dropzoneContent__orText`,children:M("general:or")})]}),oo(re,{buttonStyle:"pill",className:`${Hn}__listToggler`,disabled:y||inlineUploading,onClick:Q,size:"small",children:M("fields:chooseFromExisting")}),oo(X,{onSave:We}),oo(Z,{allowCreate:oe,enableRowSelections:d,onBulkSelect:ke,onSelect:fe})]}),oe&&!y&&Ta("p",{className:`${Hn}__dragAndDropText`,children:[M("general:or")," ",M("upload:dragAndDrop")]})]})})',
+        replace: 'be?oo(xa,{disabled:y||!oe||inlineUploading,multipleFiles:d,onChange:Ae,children:inlineUploading?Ta("div",{className:`${Hn}__inlineUpload`,children:[oo("div",{className:`${Hn}__inlineUploadText`,children:"Uploading..."}),oo("div",{"aria-label":"Upload progress","aria-valuemax":100,"aria-valuemin":0,"aria-valuenow":inlineUploadProgress,className:`${Hn}__inlineUploadTrack`,role:"progressbar",children:oo("div",{className:`${Hn}__inlineUploadBar`,style:{width:`${inlineUploadProgress}%`}})})]}):Ta("div",{className:`${Hn}__dropzoneContent`,children:[Ta("div",{className:`${Hn}__dropzoneContent__buttons`,children:[oe&&Ta(Bd,{children:[oo(re,{buttonStyle:"pill",className:`${Hn}__createNewToggler`,disabled:y||!oe||inlineUploading,onClick:()=>{y||(d?Ae():me())},size:"small",children:M("general:createNew")}),oo("span",{className:`${Hn}__dropzoneContent__orText`,children:M("general:or")})]}),oo(re,{buttonStyle:"pill",className:`${Hn}__listToggler`,disabled:y||inlineUploading,onClick:Q,size:"small",children:M("fields:chooseFromExisting")}),oo(X,{onSave:We}),oo(Z,{allowCreate:oe,enableRowSelections:d,onBulkSelect:ke,onSelect:fe})]}),oe&&!y&&Ta("p",{className:`${Hn}__dragAndDropText`,children:[M("general:or")," ",M("upload:dragAndDrop")]})]})})',
+      },
+    ],
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/elements/BulkUpload/FormsManager/index.js',
@@ -749,8 +809,16 @@ import { normalizeRelationshipValue } from '../../utilities/normalizeRelationshi
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
-    find: 'pe&&(ee.success(`Successfully saved ${pe} files`),Z(!0),typeof O=="function"&&O(ge,Te)),Te?ee.error(`Failed to save ${Te} files`):L(B),D({type:"REPLACE",state:{activeIndex:re.reduce((je,{formID:Re},We)=>Re===K?We:je,0),forms:re,totalErrorCount:re.reduce((je,{errorCount:Re})=>je+Re,0)}}),re.length===0&&(V(void 0),z(void 0))',
-    replace: 'pe&&(ee.success(`Successfully saved ${pe} files`),Z(!0)),Te?ee.error(`Failed to save ${Te} files`):L(B),D({type:"REPLACE",state:{activeIndex:re.reduce((je,{formID:Re},We)=>Re===K?We:je,0),forms:re,totalErrorCount:re.reduce((je,{errorCount:Re})=>je+Re,0)}}),re.length===0&&(V(void 0),z(void 0)),pe&&typeof O=="function"&&(()=>{try{O(ge,Te)}catch(je){console.error("Payload bulk upload success callback failed",je)}})()',
+    variants: [
+      {
+        find: 'pe&&(ee.success(`Successfully saved ${pe} files`),Z(!0),typeof O=="function"&&O(ge,Te)),Te?ee.error(`Failed to save ${Te} files`):L(B),D({type:"REPLACE",state:{activeIndex:re.reduce((je,{formID:Re},We)=>Re===K?We:je,0),forms:re,totalErrorCount:re.reduce((je,{errorCount:Re})=>je+Re,0)}}),re.length===0&&(V(void 0),z(void 0))',
+        replace: 'pe&&(ee.success(`Successfully saved ${pe} files`),Z(!0)),Te?ee.error(`Failed to save ${Te} files`):L(B),D({type:"REPLACE",state:{activeIndex:re.reduce((je,{formID:Re},We)=>Re===K?We:je,0),forms:re,totalErrorCount:re.reduce((je,{errorCount:Re})=>je+Re,0)}}),re.length===0&&(V(void 0),z(void 0)),pe&&typeof O=="function"&&(()=>{try{O(ge,Te)}catch(je){console.error("Payload bulk upload success callback failed",je)}})()',
+      },
+      {
+        find: 'he&&(te.success(`Successfully saved ${he} files`),Z(!0),typeof M=="function"&&M(ge,Fe)),Fe?te.error(`Failed to save ${Fe} files`):L(B),D({type:"REPLACE",state:{activeIndex:ne.reduce((Oe,{formID:Ee},Ue)=>Ee===K?Ue:Oe,0),forms:ne,totalErrorCount:ne.reduce((Oe,{errorCount:Ee})=>Oe+Ee,0)}}),ne.length===0&&(V(void 0),W(void 0))',
+        replace: 'he&&(te.success(`Successfully saved ${he} files`),Z(!0)),Fe?te.error(`Failed to save ${Fe} files`):L(B),D({type:"REPLACE",state:{activeIndex:ne.reduce((Oe,{formID:Ee},Ue)=>Ee===K?Ue:Oe,0),forms:ne,totalErrorCount:ne.reduce((Oe,{errorCount:Ee})=>Oe+Ee,0)}}),ne.length===0&&(V(void 0),W(void 0)),he&&typeof M=="function"&&(()=>{try{M(ge,Fe)}catch(Oe){console.error("Payload bulk upload success callback failed",Oe)}})()',
+      },
+    ],
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/elements/BulkUpload/FormsManager/index.js',
@@ -859,26 +927,45 @@ import { useBulkUpload } from '../index.js';`,
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
+    optional: true,
     findStart: ',{collectionSlug:$,drawerSlug:B,folderID:M,initialFiles:N,initialForms:j,onSuccess:O,setInitialFiles:V,setInitialForms:z,setSuccessfullyUploaded:Z}=Ho(),[G,te]=wt.useState(!1),[U,J]=wt.useState(""),de=wt.useRef(!1)',
     findEnd: ',Q=wt.useRef(null),q=wt.useRef(()=>({})),X=bW',
     replace: ',{collectionSlug:$,drawerSlug:B,folderID:M,initialFiles:N,initialForms:j,onSuccess:O,setInitialFiles:V,setInitialForms:z,setSuccessfullyUploaded:Z}=Ho(),[G,te]=wt.useState(!1),[U,J]=wt.useState(""),de=wt.useRef(!1),Q=wt.useRef(null),q=wt.useRef(()=>({})),X=bW',
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
-    findStart: ',Ie=wt.useCallback(async({overrides:ie}={})=>{let le=q.current(),Y=[..._];',
-    findEnd: 'let K=Y[T]?.formID,ge=[];',
-    replace: ',Ie=wt.useCallback(async({overrides:ie}={})=>{let le=q.current(),Y=[..._];if(Y[T]){let existingFormState=Y[T].formState;Y[T]={errorCount:Y[T].errorCount,formID:Y[T].formID,formState:{...existingFormState,...le,file:le.file?.value?le.file:existingFormState.file},uploadEdits:Y[T].uploadEdits}}let K=Y[T]?.formID,ge=[];',
+    variants: [
+      {
+        findStart: ',Ie=wt.useCallback(async({overrides:ie}={})=>{let le=q.current(),Y=[..._];',
+        findEnd: 'let K=Y[T]?.formID,ge=[];',
+        replace: ',Ie=wt.useCallback(async({overrides:ie}={})=>{let le=q.current(),Y=[..._];if(Y[T]){let existingFormState=Y[T].formState;Y[T]={errorCount:Y[T].errorCount,formID:Y[T].formID,formState:{...existingFormState,...le,file:le.file?.value?le.file:existingFormState.file},uploadEdits:Y[T].uploadEdits}}let K=Y[T]?.formID,ge=[];',
+      },
+      {
+        findStart: ',be=wt.useCallback(async({overrides:ae}={})=>{let le=oe.current(),J=[...S];',
+        findEnd: 'let K=J[T]?.formID,ge=[];',
+        replace: ',be=wt.useCallback(async({overrides:ae}={})=>{let le=oe.current(),J=[...S];if(J[T]){let existingFormState=J[T].formState;J[T]={errorCount:J[T].errorCount,formID:J[T].formID,formState:{...existingFormState,...le,file:le.file?.value?le.file:existingFormState.file},uploadEdits:J[T].uploadEdits}}let K=J[T]?.formID,ge=[];',
+      },
+    ],
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
+    optional: true,
     findStart: 'fe=wt.useCallback(()=>{D({type:"REPLACE",state:{forms:_.map(ie=>({...ie,uploadEdits:{}}))}})},[_]);return wt.useEffect(()=>{',
     findEnd: 'gW(uR',
     replace: 'fe=wt.useCallback(()=>{D({type:"REPLACE",state:{forms:_.map(ie=>({...ie,uploadEdits:{}}))}})},[_]);return wt.useEffect(()=>{$&&(v||xe(),S||ve(),(N||j)&&I(!v||!S),v&&(j?.length||N?.length)&&!de.current&&(j?.length&&Ge(j),N?.length&&he(N),de.current=!0))},[N,xe,ve,$,v,S,j]),gW(uR',
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
-    find: 'function ry(t){let e=xR(12),{className:o}=t,{getEntityConfig:r}=W(),{t:n}=E(),{collectionSlug:s,hasPublishPermission:i,hasSavePermission:l,saveAllDocs:a}=Wo(),c;',
-    replace: 'function ry(t){let e=xR(12),{className:o}=t,{getEntityConfig:r}=W(),{t:n}=E(),{collectionSlug:s,hasPublishPermission:i,hasSavePermission:l,saveAllDocs:a}=Wo(),{initialFiles:autoInitialFiles}=Ho(),autoSaveInitialFiles=RW.useRef(!1);RW.useEffect(()=>{if(!autoInitialFiles?.length||!l||autoSaveInitialFiles.current)return;autoSaveInitialFiles.current=!0;let autoSaveTimeout=window.setTimeout(()=>{void a()},0);return()=>window.clearTimeout(autoSaveTimeout)},[autoInitialFiles,l,a]);let c;',
+    variants: [
+      {
+        find: 'function ry(t){let e=xR(12),{className:o}=t,{getEntityConfig:r}=W(),{t:n}=E(),{collectionSlug:s,hasPublishPermission:i,hasSavePermission:l,saveAllDocs:a}=Wo(),c;',
+        replace: 'function ry(t){let e=xR(12),{className:o}=t,{getEntityConfig:r}=W(),{t:n}=E(),{collectionSlug:s,hasPublishPermission:i,hasSavePermission:l,saveAllDocs:a}=Wo(),{initialFiles:autoInitialFiles}=Ho(),autoSaveInitialFiles=RW.useRef(!1);RW.useEffect(()=>{if(!autoInitialFiles?.length||!l||autoSaveInitialFiles.current)return;autoSaveInitialFiles.current=!0;let autoSaveTimeout=window.setTimeout(()=>{void a()},0);return()=>window.clearTimeout(autoSaveTimeout)},[autoInitialFiles,l,a]);let c;',
+      },
+      {
+        find: 'function ly(t){let e=IR(12),{className:o}=t,{getEntityConfig:r}=z(),{t:n}=E(),{collectionSlug:s,hasPublishPermission:i,hasSavePermission:l,saveAllDocs:a}=Wo(),c;',
+        replace: 'function ly(t){let e=IR(12),{className:o}=t,{getEntityConfig:r}=z(),{t:n}=E(),{collectionSlug:s,hasPublishPermission:i,hasSavePermission:l,saveAllDocs:a}=Wo(),{initialFiles:autoInitialFiles}=Ho(),autoSaveInitialFiles=wt.useRef(!1);wt.useEffect(()=>{if(!autoInitialFiles?.length||!l||autoSaveInitialFiles.current)return;autoSaveInitialFiles.current=!0;let autoSaveTimeout=window.setTimeout(()=>{void a()},0);return()=>window.clearTimeout(autoSaveTimeout)},[autoInitialFiles,l,a]);let c;',
+      },
+    ],
   },
   {
     file: 'node_modules/@payloadcms/storage-s3/dist/client/S3ClientUploadHandler.js',
@@ -1022,36 +1109,35 @@ for (const [patchIndex, patch] of patches.entries()) {
 
   const source = fs.readFileSync(filePath, 'utf8')
 
-  if (!patch.always && source.includes(patch.replace)) {
+  const variants = patch.variants || [patch]
+  if (!patch.always && variants.some((variant) => source.includes(variant.replace))) {
     continue
   }
 
   let patchedSource
-
-  if ('findStart' in patch && 'findEnd' in patch) {
-    const startIndex = source.indexOf(patch.findStart)
-    const endIndex = startIndex === -1 ? -1 : source.indexOf(patch.findEnd, startIndex + patch.findStart.length)
-
-    if (startIndex === -1 || endIndex === -1) {
-      if (patch.optional) {
-        continue
-      }
-      throw new Error(`[patch-payload-bulk-upload] Patch ${patchIndex + 1} could not find expected code in ${patch.file}`)
+  const variant = variants.find((candidate) => {
+    if ('findStart' in candidate && 'findEnd' in candidate) {
+      const startIndex = source.indexOf(candidate.findStart)
+      return startIndex !== -1 && source.indexOf(candidate.findEnd, startIndex + candidate.findStart.length) !== -1
     }
+    const candidates = Array.isArray(candidate.find) ? candidate.find : [candidate.find]
+    return candidates.some((find) => source.includes(find))
+  })
 
-    patchedSource = `${source.slice(0, startIndex)}${patch.replace}${source.slice(endIndex + patch.findEnd.length)}`
+  if (!variant) {
+    if (patch.optional) continue
+    throw new Error(`[patch-payload-bulk-upload] Patch ${patchIndex + 1} could not find expected code in ${patch.file}`)
+  }
+
+  if ('findStart' in variant && 'findEnd' in variant) {
+    const startIndex = source.indexOf(variant.findStart)
+    const endIndex = source.indexOf(variant.findEnd, startIndex + variant.findStart.length)
+
+    patchedSource = `${source.slice(0, startIndex)}${variant.replace}${source.slice(endIndex + variant.findEnd.length)}`
   } else {
-    const candidates = Array.isArray(patch.find) ? patch.find : [patch.find]
+    const candidates = Array.isArray(variant.find) ? variant.find : [variant.find]
     const matchedSource = candidates.find((candidate) => source.includes(candidate))
-
-    if (!matchedSource) {
-      if (patch.optional) {
-        continue
-      }
-      throw new Error(`[patch-payload-bulk-upload] Patch ${patchIndex + 1} could not find expected code in ${patch.file}`)
-    }
-
-    patchedSource = source.replace(matchedSource, () => patch.replace)
+    patchedSource = source.replace(matchedSource, () => variant.replace)
   }
 
   fs.writeFileSync(filePath, patchedSource)
