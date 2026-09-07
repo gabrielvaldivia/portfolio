@@ -12,15 +12,21 @@ import {
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
 import { ActivityVideoThumbnail } from '@/components/ActivityVideoThumbnail'
 import { LazyModuleLikeButton } from '@/components/LazyModuleLikeButton'
+import { PayloadImage } from '@/components/PayloadImage'
 import { cn } from '@/lib/cn'
-import { advanceMarquee, getMarqueeReleaseVelocity, wrapMarqueePosition, type DragSample } from '@/lib/marqueeMotion'
+import type { ResponsiveImageMedia } from '@/lib/responsiveImage'
+import {
+  advanceMarquee,
+  getCircularMarqueeEntries,
+  getMarqueeReleaseVelocity,
+  getMarqueeWindowSize,
+  type DragSample,
+} from '@/lib/marqueeMotion'
 
-type LikedWorkThumbnail = {
+type LikedWorkThumbnail = ResponsiveImageMedia & {
   type: 'image' | 'video'
   url: string
   alt: string
-  width?: number
-  height?: number
   fit?: 'cover' | 'contain'
   padding?: string
   backgroundColor?: string
@@ -65,13 +71,11 @@ function WorkMedia({
   }
 
   return (
-    <Image
-      src={thumbnail.url}
+    <PayloadImage
+      media={thumbnail}
       alt=""
       fill
-      unoptimized
       sizes="(max-width: 809px) 384px, (max-width: 1279px) 512px, 560px"
-      quality={90}
       className={className}
     />
   )

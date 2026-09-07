@@ -1,12 +1,13 @@
-import Image from 'next/image'
 import Link from 'next/link'
+import { PayloadImage } from '@/components/PayloadImage'
 import { cn } from '@/lib/cn'
+import type { ResponsiveImageMedia } from '@/lib/responsiveImage'
 
 type Props = {
   title: string
   slug: string
   subtitle?: string
-  featuredImage?: { url: string; alt: string; width: number; height: number }
+  featuredImage?: ResponsiveImageMedia
   href?: string
   icon?: React.ReactNode
   priority?: boolean
@@ -41,13 +42,12 @@ export function ProjectCard({ title, slug, subtitle, featuredImage, href, icon, 
               {icon}
             </div>
           ) : featuredImage?.url ? (
-            <Image
-              src={featuredImage.url}
+            <PayloadImage
+              media={featuredImage}
               alt={featuredImage.alt || title}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
               sizes="(max-width: 810px) 100vw, (max-width: 1280px) 50vw, 33vw"
-              quality={90}
               priority={priority}
             />
           ) : (

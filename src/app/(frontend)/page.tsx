@@ -188,6 +188,9 @@ function buildHeroProjectSlides(projects: any[], testimonials: any[]) {
             url: project.featuredImage.url,
             alt: project.featuredImage.alt,
             mimeType: project.featuredImage.mimeType,
+            width: project.featuredImage.width,
+            height: project.featuredImage.height,
+            sizes: project.featuredImage.sizes,
           }
         : undefined,
       testimonial: resolveHeroTestimonial({
@@ -287,6 +290,7 @@ function buildLikedWorkMarqueeItems(items: any[]): LikedWorkMarqueeItem[] {
         alt: String(thumbnail.alt || target.label || target.sourceTitle || ''),
         width: width > 0 ? width : undefined,
         height: height > 0 ? height : undefined,
+        sizes: thumbnail.sizes,
         fit: thumbnail.fit === 'contain' ? 'contain' as const : 'cover' as const,
         padding: typeof thumbnail.padding === 'string' ? thumbnail.padding : undefined,
         backgroundColor: typeof thumbnail.backgroundColor === 'string'

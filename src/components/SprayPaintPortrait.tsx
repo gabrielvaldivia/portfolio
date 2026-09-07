@@ -1,16 +1,14 @@
 'use client'
 
-import Image from 'next/image'
 import { SwatchIcon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import * as Popover from '@radix-ui/react-popover'
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { PayloadImage } from '@/components/PayloadImage'
 import { cn } from '@/lib/cn'
+import type { ResponsiveImageMedia } from '@/lib/responsiveImage'
 
-type PortraitImage = {
-  url: string
-  alt?: string | null
-}
+type PortraitImage = ResponsiveImageMedia & { url: string }
 
 type Point = {
   x: number
@@ -510,23 +508,21 @@ export function SprayPaintPortrait({
       ref={surfaceRef}
       className="group/portrait relative aspect-square overflow-hidden rounded-xl tablet:aspect-[3/4] tablet:rounded-2xl after:pointer-events-none after:absolute after:inset-0 after:z-20 after:rounded-xl after:border after:border-border tablet:after:rounded-2xl"
     >
-      <Image
-        src={image.url}
+      <PayloadImage
+        media={image}
         alt={image.alt || 'Portrait of Gabriel Valdivia'}
         fill
         className={cn('object-cover', imageDark?.url && 'light-only')}
         sizes="(max-width: 1280px) 100vw, 33vw"
-        quality={90}
         loading={eager ? 'eager' : undefined}
       />
       {imageDark?.url && (
-        <Image
-          src={imageDark.url}
+        <PayloadImage
+          media={imageDark}
           alt={imageDark.alt || image.alt || 'Portrait of Gabriel Valdivia'}
           fill
           className="dark-only object-cover"
           sizes="(max-width: 1280px) 100vw, 33vw"
-          quality={90}
           loading={eager ? 'eager' : undefined}
         />
       )}

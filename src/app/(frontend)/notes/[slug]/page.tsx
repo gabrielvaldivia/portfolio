@@ -1,6 +1,7 @@
 import { Container } from '@/components/Container'
 import { RichText } from '@/components/RichText'
 import { NoteHighlights } from '@/components/NoteHighlights'
+import { PayloadImage } from '@/components/PayloadImage'
 import { HoverChevron } from '@/components/Icons'
 import { getNoteHighlightText } from '@/lib/noteHighlightAnchors'
 import { highlightTextVersion } from '@/lib/noteHighlightStore'
@@ -9,7 +10,6 @@ import { buildPageMetadata } from '@/lib/pageMetadata'
 import { SITE_ORIGIN } from '@/lib/siteMetadata'
 import { getPublishedNoteBySlug, getPublishedNoteSlugs, getReadNextNotes } from '@/lib/queries'
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
@@ -111,12 +111,12 @@ export default async function NotePage({ params }: NotePageProps) {
 
         {coverImage?.url ? (
           <figure className="mb-12 overflow-hidden rounded-[16px] bg-background-alt tablet:mb-16">
-            <Image
+            <PayloadImage
+              media={coverImage}
               alt={coverImage.alt || ''}
               className="h-auto w-full"
               height={coverImage.height || 900}
               sizes="(max-width: 809px) calc(100vw - 40px), (max-width: 1479px) calc(100vw - 80px), 1400px"
-              src={coverImage.url}
               width={coverImage.width || 1600}
             />
           </figure>

@@ -2,6 +2,7 @@ import Image from 'next/image'
 import { LazyVideo } from '@/components/LazyVideo'
 import { LightboxVideo } from '@/components/LightboxVideo'
 import { LazyModuleLikeButton } from '@/components/LazyModuleLikeButton'
+import { PayloadImage } from '@/components/PayloadImage'
 import { VideoPlayer } from '@/components/VideoPlayer'
 import { cn } from '@/lib/cn'
 
@@ -138,7 +139,7 @@ export function ImageBlockComponent({
           style={{ aspectRatio, ...(rowHeight && !isLightbox ? { ['--row-height' as string]: `${rowHeight}px` } : {}) }}
         >
           <div className={`absolute inset-0 ${roundedClass} ${rounded || imageBorder ? 'overflow-hidden' : ''}`}>
-            <Image src={image.url} alt={image.alt || ''} fill className={objectFit} sizes={isLightbox ? '100vw' : columns === '1' ? '16vw' : columns === '2' ? '33vw' : columns === '3' ? '50vw' : columns === '4' ? '66vw' : '100vw'} quality={90} />
+            <PayloadImage media={image} alt={image.alt || ''} fill className={objectFit} sizes={isLightbox ? '100vw' : columns === '1' ? '16vw' : columns === '2' ? '33vw' : columns === '3' ? '50vw' : columns === '4' ? '66vw' : '100vw'} />
             {imageBorder && <div className={`absolute inset-0 z-10 pointer-events-none border border-border ${roundedClass}`} />}
           </div>
         </div>
@@ -294,7 +295,7 @@ export function BrowserBlockComponent({
             <div className="w-14 shrink-0 tablet:w-16" style={{ width: scaledLength(64) }} aria-hidden="true" />
           </div>
           <div className="relative bg-background" style={{ aspectRatio }}>
-            <Image src={image.url} alt={image.alt || ''} fill className={objectFit} sizes={isLightbox ? '100vw' : columns === '1' ? '16vw' : columns === '2' ? '33vw' : columns === '3' ? '50vw' : columns === '4' ? '66vw' : '100vw'} quality={90} />
+            <PayloadImage media={image} alt={image.alt || ''} fill className={objectFit} sizes={isLightbox ? '100vw' : columns === '1' ? '16vw' : columns === '2' ? '33vw' : columns === '3' ? '50vw' : columns === '4' ? '66vw' : '100vw'} />
             {imageBorder && <div className="pointer-events-none absolute inset-0 z-10 border border-border" />}
           </div>
         </div>
@@ -340,11 +341,13 @@ function FramedVideoOrImage({
   src,
   isVideo,
   alt,
+  media,
   mode,
 }: {
   src: string
   isVideo?: boolean
   alt?: string
+  media?: any
   mode: ModuleRenderMode
 }) {
   if (isVideo) {
@@ -352,13 +355,12 @@ function FramedVideoOrImage({
   }
 
   return (
-    <Image
-      src={src}
+    <PayloadImage
+      media={media || { url: src, alt }}
       alt={alt || ''}
       fill
       className="object-cover"
       sizes={mode === 'lightbox' ? '100vw' : '(max-width: 810px) 100vw, 720px'}
-      quality={90}
     />
   )
 }
@@ -439,7 +441,7 @@ export function iPhone15Block({ id: blockId, video, image, rows, showNotch, _con
               boxShadow: '0 0 0 6px #000',
             }}
           >
-            <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} mode={_mode} />
+            <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} media={image} mode={_mode} />
           </div>
           <DeviceFrameImage src={frameUrl} />
         </div>
@@ -473,7 +475,7 @@ export function iPhone13MiniBlock({ id: blockId, video, image, rows, _containedI
       <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
           <div className="absolute z-0 overflow-hidden" style={{ top: '7.3%', bottom: '7.2%', left: '13.5%', right: '13.5%', borderRadius: '5%' }}>
-            <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} mode={_mode} />
+            <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} media={image} mode={_mode} />
           </div>
           <DeviceFrameImage src={IPHONE13MINI_FRAME_URL} />
         </div>
@@ -507,7 +509,7 @@ export function iPhone5Block({ id: blockId, video, image, rows, _containedInLigh
       <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
           <div className="absolute z-0 overflow-hidden" style={{ top: '14.3%', bottom: '13.7%', left: '8.2%', right: '6.9%' }}>
-            <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} mode={_mode} />
+            <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} media={image} mode={_mode} />
           </div>
           <DeviceFrameImage src={IPHONE5_FRAME_URL} />
         </div>
@@ -541,7 +543,7 @@ export function iPhone6Block({ id: blockId, video, image, rows, _containedInLigh
       <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
           <div className="absolute z-0 overflow-hidden" style={{ top: '15.4%', bottom: '15.6%', left: '12.2%', right: '11.7%' }}>
-            <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} mode={_mode} />
+            <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} media={image} mode={_mode} />
           </div>
           <DeviceFrameImage src={IPHONE6_FRAME_URL} />
         </div>
@@ -575,7 +577,7 @@ export function iPhoneXBlock({ id: blockId, video, image, rows, _containedInLigh
       <div className="flex h-full w-full max-w-full items-center justify-center">
         <div id={id} className="relative overflow-hidden">
           <div className="absolute z-0 overflow-hidden" style={{ top: '6.2%', bottom: '6.5%', left: '10.1%', right: '9.7%', borderRadius: '5%' }}>
-            <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} mode={_mode} />
+            <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} media={image} mode={_mode} />
           </div>
           <DeviceFrameImage src={IPHONEX_FRAME_URL} />
         </div>

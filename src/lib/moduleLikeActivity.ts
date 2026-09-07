@@ -83,6 +83,7 @@ type ActivityTarget = {
     alt: string
     width?: number | null
     height?: number | null
+    sizes?: MediaValue['sizes']
     fit?: 'cover' | 'contain'
     padding?: string
     backgroundColor?: string
@@ -459,6 +460,7 @@ function getBlockThumbnail(block: any) {
       alt: image.alt || caption || '',
       width: preferred.width,
       height: preferred.height,
+      sizes: image.sizes,
       ...presentation,
       frame,
     }
@@ -581,6 +583,7 @@ function indexNoteTargets(index: Map<string, ActivityTarget>, notes: any[]) {
             alt: coverImage?.alt || title,
             width: preferredCoverImage.width,
             height: preferredCoverImage.height,
+            sizes: coverImage?.sizes,
             fit: 'cover',
           }
         : null,

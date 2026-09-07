@@ -6,6 +6,7 @@ import { Heart, MessageCircle } from 'lucide-react'
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityVideoThumbnail } from '@/components/ActivityVideoThumbnail'
 import { HighlighterFilledIcon } from '@/components/Icons'
+import { PayloadImage } from '@/components/PayloadImage'
 import { cn } from '@/lib/cn'
 import { formatActivityTime } from '@/lib/activityTime'
 import type {
@@ -329,13 +330,11 @@ function ActivityFramedThumbnail({
               playOnHover={playVideoOnHover}
             />
           ) : (
-            <Image
-              src={thumbnail.url}
+            <PayloadImage
+              media={thumbnail}
               alt=""
               fill
-              unoptimized
               sizes={imageSizes}
-              quality={90}
               className={resolvedMediaClassName}
             />
           )}
@@ -403,14 +402,12 @@ function ActivityMediaThumbnail({
           style={containerStyle}
           aria-hidden="true"
         >
-          <Image
-            src={thumbnail.url}
+          <PayloadImage
+            media={thumbnail}
             alt=""
             width={thumbnail.width}
             height={thumbnail.height}
-            unoptimized
             sizes={imageSizes}
-            quality={90}
             className={cn(
               'block h-auto max-h-full w-auto max-w-full border border-border object-contain object-center',
               thumbnail.rounded ? 'rounded-md' : '',
@@ -428,13 +425,11 @@ function ActivityMediaThumbnail({
           aria-hidden="true"
         >
           <div className={imageClassName}>
-            <Image
-              src={thumbnail.url}
+            <PayloadImage
+              media={thumbnail}
               alt=""
               fill
-              unoptimized
               sizes={imageSizes}
-              quality={90}
               className={resolvedMediaClassName}
             />
             {border}
@@ -449,13 +444,11 @@ function ActivityMediaThumbnail({
         style={containerStyle}
         aria-hidden="true"
       >
-        <Image
-          src={thumbnail.url}
+        <PayloadImage
+          media={thumbnail}
           alt=""
           fill
-          unoptimized
           sizes={imageSizes}
-          quality={90}
           className={resolvedMediaClassName}
         />
         {border}

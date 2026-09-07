@@ -1,10 +1,11 @@
-import Image from 'next/image'
+import { PayloadImage } from '@/components/PayloadImage'
 import { cn } from '@/lib/cn'
+import type { ResponsiveImageMedia } from '@/lib/responsiveImage'
 
 type Props = {
   name: string
-  photo?: { url: string; alt?: string } | null
-  photoDark?: { url: string; alt?: string } | null
+  photo?: (ResponsiveImageMedia & { url: string }) | null
+  photoDark?: (ResponsiveImageMedia & { url: string }) | null
   role?: string
   linkedIn?: string
   size?: number
@@ -28,20 +29,18 @@ export function Avatar({
       <div className="relative flex size-full items-center justify-center overflow-hidden rounded-full bg-background-alt">
         {photo?.url ? (
           <>
-            <Image
-              src={photo.url}
+            <PayloadImage
+              media={photo}
               alt={photo.alt || name}
               fill
-              unoptimized
               sizes={`${size}px`}
               className={cn('object-cover', photoDark?.url && 'light-only')}
             />
             {photoDark?.url && (
-              <Image
-                src={photoDark.url}
+              <PayloadImage
+                media={photoDark}
                 alt={photoDark.alt || name}
                 fill
-                unoptimized
                 sizes={`${size}px`}
                 className="object-cover dark-only"
               />

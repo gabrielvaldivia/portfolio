@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import {
   AnimatePresence,
   animate,
@@ -25,6 +24,7 @@ import {
 import { createPortal, flushSync } from 'react-dom'
 import { framedBlockTypes, mediaBlockComponents } from '@/blocks/MediaBlockComponents'
 import { ModuleLikeButton } from '@/components/ModuleLikeButton'
+import { PayloadImage } from '@/components/PayloadImage'
 import { cn } from '@/lib/cn'
 import type {
   LightboxRect,
@@ -798,13 +798,12 @@ function ZoomablePhotoModuleSlide({
           style={{ aspectRatio }}
         >
           <div className="absolute inset-0 overflow-hidden">
-            <Image
-              src={image.url}
+            <PayloadImage
+              media={image}
               alt={image.alt || ''}
               fill
               className={objectFit}
               sizes="100vw"
-              quality={90}
             />
           </div>
         </div>
