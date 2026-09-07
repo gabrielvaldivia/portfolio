@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState, type ComponentType } from 'react'
+import { Heart } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
 type ModuleLikeButtonProps = {
@@ -54,11 +55,14 @@ export function ModuleLikeButtonShell({
           variant === 'pill'
             ? 'h-11 min-w-11 justify-center px-3 text-sm'
             : 'h-8 bg-elevated px-2.5 text-caption shadow-sm outline outline-1 outline-offset-0 outline-gray-400/40',
-          'disabled:cursor-default disabled:opacity-70',
+          'disabled:cursor-default',
+          variant !== 'pill' && 'disabled:opacity-70',
         )}
       >
         <span className="relative inline-flex size-[18px] items-center justify-center overflow-visible">
-          <HeartIcon className="size-[18px] opacity-45" />
+          {variant === 'pill' && initialCount === 0
+            ? <Heart className="size-[18px]" aria-hidden="true" />
+            : <HeartIcon className={cn('size-[18px]', variant !== 'pill' && 'opacity-45')} />}
         </span>
         <span aria-hidden="true" className={cn('relative inline-flex h-[1em] min-w-[1ch] items-center overflow-hidden tabular-nums leading-none', variant === 'pill' && 'shrink-0', initialCount === 0 && 'invisible')}>
           <span className="inline-block">{variant === 'pill' ? initialCount.toLocaleString('en-US', { notation: 'compact' }) : initialCount}</span>

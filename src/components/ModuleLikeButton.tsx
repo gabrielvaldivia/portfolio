@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion, useReducedMotion, type Transition } from 'motion/react'
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'react'
+import { Heart } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import {
   MAX_MODULE_LIKES_PER_VISITOR,
@@ -755,7 +756,8 @@ export function ModuleLikeButton({
           variant === 'pill'
             ? 'h-11 min-w-11 justify-center px-3 text-sm'
             : 'h-8 bg-elevated px-2.5 text-caption shadow-sm outline outline-1 outline-offset-0 outline-gray-400/40',
-          'hover:text-content focus-visible:ring-2 focus-visible:ring-content/30 disabled:cursor-default disabled:opacity-70',
+          'hover:text-content focus-visible:ring-2 focus-visible:ring-content/30 disabled:cursor-default',
+          variant !== 'pill' && 'disabled:opacity-70',
           isHeartActive && 'text-red-500 hover:text-red-600',
         )}
         style={heartColor ? { color: heartColor } : undefined}
@@ -804,7 +806,9 @@ export function ModuleLikeButton({
             animate={smallHeartAnimation}
             transition={smallHeartTransition}
           >
-            <HeartIcon className={cn('size-[18px]', isHeartActive ? 'opacity-100' : 'opacity-45')} />
+            {variant === 'pill' && data.count === 0 && !isHeartActive
+              ? <Heart className="size-[18px]" aria-hidden="true" />
+              : <HeartIcon className={cn('size-[18px]', variant !== 'pill' && !isHeartActive && 'opacity-45')} />}
           </motion.span>
 
           <AnimatePresence>
