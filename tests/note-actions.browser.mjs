@@ -127,7 +127,10 @@ try {
     const last = samples.at(-1)
     check(last.opacity === 1 && Math.abs(last.y) < 0.01, `${config.name}: settles fully visible at rest`)
     check(last.blur === 'blur(40px)', `${config.name}: backdrop blur remains enabled`)
-    check(Math.max(...samples.map(s => s.width)) - Math.min(...samples.map(s => s.width)) < 1, `${config.name}: width stays stable during entrance/count-up`)
+    // The hidden loading layout can resize as data arrives; the visible pill
+    // must reserve its final width for the entire entrance and count-up.
+    const visibleWidths = samples.filter(s => s.opacity > 0).map(s => s.width)
+    check(Math.max(...visibleWidths) - Math.min(...visibleWidths) < 1, `${config.name}: width stays stable during entrance/count-up`)
     if (!config.reduced) {
       check(samples.some(s => s.opacity > 0 && s.opacity < 1), `${config.name}: opacity fades in`)
       check(samples.some(s => s.y > 0 && s.y < 8), `${config.name}: gently rises`)
