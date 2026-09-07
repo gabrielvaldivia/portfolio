@@ -72,7 +72,7 @@ function NoteViews({ noteId, enabled }: { noteId: string; enabled: boolean }) {
           aria-label={count === null ? 'Views unavailable' : `${count.toLocaleString('en-US')} ${count === 1 ? 'view' : 'views'}`}
           aria-describedby={tooltipOpen ? tooltipId : undefined} aria-controls={tooltipOpen ? tooltipId : undefined} aria-haspopup={undefined}>
           <Eye className="size-[18px]" aria-hidden="true" />
-          <span className="tabular-nums" aria-hidden="true">{count === null ? '—' : count.toLocaleString('en-US', { notation: 'compact' })}</span>
+          <span className="font-mono tabular-nums" aria-hidden="true">{count === null ? '—' : count.toLocaleString('en-US', { notation: 'compact' })}</span>
         </button>
       </PopoverTrigger>
       <PopoverContent id={tooltipId} role="tooltip" side="top" sideOffset={10} collisionPadding={16}
@@ -112,7 +112,7 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, hi
     <button type="button" aria-label={highlightsReady ? `${highlights.length} highlighted passages. Show highlights` : 'Show highlights'}
       className="inline-grid h-11 min-w-11 grid-cols-[18px_minmax(1ch,auto)] items-center justify-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted hover:bg-background-alt hover:text-content focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content">
       <Highlighter className={cn('col-start-1 row-start-1 size-[18px]', highlightsReady && highlights.length === 0 && 'col-span-2 justify-self-center')} aria-hidden="true" />
-      <span className={cn('col-start-2 row-start-1 min-w-[1ch] text-left tabular-nums', highlightsReady && highlights.length === 0 && 'invisible')} aria-hidden="true">{highlightsReady ? highlights.length : '—'}</span>
+      <span className={cn('col-start-2 row-start-1 min-w-[1ch] text-left font-mono tabular-nums', highlightsReady && highlights.length === 0 && 'invisible')} aria-hidden="true">{highlightsReady ? highlights.length : '—'}</span>
     </button>
   )
   const visibilitySwitch = (

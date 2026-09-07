@@ -177,7 +177,7 @@ function createHeartFragments(intensity: number): Particle[] {
 
 function AnimatedCount({ value, pill }: { value: number; pill: boolean }) {
   return (
-    <span aria-hidden="true" className={cn('relative inline-flex h-[1em] min-w-[1ch] items-center overflow-hidden tabular-nums leading-none', pill && 'col-start-2 row-start-1', value === 0 && 'invisible')}>
+    <span aria-hidden="true" className={cn('relative inline-flex h-[1em] min-w-[1ch] items-center overflow-hidden tabular-nums leading-none', pill && 'col-start-2 row-start-1 font-mono', value === 0 && 'invisible')}>
       <AnimatePresence mode="popLayout" initial={false}>
         <motion.span
           key={value}

@@ -369,6 +369,12 @@ h1 {
     font-size: 100px;
   }
 
+  /* Unlayered heading defaults override Tailwind utilities; keep this note
+     override in the same cascade so the desktop title is actually smaller. */
+  .note-page-title {
+    font-size: 64px;
+  }
+
   .home-hero-heading {
     font-size: 100px;
     line-height: 1.05;

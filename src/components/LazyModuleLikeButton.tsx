@@ -64,7 +64,7 @@ export function ModuleLikeButtonShell({
             ? <Heart className="size-[18px]" aria-hidden="true" />
             : <HeartIcon className={cn('size-[18px]', variant !== 'pill' && 'opacity-45')} />}
         </span>
-        <span aria-hidden="true" className={cn('relative inline-flex h-[1em] min-w-[1ch] items-center overflow-hidden tabular-nums leading-none', variant === 'pill' && 'col-start-2 row-start-1', initialCount === 0 && 'invisible')}>
+        <span aria-hidden="true" className={cn('relative inline-flex h-[1em] min-w-[1ch] items-center overflow-hidden tabular-nums leading-none', variant === 'pill' && 'col-start-2 row-start-1 font-mono', initialCount === 0 && 'invisible')}>
           <span className="inline-block">{variant === 'pill' ? initialCount.toLocaleString('en-US', { notation: 'compact' }) : initialCount}</span>
         </span>
       </button>
