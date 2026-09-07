@@ -75,7 +75,7 @@ export default async function NotePage({ params }: NotePageProps) {
   return (
     <article className="note-page pb-20 text-content">
       <Container>
-        <div className="max-w-[880px]">
+        <div className="mx-auto max-w-[880px]">
           <header className="flex flex-col gap-4 pb-12 tablet:pb-16">
             <h1 className="max-w-[1100px] text-balance text-[40px] leading-[1.05] tablet:text-[64px] desktop:text-[80px]">
               {note.title}
@@ -97,14 +97,14 @@ export default async function NotePage({ params }: NotePageProps) {
           </figure>
         ) : null}
 
-        <div className="longform-body [&_.rich-text_h2]:mb-8 [&_.rich-text_h2]:pb-4 [&_.rich-text_h2]:pt-16 [&_.rich-text_h3]:mb-6 [&_.rich-text_h3]:pb-4 [&_.rich-text_h3]:pt-12 [&_.rich-text_blockquote]:my-10 [&_.rich-text_blockquote]:border-l [&_.rich-text_blockquote]:border-border-strong [&_.rich-text_blockquote]:pl-6 [&_.rich-text_blockquote]:text-muted">
+        <div className="longform-body mx-auto max-w-[760px] [&_.rich-text_h2]:mb-8 [&_.rich-text_h2]:pb-4 [&_.rich-text_h2]:pt-16 [&_.rich-text_h3]:mb-6 [&_.rich-text_h3]:pb-4 [&_.rich-text_h3]:pt-12 [&_.rich-text_blockquote]:my-10 [&_.rich-text_blockquote]:border-l [&_.rich-text_blockquote]:border-border-strong [&_.rich-text_blockquote]:pl-6 [&_.rich-text_blockquote]:text-muted">
           <NoteHighlights key={note.id} noteId={String(note.id)} likeTargetId={getNoteLikeTargetId(note.slug)} version={highlightTextVersion(getNoteHighlightText(note.body))}>
             <RichText data={note.body} renderLinkedImages />
           </NoteHighlights>
         </div>
 
         {readNextNotes.length > 0 ? (
-          <section aria-labelledby="continue-reading-heading" className="mt-16 max-w-[760px] border-t border-border pt-12">
+          <section aria-labelledby="continue-reading-heading" className="mx-auto mt-16 max-w-[760px] border-t border-border pt-12">
             <h2 id="continue-reading-heading" className="text-[16px] font-medium">
               Continue reading
             </h2>

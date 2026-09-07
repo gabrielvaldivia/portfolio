@@ -806,7 +806,9 @@ export function HeroProjectSlideshow({ projects }: Props) {
                     className="absolute inset-0 origin-top bg-white tablet:origin-left"
                     style={isMobileViewport
                       ? { scaleY: index === activeIndex ? 1 : 0 }
-                      : { scaleX: index === activeIndex ? (prefersReducedMotion ? 1 : progress) : 0 }}
+                      // Focus pauses autoplay after a chevron or pagination click.
+                      // Keep the selected slide visible even with zero progress.
+                      : { scaleX: index === activeIndex ? (isAutoplayRunning ? progress : 1) : 0 }}
                   />
                 </span>
               </button>
