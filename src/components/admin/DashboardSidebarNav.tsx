@@ -30,6 +30,10 @@ function canReadCollection(permissions: SanitizedPermissions | undefined, slug: 
   return Boolean(permissions?.collections?.[slug]?.read)
 }
 
+function canReadGlobal(permissions: SanitizedPermissions | undefined, slug: string) {
+  return Boolean(permissions?.globals?.[slug]?.read)
+}
+
 function collectionItem(adminRoute: string, item: CollectionNavItem): DashboardSidebarNavItem {
   return {
     href: formatAdminURL({
@@ -60,14 +64,6 @@ export function DashboardSidebarNav({ payload, permissions }: ServerProps) {
 
   if (canReadCollection(permissions, 'pages')) {
     items.push({
-      activeHrefs: permissions?.globals?.timeline?.read
-        ? [
-            formatAdminURL({
-              adminRoute,
-              path: '/globals/timeline',
-            }),
-          ]
-        : undefined,
       href: formatAdminURL({
         adminRoute,
         path: '/collections/pages',
@@ -75,6 +71,18 @@ export function DashboardSidebarNav({ payload, permissions }: ServerProps) {
       icon: 'pages',
       id: 'nav',
       label: 'Nav',
+    })
+  }
+
+  if (canReadGlobal(permissions, 'timeline')) {
+    items.push({
+      href: formatAdminURL({
+        adminRoute,
+        path: '/globals/timeline',
+      }),
+      icon: 'timeline',
+      id: 'timeline',
+      label: 'Timeline',
     })
   }
 

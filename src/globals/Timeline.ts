@@ -8,9 +8,6 @@ import {
 export const Timeline: GlobalConfig = {
   slug: 'timeline',
   label: 'Timeline',
-  admin: {
-    group: 'Pages',
-  },
   access: {
     read: () => true,
   },

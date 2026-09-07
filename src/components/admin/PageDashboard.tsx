@@ -155,7 +155,6 @@ export async function PageDashboard({ permissions, req }: WidgetServerProps) {
     sort: 'order',
   })
   const pages = sortPagesByOrder(docs as DashboardPage[])
-  const showTimelineShortcut = Boolean(permissions?.globals?.timeline?.read)
   const recentCollectionGroups = await Promise.all(
     recentCollectionSources
       .filter((source) => permissions?.collections?.[source.slug]?.read)
@@ -282,7 +281,7 @@ export async function PageDashboard({ permissions, req }: WidgetServerProps) {
         ) : null}
         <div className="collections__group">
           <h2 className="collections__label">Nav</h2>
-          {pages.length > 0 || showTimelineShortcut ? (
+          {pages.length > 0 ? (
             <ul className="collections__card-list page-dashboard__list">
               {pages.map((page) => {
                 const slug = getPagePath(page.slug)
@@ -313,19 +312,6 @@ export async function PageDashboard({ permissions, req }: WidgetServerProps) {
                   </li>
                 )
               })}
-              {showTimelineShortcut ? (
-                <li>
-                  <a
-                    aria-label="Edit Timeline"
-                    className="card card--has-onclick page-dashboard__card dashboard-card--with-icon dashboard-card--icon-calendar"
-                    href={formatAdminURL({ adminRoute, path: '/globals/timeline' })}
-                    id="card-page-timeline"
-                  >
-                    <span className="card__title page-dashboard__title">Timeline</span>
-                    <span className="page-dashboard__meta">/timeline</span>
-                  </a>
-                </li>
-              ) : null}
             </ul>
           ) : (
             <a

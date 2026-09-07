@@ -44,7 +44,6 @@ export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListVi
   const [pages, setPages] = useState(queriedPages)
   const [savingOrder, setSavingOrder] = useState(false)
   const canUpdatePages = Boolean(permissions?.collections?.pages?.update)
-  const canReadTimeline = Boolean(permissions?.globals?.timeline?.read)
 
   useEffect(() => {
     setPages(queriedPages)
@@ -159,21 +158,6 @@ export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListVi
             ))}
           </DraggableSortable>
 
-          {canReadTimeline ? (
-            <div className="nav-pages-list-view__item nav-pages-list-view__item--fixed" role="listitem">
-              <span className="nav-pages-list-view__drag-placeholder" aria-hidden="true" />
-              <Link
-                aria-label="Edit Timeline"
-                className="nav-pages-list-view__link"
-                href={formatAdminURL({ adminRoute, path: '/globals/timeline' })}
-                prefetch={false}
-              >
-                <span className="nav-pages-list-view__label">Timeline</span>
-                <span className="nav-pages-list-view__path">/timeline</span>
-                <span className="nav-pages-list-view__chevron" aria-hidden="true" />
-              </Link>
-            </div>
-          ) : null}
         </div>
       </main>
     </div>

@@ -4,7 +4,6 @@ import {
   BriefcaseBusinessIcon,
   BrowserIcon,
   BubbleChatIcon,
-  Calendar04Icon,
   Camera01Icon,
   CustomerService01Icon,
   DashboardSquare03Icon,
@@ -14,7 +13,9 @@ import {
   Layers01Icon,
   LayoutGridIcon,
   Mail01Icon,
+  Menu02Icon,
   Setting06Icon,
+  TimelineListIcon,
   User03Icon,
   UserMultiple02Icon,
 } from '@hugeicons/core-free-icons'
@@ -45,7 +46,6 @@ export type DashboardSidebarIconKey =
   | 'users'
 
 export type DashboardSidebarNavItem = {
-  activeHrefs?: string[]
   children?: DashboardSidebarNavItem[]
   href?: string
   icon: DashboardSidebarIconKey
@@ -67,7 +67,7 @@ const icons: Record<DashboardSidebarIconKey, IconSvgElement> = {
   media: Image03Icon,
   notes: File02Icon,
   page: BrowserIcon,
-  pages: BrowserIcon,
+  pages: Menu02Icon,
   people: UserMultiple02Icon,
   photos: Camera01Icon,
   projects: BriefcaseBusinessIcon,
@@ -75,7 +75,7 @@ const icons: Record<DashboardSidebarIconKey, IconSvgElement> = {
   settings: Setting06Icon,
   sideProjects: Layers01Icon,
   subscribers: Mail01Icon,
-  timeline: Calendar04Icon,
+  timeline: TimelineListIcon,
   users: User03Icon,
 }
 
@@ -97,7 +97,6 @@ function isHrefActive(pathname: string, href?: string, match: DashboardSidebarNa
 function isItemActive(pathname: string, item: DashboardSidebarNavItem): boolean {
   return (
     isHrefActive(pathname, item.href, item.match) ||
-    item.activeHrefs?.some((href) => isHrefActive(pathname, href)) ||
     item.children?.some((child) => isItemActive(pathname, child)) ||
     false
   )
