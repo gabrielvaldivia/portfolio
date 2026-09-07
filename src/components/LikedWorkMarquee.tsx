@@ -20,6 +20,7 @@ import {
   getCircularMarqueeEntries,
   getMarqueeReleaseVelocity,
   getMarqueeWindowSize,
+  wrapMarqueePosition,
   type DragSample,
 } from '@/lib/marqueeMotion'
 
