@@ -29,6 +29,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
   const [visitorReady, setVisitorReady] = useState(false)
   const [highlightsVisible, setHighlightsVisible] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [paused, setPaused] = useState(false)
   const [touchSelection, setTouchSelection] = useState(false)
   const [error, setError] = useState('')
   const [announcement, setAnnouncement] = useState('')
@@ -86,6 +87,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
       if (!response.ok || !data) throw new Error(data?.error || 'Highlights are temporarily unavailable. Please try again.')
       if (data.version !== version) throw new Error('This note changed. Refresh it to see and save highlights.')
       setHighlights(data.highlights)
+      setPaused(data.paused === true)
       setReady(true)
       setError('')
     } catch (error) {
@@ -186,7 +188,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
   }, [])
 
   async function save(remove = false) {
-    if (!active || !ready || savingRef.current || (remove && !current?.mine)) return
+    if (!active || !ready || savingRef.current || (!remove && paused) || (remove && !current?.mine)) return
     savingRef.current = true
     setSaving(true)
     requestRef.current++ // Ignore a refresh that was started before this mutation.
@@ -200,6 +202,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
       if (!mountedRef.current) return
       if (!response.ok || !data) throw new Error(data?.error || 'Unable to save your highlight. Please try again.')
       setHighlights(data.highlights)
+      setPaused(data.paused === true)
       setAnnouncement(remove ? 'Your highlight was removed.' : 'Highlight saved. It is now visible to everyone.')
       setActive(null)
       window.getSelection()?.removeAllRanges()
@@ -265,7 +268,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
         >
           {active?.fromSelection ? (
             <>
-              <button type="button" className={cn(actionClass, 'shadow-lg')} disabled={!ready || saving}
+              <button type="button" className={cn(actionClass, 'shadow-lg')} disabled={!ready || saving || paused}
                 onPointerDown={(event) => event.preventDefault()}
                 onPointerUp={(event) => {
                   // Commit on touch release before Safari can collapse the
@@ -276,7 +279,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
                   }
                 }}
                 onClick={() => void save()}>
-                {saving ? 'Saving…' : 'Highlight'}
+                {paused ? 'Highlights paused' : saving ? 'Saving…' : 'Highlight'}
               </button>
               {error ? <p role="alert" className="mt-2 max-w-64 rounded-lg bg-background p-3 text-sm text-text-strong shadow-lg">{error}</p> : null}
             </>

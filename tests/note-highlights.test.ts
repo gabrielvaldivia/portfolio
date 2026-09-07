@@ -6,12 +6,13 @@ import { PgDialect } from 'drizzle-orm/pg-core'
 import { sql } from '@payloadcms/db-postgres'
 import { up } from '../src/migrations/20260906_120000_add_note_highlights'
 import { up as addLocations } from '../src/migrations/20260906_180000_add_highlight_locations'
+import { up as addModeration } from '../src/migrations/20260907_120000_add_highlight_moderation'
 import { getNoteHighlightText, makeHighlightAnchor, normalizeHighlightText, parseHighlightAnchor, resolveHighlightAnchor } from '../src/lib/noteHighlightAnchors'
 import { checkHighlightRateLimit, highlightTextVersion, loadPublicHighlights, writeHighlight } from '../src/lib/noteHighlightStore'
 
 const client = new PGlite()
 const db = drizzle(client)
-const text = 'Before this passage. Software is an instrument. After this passage.'
+const text = 'Before this passage. Software is an instrument. After this passage. ' + 'More context for this note. '.repeat(20)
 const exact = 'Software is an instrument.'
 const start = text.indexOf(exact)
 const anchor = makeHighlightAnchor(text, start, start + exact.length)
@@ -20,6 +21,7 @@ before(async () => {
   await client.exec('CREATE TABLE notes (id integer PRIMARY KEY); INSERT INTO notes VALUES (1), (2), (3), (4);')
   await up({ db: { execute: (query: Parameters<typeof db.execute>[0]) => client.exec(new PgDialect().sqlToQuery(query as ReturnType<typeof sql>).sql) } } as unknown as Parameters<typeof up>[0])
   await addLocations({ db } as unknown as Parameters<typeof addLocations>[0])
+  await addModeration({ db: { execute: (query: Parameters<typeof db.execute>[0]) => client.exec(new PgDialect().sqlToQuery(query as ReturnType<typeof sql>).sql) } } as unknown as Parameters<typeof addModeration>[0])
 })
 after(async () => { await client.close() })
 
@@ -112,7 +114,7 @@ test('concurrent duplicate saves count once', async () => {
 
 test('limits highlights per reader per note without preventing removal', async () => {
   const body = Array.from({ length: 51 }, (_, i) => `Passage number ${i}.`).join(' ')
-  for (let i = 0; i < 50; i++) {
+  for (let i = 0; i < 5; i++) {
     const quote = `Passage number ${i}.`
     const offset = body.indexOf(quote)
     await writeHighlight(db, 4, body, 'reader', makeHighlightAnchor(body, offset, offset + quote.length), false)
@@ -122,7 +124,7 @@ test('limits highlights per reader per note without preventing removal', async (
   await assert.rejects(writeHighlight(db, 4, body, 'reader', last, false), { status: 429 })
   await writeHighlight(db, 4, body, 'reader', makeHighlightAnchor(body, 0, 'Passage number 0.'.length), true)
   await writeHighlight(db, 4, body, 'reader', last, false)
-  assert.equal((await loadPublicHighlights(db, 4, body, 'reader')).length, 50)
+  assert.equal((await loadPublicHighlights(db, 4, body, 'reader')).length, 5)
 })
 
 test('enforces persistent limits even when an IP rotates its visitor cookie', async () => {

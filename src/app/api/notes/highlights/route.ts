@@ -4,7 +4,8 @@ import { getPayload, isPayloadUnavailable } from '@/lib/payload'
 import { getPayloadSecret } from '@/lib/payloadSecret'
 import { getNoteHighlightText, parseHighlightAnchor } from '@/lib/noteHighlightAnchors'
 import { getHighlightRequestLocation } from '@/lib/noteHighlightAttribution'
-import { checkHighlightRateLimit, HighlightError, highlightTextVersion, loadPublicHighlights, writeHighlight } from '@/lib/noteHighlightStore'
+import { checkHighlightRateLimit, HighlightError, highlightTextVersion, isHighlightingPaused, loadPublicHighlights, writeHighlight } from '@/lib/noteHighlightStore'
+import { checkHighlightOrigin, readHighlightJSON } from '@/lib/noteHighlightRequest'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -29,25 +30,8 @@ async function respond(req: NextRequest, mutate: boolean) {
   try {
     let body: { noteId?: unknown; anchor?: unknown; version?: unknown } = {}
     if (mutate) {
-      const origin = req.headers.get('origin')
-      if ((origin && origin !== req.nextUrl.origin) || req.headers.get('sec-fetch-site') === 'cross-site') {
-        throw new HighlightError('Please highlight directly on this website.', 403)
-      }
-      if (!req.headers.get('content-type')?.startsWith('application/json')) throw new HighlightError('JSON is required.', 415)
-      // Bound the streamed request too; Content-Length is not trustworthy.
-      const reader = req.body?.getReader()
-      if (!reader) throw new HighlightError('A passage is required.', 400)
-      const chunks: Uint8Array[] = []
-      let size = 0
-      while (true) {
-        const { value, done } = await reader.read()
-        if (done) break
-        size += value.byteLength
-        if (size > 8_192) { await reader.cancel(); throw new HighlightError('Select a shorter passage.', 413) }
-        chunks.push(value)
-      }
-      try { body = JSON.parse(Buffer.concat(chunks).toString('utf8')) } catch { throw new HighlightError('Invalid request.', 400) }
-      if (!body || typeof body !== 'object') throw new HighlightError('Invalid request.', 400)
+      checkHighlightOrigin(req)
+      body = await readHighlightJSON(req)
     }
     const anchor = mutate ? parseHighlightAnchor(body.anchor) : null
     if (mutate && !anchor) throw new HighlightError('Select between 3 and 1,000 characters in the note.', 400)
@@ -62,6 +46,7 @@ async function respond(req: NextRequest, mutate: boolean) {
     }
     return withVisitorCookie({
       highlights: await loadPublicHighlights(note.db, note.id, note.text, visitorHash), version: note.version,
+      paused: await isHighlightingPaused(note.db, note.id),
     }, visitor)
   } catch (error) {
     const status = error instanceof HighlightError ? error.status : 503

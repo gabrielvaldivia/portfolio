@@ -204,6 +204,14 @@ export const Notes: CollectionConfig = {
             },
           ],
         },
+        {
+          label: 'Highlights',
+          fields: [{
+            name: 'highlightModeration',
+            type: 'ui',
+            admin: { components: { Field: './components/admin/NoteHighlightModeration#NoteHighlightModeration' } },
+          }],
+        },
       ],
     },
     {

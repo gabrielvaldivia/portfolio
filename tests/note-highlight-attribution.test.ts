@@ -6,22 +6,25 @@ import { PgDialect } from 'drizzle-orm/pg-core'
 import { sql } from '@payloadcms/db-postgres'
 import { up } from '../src/migrations/20260906_120000_add_note_highlights'
 import { up as addLocations } from '../src/migrations/20260906_180000_add_highlight_locations'
+import { up as addModeration } from '../src/migrations/20260907_120000_add_highlight_moderation'
 import { makeHighlightAnchor, type PublicHighlight } from '../src/lib/noteHighlightAnchors'
 import { loadPublicHighlights, writeHighlight } from '../src/lib/noteHighlightStore'
 import { getHighlightRequestLocation, getHighlightAttributionHeading, groupHighlightAttributions, formatHighlightDate } from '../src/lib/noteHighlightAttribution'
 
 const client = new PGlite()
 const db = drizzle(client)
-const text = 'A highlighted passage about making things.'
-const anchor = makeHighlightAnchor(text, 0, text.length)
+const quote = 'A highlighted passage about making things.'
+const text = quote + ' More context for this note.'.repeat(20)
+const anchor = makeHighlightAnchor(text, 0, quote.length)
 
 before(async () => {
   await client.exec('CREATE TABLE notes (id integer PRIMARY KEY); INSERT INTO notes VALUES (1), (2), (3);')
   await up({ db: { execute: (query: Parameters<typeof db.execute>[0]) => client.exec(new PgDialect().sqlToQuery(query as ReturnType<typeof sql>).sql) } } as unknown as Parameters<typeof up>[0])
   // A real pre-migration shape, with no historical location to backfill.
-  await db.execute(sql`INSERT INTO note_highlights VALUES (1, ${'a'.repeat(64)}, 'legacy-private-reader', ${anchor.exact}, '', '', 0, ${text.length}, '2026-09-06T12:34:56Z')`)
+  await db.execute(sql`INSERT INTO note_highlights VALUES (1, ${'a'.repeat(64)}, 'legacy-private-reader', ${anchor.exact}, '', '', 0, ${anchor.end}, '2026-09-06T12:34:56Z')`)
   await addLocations({ db } as unknown as Parameters<typeof addLocations>[0])
   await addLocations({ db } as unknown as Parameters<typeof addLocations>[0])
+  await addModeration({ db: { execute: (query: Parameters<typeof db.execute>[0]) => client.exec(new PgDialect().sqlToQuery(query as ReturnType<typeof sql>).sql) } } as unknown as Parameters<typeof addModeration>[0])
 })
 after(async () => { await client.close() })
 
@@ -85,7 +88,7 @@ test('owner-only removal updates the public attribution list', async () => {
 test('converging old anchors count a reader once and keep their first attribution', async () => {
   await writeHighlight(db, 3, text, 'same-private-reader', anchor, false, 'Paris, France')
   await db.execute(sql`UPDATE note_highlights SET created_at = '2026-09-05T12:00:00Z' WHERE note_id = 3`)
-  await db.execute(sql`INSERT INTO note_highlights VALUES (3, ${'b'.repeat(64)}, 'same-private-reader', ${anchor.exact}, '', '', 0, ${text.length}, '2026-09-06T12:00:00Z', 'Brooklyn, NY')`)
+  await db.execute(sql`INSERT INTO note_highlights VALUES (3, ${'b'.repeat(64)}, 'same-private-reader', ${anchor.exact}, '', '', 0, ${anchor.end}, '2026-09-06T12:00:00Z', 'Brooklyn, NY')`)
   const [mark] = await loadPublicHighlights(db, 3, text, 'same-private-reader')
   assert.equal(mark.count, 1)
   assert.deepEqual(mark.attributions, [{ location: 'Paris, France', createdAt: '2026-09-05T12:00:00.000Z', mine: true }])

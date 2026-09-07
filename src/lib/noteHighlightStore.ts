@@ -2,8 +2,12 @@ import { createHash } from 'node:crypto'
 import { sql } from '@payloadcms/db-postgres'
 import type { SQL } from 'drizzle-orm'
 import { makeHighlightAnchor, resolveHighlightAnchor, type HighlightAnchor, type HighlightAttribution, type PublicHighlight } from './noteHighlightAnchors'
+import { highlightCoverage, MAX_HIGHLIGHT_COVERAGE, MAX_READER_HIGHLIGHTS } from './noteHighlightLimits'
 
 export type HighlightDB = { execute: (query: SQL) => Promise<unknown> }
+export type HighlightWriteDB = HighlightDB & {
+  transaction: <T>(callback: (tx: HighlightDB) => Promise<T>) => Promise<T>
+}
 type StoredHighlight = {
   anchor_key: string; quote: string; prefix: string; suffix: string
   start_offset: number; end_offset: number
@@ -19,8 +23,23 @@ export function highlightTextVersion(text: string) {
   return createHash('sha256').update(text).digest('hex')
 }
 
-function rows<T>(result: unknown): T[] {
+export function highlightRows<T>(result: unknown): T[] {
   return Array.isArray(result) ? result : (result as { rows?: T[] })?.rows || []
+}
+const rows = highlightRows
+
+/** Serialize quota checks and moderation across every server instance. */
+export async function withHighlightLock<T>(db: HighlightWriteDB, noteId: number, action: (tx: HighlightDB) => Promise<T>) {
+  return db.transaction(async (tx) => {
+    const found = await tx.execute(sql`SELECT id FROM notes WHERE id = ${noteId} FOR UPDATE`)
+    if (!rows(found).length) throw new HighlightError('Note not found.', 404)
+    return action(tx)
+  })
+}
+
+export async function isHighlightingPaused(db: HighlightDB, noteId: number) {
+  const result = await db.execute(sql`SELECT paused FROM note_highlight_settings WHERE note_id = ${noteId}`)
+  return rows<{ paused: boolean }>(result)[0]?.paused || false
 }
 
 export async function loadHighlightGroups(db: HighlightDB, noteId: number, text: string, visitorHash: string) {
@@ -65,8 +84,15 @@ export async function loadPublicHighlights(db: HighlightDB, noteId: number, text
 }
 
 export async function writeHighlight(
-  db: HighlightDB, noteId: number, text: string, visitorHash: string,
+  db: HighlightWriteDB, noteId: number, text: string, visitorHash: string,
   input: HighlightAnchor, remove: boolean, location: string | null = null,
+) {
+  return withHighlightLock(db, noteId, (tx) => writeLockedHighlight(tx, noteId, text, visitorHash, input, remove, location))
+}
+
+async function writeLockedHighlight(
+  db: HighlightDB, noteId: number, text: string, visitorHash: string,
+  input: HighlightAnchor, remove: boolean, location: string | null,
 ) {
   // The API checks the document version; do not accept a fabricated quote or position.
   if (text.slice(input.start, input.end) !== input.exact) {
@@ -83,21 +109,23 @@ export async function writeHighlight(
     return
   }
   if (existing?.mine) return // Idempotent, including two requests arriving at once.
+  if (await isHighlightingPaused(db, noteId)) throw new HighlightError('New highlights are paused on this note.', 403)
+  const blocked = await db.execute(sql`SELECT 1 FROM note_highlight_blocks WHERE note_id = ${noteId} AND visitor_hash = ${visitorHash}`)
+  if (rows(blocked).length) throw new HighlightError('Highlighting is unavailable for this browser on this note.', 403)
+  const mine = groups.filter((group) => group.mine)
+  if (mine.length >= MAX_READER_HIGHLIGHTS) {
+    throw new HighlightError('You can save up to 5 passages per note. Remove one to highlight another.', 429)
+  }
+  if (highlightCoverage([...mine, anchor]) > Math.floor(text.length * MAX_HIGHLIGHT_COVERAGE)) {
+    throw new HighlightError('Your highlights can cover up to 15% of this note. Select less text or remove an existing highlight.', 429)
+  }
   if (!existing && groups.length >= 500) throw new HighlightError('This note has reached its highlight limit.', 429)
   const key = existing?.keys[0] || highlightTextVersion(`${anchor.start}:${anchor.end}:${anchor.exact}`)
-  const result = await db.execute(sql`
+  await db.execute(sql`
     INSERT INTO note_highlights (note_id, anchor_key, visitor_hash, quote, prefix, suffix, start_offset, end_offset, location)
     SELECT ${noteId}, ${key}, ${visitorHash}, ${anchor.exact}, ${anchor.prefix}, ${anchor.suffix}, ${anchor.start}, ${anchor.end}, ${location?.slice(0, 180) || null}
-    WHERE (SELECT count(*) FROM note_highlights WHERE note_id = ${noteId} AND visitor_hash = ${visitorHash}) < 50
     ON CONFLICT (note_id, anchor_key, visitor_hash) DO NOTHING
-    RETURNING anchor_key
   `)
-  if (!rows(result).length) {
-    const latest = await loadHighlightGroups(db, noteId, text, visitorHash)
-    if (!latest.some((group) => group.start === anchor.start && group.end === anchor.end && group.mine)) {
-      throw new HighlightError('You can save up to 50 passages per note. Remove one to highlight another.', 429)
-    }
-  }
 }
 
 /** Shared Postgres counters work across serverless instances; no raw IP addresses are stored. */

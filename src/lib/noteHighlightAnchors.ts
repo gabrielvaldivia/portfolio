@@ -21,7 +21,7 @@ export type PublicHighlight = HighlightAnchor & {
   attributions: HighlightAttribution[]
 }
 
-export type HighlightResponse = { highlights: PublicHighlight[]; version: string }
+export type HighlightResponse = { highlights: PublicHighlight[]; version: string; paused?: boolean }
 
 export function normalizeHighlightText(text: string) {
   return text.replace(/\s+/gu, ' ').trim()

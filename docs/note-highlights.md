@@ -55,9 +55,16 @@ excerpts use the same indented, left-bordered quote treatment as note bodies.
   rendered as images. Index positions are in normalized UTF-16 text.
 - Postgres stores salted anonymous identities, never exposes them in responses,
   and enforces duplicate protection. Writes have shared per-browser and per-IP
-  hourly rate limits. The application limits each reader to 50 passages per note
-  and each note to 500 distinct active passages. Clearing cookies cannot bypass
-  the IP rate limit. Request bodies are bounded at 8 KiB.
+  hourly rate limits (120 mutation requests per hour per browser and IP). Each
+  browser can save at most **5 passages covering 15% of a note**; overlapping text
+  counts once. Each note is limited to 500 distinct active passages. Checks use
+  the current normalized note text and resolved anchors. A transaction locks the
+  note row before checking quotas or changing highlights, so concurrent requests
+  cannot bypass these limits or race moderation. Clearing cookies cannot bypass
+  the IP rate limit, but can reset browser ownership, quotas and browser blocks.
+  Anonymous identities are not proof of a unique person. Request bodies are
+  bounded at 8 KiB. Existing over-quota highlights are preserved; removal and
+  idempotent retries remain available. Pausing never hides existing marks.
 
 ## Operations
 
@@ -66,11 +73,41 @@ Run `npm run migrate` before deploying the feature. The additive migration
 `note_highlight_rate_limits`; deleting a note cascades to its highlights.
 Apply `20260906_180000_add_highlight_locations` before deploying attribution support;
 it adds one nullable location column without modifying historical timestamps.
-To moderate a passage, an administrator can remove its rows in `note_highlights`
-by the specific `note_id` and `anchor_key`. No public moderation endpoint exists.
+Apply `20260907_120000_add_highlight_moderation` before deploying these controls.
+It adds note-scoped pause settings and browser blocks, without changing or
+deleting existing highlights. Do not run migrations against the live database
+as part of local tests.
+
+In the note editor, open the **more menu → Highlights**:
+
+- **Pause new highlights** immediately prevents new contributions on that note.
+  Existing highlights remain visible, and readers can still remove their own.
+- **Remove passage** deletes every reader's contribution to that passage,
+  including old anchors that now resolve to it. Its Activity entry disappears.
+- Expand a passage's readers to **Remove reader’s highlights** or **Remove and
+  block**. Both remove only that browser's contributions on this note, retaining
+  other readers' highlights. Blocking additionally prevents new saves from that
+  browser on this note. Browser identities and blocks are not site-wide bans.
+- **Unblock** allows future highlights again; it does not restore deleted ones.
+
+Destructive actions require confirmation and cannot be undone. Moderation takes
+effect immediately, independently of saving/publishing the note or its drafts.
+Activity is derived from the remaining highlight rows, so deleted contributions
+disappear on the next activity refresh. Open note pages refresh on focus and
+every minute; new writes are checked immediately on the server.
+
+`GET/POST /api/notes/highlights/moderation` requires an authenticated Payload
+`users` account. Mutations also require a same-origin request. Only this private,
+uncached admin endpoint includes opaque browser identifiers. The public API
+never exposes identifiers and still deletes only the requesting browser's copy.
+The public response's `paused` flag disables the selection button when paused.
 
 `npm run test:highlights` runs anchor and storage tests against isolated in-memory
 Postgres (PGlite), without accessing the portfolio database. Also run
+`node --import tsx --test tests/note-highlight-moderation.test.ts` for quota
+boundaries, overlapping selections, concurrency, legacy data, pause/block/removal,
+Activity cleanup, authentication guards and request validation. No live data is
+modified by these tests. Also run
 `npm run build` and `npm run test:highlight-attribution`. Browser checks should cover two anonymous sessions, selection
 across inline links, save/reload, join/remove, mobile, and dark mode.
 `npm run test:bottom-sheet` checks swipe thresholds; browser checks should also

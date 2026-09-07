@@ -3,7 +3,8 @@
 import { PopupList, PublishButton, useDocumentInfo } from '@payloadcms/ui'
 import { useCallback, useEffect, useState } from 'react'
 
-type NoteEditorView = 'writing' | 'metadata'
+type NoteEditorView = 'writing' | 'metadata' | 'highlights'
+const views: NoteEditorView[] = ['writing', 'metadata', 'highlights']
 
 const TAB_SELECTOR = '.notes-editor-tabs .tabs-field__tab-button'
 
@@ -15,7 +16,7 @@ function getActiveView(): NoteEditorView {
   const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>(TAB_SELECTOR))
   const activeIndex = tabs.findIndex((tab) => tab.classList.contains('tabs-field__tab-button--active'))
 
-  return activeIndex === 1 ? 'metadata' : 'writing'
+  return views[activeIndex] || 'writing'
 }
 
 export function NotesEditMenu() {
@@ -65,7 +66,7 @@ export function NotesEditMenu() {
   }, [collectionSlug])
 
   const selectView = useCallback((view: NoteEditorView) => {
-    const index = view === 'writing' ? 0 : 1
+    const index = views.indexOf(view)
     const tabs = document.querySelectorAll<HTMLButtonElement>(TAB_SELECTOR)
 
     tabs[index]?.click()
@@ -92,6 +93,13 @@ export function NotesEditMenu() {
         onClick={() => selectView('metadata')}
       >
         Metadata
+      </PopupList.Button>
+      <PopupList.Button
+        active={activeView === 'highlights'}
+        id="notes-edit-menu-highlights"
+        onClick={() => selectView('highlights')}
+      >
+        Highlights
       </PopupList.Button>
       <hr className="popup-divider notes-edit-menu-divider" />
       <p className="popup-list-group-label notes-edit-menu-actions-label">Actions</p>
