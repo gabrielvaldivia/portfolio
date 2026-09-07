@@ -19,9 +19,10 @@ import {
   User03Icon,
   UserMultiple02Icon,
 } from '@hugeicons/core-free-icons'
-import { Link } from '@payloadcms/ui'
+import { Link, useNav } from '@payloadcms/ui'
 import { usePathname } from 'next/navigation'
 import type { IconSvgElement } from '@hugeicons/react'
+import { useEffect } from 'react'
 
 import { AdminHugeIcon } from './Hugeicons'
 
@@ -78,6 +79,11 @@ const icons: Record<DashboardSidebarIconKey, IconSvgElement> = {
   timeline: TimelineListIcon,
   users: User03Icon,
 }
+
+const mobileNavMediaQuery = '(max-width: 768px)'
+const swipeCloseDistance = 72
+const swipeDirectionRatio = 1.2
+const swipeIntentDistance = 8
 
 function isHrefActive(pathname: string, href?: string, match: DashboardSidebarNavItem['match'] = 'section') {
   if (!href) return false
@@ -150,6 +156,86 @@ function SidebarRow({
 
 export function DashboardSidebarNavClient({ items }: DashboardSidebarNavClientProps) {
   const pathname = usePathname()
+  const { navOpen, navRef, setNavOpen } = useNav()
+
+  useEffect(() => {
+    if (!navOpen || !window.matchMedia(mobileNavMediaQuery).matches) return
+
+    const scrollContainer = navRef.current
+    if (scrollContainer) scrollContainer.scrollTop = 0
+  }, [navOpen, navRef])
+
+  useEffect(() => {
+    const scrollContainer = navRef.current
+    const navElement = scrollContainer?.closest<HTMLElement>('.nav')
+    if (!scrollContainer || !navElement) return
+
+    let activePointerId: number | null = null
+    let gestureAxis: 'horizontal' | 'vertical' | null = null
+    let startX = 0
+    let startY = 0
+
+    const resetGesture = () => {
+      activePointerId = null
+      gestureAxis = null
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (
+        event.pointerType !== 'touch' ||
+        !window.matchMedia(mobileNavMediaQuery).matches ||
+        !navElement.classList.contains('nav--nav-open')
+      ) {
+        return
+      }
+
+      activePointerId = event.pointerId
+      startX = event.clientX
+      startY = event.clientY
+      gestureAxis = null
+      scrollContainer.setPointerCapture(event.pointerId)
+    }
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (event.pointerId !== activePointerId) return
+
+      const distanceX = event.clientX - startX
+      const distanceY = event.clientY - startY
+
+      if (
+        !gestureAxis &&
+        Math.max(Math.abs(distanceX), Math.abs(distanceY)) >= swipeIntentDistance
+      ) {
+        gestureAxis = Math.abs(distanceX) > Math.abs(distanceY) ? 'horizontal' : 'vertical'
+      }
+    }
+
+    const handlePointerUp = (event: PointerEvent) => {
+      if (event.pointerId !== activePointerId) return
+
+      const distanceX = event.clientX - startX
+      const distanceY = event.clientY - startY
+      const isRightwardSwipe =
+        gestureAxis === 'horizontal' &&
+        distanceX >= swipeCloseDistance &&
+        distanceX > Math.abs(distanceY) * swipeDirectionRatio
+
+      if (isRightwardSwipe) setNavOpen(false)
+      resetGesture()
+    }
+
+    scrollContainer.addEventListener('pointerdown', handlePointerDown)
+    scrollContainer.addEventListener('pointermove', handlePointerMove)
+    scrollContainer.addEventListener('pointerup', handlePointerUp)
+    scrollContainer.addEventListener('pointercancel', resetGesture)
+
+    return () => {
+      scrollContainer.removeEventListener('pointerdown', handlePointerDown)
+      scrollContainer.removeEventListener('pointermove', handlePointerMove)
+      scrollContainer.removeEventListener('pointerup', handlePointerUp)
+      scrollContainer.removeEventListener('pointercancel', resetGesture)
+    }
+  }, [navRef, setNavOpen])
 
   return (
     <div className="custom-sidebar-nav" aria-label="CMS navigation">

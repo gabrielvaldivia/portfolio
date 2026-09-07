@@ -4558,8 +4558,26 @@ body:has(.drawer--is-open) :is(.template-default__nav-toggler-container, .app-he
   }
 
   .nav {
+    position: fixed;
+    inset: 0 auto 0 0;
+    align-self: auto;
     z-index: calc(var(--z-modal) + 2);
     width: var(--nav-width) !important;
+    height: 100dvh;
+    max-height: 100dvh;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+  }
+
+  .nav:not(.nav--nav-open) {
+    pointer-events: none;
+  }
+
+  .nav__scroll {
+    height: 100dvh;
+    max-height: 100dvh;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   .nav.nav--nav-open .nav__header {
