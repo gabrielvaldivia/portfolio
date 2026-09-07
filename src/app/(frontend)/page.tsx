@@ -260,11 +260,11 @@ function buildLikedWorkMarqueeItems(items: any[]): LikedWorkMarqueeItem[] {
     const height = Number(thumbnail.height)
     const numericMediaAspectRatio = width > 0 && height > 0 ? width / height : 4 / 3
     const isBrowserModule = target?.block?.blockType === 'browser'
-    const isPhoneFrame = frame?.id.startsWith('iphone') === true
+    const isSquareFrame = frame?.id.startsWith('iphone') === true || frame?.id === 'dc1'
     const cropTallImage = type === 'image' && !frame && numericMediaAspectRatio < 1
     const mediaAspectRatio = width > 0 && height > 0 ? `${width} / ${height}` : '4 / 3'
     const isWebsiteCard = Boolean(thumbnail.imageBorder && thumbnail.padding)
-    const aspectRatio = isPhoneFrame
+    const aspectRatio = isSquareFrame
       ? '1 / 1'
       : isBrowserModule || isWebsiteCard
       ? '4 / 3'

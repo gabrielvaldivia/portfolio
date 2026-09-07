@@ -3,17 +3,17 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import {
-  animate,
   motion,
   useAnimationFrame,
   useInView,
   useMotionValue,
   useReducedMotion,
 } from 'motion/react'
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
 import { ActivityVideoThumbnail } from '@/components/ActivityVideoThumbnail'
 import { LazyModuleLikeButton } from '@/components/LazyModuleLikeButton'
 import { cn } from '@/lib/cn'
+import { advanceMarquee, getMarqueeReleaseVelocity, wrapMarqueePosition, type DragSample } from '@/lib/marqueeMotion'
 
 type LikedWorkThumbnail = {
   type: 'image' | 'video'
@@ -201,7 +201,8 @@ function WorkCard({
         href={item.href}
         aria-label={item.title}
         tabIndex={duplicate ? -1 : undefined}
-        className="block size-full rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content tablet:rounded-2xl"
+        draggable={false}
+        className="block size-full cursor-inherit rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content tablet:rounded-2xl"
       >
         <WorkThumbnail thumbnail={item.thumbnail} />
       </Link>
@@ -218,6 +219,15 @@ function WorkCard({
 
 const MARQUEE_SPEED_PX_PER_SECOND = -64
 
+type MarqueeDrag = {
+  pointerId: number
+  startX: number
+  startY: number
+  startOffset: number
+  active: boolean
+  samples: DragSample[]
+}
+
 export function LikedWorkMarquee({ items }: { items: LikedWorkMarqueeItem[] }) {
   const marqueeRef = useRef<HTMLDivElement>(null)
   const firstGroupRef = useRef<HTMLDivElement>(null)
@@ -225,22 +235,14 @@ export function LikedWorkMarquee({ items }: { items: LikedWorkMarqueeItem[] }) {
   const loopDistanceRef = useRef(0)
   const isInView = useInView(marqueeRef, { amount: 0.1 })
   const prefersReducedMotion = useReducedMotion()
-  const [isInteracting, setIsInteracting] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const hoveredRef = useRef(false)
+  const focusedRef = useRef(false)
+  const dragRef = useRef<MarqueeDrag | null>(null)
+  const suppressClickRef = useRef(false)
+  const velocityRef = useRef(MARQUEE_SPEED_PX_PER_SECOND)
+  const coastingRef = useRef(false)
   const x = useMotionValue(0)
-  const speed = useMotionValue(MARQUEE_SPEED_PX_PER_SECOND)
-
-  useEffect(() => {
-    const controls = animate(
-      speed,
-      isInteracting ? 0 : MARQUEE_SPEED_PX_PER_SECOND,
-      {
-        duration: isInteracting ? 0.8 : 0.55,
-        ease: 'easeOut',
-      },
-    )
-
-    return () => controls.stop()
-  }, [isInteracting, speed])
 
   useEffect(() => {
     const firstGroup = firstGroupRef.current
@@ -260,15 +262,78 @@ export function LikedWorkMarquee({ items }: { items: LikedWorkMarqueeItem[] }) {
   }, [items])
 
   useAnimationFrame((_time, delta) => {
-    if (!isInView || prefersReducedMotion) return
+    if (!isInView || prefersReducedMotion || dragRef.current) return
 
     const loopDistance = loopDistanceRef.current
     if (loopDistance <= 0) return
 
-    let nextX = x.get() + speed.get() * (Math.min(delta, 64) / 1000)
-    if (nextX <= -loopDistance) nextX += loopDistance
-    x.set(nextX)
+    const target = hoveredRef.current || focusedRef.current ? 0 : MARQUEE_SPEED_PX_PER_SECOND
+    const next = advanceMarquee(velocityRef.current, target, Math.min(delta, 64) / 1000, coastingRef.current ? 0.5 : 0.22)
+    velocityRef.current = next.velocity
+    if (Math.abs(next.velocity - target) < 0.5) {
+      velocityRef.current = target
+      coastingRef.current = false
+      if (target === 0) return
+    }
+    x.set(wrapMarqueePosition(x.get() + next.distance, loopDistance))
   })
+
+  const startDrag = (event: PointerEvent<HTMLDivElement>) => {
+    suppressClickRef.current = false
+    if (prefersReducedMotion || !event.isPrimary || event.button !== 0 || dragRef.current) return
+    if ((event.target as Element).closest('button, input, textarea, select, [role="button"]')) return
+    velocityRef.current = 0
+    coastingRef.current = false
+    dragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      startOffset: x.get(),
+      active: false,
+      samples: [{ x: event.clientX, time: event.timeStamp }],
+    }
+  }
+
+  const moveDrag = (event: PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current
+    if (!drag || drag.pointerId !== event.pointerId) return
+    const deltaX = event.clientX - drag.startX
+    const deltaY = event.clientY - drag.startY
+    if (!drag.active) {
+      if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 6) return
+      if (Math.abs(deltaY) > Math.abs(deltaX)) {
+        dragRef.current = null
+        return
+      }
+      drag.active = true
+      suppressClickRef.current = true
+      setIsDragging(true)
+      // Capture only after dragging starts, so a normal click still reaches its link.
+      event.currentTarget.setPointerCapture(event.pointerId)
+    }
+    event.preventDefault()
+    drag.samples = drag.samples.filter((sample) => event.timeStamp - sample.time <= 100)
+    drag.samples.push({ x: event.clientX, time: event.timeStamp })
+    x.set(wrapMarqueePosition(drag.startOffset + deltaX, loopDistanceRef.current))
+  }
+
+  const finishDrag = (event: PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current
+    if (!drag || drag.pointerId !== event.pointerId) return
+    const bounds = event.currentTarget.getBoundingClientRect()
+    hoveredRef.current = event.pointerType !== 'touch'
+      && event.clientX >= bounds.left && event.clientX <= bounds.right
+      && event.clientY >= bounds.top && event.clientY <= bounds.bottom
+    velocityRef.current = drag.active && event.type === 'pointerup'
+      ? getMarqueeReleaseVelocity(drag.samples, event.timeStamp)
+      : 0
+    coastingRef.current = Math.abs(velocityRef.current) > 0
+    dragRef.current = null
+    setIsDragging(false)
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+  }
 
   if (!items.length) return null
 
@@ -277,15 +342,36 @@ export function LikedWorkMarquee({ items }: { items: LikedWorkMarqueeItem[] }) {
       ref={marqueeRef}
       className={cn(
         'liked-work-marquee -my-2 w-full min-w-0 overflow-hidden py-2',
-        prefersReducedMotion && 'overflow-x-auto',
+        prefersReducedMotion ? 'overflow-x-auto' : 'touch-pan-y select-none',
+        !prefersReducedMotion && (isDragging ? 'cursor-grabbing' : 'cursor-grab'),
       )}
       role="region"
       aria-label="Most liked work"
-      onPointerEnter={() => setIsInteracting(true)}
-      onPointerLeave={() => setIsInteracting(false)}
-      onFocus={() => setIsInteracting(true)}
+      onPointerEnter={(event) => { hoveredRef.current = event.pointerType !== 'touch' }}
+      onPointerLeave={() => {
+        hoveredRef.current = false
+        if (dragRef.current && !dragRef.current.active) dragRef.current = null
+      }}
+      onPointerDown={startDrag}
+      onPointerMove={moveDrag}
+      onPointerUp={finishDrag}
+      onPointerCancel={finishDrag}
+      onLostPointerCapture={(event) => {
+        // Touch begins with implicit capture on the image/video. Its capture loss
+        // bubbles when we take over; only our own capture loss ends the drag.
+        if (event.target === event.currentTarget) finishDrag(event)
+      }}
+      onDragStartCapture={(event) => event.preventDefault()}
+      onClickCapture={(event) => {
+        if (suppressClickRef.current && event.detail > 0) {
+          event.preventDefault()
+          event.stopPropagation()
+          suppressClickRef.current = false
+        }
+      }}
+      onFocus={(event) => { focusedRef.current = event.target.matches(':focus-visible') }}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setIsInteracting(false)
+        if (!event.currentTarget.contains(event.relatedTarget)) focusedRef.current = false
       }}
     >
       <motion.div
