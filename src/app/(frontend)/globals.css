@@ -512,7 +512,8 @@ h4,
   font-weight: 400;
 }
 
-h5 {
+h5,
+.note-recommendation-title {
   font-size: var(--text-h5);
   line-height: 1.3;
   letter-spacing: -0.02em;

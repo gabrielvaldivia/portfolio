@@ -111,12 +111,14 @@ export default async function NotePage({ params }: NotePageProps) {
             <ul className="mt-5 flex flex-col gap-4">
               {readNextNotes.map((readNextNote) => (
                 <li key={readNextNote.slug}>
-                  <Link
-                    className="inline-block text-[20px] leading-snug transition-opacity hover:opacity-60 tablet:text-[24px]"
-                    href={`/notes/${readNextNote.slug}`}
-                  >
-                    {readNextNote.title}
-                  </Link>
+                  <h3 className="note-recommendation-title text-balance">
+                    <Link
+                      className="inline-block transition-opacity hover:opacity-60"
+                      href={`/notes/${readNextNote.slug}`}
+                    >
+                      {readNextNote.title}
+                    </Link>
+                  </h3>
                 </li>
               ))}
             </ul>
