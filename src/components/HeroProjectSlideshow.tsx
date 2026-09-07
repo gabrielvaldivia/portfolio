@@ -51,7 +51,8 @@ type Props = {
 
 const AUTOPLAY_DELAY_MS = 6000
 const CURSOR_IDLE_ROTATION_SPEED = 14
-const MOBILE_BROWSER_INSET = 'max(0px, 100lvh - 100dvh)'
+const MOBILE_SLIDE_HEIGHT = 'var(--hero-mobile-height, 100lvh)'
+const MOBILE_BROWSER_INSET = `max(0px, ${MOBILE_SLIDE_HEIGHT} - 100dvh)`
 const MOBILE_CONTENT_BOTTOM = `calc(1.25rem + ${MOBILE_BROWSER_INSET})`
 
 function SilentBackgroundVideo({ src, label, playing = true }: { src: string; label: string; playing?: boolean }) {
@@ -199,9 +200,9 @@ function MobileHeroSlide({
   const gradientColor = hexToRgbChannels(project.gradientColor) ?? fallbackGradientColor
 
   return (
-    // Keep snap targets stable when Safari changes dvh after a swipe. Only
-    // inset the foreground content for browser chrome; don't resize the pages.
-    <div className="hero-mobile-slide relative h-lvh w-full text-text-on-media-strong" data-project-id={project.id}>
+    // Keep the measured page height even in browsers that resize lvh along with
+    // their toolbar. Only foreground insets should follow the visible viewport.
+    <div className="hero-mobile-slide relative w-full text-text-on-media-strong" style={{ height: MOBILE_SLIDE_HEIGHT }} data-project-id={project.id}>
       {/* Snap to the actual slide's start. A one-pixel target cannot become an
           oversized snap area with intermediate stops when browser chrome changes. */}
       <div aria-hidden="true" className="hero-project-snap-point pointer-events-none absolute inset-x-0 top-0 h-px" />
@@ -270,6 +271,7 @@ function MobileHeroSlide({
 export function HeroProjectSlideshow({ projects }: Props) {
   const cursorTextPathId = `hero-cursor-${useId().replaceAll(':', '')}`
   const regionRef = useRef<HTMLDivElement>(null)
+  const mobileViewportProbeRef = useRef<HTMLDivElement>(null)
   const isInView = useInView(regionRef, { amount: 0.25 })
   const prefersReducedMotion = useReducedMotion()
   const [isMobileViewport, setIsMobileViewport] = useState(false)
@@ -524,6 +526,32 @@ export function HeroProjectSlideshow({ projects }: Props) {
 
   useEffect(() => {
     if (!isMobileViewport) return
+    const region = regionRef.current
+    const probe = mobileViewportProbeRef.current
+    if (!region || !probe) return
+
+    let measuredWidth = 0
+    const measureHeight = () => {
+      const width = document.documentElement.clientWidth
+      // Height-only resizes are browser chrome/keyboard changes, not new page
+      // geometry. Remeasure for width changes, including phone rotation.
+      if (width === measuredWidth) return
+      const height = probe.getBoundingClientRect().height
+      if (height <= 0) return
+      measuredWidth = width
+      region.style.setProperty('--hero-mobile-height', `${height}px`)
+    }
+
+    measureHeight()
+    window.addEventListener('resize', measureHeight)
+    return () => {
+      window.removeEventListener('resize', measureHeight)
+      region.style.removeProperty('--hero-mobile-height')
+    }
+  }, [isMobileViewport])
+
+  useEffect(() => {
+    if (!isMobileViewport) return
     const slides = regionRef.current?.querySelectorAll<HTMLElement>('.hero-mobile-slide')
     if (!slides) return
 
@@ -701,6 +729,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
       ref={regionRef}
       className="hero-project-scroll-region relative w-full"
     >
+      <div ref={mobileViewportProbeRef} aria-hidden="true" className="pointer-events-none invisible fixed top-0 left-0 h-lvh w-0 tablet:hidden" />
       <div role="region" aria-label="Featured projects" aria-roledescription="carousel" className="grid tablet:hidden">
         <div className="col-start-1 row-start-1 min-w-0">
           {projects.map((project, index) => (
