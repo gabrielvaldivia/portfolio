@@ -1,11 +1,13 @@
 'use client'
 
-import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
+import { motion, useReducedMotion } from 'motion/react'
 import { Eye, Highlighter } from 'lucide-react'
 import * as Switch from '@radix-ui/react-switch'
 import { LazyModuleLikeButton, ModuleLikeButtonShell } from '@/components/LazyModuleLikeButton'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover'
 import { BottomSheet } from '@/components/ui/BottomSheet'
+import { NoteActivityCount } from '@/components/NoteActivityCount'
 import type { PublicHighlight } from '@/lib/noteHighlightAnchors'
 import { cn } from '@/lib/cn'
 
@@ -32,7 +34,7 @@ type NoteActionsProps = {
   onOpenHighlights: () => void
 }
 
-function NoteViews({ noteId, enabled }: { noteId: string; enabled: boolean }) {
+function NoteViews({ noteId, enabled, reveal, onLoadSettled }: { noteId: string; enabled: boolean; reveal: boolean; onLoadSettled: () => void }) {
   const [count, setCount] = useState<number | null>(null)
   const [tooltipOpen, setTooltipOpen] = useState(false)
   const tooltipId = useId()
@@ -52,17 +54,18 @@ function NoteViews({ noteId, enabled }: { noteId: string; enabled: boolean }) {
       requested = true
       try {
         // The server deduplicates concurrent requests and reloads per browser/day.
-        const response = await fetch(`/api/notes/views?noteId=${encodeURIComponent(noteId)}`, { method: 'POST', cache: 'no-store' })
+        const response = await fetch(`/api/notes/views?noteId=${encodeURIComponent(noteId)}`, { method: 'POST', cache: 'no-store', signal: AbortSignal.timeout(10_000) })
         const data = await response.json()
         if (response.ok && Number.isSafeInteger(data.count) && data.count >= 0) {
           if (!disposed) setCount(data.count)
         }
       } catch { /* Unavailable counts stay a dash rather than a fabricated zero. */ }
+      finally { if (!disposed) onLoadSettled() }
     }
     void recordView()
     document.addEventListener('visibilitychange', recordView)
     return () => { disposed = true; document.removeEventListener('visibilitychange', recordView) }
-  }, [noteId, enabled])
+  }, [noteId, enabled, onLoadSettled])
 
   return (
     <Popover open={tooltipOpen} onOpenChange={setTooltipOpen}>
@@ -72,7 +75,7 @@ function NoteViews({ noteId, enabled }: { noteId: string; enabled: boolean }) {
           aria-label={count === null ? 'Views unavailable' : `${count.toLocaleString('en-US')} ${count === 1 ? 'view' : 'views'}`}
           aria-describedby={tooltipOpen ? tooltipId : undefined} aria-controls={tooltipOpen ? tooltipId : undefined} aria-haspopup={undefined}>
           <Eye className="size-[18px]" aria-hidden="true" />
-          <span className="font-mono tabular-nums text-text-muted" aria-hidden="true">{count === null ? '—' : count.toLocaleString('en-US', { notation: 'compact' })}</span>
+          <NoteActivityCount value={count} reveal={reveal} compact />
         </button>
       </PopoverTrigger>
       <PopoverContent id={tooltipId} role="tooltip" side="top" sideOffset={10} collisionPadding={16}
@@ -87,10 +90,36 @@ function NoteViews({ noteId, enabled }: { noteId: string; enabled: boolean }) {
 
 export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, highlightsReady, highlightsVisible, onHighlightsVisibleChange, error, onSelectHighlight, onRefreshHighlights, onOpenHighlights }: NoteActionsProps) {
   const [open, setOpen] = useState(false)
+  const [likesSettled, setLikesSettled] = useState(false)
+  const [viewsSettled, setViewsSettled] = useState(false)
+  const [pageReady, setPageReady] = useState(false)
+  const [revealed, setRevealed] = useState(false)
+  const pillRef = useRef<HTMLDivElement>(null)
+  const reducedMotion = useReducedMotion()
+  const finishLikes = useCallback(() => setLikesSettled(true), [])
+  const finishViews = useCallback(() => setViewsSettled(true), [])
   const popoverRef = useRef<HTMLDivElement>(null)
   const mobile = useSyncExternalStore(subscribeMobile, getMobileSnapshot, getServerMobileSnapshot)
   const pendingSelection = useRef<PublicHighlight | null>(null)
   const skipRestoreFocus = useRef(false)
+
+  useEffect(() => {
+    let disposed = false
+    // An animating ancestor isolates the backdrop in Chromium. Let the page
+    // entrance finish and the fonts load before revealing the frosted pill.
+    const page = pillRef.current?.closest('.page-transition')
+    const animations = page?.getAnimations().map((animation) => animation.finished.catch(() => {})) || []
+    void Promise.all([...animations, document.fonts.ready]).then(() => {
+      if (!disposed) setPageReady(true)
+    })
+    return () => { disposed = true }
+  }, [])
+
+  useEffect(() => {
+    // Latch once: background refreshes or a transient failure must not replay
+    // the entrance. Failed requests settle too, so the controls stay reachable.
+    if (pageReady && visitorReady && likesSettled && viewsSettled && (highlightsReady || error)) setRevealed(true)
+  }, [pageReady, visitorReady, likesSettled, viewsSettled, highlightsReady, error])
 
   function changeOpen(next: boolean) {
     setOpen(next)
@@ -112,7 +141,7 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, hi
     <button type="button" aria-label={highlightsReady ? `${highlights.length} highlighted passages. Show highlights` : 'Show highlights'}
       className="inline-grid h-11 min-w-11 grid-cols-[18px_minmax(1ch,auto)] items-center justify-center gap-1.5 rounded-full px-3 text-sm font-medium text-text-body hover:bg-background-alt hover:text-text-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content">
       <Highlighter className={cn('col-start-1 row-start-1 size-[18px]', highlightsReady && highlights.length === 0 && 'col-span-2 justify-self-center')} aria-hidden="true" />
-      <span className={cn('col-start-2 row-start-1 min-w-[1ch] text-left font-mono tabular-nums text-text-muted', highlightsReady && highlights.length === 0 && 'invisible')} aria-hidden="true">{highlightsReady ? highlights.length : '—'}</span>
+      <NoteActivityCount value={highlightsReady ? highlights.length : null} reveal={revealed} hideZero className="col-start-2 row-start-1 text-left" />
     </button>
   )
   const visibilitySwitch = (
@@ -157,9 +186,15 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, hi
   // natural end-of-note slot and scroll away before the recommendations.
   return (
     <div data-note-actions className="pointer-events-none sticky bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-40 mt-12 flex justify-center px-4">
-      <div role="group" aria-label="Note activity" className="pointer-events-auto flex max-w-full items-center rounded-full bg-floating p-1.5 backdrop-blur-[40px]">
+      <motion.div ref={pillRef} data-note-actions-pill data-ready={revealed} role="group" aria-label="Note activity"
+        aria-hidden={!revealed} inert={!revealed}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: revealed ? 1 : 0, y: revealed || reducedMotion ? 0 : 8 }}
+        transition={reducedMotion ? { duration: 0 } : { opacity: { duration: 0.25 }, y: { type: 'spring', stiffness: 400, damping: 26, restDelta: 0.01, restSpeed: 0.01 } }}
+        style={{ visibility: revealed ? 'visible' : 'hidden' }}
+        className="pointer-events-auto flex max-w-full items-center rounded-full bg-floating p-1.5 backdrop-blur-[40px]">
         {visitorReady
-          ? <LazyModuleLikeButton targetId={likeTargetId} noun="note" variant="pill" />
+          ? <LazyModuleLikeButton targetId={likeTargetId} noun="note" variant="pill" eager countReveal={revealed} onLoadSettled={finishLikes} />
           : <ModuleLikeButtonShell noun="note" variant="pill" />}
         {mobile ? (
           <BottomSheet open={open} onOpenChange={changeOpen} trigger={trigger} title="Highlights" headerAction={visibilitySwitch}
@@ -187,8 +222,8 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, hi
             {contents}
           </PopoverContent>
         </Popover>}
-        <NoteViews key={noteId} noteId={noteId} enabled={visitorReady} />
-      </div>
+        <NoteViews key={noteId} noteId={noteId} enabled={visitorReady} reveal={revealed} onLoadSettled={finishViews} />
+      </motion.div>
     </div>
   )
 }

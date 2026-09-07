@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useReducedMotion, type Transition } from 'moti
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'react'
 import { Heart } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { NoteActivityCount } from '@/components/NoteActivityCount'
 import {
   MAX_MODULE_LIKES_PER_VISITOR,
   SUPER_MODULE_LIKE_AMOUNT,
@@ -75,7 +76,7 @@ async function flushModuleLikeLoads() {
     )
     const payloads = await Promise.all(
       chunks.map(async (chunk) => {
-        const res = await fetch(`/api/module-likes?ids=${encodeURIComponent(chunk.join(','))}`)
+        const res = await fetch(`/api/module-likes?ids=${encodeURIComponent(chunk.join(','))}`, { signal: AbortSignal.timeout(10_000) })
         if (!res.ok) throw new Error('Unable to load likes')
         return res.json() as Promise<Record<string, ModuleLikeData>>
       }),
@@ -200,12 +201,16 @@ export function ModuleLikeButton({
   noun = 'module',
   tabIndex,
   variant = 'default',
+  countReveal,
+  onLoadSettled,
 }: {
   targetId: string
   initialCount?: number
   noun?: string
   tabIndex?: number
   variant?: 'default' | 'pill'
+  countReveal?: boolean
+  onLoadSettled?: () => void
 }) {
   const initialLikeData = {
     ...emptyLikeData,
@@ -240,6 +245,10 @@ export function ModuleLikeButton({
   const audioContextRef = useRef<AudioContext | null>(null)
   const chargeOscillatorRef = useRef<OscillatorNode | null>(null)
   const chargeGainRef = useRef<GainNode | null>(null)
+
+  useEffect(() => {
+    if (!isLoading) onLoadSettled?.()
+  }, [isLoading, onLoadSettled])
 
   useEffect(() => {
     let isActive = true
@@ -899,7 +908,9 @@ export function ModuleLikeButton({
           </AnimatePresence>
         </span>
 
-        <AnimatedCount value={displayCount} pill={variant === 'pill'} />
+        {countReveal === undefined
+          ? <AnimatedCount value={displayCount} pill={variant === 'pill'} />
+          : <NoteActivityCount value={displayCount} reveal={countReveal} compact hideZero className="col-start-2 row-start-1 text-left leading-none" />}
       </motion.button>
 
       <AnimatePresence>

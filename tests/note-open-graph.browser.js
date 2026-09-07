@@ -22,6 +22,7 @@
     const imageURL = one('meta[property="og:image"]').content
     assert(new URL(imageURL).pathname === `${path}/og`, `${slug}: unique generated image`)
     assert(Boolean(new URL(imageURL).searchParams.get('v')), `${slug}: image updates with note version`)
+    assert(new URL(imageURL).searchParams.get('design') === 'centered-name-v1', `${slug}: fresh image URL for centered-name design`)
     assert(one('meta[name="twitter:image"]').content === imageURL, `${slug}: Twitter uses generated image`)
     assert(one('meta[property="og:image:width"]').content === '1200', `${slug}: declared width`)
     assert(one('meta[property="og:image:height"]').content === '630', `${slug}: declared height`)

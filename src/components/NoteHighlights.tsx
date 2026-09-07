@@ -80,7 +80,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
     if (savingRef.current) return
     const requestId = ++requestRef.current
     try {
-      const response = await fetch(`/api/notes/highlights?noteId=${encodeURIComponent(noteId)}`, { cache: 'no-store' })
+      const response = await fetch(`/api/notes/highlights?noteId=${encodeURIComponent(noteId)}`, { cache: 'no-store', signal: AbortSignal.timeout(10_000) })
       const data: (HighlightResponse & { error?: string }) | null = await response.json().catch(() => null)
       if (!mountedRef.current || requestId !== requestRef.current) return
       if (!response.ok || !data) throw new Error(data?.error || 'Highlights are temporarily unavailable. Please try again.')

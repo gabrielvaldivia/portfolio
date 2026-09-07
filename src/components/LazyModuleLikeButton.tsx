@@ -10,6 +10,9 @@ type ModuleLikeButtonProps = {
   noun?: string
   tabIndex?: number
   variant?: 'default' | 'pill'
+  eager?: boolean
+  countReveal?: boolean
+  onLoadSettled?: () => void
 }
 
 const HEART_ICON_SIZE = 18
@@ -88,14 +91,15 @@ export function LazyModuleLikeButton(props: ModuleLikeButtonProps) {
       })
       .catch(() => {
         loadingRef.current = false
+        if (mountedRef.current) props.onLoadSettled?.()
       })
-  }, [LoadedButton])
+  }, [LoadedButton, props.onLoadSettled])
 
   useEffect(() => {
     mountedRef.current = true
     const root = rootRef.current
 
-    if (!root || typeof IntersectionObserver === 'undefined') {
+    if (props.eager || !root || typeof IntersectionObserver === 'undefined') {
       loadButton()
       return () => {
         mountedRef.current = false
@@ -115,7 +119,7 @@ export function LazyModuleLikeButton(props: ModuleLikeButtonProps) {
       mountedRef.current = false
       observer.disconnect()
     }
-  }, [loadButton])
+  }, [loadButton, props.eager])
 
   return (
     <div

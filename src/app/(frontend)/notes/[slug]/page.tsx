@@ -52,6 +52,8 @@ export async function generateMetadata({ params }: NotePageProps): Promise<Metad
   const canonical = new URL(`/notes/${encodeURIComponent(note.slug)}`, SITE_ORIGIN).toString()
   const imageURL = new URL(`${canonical}/og`)
   imageURL.searchParams.set('v', note.updatedAt)
+  // Bust immutable/social image caches when the shared design changes too.
+  imageURL.searchParams.set('design', 'centered-name-v1')
 
   const metadata = buildPageMetadata(
     {
@@ -62,7 +64,7 @@ export async function generateMetadata({ params }: NotePageProps): Promise<Metad
           url: imageURL.toString(),
           width: 1200,
           height: 630,
-          alt: `${note.title} — By Gabriel Valdivia`,
+          alt: `${note.title} — Gabriel Valdivia`,
         },
       },
     },
