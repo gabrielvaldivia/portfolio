@@ -6,6 +6,8 @@ import { getPayloadSecret } from './payloadSecret'
 const WINDOW_MS = 60 * 60 * 1_000
 const DEFAULT_REQUEST_LIMIT = 12
 const DEFAULT_DAILY_REQUEST_LIMIT = 40
+const DEFAULT_CONTACT_REQUEST_LIMIT = 5
+const DEFAULT_CONTACT_DAILY_REQUEST_LIMIT = 50
 
 function getRequestLimit() {
   const configured = Number(process.env.CHAT_RATE_LIMIT_PER_HOUR)
@@ -17,6 +19,18 @@ function getDailyRequestLimit() {
   const configured = Number(process.env.CHAT_DAILY_REQUEST_LIMIT)
   if (!Number.isFinite(configured)) return DEFAULT_DAILY_REQUEST_LIMIT
   return Math.min(Math.max(Math.trunc(configured), 1), 100)
+}
+
+function getContactRequestLimit() {
+  const configured = Number(process.env.CONTACT_RATE_LIMIT_PER_HOUR)
+  if (!Number.isFinite(configured)) return DEFAULT_CONTACT_REQUEST_LIMIT
+  return Math.min(Math.max(Math.trunc(configured), 1), 100)
+}
+
+function getContactDailyRequestLimit() {
+  const configured = Number(process.env.CONTACT_DAILY_RATE_LIMIT)
+  if (!Number.isFinite(configured)) return DEFAULT_CONTACT_DAILY_REQUEST_LIMIT
+  return Math.min(Math.max(Math.trunc(configured), 1), 500)
 }
 
 function getClientIdentity(headers: Headers) {
@@ -38,7 +52,17 @@ function readCounts(result: unknown) {
   }
 }
 
-export async function checkChatRateLimit(headers: Headers) {
+async function checkPersistentRateLimit({
+  headers,
+  namespace = '',
+  limit,
+  dailyLimit,
+}: {
+  headers: Headers
+  namespace?: string
+  limit: number
+  dailyLimit: number
+}) {
   const now = new Date()
   const hourStartMs = Math.floor(now.getTime() / WINDOW_MS) * WINDOW_MS
   const dayStartMs = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
@@ -46,11 +70,12 @@ export async function checkChatRateLimit(headers: Headers) {
   const dayStartedAt = new Date(dayStartMs)
   const identity = getClientIdentity(headers)
   const secret = getPayloadSecret()
+  const keyNamespace = namespace ? `${namespace}:` : ''
   const hourlyKeyHash = createHash('sha256')
-    .update(`${secret}:hourly:${identity}:${hourStartMs}`)
+    .update(`${secret}:${keyNamespace}hourly:${identity}:${hourStartMs}`)
     .digest('hex')
   const dailyKeyHash = createHash('sha256')
-    .update(`${secret}:global-daily:${dayStartMs}`)
+    .update(`${secret}:${keyNamespace}global-daily:${dayStartMs}`)
     .digest('hex')
   const payload = await getPayload()
 
@@ -79,8 +104,6 @@ export async function checkChatRateLimit(headers: Headers) {
   `)
 
   const counts = readCounts(result)
-  const limit = getRequestLimit()
-  const dailyLimit = getDailyRequestLimit()
   const hourlyAllowed = counts.hourly > 0 && counts.hourly <= limit
   const dailyAllowed = counts.daily > 0 && counts.daily <= dailyLimit
   const hourRetrySeconds = Math.max(Math.ceil((hourStartMs + WINDOW_MS - Date.now()) / 1_000), 1)
@@ -97,4 +120,21 @@ export async function checkChatRateLimit(headers: Headers) {
       dailyAllowed ? 0 : dayRetrySeconds,
     ),
   }
+}
+
+export function checkChatRateLimit(headers: Headers) {
+  return checkPersistentRateLimit({
+    headers,
+    limit: getRequestLimit(),
+    dailyLimit: getDailyRequestLimit(),
+  })
+}
+
+export function checkContactRateLimit(headers: Headers) {
+  return checkPersistentRateLimit({
+    headers,
+    namespace: 'contact',
+    limit: getContactRequestLimit(),
+    dailyLimit: getContactDailyRequestLimit(),
+  })
 }
