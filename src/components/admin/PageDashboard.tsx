@@ -281,7 +281,7 @@ export async function PageDashboard({ permissions, req }: WidgetServerProps) {
           </div>
         ) : null}
         <div className="collections__group">
-          <h2 className="collections__label">Pages</h2>
+          <h2 className="collections__label">Nav</h2>
           {pages.length > 0 || showTimelineShortcut ? (
             <ul className="collections__card-list page-dashboard__list">
               {pages.map((page) => {

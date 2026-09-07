@@ -1,19 +1,11 @@
 import type { SanitizedPermissions, ServerProps } from 'payload'
 import { formatAdminURL } from 'payload/shared'
-import { sortPagesByOrder } from '@/lib/pageOrdering'
 
 import {
   DashboardSidebarNavClient,
   type DashboardSidebarIconKey,
   type DashboardSidebarNavItem,
 } from './DashboardSidebarNavClient'
-
-type DashboardPage = {
-  id: number | string
-  order?: number | null
-  slug?: string | null
-  title?: string | null
-}
 
 type CollectionNavItem = {
   icon: DashboardSidebarIconKey
@@ -38,14 +30,6 @@ function canReadCollection(permissions: SanitizedPermissions | undefined, slug: 
   return Boolean(permissions?.collections?.[slug]?.read)
 }
 
-function canCreateCollection(permissions: SanitizedPermissions | undefined, slug: string) {
-  return Boolean(permissions?.collections?.[slug]?.create)
-}
-
-function canReadGlobal(permissions: SanitizedPermissions | undefined, slug: string) {
-  return Boolean(permissions?.globals?.[slug]?.read)
-}
-
 function collectionItem(adminRoute: string, item: CollectionNavItem): DashboardSidebarNavItem {
   return {
     href: formatAdminURL({
@@ -58,35 +42,8 @@ function collectionItem(adminRoute: string, item: CollectionNavItem): DashboardS
   }
 }
 
-async function getPages({ payload, permissions }: Pick<ServerProps, 'payload' | 'permissions'>) {
-  if (!canReadCollection(permissions, 'pages')) {
-    return []
-  }
-
-  try {
-    const { docs } = await payload.find({
-      collection: 'pages',
-      depth: 0,
-      limit: 100,
-      overrideAccess: true,
-      pagination: false,
-      select: {
-        order: true,
-        slug: true,
-        title: true,
-      },
-      sort: 'order',
-    })
-
-    return sortPagesByOrder(docs as DashboardPage[])
-  } catch {
-    return []
-  }
-}
-
-export async function DashboardSidebarNav({ payload, permissions }: ServerProps) {
+export function DashboardSidebarNav({ payload, permissions }: ServerProps) {
   const adminRoute = payload.config.routes.admin
-  const pages = await getPages({ payload, permissions })
 
   const items: DashboardSidebarNavItem[] = [
     {
@@ -102,49 +59,22 @@ export async function DashboardSidebarNav({ payload, permissions }: ServerProps)
   ]
 
   if (canReadCollection(permissions, 'pages')) {
-    const pageChildren: DashboardSidebarNavItem[] = pages.map((page) => ({
-      href: formatAdminURL({
-        adminRoute,
-        path: `/collections/pages/${page.id}`,
-      }),
-      icon: 'page',
-      id: `page-${page.id}`,
-      label: page.title || page.slug || 'Untitled page',
-    }))
-
-    if (canReadGlobal(permissions, 'timeline')) {
-      pageChildren.push({
-        href: formatAdminURL({
-          adminRoute,
-          path: '/globals/timeline',
-        }),
-        icon: 'timeline',
-        id: 'global-timeline',
-        label: 'Timeline',
-      })
-    }
-
-    if (pageChildren.length === 0 && canCreateCollection(permissions, 'pages')) {
-      pageChildren.push({
-        href: formatAdminURL({
-          adminRoute,
-          path: '/collections/pages/create',
-        }),
-        icon: 'page',
-        id: 'page-create',
-        label: 'Create a page',
-      })
-    }
-
     items.push({
-      children: pageChildren,
+      activeHrefs: permissions?.globals?.timeline?.read
+        ? [
+            formatAdminURL({
+              adminRoute,
+              path: '/globals/timeline',
+            }),
+          ]
+        : undefined,
       href: formatAdminURL({
         adminRoute,
         path: '/collections/pages',
       }),
       icon: 'pages',
-      id: 'pages',
-      label: 'Pages',
+      id: 'nav',
+      label: 'Nav',
     })
   }
 
@@ -152,14 +82,7 @@ export async function DashboardSidebarNav({ payload, permissions }: ServerProps)
     .filter((item) => canReadCollection(permissions, item.slug))
     .map((item) => collectionItem(adminRoute, item))
 
-  if (collectionChildren.length > 0) {
-    items.push({
-      children: collectionChildren,
-      icon: 'collections',
-      id: 'content',
-      label: 'Content',
-    })
-  }
+  items.push(...collectionChildren)
 
   return <DashboardSidebarNavClient items={items} />
 }

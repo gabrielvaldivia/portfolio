@@ -45,6 +45,7 @@ export type DashboardSidebarIconKey =
   | 'users'
 
 export type DashboardSidebarNavItem = {
+  activeHrefs?: string[]
   children?: DashboardSidebarNavItem[]
   href?: string
   icon: DashboardSidebarIconKey
@@ -96,6 +97,7 @@ function isHrefActive(pathname: string, href?: string, match: DashboardSidebarNa
 function isItemActive(pathname: string, item: DashboardSidebarNavItem): boolean {
   return (
     isHrefActive(pathname, item.href, item.match) ||
+    item.activeHrefs?.some((href) => isHrefActive(pathname, href)) ||
     item.children?.some((child) => isItemActive(pathname, child)) ||
     false
   )
@@ -156,7 +158,7 @@ export function DashboardSidebarNavClient({ items }: DashboardSidebarNavClientPr
         const children = item.children ?? []
         const hasChildren = children.length > 0
         const parentCurrent = isHrefActive(pathname, item.href, item.match)
-        const parentActive = parentCurrent && !hasChildren
+        const parentActive = isItemActive(pathname, item) && !hasChildren
         const groupContent = (
           <>
             <SidebarRow

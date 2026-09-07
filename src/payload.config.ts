@@ -116,7 +116,7 @@ export default buildConfig({
         {
           slug: 'page-shortcuts',
           Component: './components/admin/PageDashboard#PageDashboard',
-          label: 'Pages',
+          label: 'Nav',
           maxWidth: 'full',
           minWidth: 'full',
         },

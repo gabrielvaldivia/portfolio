@@ -25,6 +25,7 @@ export const Notes: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', '_status', 'publishedAt', 'updatedAt'],
     components: {
+      beforeListTable: ['./components/admin/NotesListSortControl#NotesListSortControl'],
       edit: {
         editMenuItems: ['./components/admin/NotesEditMenu#NotesEditMenu'],
         PublishButton: './components/admin/NotesEditMenu#NotesPublishButton',

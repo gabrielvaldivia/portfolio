@@ -34,25 +34,12 @@ const desktopNavCollapseThreshold = 64
 const desktopNavExpandThreshold = 16
 
 function orderNavigationPages(pages: NavMenuPage[]) {
-  const priority = new Map([
-    ['/', 0],
-    ['/about', 1],
-    ['/work', 2],
-  ])
-
   const notesPage = pages.find((page) => page.url === '/notes') ?? {
     label: 'Notes',
     url: '/notes',
   }
   const orderedPages = pages
     .filter((page) => page.url !== '/notes')
-    .map((page, index) => ({ page, index }))
-    .sort((a, b) => (
-      (priority.get(a.page.url) ?? Number.MAX_SAFE_INTEGER)
-      - (priority.get(b.page.url) ?? Number.MAX_SAFE_INTEGER)
-      || a.index - b.index
-    ))
-    .map(({ page }) => page)
 
   const playgroundIndex = orderedPages.findIndex((page) => page.url === '/playground')
   orderedPages.splice(playgroundIndex >= 0 ? playgroundIndex + 1 : orderedPages.length, 0, notesPage)

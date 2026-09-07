@@ -387,11 +387,20 @@ const AboutPlaygroundSectionBlock: Block = {
 
 export const Pages: CollectionConfig = {
   slug: 'pages',
+  labels: {
+    plural: 'Nav',
+    singular: 'Page',
+  },
   defaultSort: 'order',
   admin: {
     components: {
       edit: {
         editMenuItems: ['./components/admin/PagesEditMenuTabs#PagesEditMenuTabs'],
+      },
+      views: {
+        list: {
+          Component: './components/admin/NavPagesListView#NavPagesListView',
+        },
       },
     },
     useAsTitle: 'title',
