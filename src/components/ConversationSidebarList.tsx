@@ -72,6 +72,7 @@ export function ConversationSidebarList({
               key={conversation.id}
               type="button"
               onClick={() => onSelect(conversation)}
+              aria-current={conversation.id === selectedId ? 'true' : undefined}
               className={`absolute inset-x-0 w-full rounded-[12px] px-3 py-2.5 text-left transition-colors cursor-pointer ${
                 conversation.id === selectedId
                   ? 'bg-black/5 dark:bg-white/5'
@@ -87,7 +88,7 @@ export function ConversationSidebarList({
           )
         })}
         {loading && (
-          <p className="absolute inset-x-0 px-3 py-2 text-caption text-text-muted" style={{ top: conversations.length * ROW_HEIGHT }}>
+          <p role="status" className="absolute inset-x-0 px-3 py-2 text-caption text-text-muted" style={{ top: conversations.length * ROW_HEIGHT }}>
             Loading…
           </p>
         )}

@@ -48,7 +48,7 @@ export function BirthdayBalloons({ force = false }: { force?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const balloonsRef = useRef<Balloon[]>([])
-  const balloonElsRef = useRef<Map<number, HTMLDivElement>>(new Map())
+  const balloonElsRef = useRef<Map<number, HTMLButtonElement>>(new Map())
   const confettiRef = useRef<Confetti[]>([])
   const animFrameRef = useRef<number>(0)
   const dragRef = useRef<{ id: number; offsetX: number; offsetY: number; lastX: number; lastY: number; lastTime: number } | null>(null)
@@ -180,6 +180,11 @@ export function BirthdayBalloons({ force = false }: { force?: boolean }) {
   }, [spawnConfetti])
 
   useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setDone(true)
+      return
+    }
+
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
@@ -431,9 +436,12 @@ export function BirthdayBalloons({ force = false }: { force?: boolean }) {
     >
       {/* Balloon DOM elements with glass effect */}
       {balloonsRef.current.map((b) => (
-        <div
+        <button
+          type="button"
           key={b.id}
           ref={(el) => { if (el) balloonElsRef.current.set(b.id, el) }}
+          aria-label={`Pop balloon ${b.id + 1} of ${balloonsRef.current.length}`}
+          className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
           onPointerDown={(e) => handlePointerDown(e, b.id)}
           onClick={() => handleBalloonClick(b.id)}
           style={{
@@ -447,6 +455,9 @@ export function BirthdayBalloons({ force = false }: { force?: boolean }) {
             display: b.popped ? 'none' : 'block',
             cursor: 'grab',
             touchAction: 'none',
+            border: 0,
+            padding: 0,
+            background: 'transparent',
           }}
         >
           {/* Outer shape clip */}
@@ -514,7 +525,7 @@ export function BirthdayBalloons({ force = false }: { force?: boolean }) {
               clipPath: 'polygon(0% 100%, 50% 0%, 100% 100%)',
             }}
           />
-        </div>
+        </button>
       ))}
       {/* Canvas for confetti */}
       <canvas

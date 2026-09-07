@@ -48,7 +48,7 @@ export function ClientsList({ clients }: { clients: Client[] }) {
     <>
       {tags.length > 0 && (
         <HScrollContainer className="pb-10">
-          <div className="flex w-max gap-2" aria-label="Filter clients by tag">
+          <div className="flex w-max gap-2" role="group" aria-label="Filter clients by tag">
             <button
               type="button"
               onClick={() => setActiveTag(null)}

@@ -802,6 +802,7 @@ export function Chat({
         <div className="mx-auto flex w-full max-w-[800px] flex-col items-start gap-2 px-1 pb-3">
           {suggestions.map((q, i) => (
             <button
+              type="button"
               key={i}
               onClick={() => sendMessage(q)}
               className="w-fit px-3 py-1.5 text-caption tablet:px-4 tablet:py-2.5 tablet:text-body text-left text-text-muted rounded-[16px] tablet:rounded-[20px] hover:text-text-strong transition-colors cursor-pointer border border-dashed border-black/15 dark:border-white/15"
@@ -818,6 +819,7 @@ export function Chat({
           <div className="flex gap-2 w-max">
             {followUps.map((q, i) => (
               <button
+                type="button"
                 key={i}
                 onClick={() => sendMessage(q)}
                 className="shrink-0 px-3 py-1.5 text-caption tablet:px-4 tablet:py-2.5 tablet:text-body text-text-muted rounded-full hover:text-text-strong transition-colors whitespace-nowrap cursor-pointer border border-dashed border-black/15 dark:border-white/15"
@@ -840,13 +842,18 @@ export function Chat({
               <button
                 type="button"
                 onClick={() => setShowLinks(!showLinks)}
+                aria-label={showLinks ? 'Close social links' : 'Open social links'}
+                aria-expanded={showLinks}
+                aria-controls="chat-social-links"
+                aria-hidden={!shouldCollapse}
+                tabIndex={shouldCollapse ? 0 : -1}
                 className={`w-[42px] tablet:w-[45px] desktop:w-[48px] h-[42px] tablet:h-[45px] desktop:h-[48px] flex items-center justify-center rounded-full cursor-pointer shrink-0 transition-all duration-300 ease-in-out ${
                   shouldCollapse
                     ? `opacity-100 ${showLinks ? 'bg-black/10 dark:bg-white/10 rotate-45' : 'bg-black/[0.02] dark:bg-white/[0.02] hover:bg-black/5 dark:hover:bg-white/5'}`
                     : 'opacity-0 pointer-events-none'
                 } absolute left-0 bottom-0 z-10`}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <path d="M12 5v14M5 12h14" />
                 </svg>
               </button>
@@ -856,6 +863,9 @@ export function Chat({
                 <a
                   key={idx}
                   href={shouldCollapse ? undefined : link.url}
+                  aria-hidden={shouldCollapse}
+                  tabIndex={shouldCollapse ? -1 : undefined}
+                  aria-label={link.platform}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`w-[42px] tablet:w-[45px] desktop:w-[48px] h-[42px] tablet:h-[45px] desktop:h-[48px] flex items-center justify-center rounded-full bg-black/[0.02] dark:bg-white/[0.02] hover:bg-black/5 dark:hover:bg-white/5 text-text-body hover:text-text-strong cursor-pointer shrink-0 transition-all duration-300 ease-in-out ${
@@ -871,7 +881,7 @@ export function Chat({
             </div>
 
             {showLinks && shouldCollapse && (
-              <div className="absolute bottom-12 left-0 bg-background rounded-[16px] shadow-lg border border-border py-2 min-w-[160px] z-10">
+              <nav id="chat-social-links" aria-label="Social links" className="absolute bottom-12 left-0 bg-background rounded-[16px] shadow-lg border border-border py-2 min-w-[160px] z-10">
                 {socialLinks.map((link, i) => (
                   <a
                     key={i}
@@ -887,7 +897,7 @@ export function Chat({
                     {link.platform}
                   </a>
                 ))}
-              </div>
+              </nav>
             )}
           </div>
         )}
@@ -919,6 +929,7 @@ export function Chat({
               }
             }}
             placeholder="Message..."
+            aria-label="Message"
             disabled={isStreaming}
             rows={1}
             className="block w-full bg-black/[0.02] dark:bg-floating rounded-[23px] px-4 py-2.5 pr-11 text-body text-text-strong placeholder:text-text-muted outline-none disabled:opacity-50 resize-none overflow-hidden"
@@ -926,10 +937,11 @@ export function Chat({
           {input.trim() && (
             <button
               type="submit"
+              aria-label="Send message"
               disabled={isStreaming}
               className={`absolute right-[6px] w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 text-text-on-accent disabled:opacity-30 transition-opacity shrink-0 cursor-pointer ${isMultiline ? 'bottom-[6px]' : 'top-1/2 -translate-y-1/2'}`}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 19V5M5 12l7-7 7 7" />
               </svg>
             </button>
@@ -942,7 +954,11 @@ export function Chat({
   if (persistentSidebar) {
     return (
       <div className="relative h-full overflow-hidden">
-          <div className={`absolute inset-0 z-40 tablet:hidden ${sidebarOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+          <div
+            aria-hidden={!sidebarOpen}
+            inert={sidebarOpen ? undefined : true}
+            className={`absolute inset-0 z-40 tablet:hidden ${sidebarOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
+          >
             <button
               type="button"
               aria-label="Close conversation sidebar"
@@ -962,6 +978,9 @@ export function Chat({
           sidebarOpen ? 'translate-x-[var(--chat-drawer-width)]' : 'translate-x-0',
         )}>
           <aside
+            aria-label="Conversation history"
+            aria-hidden={!sidebarOpen}
+            inert={sidebarOpen ? undefined : true}
             className={`hidden w-[280px] shrink-0 flex-col bg-background-alt-hover px-2 py-5 transition-[margin-left] duration-300 ease-in-out dark:bg-white/[0.06] tablet:flex tablet:py-8 ${sidebarOpen ? 'ml-0' : '-ml-[280px]'}`}
           >
             {sidebarInner}

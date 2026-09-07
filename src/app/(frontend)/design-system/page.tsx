@@ -50,8 +50,10 @@ export default function DesignSystemPage() {
         <div className="space-y-1">
           {sections.map((section) => (
             <button
+              type="button"
               key={section}
               onClick={() => setActive(section)}
+              aria-pressed={active === section}
               className={`block w-full text-left px-3 py-2 rounded-lg text-[14px] transition-colors ${
                 active === section ? 'bg-background-alt text-text-strong font-medium' : 'text-text-muted hover:text-text-strong'
               }`}
@@ -65,6 +67,7 @@ export default function DesignSystemPage() {
       {/* Mobile select */}
       <div className="tablet:hidden fixed top-0 left-0 right-0 z-40 bg-background border-b border-border p-4">
         <select
+          aria-label="Design system section"
           value={active}
           onChange={(e) => setActive(e.target.value)}
           className="w-full bg-background-alt border border-border rounded-lg px-3 py-2 text-[14px]"
@@ -356,8 +359,8 @@ export default function DesignSystemPage() {
             </div>
             <div>
               <span className="text-text-muted text-[13px] block mb-4">Close button</span>
-              <button className="bg-floating hover:bg-hover transition-colors rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-[40px]">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
+              <button type="button" aria-label="Close example" className="bg-floating hover:bg-hover transition-colors rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-[40px]">
+                <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
               </button>
             </div>
           </div>

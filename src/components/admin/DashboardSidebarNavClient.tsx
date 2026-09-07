@@ -256,7 +256,7 @@ export function DashboardSidebarNavClient({ items }: DashboardSidebarNavClientPr
             overlayRoot,
           )
         : null}
-      <div className="custom-sidebar-nav" aria-label="CMS navigation">
+      <nav className="custom-sidebar-nav" aria-label="CMS navigation">
         <h2 className="custom-sidebar-nav__title">Admin</h2>
         {items.map((item) => {
           const children = item.children ?? []
@@ -310,7 +310,7 @@ export function DashboardSidebarNavClient({ items }: DashboardSidebarNavClientPr
             </section>
           )
         })}
-      </div>
+      </nav>
     </>
   )
 }

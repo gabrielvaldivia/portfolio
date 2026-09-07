@@ -26,7 +26,7 @@ export function PeopleGrid({ people }: { people: Person[] }) {
     <>
       {/* Filter pills */}
       <HScrollContainer className="pb-10">
-        <div className="flex w-max gap-2" aria-label="Filter people by role">
+        <div className="flex w-max gap-2" role="group" aria-label="Filter people by role">
           <button
             type="button"
             onClick={() => setActiveRole(null)}

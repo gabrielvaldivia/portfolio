@@ -16,7 +16,8 @@ export function OverlayEffects({ overlay, colorMode = 'both' }: { overlay: strin
   if (overlay === 'shadows') {
     return (
       <div
-        className={`fixed inset-0 z-[100] pointer-events-none ${modeClass}`}
+        aria-hidden="true"
+        className={`fixed inset-0 z-[100] pointer-events-none motion-reduce:hidden ${modeClass}`}
         style={{
           mixBlendMode: 'multiply',
           opacity: 0.15,
@@ -40,7 +41,8 @@ export function OverlayEffects({ overlay, colorMode = 'both' }: { overlay: strin
   if (overlay === 'aurora') {
     return (
       <div
-        className={`fixed inset-0 z-[100] pointer-events-none ${modeClass}`}
+        aria-hidden="true"
+        className={`fixed inset-0 z-[100] pointer-events-none motion-reduce:hidden ${modeClass}`}
         style={{
           mixBlendMode: 'screen',
           opacity: 0.4,
@@ -63,7 +65,8 @@ export function OverlayEffects({ overlay, colorMode = 'both' }: { overlay: strin
 if (overlay === 'stars') {
     return (
       <div
-        className={`fixed inset-0 z-[100] pointer-events-none ${modeClass}`}
+        aria-hidden="true"
+        className={`fixed inset-0 z-[100] pointer-events-none motion-reduce:hidden ${modeClass}`}
         style={{
           mixBlendMode: 'screen',
           opacity: 0.4,

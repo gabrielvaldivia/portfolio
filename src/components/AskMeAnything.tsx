@@ -278,7 +278,7 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
                 )}
               </AnimatePresence>
             </motion.form>
-            {error && <p className="text-caption text-text-error">{error}</p>}
+            {error && <p className="text-caption text-text-error" role="alert">{error}</p>}
           </motion.div>
         ) : (
           <motion.div
@@ -312,8 +312,9 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
               ))}
               {isLoading && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={transition} className="flex justify-start">
-                  <div className="flex items-center gap-1.5 rounded-[24px] bg-background-alt px-5 py-4" aria-label="Gabriel is responding">
-                    {[0, 1, 2].map((dot) => <span key={dot} className="size-1.5 rounded-full bg-muted" />)}
+                  <div className="flex items-center gap-1.5 rounded-[24px] bg-background-alt px-5 py-4" role="status">
+                    <span className="sr-only">Gabriel is responding</span>
+                    {[0, 1, 2].map((dot) => <span aria-hidden="true" key={dot} className="size-1.5 rounded-full bg-muted" />)}
                   </div>
                 </motion.div>
               )}
@@ -371,7 +372,7 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
                         )}
                       </AnimatePresence>
                     </motion.div>
-                    {error && <p className="mt-2 px-2 text-caption text-text-error">{error}</p>}
+                    {error && <p className="mt-2 px-2 text-caption text-text-error" role="alert">{error}</p>}
                   </form>
                 </div>
               )}

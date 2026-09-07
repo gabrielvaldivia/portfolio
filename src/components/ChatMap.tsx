@@ -163,11 +163,10 @@ export function ChatMap() {
       if (typeof c.latitude !== 'number' || typeof c.longitude !== 'number') return
       // Outer element — Mapbox owns its transform (for lat/lng positioning).
       // Inner dot handles hover scaling so we never clobber the positioning.
-      const el = document.createElement('div')
-      el.setAttribute('role', 'button')
-      el.setAttribute('tabindex', '0')
+      const el = document.createElement('button')
+      el.type = 'button'
       el.setAttribute('aria-label', c.title)
-      el.style.cssText = 'cursor:pointer;width:14px;height:14px;display:flex;align-items:center;justify-content:center;'
+      el.style.cssText = 'cursor:pointer;width:14px;height:14px;display:flex;align-items:center;justify-content:center;border:0;padding:0;background:transparent;'
       const dot = document.createElement('div')
       dot.style.cssText =
         'width:10px;height:10px;border-radius:50%;background:var(--color-content);border:2px solid var(--color-background);transition:transform 150ms ease, box-shadow 150ms ease;box-sizing:border-box;'
@@ -176,7 +175,15 @@ export function ChatMap() {
         dot.style.transform = 'scale(1.5)'
       })
       el.addEventListener('mouseleave', () => {
+        if (document.activeElement !== el) dot.style.transform = ''
+      })
+      el.addEventListener('focus', () => {
+        dot.style.transform = 'scale(1.5)'
+        dot.style.boxShadow = '0 0 0 3px var(--color-background), 0 0 0 5px var(--color-content)'
+      })
+      el.addEventListener('blur', () => {
         dot.style.transform = ''
+        dot.style.boxShadow = ''
       })
       el.addEventListener('click', (e) => {
         e.stopPropagation()
@@ -228,7 +235,11 @@ export function ChatMap() {
   return (
     <div className="flex size-full overflow-hidden">
       {mounted && createPortal(
-        <div className={`fixed inset-0 z-50 tablet:hidden ${sidebarOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+        <div
+          aria-hidden={!sidebarOpen}
+          inert={sidebarOpen ? undefined : true}
+          className={`fixed inset-0 z-50 tablet:hidden ${sidebarOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
+        >
           <button
             type="button"
             aria-label="Close conversation sidebar"
@@ -248,6 +259,8 @@ export function ChatMap() {
 
       <aside
         aria-label="Conversation history"
+        aria-hidden={!sidebarOpen}
+        inert={sidebarOpen ? undefined : true}
         className={`hidden w-[280px] shrink-0 flex-col bg-background-alt-hover px-2 py-8 transition-[margin-left] duration-200 ease-out tablet:flex ${sidebarOpen ? 'ml-0' : '-ml-[280px]'}`}
       >
         {sidebarInner}
@@ -270,6 +283,7 @@ export function ChatMap() {
               )}
             </div>
             <button
+              type="button"
               onClick={() => {
                 selectionRequestRef.current += 1
                 setSelectedId(null)
