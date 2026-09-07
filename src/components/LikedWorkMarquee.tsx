@@ -341,9 +341,8 @@ export function LikedWorkMarquee({ items }: { items: LikedWorkMarqueeItem[] }) {
     <div
       ref={marqueeRef}
       className={cn(
-        'liked-work-marquee -my-2 w-full min-w-0 overflow-hidden py-2',
-        prefersReducedMotion ? 'overflow-x-auto' : 'touch-pan-y select-none',
-        !prefersReducedMotion && (isDragging ? 'cursor-grabbing' : 'cursor-grab'),
+        'liked-work-marquee -my-2 w-full min-w-0 touch-pan-y select-none overflow-hidden py-2 motion-reduce:cursor-auto motion-reduce:touch-auto motion-reduce:overflow-x-auto',
+        isDragging ? 'cursor-grabbing' : 'cursor-grab',
       )}
       role="region"
       aria-label="Most liked work"
