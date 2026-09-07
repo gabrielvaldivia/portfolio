@@ -77,7 +77,7 @@ export default async function NotePage({ params }: NotePageProps) {
       <Container>
         <div className="mx-auto max-w-[760px]">
           <header className="flex flex-col gap-4 pb-12 tablet:pb-16">
-            <h1 className="max-w-[1100px] text-balance text-[40px] leading-[1.05] tablet:text-[64px] desktop:text-[80px]">
+            <h1 className="max-w-[1100px] text-balance text-[40px] leading-[1.05] tablet:text-[64px]">
               {note.title}
             </h1>
             {noteDate ? <p className="text-[16px] text-muted opacity-60 tablet:text-[18px]">{noteDate}</p> : null}
