@@ -86,9 +86,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
-        <style dangerouslySetInnerHTML={{ __html: `
-          .page-transition { opacity: 0; transform: translateY(12px); }
-        ` }} />
         {s?.googleAnalyticsId && (
           <>
             <script async src={`https://www.googletagmanager.com/gtag/js?id=${s.googleAnalyticsId}`} />

@@ -12,6 +12,8 @@ const browser = await engines[engine].launch({
 
 try {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true })
+  const errors = []
+  page.on('pageerror', error => errors.push(error.message))
   await page.goto(process.env.HERO_TEST_URL || 'http://localhost:3000', { waitUntil: 'domcontentloaded' })
   await page.waitForFunction(() => document.querySelector('.hero-project-scroll-region')?.style.getPropertyValue('--hero-mobile-height'))
   await page.evaluate(() => document.fonts.ready)
@@ -26,6 +28,38 @@ try {
   }))
   const near = (actual, expected, label) => assert.ok(Math.abs(actual - expected) < 1, `${label}: ${actual} != ${expected}`)
   const settle = () => page.waitForTimeout(700)
+
+  // In the slideshow, each page follows the browser's visible height. Native
+  // snapping must preserve the selected slide. Off-screen pages keep their
+  // heights so they cannot move the selected slide's snap position.
+  const slideElements = page.locator('.hero-mobile-slide')
+  for (let index = 0; index < await slideElements.count(); index++) {
+    await slideElements.nth(index).evaluate(el => el.scrollIntoView({ behavior: 'instant' }))
+    await settle()
+    const beforeResize = await snapshot()
+    for (const height of [784, 744, 844]) {
+      await page.setViewportSize({ width: 390, height })
+      await settle()
+      ;(await snapshot()).heights.forEach((value, slideIndex) => near(value,
+        slideIndex === index ? height : beforeResize.heights[slideIndex],
+        slideIndex === index ? 'active slideshow height' : 'off-screen slide remains frozen'))
+      const bounds = await slideElements.nth(index).boundingBox()
+      near(bounds.y, 0, `slide ${index + 1} stays snapped after viewport resize`)
+      near(bounds.height, height, `slide ${index + 1} fills viewport`)
+    }
+  }
+
+  // Some mobile browsers update dvh without sending a window resize event.
+  // Change only the measuring probe to exercise that ResizeObserver path.
+  await page.locator('.hero-project-scroll-region > [aria-hidden="true"]').evaluate(el => {
+    el.style.height = '804px'
+  })
+  await settle()
+  near((await snapshot()).heights.at(-1), 804, 'dynamic viewport probe resize')
+  await page.locator('.hero-project-scroll-region > [aria-hidden="true"]').evaluate(el => {
+    el.style.removeProperty('height')
+  })
+  await settle()
 
   // Enter free scroll using the actual Approach boundary before reaching Work.
   await page.locator('.hero-approach-snap-point').evaluate(el => el.scrollIntoView({ behavior: 'instant' }))
@@ -57,6 +91,19 @@ try {
   const arrowBottomInset = await page.locator('.hero-mobile-slide a[aria-label^="Open"]').first()
     .evaluate(el => Number.parseFloat(getComputedStyle(el).bottom))
   near(arrowBottomInset, start.heights[0] - 784 + 20, 'visible arrow bottom inset')
+
+  // Returning to the slideshow refreshes a height that was frozen at Work,
+  // even when there is no new resize event during the return gesture.
+  await slideElements.last().evaluate(el => el.scrollIntoView({ behavior: 'instant' }))
+  await settle()
+  near((await snapshot()).heights.at(-1), 784, 're-entry refreshes height')
+  near((await slideElements.last().boundingBox()).y, 0, 're-entry keeps the final slide snapped')
+  await page.locator('.hero-approach-snap-point').evaluate(el => el.scrollIntoView({ behavior: 'instant' }))
+  await settle()
+  await page.mouse.wheel(0, 650)
+  await settle()
+  await page.locator('.liked-work-marquee').evaluate(el => el.scrollIntoView({ behavior: 'instant', block: 'center' }))
+  await settle()
 
   // A real width change must remeasure; height-only changes after it must not.
   await page.setViewportSize({ width: 430, height: 784 })
@@ -112,7 +159,8 @@ try {
   await page.mouse.wheel(0, -1500)
   await settle()
   assert.match((await snapshot()).snap, /mandatory/, 'return to slideshow re-enables pagination')
-  console.log(JSON.stringify({ engine, result: 'PASS', checks: ['stable toolbar resize', 'visible captions', 'width change', 'rotation', 'Approach handoff'] }))
+  assert.deepEqual(errors, [], 'no browser runtime errors')
+  console.log(JSON.stringify({ engine, result: 'PASS', checks: ['active viewport resize', 'slide alignment', 'dynamic viewport probe', 'stable off-screen resize', 're-entry refresh', 'visible captions', 'width change', 'rotation', 'Approach handoff'] }))
 } finally {
   await browser.close()
 }

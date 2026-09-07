@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import {
   type MotionStyle,
@@ -25,6 +24,8 @@ import {
 import { createPortal } from 'react-dom'
 import { Testimonial } from '@/components/Testimonial'
 import { ServicePill } from '@/components/ServicePill'
+import { PayloadImage } from '@/components/PayloadImage'
+import type { ResponsiveImageMedia } from '@/lib/responsiveImage'
 
 type HeroTestimonial = {
   id: string
@@ -39,11 +40,7 @@ type HeroProjectSlide = {
   subtitle?: string
   pills?: string[]
   gradientColor?: string
-  featuredImage?: {
-    url: string
-    alt?: string | null
-    mimeType?: string | null
-  }
+  featuredImage?: ResponsiveImageMedia
   testimonial?: HeroTestimonial
 }
 
@@ -53,11 +50,19 @@ type Props = {
 
 const AUTOPLAY_DELAY_MS = 6000
 const CURSOR_IDLE_ROTATION_SPEED = 14
-const MOBILE_SLIDE_HEIGHT = 'var(--hero-mobile-height, 100lvh)'
+const MOBILE_SLIDE_HEIGHT = 'var(--hero-mobile-height, 100dvh)'
 const MOBILE_BROWSER_INSET = `max(0px, ${MOBILE_SLIDE_HEIGHT} - 100dvh)`
 const MOBILE_CONTENT_BOTTOM = `calc(1.25rem + ${MOBILE_BROWSER_INSET})`
+// Smoothstep alpha stops: a gentle fade with flat tangents at both ends.
+const MOBILE_IMAGE_MASK = 'linear-gradient(to bottom, #000 60%, rgb(0 0 0 / .972) 64%, rgb(0 0 0 / .896) 68%, rgb(0 0 0 / .784) 72%, rgb(0 0 0 / .648) 76%, rgb(0 0 0 / .5) 80%, rgb(0 0 0 / .352) 84%, rgb(0 0 0 / .216) 88%, rgb(0 0 0 / .104) 92%, rgb(0 0 0 / .028) 96%, transparent 100%)'
 
-function SilentBackgroundVideo({ src, label, playing = true }: { src: string; label: string; playing?: boolean }) {
+function SilentBackgroundVideo({ src, label, playing = true, onLoadedData, onError }: {
+  src: string
+  label: string
+  playing?: boolean
+  onLoadedData?: (video: HTMLVideoElement) => void
+  onError?: () => void
+}) {
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
@@ -96,10 +101,13 @@ function SilentBackgroundVideo({ src, label, playing = true }: { src: string; la
       loop
       muted
       playsInline
+      crossOrigin={onLoadedData ? 'anonymous' : undefined}
       disablePictureInPicture
       disableRemotePlayback
       preload="metadata"
       className="size-full object-cover"
+      onLoadedData={event => onLoadedData?.(event.currentTarget)}
+      onError={onError}
       onVolumeChange={(event) => {
         event.currentTarget.defaultMuted = true
         event.currentTarget.muted = true
@@ -109,25 +117,29 @@ function SilentBackgroundVideo({ src, label, playing = true }: { src: string; la
   )
 }
 
-function samplePredominantImageColor(image: HTMLImageElement) {
+function samplePredominantMediaColor(image: HTMLImageElement | HTMLVideoElement) {
   const canvas = document.createElement('canvas')
   const context = canvas.getContext('2d', { willReadFrequently: true })
-  if (!context || !image.naturalWidth || !image.naturalHeight) return null
+  const naturalWidth = 'videoWidth' in image ? image.videoWidth : image.naturalWidth
+  const naturalHeight = 'videoHeight' in image ? image.videoHeight : image.naturalHeight
+  if (!context || !naturalWidth || !naturalHeight) return null
 
   const sampleSize = 24
-  const renderedAspect = image.clientWidth / image.clientHeight
-  const naturalAspect = image.naturalWidth / image.naturalHeight
+  const naturalAspect = naturalWidth / naturalHeight
+  const renderedAspect = image.clientWidth && image.clientHeight
+    ? image.clientWidth / image.clientHeight
+    : naturalAspect
   let sourceX = 0
   let sourceY = 0
-  let sourceWidth = image.naturalWidth
-  let sourceHeight = image.naturalHeight
+  let sourceWidth = naturalWidth
+  let sourceHeight = naturalHeight
 
   if (naturalAspect > renderedAspect) {
     sourceWidth = sourceHeight * renderedAspect
-    sourceX = (image.naturalWidth - sourceWidth) / 2
+    sourceX = (naturalWidth - sourceWidth) / 2
   } else {
     sourceHeight = sourceWidth / renderedAspect
-    sourceY = (image.naturalHeight - sourceHeight) / 2
+    sourceY = (naturalHeight - sourceHeight) / 2
   }
 
   canvas.width = sampleSize
@@ -181,7 +193,7 @@ function hexToRgbChannels(color?: string) {
 function isVideoMedia(media?: HeroProjectSlide['featuredImage']) {
   return Boolean(
     media?.mimeType?.startsWith('video/')
-    || media?.url.match(/\.(?:mp4|mov|m4v|webm)(?:\?.*)?$/i),
+    || media?.url?.match(/\.(?:mp4|mov|m4v|webm)(?:\?.*)?$/i),
   )
 }
 
@@ -189,10 +201,10 @@ function HeroProjectPills({ pills = [] }: { pills?: string[] }) {
   if (!pills.length) return null
 
   return (
-    <ul aria-label="Capabilities and industries" className="hero-project-pills mt-2 flex flex-wrap gap-2.5">
+    <ul aria-label="Capabilities and industries" className="hero-project-pills mt-2 flex min-w-0 flex-wrap gap-2.5 max-tablet:flex-nowrap max-tablet:gap-1.5 max-tablet:overflow-x-auto">
       {pills.map(title => (
-        <li key={title}>
-          <ServicePill title={title} size="small" variant="on-media" />
+        <li key={title} className="shrink-0">
+          <ServicePill title={title} size="small" variant="on-media" className="max-tablet:px-2 max-tablet:py-1 max-tablet:text-[11px]" />
         </li>
       ))}
     </ul>
@@ -202,47 +214,71 @@ function HeroProjectPills({ pills = [] }: { pills?: string[] }) {
 function MobileHeroSlide({
   project,
   active,
-  fallbackGradientColor,
-  onImageLoad,
   visualStyle,
 }: {
   project: HeroProjectSlide
   active: boolean
-  fallbackGradientColor: string
-  onImageLoad: (image: HTMLImageElement, projectId: string) => void
   visualStyle?: MotionStyle
 }) {
   const media = project.featuredImage
-  const gradientColor = hexToRgbChannels(project.gradientColor) ?? fallbackGradientColor
+  const [sampledColor, setSampledColor] = useState('24 24 24')
+  const [canSampleColor, setCanSampleColor] = useState(true)
+  const gradientColor = hexToRgbChannels(project.gradientColor) ?? sampledColor
+  const needsColorSample = canSampleColor && !hexToRgbChannels(project.gradientColor)
+  const updateMediaColor = useCallback((image: HTMLImageElement | HTMLVideoElement) => {
+    if (hexToRgbChannels(project.gradientColor)) return
+    try {
+      const color = samplePredominantMediaColor(image)
+      if (color) setSampledColor(color)
+    } catch {
+      // Cross-origin media may not permit sampling. Keep the neutral fallback
+      // rather than borrowing another slide's color; CMS overrides still work.
+    }
+  }, [project.gradientColor])
 
   return (
-    // Keep the measured page height even in browsers that resize lvh along with
-    // their toolbar. Only foreground insets should follow the visible viewport.
+    // Follow the visible viewport in the slideshow, then retain that measured
+    // height off-screen so browser chrome cannot move the content below it.
     <div className="hero-mobile-slide relative w-full text-text-on-media-strong" style={{ height: MOBILE_SLIDE_HEIGHT }} data-project-id={project.id}>
       {/* Snap to the actual slide's start. A one-pixel target cannot become an
           oversized snap area with intermediate stops when browser chrome changes. */}
       <div aria-hidden="true" className="hero-project-snap-point pointer-events-none absolute inset-x-0 top-0 h-px" />
-      <motion.div className="relative size-full overflow-hidden bg-background-alt" style={visualStyle}>
-        {media?.url ? (
-          isVideoMedia(media) ? (
-            <SilentBackgroundVideo
-              src={media.url}
-              label={media.alt || `${project.title} project video`}
-              playing={active}
-            />
-          ) : (
-            <Image
-              src={media.url}
-              alt={media.alt || ''}
-              fill
-              className="object-cover"
-              sizes="100vw"
-              quality={90}
-              priority={active}
-              onLoad={(event) => onImageLoad(event.currentTarget, project.id)}
-            />
-          )
-        ) : null}
+      <motion.div
+        className="hero-mobile-surface relative grid size-full grid-cols-1 grid-rows-[minmax(0,1fr)_auto_auto] overflow-hidden"
+        style={{ ...visualStyle, backgroundColor: `rgb(${gradientColor})` }}
+      >
+        {/* The media shares the title's bottom grid line; text wrapping and
+            editable pills determine the solid-color area without JS sizing. */}
+        <div
+          className="hero-mobile-media pointer-events-none relative col-start-1 row-start-1 row-end-3 min-h-0 overflow-hidden"
+          style={{ maskImage: MOBILE_IMAGE_MASK, WebkitMaskImage: MOBILE_IMAGE_MASK }}
+        >
+          {media?.url ? (
+            isVideoMedia(media) ? (
+              <SilentBackgroundVideo
+                key={needsColorSample ? 'sample' : 'display'}
+                src={media.url}
+                label={media.alt || `${project.title} project video`}
+                playing={active}
+                onLoadedData={needsColorSample ? updateMediaColor : undefined}
+                onError={() => setCanSampleColor(false)}
+              />
+            ) : (
+              <PayloadImage
+                key={needsColorSample ? 'sample' : 'display'}
+                media={media}
+                alt={media.alt || ''}
+                fill
+                className="object-cover"
+                sizes="100vw"
+                priority={active}
+                crossOrigin={needsColorSample ? 'anonymous' : undefined}
+                onLoad={(event) => updateMediaColor(event.currentTarget)}
+                onError={() => setCanSampleColor(false)}
+              />
+            )
+          ) : null}
+        </div>
 
         <Link
           href={`/work/${project.slug}`}
@@ -250,30 +286,22 @@ function MobileHeroSlide({
           className="absolute inset-0 z-0"
         />
 
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-0"
-          style={{
-            height: `calc(50dvh + ${MOBILE_BROWSER_INSET})`,
-            backgroundImage: `linear-gradient(to bottom, rgb(${gradientColor} / 0) 0, rgb(${gradientColor} / 0.01) 9dvh, rgb(${gradientColor} / 0.04) 17dvh, rgb(${gradientColor} / 0.12) 24dvh, rgb(${gradientColor} / 0.26) 30.5dvh, rgb(${gradientColor} / 0.45) 37dvh, rgb(${gradientColor} / 0.66) 43dvh, rgb(${gradientColor} / 0.86) 47.5dvh, rgb(${gradientColor}) 50dvh)`,
-          }}
-        />
-
         <Link
           href={`/work/${project.slug}`}
-          className="absolute left-5 right-24 z-10 flex flex-col gap-2 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-          style={{ bottom: MOBILE_CONTENT_BOTTOM }}
+          className="hero-mobile-caption z-10 col-start-1 row-start-2 row-end-4 ml-5 mr-24 grid grid-rows-subgrid rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
         >
           <h2 className="hero-project-title text-balance">{project.title}</h2>
-          {project.subtitle ? (
-            <p className="max-w-2xl text-body text-pretty text-text-on-media-muted">{project.subtitle}</p>
-          ) : null}
-          <HeroProjectPills pills={project.pills} />
+          <div className="hero-mobile-details flex flex-col gap-2 pt-2" style={{ paddingBottom: MOBILE_CONTENT_BOTTOM }}>
+            {project.subtitle ? (
+              <p className="max-w-2xl text-body text-pretty text-text-on-media-muted">{project.subtitle}</p>
+            ) : null}
+            <HeroProjectPills pills={project.pills} />
+          </div>
         </Link>
         <Link
           href={`/work/${project.slug}`}
           aria-label={`Open ${project.title} project`}
-          className="absolute right-5 z-20 flex size-12 items-center justify-center rounded-full bg-white transition-colors duration-150 hover:bg-white/90 active:bg-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+          className="absolute right-5 z-20 flex size-10 items-center justify-center rounded-full bg-white transition-colors duration-150 hover:bg-white/90 active:bg-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
           style={{ bottom: MOBILE_CONTENT_BOTTOM }}
         >
           <svg aria-hidden="true" className="size-6 text-text-on-light" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
@@ -326,7 +354,6 @@ export function HeroProjectSlideshow({ projects }: Props) {
   const [isFocusPaused, setIsFocusPaused] = useState(false)
   const [isCaseStudyCursorVisible, setIsCaseStudyCursorVisible] = useState(false)
   const [cursorPortalRoot, setCursorPortalRoot] = useState<HTMLElement | null>(null)
-  const [heroGradientColor, setHeroGradientColor] = useState('24 24 24')
 
   const { scrollY } = useScroll()
   const expansionProgress = useTransform(() => {
@@ -369,18 +396,6 @@ export function HeroProjectSlideshow({ projects }: Props) {
       scrollToMobileStep(index)
     }
   }, [isMobileViewport, scrollToMobileStep])
-
-  const updateHeroGradientColor = useCallback((image: HTMLImageElement, projectId: string) => {
-    const activeProject = projects[activeIndex]
-    if (activeProject?.id !== projectId || activeProject.gradientColor) return
-
-    try {
-      const color = samplePredominantImageColor(image)
-      if (color) setHeroGradientColor(color)
-    } catch {
-      setHeroGradientColor('24 24 24')
-    }
-  }, [activeIndex, projects])
 
   const stopCaseStudyCursorSpin = useCallback(() => {
     if (caseStudyCursorSpinFrame.current !== null) {
@@ -547,25 +562,73 @@ export function HeroProjectSlideshow({ projects }: Props) {
     const probe = mobileViewportProbeRef.current
     if (!region || !probe) return
 
+    const slides = [...region.querySelectorAll<HTMLElement>('.hero-mobile-slide')]
     let measuredWidth = 0
+    let frame: number | null = null
     const measureHeight = () => {
+      frame = null
       const width = document.documentElement.clientWidth
-      // Height-only resizes are browser chrome/keyboard changes, not new page
-      // geometry. Remeasure for width changes, including phone rotation.
-      if (width === measuredWidth) return
       const height = probe.getBoundingClientRect().height
       if (height <= 0) return
-      measuredWidth = width
-      region.style.setProperty('--hero-mobile-height', `${height}px`)
+
+      // Width changes reset all pages, including after phone rotation.
+      if (width !== measuredWidth) {
+        measuredWidth = width
+        region.style.setProperty('--hero-mobile-height', `${height}px`)
+        slides.forEach(slide => slide.style.removeProperty('--hero-mobile-height'))
+        return
+      }
+
+      const visibleSlide = slides.map(slide => ({ slide, bounds: slide.getBoundingClientRect() }))
+        .find(({ bounds }) => bounds.top <= height / 2 && bounds.bottom > height / 2)
+      if (!visibleSlide || Math.abs(visibleSlide.bounds.height - height) < 0.5) return
+
+      // Resize only the page being viewed. Earlier pages retain their heights,
+      // so the current snap target does not move when browser chrome changes.
+      // Once outside the slideshow, every page stays frozen to avoid shifting
+      // Approach or Work. No scroll-position compensation is needed.
+      visibleSlide.slide.style.setProperty('--hero-mobile-height', `${height}px`)
+    }
+    const scheduleMeasurement = () => {
+      if (frame === null) frame = requestAnimationFrame(measureHeight)
     }
 
     measureHeight()
-    window.addEventListener('resize', measureHeight)
+    // Dynamic viewport units also change in browsers that don't emit a window
+    // resize for their toolbar. Batch both signals into a single measurement.
+    const viewportObserver = new ResizeObserver(scheduleMeasurement)
+    viewportObserver.observe(probe)
+    // Refresh a previously frozen height when scrolling back into a slide,
+    // without measuring layout on every scroll event.
+    const visibilityObserver = new IntersectionObserver(scheduleMeasurement, { threshold: 0.5 })
+    slides.forEach(slide => visibilityObserver.observe(slide))
+    window.addEventListener('resize', scheduleMeasurement)
     return () => {
-      window.removeEventListener('resize', measureHeight)
+      window.removeEventListener('resize', scheduleMeasurement)
+      viewportObserver.disconnect()
+      visibilityObserver.disconnect()
+      if (frame !== null) cancelAnimationFrame(frame)
       region.style.removeProperty('--hero-mobile-height')
+      slides.forEach(slide => slide.style.removeProperty('--hero-mobile-height'))
     }
-  }, [isMobileViewport])
+  }, [isMobileViewport, projects])
+
+  useEffect(() => {
+    if (!isMobileViewport) return
+    const region = regionRef.current
+    const media = region?.querySelectorAll<HTMLElement>('.hero-mobile-media')[activeIndex]
+    if (!region || !media) return
+
+    // Keep one sticky pagination control, centered on the active image rather
+    // than the full slide. Observe size only; don't measure while scrolling.
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry.contentRect.height > 0) {
+        region.style.setProperty('--hero-mobile-image-height', `${entry.contentRect.height}px`)
+      }
+    })
+    observer.observe(media)
+    return () => observer.disconnect()
+  }, [activeIndex, isMobileViewport, projects])
 
   useEffect(() => {
     if (!isMobileViewport) return
@@ -746,7 +809,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
       ref={regionRef}
       className="hero-project-scroll-region relative w-full"
     >
-      <div ref={mobileViewportProbeRef} aria-hidden="true" className="pointer-events-none invisible fixed top-0 left-0 h-lvh w-0 tablet:hidden" />
+      <div ref={mobileViewportProbeRef} aria-hidden="true" className="pointer-events-none invisible fixed top-0 left-0 h-dvh w-0 tablet:hidden" />
       <div role="region" aria-label="Featured projects" aria-roledescription="carousel" className="grid tablet:hidden">
         <div className="col-start-1 row-start-1 min-w-0">
           {projects.map((project, index) => (
@@ -754,8 +817,6 @@ export function HeroProjectSlideshow({ projects }: Props) {
               key={project.id}
               project={project}
               active={isMobileViewport && index === activeIndex}
-              fallbackGradientColor={index === activeIndex ? heroGradientColor : '24 24 24'}
-              onImageLoad={updateHeroGradientColor}
               visualStyle={index === 0 ? { scale: slideshowScale, borderRadius: slideshowRadius } : undefined}
             />
           ))}
@@ -764,7 +825,12 @@ export function HeroProjectSlideshow({ projects }: Props) {
           // Share one viewport-height overlay without adding scroll height.
           // Sticky keeps the lines still between slides, but scoped to the hero.
           <div className="pointer-events-none sticky top-0 z-20 col-start-1 row-start-1 h-dvh self-start">
-            <div role="group" aria-label="Project pagination" className="hero-mobile-pagination absolute right-3 top-1/2 flex -translate-y-1/2 flex-col gap-1">
+            <div
+              role="group"
+              aria-label="Project pagination"
+              className="hero-mobile-pagination absolute right-3 flex -translate-y-1/2 flex-col gap-1"
+              style={{ top: 'calc(var(--hero-mobile-image-height, 75dvh) / 2)' }}
+            >
               {projects.map((project, index) => (
                 <button
                   key={project.id}
@@ -813,15 +879,13 @@ export function HeroProjectSlideshow({ projects }: Props) {
                 playing={!isMobileViewport}
               />
             ) : (
-              <Image
-                src={activeMedia.url}
+              <PayloadImage
+                media={activeMedia}
                 alt={activeMedia.alt || ''}
                 fill
                 className="object-cover"
                 sizes="100vw"
-                quality={90}
                 priority={activeIndex === 0}
-                onLoad={(event) => updateHeroGradientColor(event.currentTarget, activeProject.id)}
               />
             )}
           </motion.div>

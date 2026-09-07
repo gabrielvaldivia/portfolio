@@ -1,12 +1,19 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isChat = pathname.startsWith('/chat')
   const transitionKey = isChat ? 'chat' : pathname
+  const [route, setRoute] = useState({ key: transitionKey, animate: false })
+
+  // Render the server-provided page immediately on refresh. Only subsequent
+  // route changes should play the entrance animation, before children commit.
+  if (route.key !== transitionKey) {
+    setRoute({ key: transitionKey, animate: true })
+  }
 
   useEffect(() => {
     if (!isChat) return
@@ -42,7 +49,7 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
   }, [isChat])
 
   return (
-    <main key={transitionKey} className={isChat ? '' : 'page-transition'}>
+    <main key={transitionKey} className={isChat ? '' : `page-transition${route.animate ? ' page-transition-enter' : ''}`}>
       {children}
     </main>
   )
