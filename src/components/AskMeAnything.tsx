@@ -64,7 +64,7 @@ function SuggestionButton({ item, onSelect }: { item: FAQItem; onSelect: () => v
       ref={buttonRef}
       type="button"
       onClick={onSelect}
-      className="max-w-[90%] cursor-pointer rounded-[24px] border border-dashed border-border-strong px-5 py-3 text-left text-body text-muted transition-colors duration-150 hover:border-content hover:text-content focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content tablet:max-w-[80%]"
+      className="max-w-[90%] cursor-pointer rounded-[24px] border border-dashed border-border-strong px-5 py-3 text-left text-body text-text-body transition-colors duration-150 hover:border-content hover:text-text-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content tablet:max-w-[80%]"
     >
       <span ref={labelRef} className="text-pretty">{item.question}</span>
     </button>
@@ -255,7 +255,7 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
                 }}
                 placeholder="Ask your own question…"
                 className={cn(
-                  'min-w-0 bg-transparent py-3 text-body text-content outline-none placeholder:text-muted',
+                  'min-w-0 bg-transparent py-3 text-body text-text-strong outline-none placeholder:text-text-muted',
                   initialInputFocused ? 'flex-1' : 'w-auto [field-sizing:content]',
                 )}
               />
@@ -269,7 +269,7 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
                     type="submit"
                     aria-label="Send question"
                     disabled={!input.trim() || isLoading}
-                    className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-accent text-white disabled:cursor-default disabled:opacity-30"
+                    className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-accent text-text-on-accent disabled:cursor-default disabled:opacity-30"
                   >
                     <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 19V5M5 12l7-7 7 7" />
@@ -278,7 +278,7 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
                 )}
               </AnimatePresence>
             </motion.form>
-            {error && <p className="text-caption text-red-600 dark:text-red-400">{error}</p>}
+            {error && <p className="text-caption text-text-error">{error}</p>}
           </motion.div>
         ) : (
           <motion.div
@@ -302,8 +302,8 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
                     className={cn(
                       'relative max-w-[90%] whitespace-pre-wrap px-5 py-3 text-pretty text-body tablet:max-w-[80%]',
                       message.role === 'user'
-                        ? 'rounded-[24px] bg-accent text-white'
-                        : 'rounded-[24px] bg-background-alt text-content',
+                        ? 'rounded-[24px] bg-accent text-text-on-accent'
+                        : 'rounded-[24px] bg-background-alt text-text-strong',
                     )}
                   >
                     {message.content}
@@ -350,7 +350,7 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
                           if (!input.trim()) setFollowUpFocused(false)
                         }}
                         placeholder="Ask a follow-up…"
-                        className="min-w-0 flex-1 bg-transparent py-3 text-body text-content outline-none placeholder:text-muted"
+                        className="min-w-0 flex-1 bg-transparent py-3 text-body text-text-strong outline-none placeholder:text-text-muted"
                       />
                       <AnimatePresence initial={false}>
                         {followUpFocused && (
@@ -362,7 +362,7 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
                             type="submit"
                             aria-label="Send follow-up question"
                             disabled={!input.trim()}
-                            className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-accent text-white disabled:cursor-default disabled:opacity-30"
+                            className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-accent text-text-on-accent disabled:cursor-default disabled:opacity-30"
                           >
                             <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M12 19V5M5 12l7-7 7 7" />
@@ -371,7 +371,7 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
                         )}
                       </AnimatePresence>
                     </motion.div>
-                    {error && <p className="mt-2 px-2 text-caption text-red-600 dark:text-red-400">{error}</p>}
+                    {error && <p className="mt-2 px-2 text-caption text-text-error">{error}</p>}
                   </form>
                 </div>
               )}
@@ -400,7 +400,7 @@ export function AskMeAnythingRestart() {
       onClick={() => window.dispatchEvent(new Event(RESTART_EVENT))}
       aria-label="Start over"
       title="Start over"
-      className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted transition-colors duration-150 hover:bg-background-alt hover:text-content focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content desktop:-mt-1 desktop:size-11"
+      className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-text-body transition-colors duration-150 hover:bg-background-alt hover:text-text-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content desktop:-mt-1 desktop:size-11"
     >
       <RotateCcw aria-hidden="true" className="size-[18px] desktop:size-5" strokeWidth={1.8} />
     </button>

@@ -7,7 +7,7 @@
   min-height: 620px;
   margin: 0 40px;
   overflow: hidden;
-  color: var(--color-content);
+  color: var(--color-text-strong);
   font-family: var(--font-body);
 }
 
@@ -72,7 +72,7 @@
   padding: 6px 9px;
   border-radius: 999px;
   background: var(--color-accent);
-  color: #fff;
+  color: var(--color-text-on-accent);
   font-size: 11px;
   font-weight: 500;
   line-height: 1;
@@ -106,20 +106,20 @@
   gap: 8px;
   align-items: flex-start;
   margin-bottom: 20px;
-  color: var(--color-content);
+  color: var(--color-text-strong);
   font-size: clamp(16px, 1.25vw, 20px);
   line-height: 1.4;
 }
 
 .contextHeading {
-  color: var(--color-muted);
+  color: var(--color-text-muted);
   font-size: 14px;
   line-height: 1;
 }
 
 .dateButton {
   margin: 0;
-  color: var(--color-content);
+  color: var(--color-text-strong);
   font: inherit;
   line-height: inherit;
 }
@@ -145,7 +145,7 @@
 
 .dateCalendarIcon {
   flex: 0 0 auto;
-  color: var(--color-muted);
+  color: var(--color-text-muted);
   opacity: 0;
   transform: translateX(-2px);
   transition: opacity 120ms ease-out, transform 120ms ease-out;
@@ -176,7 +176,7 @@
   border-radius: 10px;
   background: var(--color-elevated);
   box-shadow: 0 14px 38px rgb(0 0 0 / 0.14);
-  color: var(--color-content);
+  color: var(--color-text-strong);
   outline: none;
 }
 
@@ -200,7 +200,7 @@
 .chapterBoundaryCue {
   position: absolute;
   left: 50%;
-  color: var(--color-muted);
+  color: var(--color-text-muted);
   font-size: 13px;
   line-height: 20px;
   opacity: 0;
@@ -255,7 +255,7 @@
   align-items: center;
   margin-bottom: 12px;
   padding: 8px 0 16px;
-  color: var(--color-muted);
+  color: var(--color-text-muted);
   font-size: 14px;
   line-height: 1;
 }
@@ -287,7 +287,7 @@
 
 .chapterEyebrow button:hover:not(:disabled) {
   background: var(--color-border);
-  color: var(--color-content);
+  color: var(--color-text-strong);
 }
 
 .chapterEyebrow button:focus-visible {
@@ -307,7 +307,7 @@
 
 .note {
   margin: 8px 0 0;
-  color: var(--color-content);
+  color: var(--color-text-strong);
   font-size: clamp(16px, 1.25vw, 20px);
   line-height: 1.4;
   text-wrap: balance;
@@ -385,13 +385,13 @@
 
 .details dt {
   margin-bottom: 8px;
-  color: var(--color-muted);
+  color: var(--color-text-muted);
   font-size: 14px;
 }
 
 .details dd {
   margin: 0;
-  color: var(--color-content);
+  color: var(--color-text-strong);
   font-size: clamp(16px, 1.25vw, 20px);
   line-height: 1.4;
 }
@@ -542,14 +542,14 @@
 
   .mobileSidebarGrid dt {
     margin-bottom: 6px;
-    color: var(--color-muted);
+    color: var(--color-text-muted);
     font-size: 12px;
     line-height: 1;
   }
 
   .mobileSidebarGrid dd {
     margin: 0;
-    color: var(--color-content);
+    color: var(--color-text-strong);
     font-size: 16px;
     line-height: 1.35;
   }
@@ -732,7 +732,7 @@
     }
 
     .ageCursorSkeleton {
-      color: var(--color-content);
+      color: var(--color-text-strong);
       filter: drop-shadow(0 8px 16px rgb(0 0 0 / 0.12));
     }
 
@@ -909,7 +909,7 @@
     left: 50%;
     z-index: 35;
     display: block;
-    color: var(--color-muted);
+    color: var(--color-text-muted);
     font-size: 13px;
     line-height: 20px;
     opacity: 0;
@@ -1015,14 +1015,14 @@
 
   .mobileSidebarGrid dt {
     margin-bottom: 6px;
-    color: var(--color-muted);
+    color: var(--color-text-muted);
     font-size: 12px;
     line-height: 1;
   }
 
   .mobileSidebarGrid dd {
     margin: 0;
-    color: var(--color-content);
+    color: var(--color-text-strong);
     font-size: 16px;
     line-height: 1.35;
   }

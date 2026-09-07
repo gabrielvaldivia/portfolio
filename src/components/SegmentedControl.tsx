@@ -30,7 +30,7 @@ export function SegmentedControl({
           aria-current={item.selected ? 'page' : undefined}
           className={cn(
             'flex h-8 items-center rounded-full px-4 text-[13px] transition-colors',
-            item.selected ? 'bg-background text-content' : 'text-muted hover:text-content',
+            item.selected ? 'bg-background text-text-strong' : 'text-text-body hover:text-text-strong',
           )}
         >
           {item.label}

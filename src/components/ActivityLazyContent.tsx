@@ -2,33 +2,22 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { Heart, MessageCircle } from 'lucide-react'
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityVideoThumbnail } from '@/components/ActivityVideoThumbnail'
-import { LazyModuleLikeButton } from '@/components/LazyModuleLikeButton'
-import { ModuleLightboxProvider, ModuleLightboxTrigger, type ModuleLightboxSlide } from '@/components/ModuleLightbox'
-import type { ActivityView } from '@/components/ActivityViewSwitcher'
+import { HighlighterFilledIcon } from '@/components/Icons'
 import { cn } from '@/lib/cn'
+import { formatActivityTime } from '@/lib/activityTime'
 import type {
   ModuleLikeActivityCursor,
   ModuleLikeActivityItem,
   ModuleLikeActivityPage,
-  ModuleLikeFeedCursor,
-  ModuleLikeFeedItem,
-  ModuleLikeFeedPage,
 } from '@/lib/moduleLikeActivity'
 import {
   MODULE_LIKE_ACTIVITY_PAGE_SIZE,
-  MODULE_LIKE_FEED_PAGE_SIZE,
 } from '@/lib/moduleLikeActivityPagination'
 
-const relativeFormatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
 const activityTimeZone = 'America/New_York'
-const absoluteFormatter = new Intl.DateTimeFormat('en', {
-  month: 'short',
-  day: 'numeric',
-  year: 'numeric',
-  timeZone: activityTimeZone,
-})
 const activityCalendarFormatter = new Intl.DateTimeFormat('en-US', {
   day: 'numeric',
   month: 'numeric',
@@ -47,20 +36,6 @@ const weekdayIndexes: Record<string, number> = {
   Fri: 5,
   Sat: 6,
 }
-const lightboxableActivityBlockTypes = new Set([
-  'browser',
-  'image',
-  'video',
-  'dc1',
-  'iphone15',
-  'iphone13mini',
-  'iphone5',
-  'iphone6',
-  'iphonex',
-  'fullWidthImage',
-  'fullWidthVideo',
-  'deviceMockup',
-])
 
 type ActivityDisplayItem = ModuleLikeActivityItem & {
   count: number
@@ -69,23 +44,6 @@ type ActivityDisplayItem = ModuleLikeActivityItem & {
 
 type ActivityThumbnailValue = NonNullable<ModuleLikeActivityItem['target']['thumbnail']>
 type ActivityCalendarDate = NonNullable<ReturnType<typeof getActivityCalendarDate>>
-
-function formatActivityTime(value: string, nowMs: number) {
-  const date = new Date(value)
-  const elapsed = date.getTime() - nowMs
-  const absoluteElapsed = Math.abs(elapsed)
-  const minute = 60 * 1000
-  const hour = 60 * minute
-  const day = 24 * hour
-
-  if (Number.isNaN(date.getTime())) return ''
-  if (absoluteElapsed < minute) return 'just now'
-  if (absoluteElapsed < hour) return relativeFormatter.format(Math.round(elapsed / minute), 'minute')
-  if (absoluteElapsed < day) return relativeFormatter.format(Math.round(elapsed / hour), 'hour')
-  if (absoluteElapsed < 7 * day) return relativeFormatter.format(Math.round(elapsed / day), 'day')
-
-  return absoluteFormatter.format(date)
-}
 
 function getActivityCalendarDate(date: Date) {
   const parts = activityCalendarFormatter.formatToParts(date)
@@ -255,7 +213,7 @@ function getActivitySentence(item: ActivityDisplayItem) {
   return `${getActivitySubject(item)}${locationText} ${action}${sourceText}${repetitions}${item.quote ? `: “${item.quote}”` : ''}`
 }
 
-function getCountryFlagUrl(country: string) {
+function getCountryFlagUrl(country = '') {
   const code = country.trim().toUpperCase()
   if (!/^[A-Z]{2}$/.test(code)) return ''
 
@@ -264,55 +222,54 @@ function getCountryFlagUrl(country: string) {
   return `/flags/figma/${code.toLowerCase()}.${extension}`
 }
 
-function ActivitySentence({ item }: { item: ActivityDisplayItem }) {
+function ActivityLocation({ location, country }: { location: string; country: string }) {
+  const flagUrl = getCountryFlagUrl(country)
+  return (
+    <span className="font-medium text-text-strong">
+      {flagUrl ? (
+        <span aria-hidden="true" style={{ display: 'inline-block', height: '0.8em', marginLeft: '0.25em', marginRight: '0.25em', verticalAlign: '-0.05em' }}>
+          <img src={flagUrl} alt="" loading="lazy" decoding="async" style={{ display: 'block', height: '100%', width: 'auto' }} />
+        </span>
+      ) : null}
+      {location}
+    </span>
+  )
+}
+
+const activityLinkClassName = 'font-medium text-text-strong underline-offset-4 hover:underline focus-visible:underline'
+
+function ActivitySentence({ item, nowMs }: { item: ActivityDisplayItem; nowMs: number }) {
   const { action, location, repetitions, source } = getActivitySentenceParts(item)
-  const countryFlagUrl = getCountryFlagUrl(item.country)
+  const hasLink = item.target.href !== '#'
 
   return (
-    <p className="text-body text-pretty">
+    <p className="text-body text-text-body">
       {item.eventType === 'highlight' && (item.highlightLocations?.length || 0) > 1 ? item.highlightLocations!.map((group, index) => (
         <Fragment key={group.location}>
           {index > 0 ? ' and ' : null}
           {group.count > 1 ? `${group.count} readers` : index === 0 ? 'Someone' : 'someone'}
-          {group.location ? <> from <span className="font-medium">{group.location}</span></> : null}
+          {group.location ? <> from <ActivityLocation location={group.location} country={group.country} /></> : null}
         </Fragment>
       )) : getActivitySubject(item)}
       {location ? (
         <>
           {' from '}
-          <span className="font-medium">
-            {countryFlagUrl ? (
-              <span
-                aria-hidden="true"
-                style={{
-                  display: 'inline-block',
-                  height: '0.8em',
-                  marginLeft: '0.25em',
-                  marginRight: '0.25em',
-                  verticalAlign: '-0.05em',
-                }}
-              >
-                <img
-                  src={countryFlagUrl}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  style={{ display: 'block', height: '100%', width: 'auto' }}
-                />
-              </span>
-            ) : null}
-            {location}
-          </span>
+          <ActivityLocation location={location} country={item.country} />
         </>
       ) : null}
-      {' '}{action}
+      {' '}{!source && hasLink ? <Link href={item.target.href} className={activityLinkClassName}>{action}</Link> : action}
       {source ? (
         <>
           {getActivitySourcePrefix(item)}
-          <span className="font-medium">{source}</span>
+          {hasLink ? <Link href={item.target.href} className={activityLinkClassName}>{source}</Link> : <span className="font-medium text-text-strong">{source}</span>}
         </>
       ) : null}
       {repetitions}
+      {' '}
+      <span className="text-text-subtle tabular-nums">
+        <span aria-hidden="true">· </span>
+        <time dateTime={item.createdAt}>{formatActivityTime(item.createdAt, nowMs)}</time>
+      </span>
     </p>
   )
 }
@@ -324,14 +281,10 @@ function getThumbnailContainerStyle(thumbnail: ActivityThumbnailValue) {
   }
 }
 
-function getThumbnailMediaClassName(className: string, thumbnail: ActivityThumbnailValue, preserveFit = true) {
-  return preserveFit && thumbnail.fit === 'contain'
+function getThumbnailMediaClassName(className: string, thumbnail: ActivityThumbnailValue) {
+  return thumbnail.fit === 'contain'
     ? className.replace(/\bobject-cover\b/g, 'object-contain')
     : className
-}
-
-function shouldPreserveThumbnailFit(thumbnail: ActivityThumbnailValue, forceMediaCover: boolean) {
-  return !forceMediaCover || Boolean(thumbnail.padding)
 }
 
 function ActivityFramedThumbnail({
@@ -339,24 +292,18 @@ function ActivityFramedThumbnail({
   className,
   mediaClassName = 'block !h-full w-full object-cover object-center',
   playVideoOnHover = false,
-  paddingMode = 'compact',
 }: {
   thumbnail: ActivityThumbnailValue
   className: string
   mediaClassName?: string
   playVideoOnHover?: boolean
-  paddingMode?: 'compact' | 'feed'
 }) {
   const frame = thumbnail.frame
   if (!frame) return null
   const resolvedMediaClassName = getThumbnailMediaClassName(mediaClassName, thumbnail)
   const isDC1Frame = frame.id === 'dc1'
-  const paddingClassName = paddingMode === 'feed'
-    ? isDC1Frame ? 'px-1.5 py-5 tablet:py-1.5' : 'p-5'
-    : cn('px-1 tablet:px-1.5', isDC1Frame ? 'py-2 tablet:py-3' : 'py-1 tablet:py-1.5')
-  const imageSizes = paddingMode === 'feed'
-    ? '(max-width: 810px) 100vw, (max-width: 1280px) 50vw, 33vw'
-    : '80px'
+  const paddingClassName = cn('px-1 tablet:px-1.5', isDC1Frame ? 'py-2 tablet:py-3' : 'py-1 tablet:py-1.5')
+  const imageSizes = '80px'
 
   return (
     <div
@@ -412,15 +359,11 @@ function ActivityMediaThumbnail({
   className,
   mediaClassName = 'block !h-full w-full object-cover object-center',
   playVideoOnHover = false,
-  framedPaddingMode = 'compact',
-  forceMediaCover = false,
 }: {
   thumbnail: ActivityThumbnailValue | null
   className: string
   mediaClassName?: string
   playVideoOnHover?: boolean
-  framedPaddingMode?: 'compact' | 'feed'
-  forceMediaCover?: boolean
 }) {
   if (thumbnail?.frame) {
     return (
@@ -429,7 +372,6 @@ function ActivityMediaThumbnail({
         className={className}
         mediaClassName={mediaClassName}
         playVideoOnHover={playVideoOnHover}
-        paddingMode={framedPaddingMode}
       />
     )
   }
@@ -438,7 +380,6 @@ function ActivityMediaThumbnail({
     const resolvedMediaClassName = getThumbnailMediaClassName(
       mediaClassName,
       thumbnail,
-      shouldPreserveThumbnailFit(thumbnail, forceMediaCover),
     )
     const containerStyle = getThumbnailContainerStyle(thumbnail)
     const imageClassName = cn(
@@ -448,9 +389,7 @@ function ActivityMediaThumbnail({
     const border = thumbnail.imageBorder ? (
       <div className="pointer-events-none absolute inset-0 border border-border" />
     ) : null
-    const imageSizes = framedPaddingMode === 'feed'
-      ? '(max-width: 810px) 100vw, (max-width: 1280px) 50vw, 33vw'
-      : '80px'
+    const imageSizes = '80px'
 
     if (
       thumbnail.padding
@@ -528,7 +467,6 @@ function ActivityMediaThumbnail({
     const resolvedMediaClassName = getThumbnailMediaClassName(
       mediaClassName,
       thumbnail,
-      shouldPreserveThumbnailFit(thumbnail, forceMediaCover),
     )
     const media = (
       <ActivityVideoThumbnail
@@ -574,156 +512,60 @@ function ActivityThumbnail({ item }: { item: ActivityDisplayItem }) {
   return (
     <ActivityMediaThumbnail
       thumbnail={item.target.thumbnail}
-      className="size-16 tablet:size-20 shrink-0 overflow-hidden rounded-md border border-border bg-background-alt"
+      className="size-16 tablet:size-20 shrink-0 self-center overflow-hidden rounded-md border border-border bg-background-alt"
     />
   )
 }
 
 function ActivityText({ item, nowMs }: { item: ActivityDisplayItem; nowMs: number }) {
-  const timeLabel = formatActivityTime(item.createdAt, nowMs)
-
   return (
     <div className="min-w-0">
-      <ActivitySentence item={item} />
+      <ActivitySentence item={item} nowMs={nowMs} />
       {item.quote ? (
-        <blockquote className="mt-3 border-l border-border-strong pl-6 text-body text-muted">
+        <blockquote className="mt-3 border-l-2 border-border-strong pl-4 text-body text-text-muted">
           <p className="line-clamp-3">{item.quote}</p>
         </blockquote>
       ) : null}
-      <p className="pt-2 truncate text-caption text-muted tabular-nums">
-        <time dateTime={item.createdAt}>{timeLabel}</time>
-      </p>
     </div>
+  )
+}
+
+function ActivityIcon({ eventType }: { eventType: ActivityDisplayItem['eventType'] }) {
+  return (
+    <span className="flex h-lh items-center text-body" aria-hidden="true">
+      {eventType === 'like' ? <Heart fill="currentColor" className="size-5 text-text-like tablet:size-6" /> : null}
+      {eventType === 'highlight' ? <HighlighterFilledIcon className="size-5 text-text-highlight tablet:size-6" /> : null}
+      {eventType === 'chat' ? <MessageCircle fill="currentColor" className="size-5 text-text-chat tablet:size-6" /> : null}
+    </span>
   )
 }
 
 function ActivityRow({ item, nowMs, isFirst = false }: { item: ActivityDisplayItem; nowMs: number; isFirst?: boolean }) {
   const hasThumbnail = item.eventType !== 'chat' && Boolean(item.target.thumbnail)
   const rowClassName = cn(
-    'group py-4 transition-opacity duration-150 tablet:py-5 tablet:hover:opacity-60',
-    hasThumbnail ? 'grid grid-cols-[1fr_auto] items-center gap-5' : 'block',
-    !isFirst && 'border-t border-border',
+    'relative grid items-start gap-3 py-4 tablet:gap-5 tablet:py-5',
+    hasThumbnail ? 'grid-cols-[auto_minmax(0,1fr)_auto]' : 'grid-cols-[auto_minmax(0,1fr)]',
+    !isFirst && 'before:absolute before:top-0 before:right-0 before:left-8 before:border-t before:border-border before:opacity-50 tablet:before:left-11',
   )
-  const content = (
-    <>
+  return (
+    <div className={rowClassName}>
+      <ActivityIcon eventType={item.eventType} />
       <ActivityText item={item} nowMs={nowMs} />
-      {hasThumbnail ? <ActivityThumbnail item={item} /> : null}
-    </>
-  )
-
-  if (item.target.href === '#') {
-    return <div className={rowClassName}>{content}</div>
-  }
-
-  return (
-    <Link href={item.target.href} className={rowClassName} aria-label={getActivitySentence(item)}>
-      {content}
-    </Link>
-  )
-}
-
-function getLikeCountLabel(count: number) {
-  return `${count} ${count === 1 ? 'like' : 'likes'}`
-}
-
-function getFeedItemLabel(item: ModuleLikeFeedItem, rank: number) {
-  return `#${rank}. ${item.target.label}. ${getLikeCountLabel(item.likeCount)}`
-}
-
-function getFeedSlideId(item: ModuleLikeFeedItem) {
-  return `activity-feed:${item.targetId}`
-}
-
-function getFeedLightboxSlides(items: ModuleLikeFeedItem[]): ModuleLightboxSlide[] {
-  const slidesById = new Map<string, ModuleLightboxSlide>()
-
-  items.forEach((item) => {
-    const block = item.target.block
-    if (!block || !lightboxableActivityBlockTypes.has(block.blockType)) return
-
-    slidesById.set(getFeedSlideId(item), {
-      id: getFeedSlideId(item),
-      type: 'module',
-      block,
-      label: `Open ${item.target.label} fullscreen`,
-      likeTargetId: item.targetId,
-      photoInfo: item.target.photoInfo,
-      zoomablePhoto: item.target.zoomablePhoto,
-      movableSurface: false,
-    })
-  })
-
-  return Array.from(slidesById.values())
-}
-
-function FeedItem({ item, rank }: { item: ModuleLikeFeedItem; rank: number }) {
-  const thumbnail = (
-    <ActivityMediaThumbnail
-      thumbnail={item.target.thumbnail}
-      className="aspect-[4/3] w-full overflow-hidden rounded-md border border-border bg-background-alt"
-      framedPaddingMode="feed"
-      forceMediaCover
-      playVideoOnHover
-    />
-  )
-  const canOpenLightbox = Boolean(item.target.block && lightboxableActivityBlockTypes.has(item.target.block.blockType))
-
-  const media = canOpenLightbox ? (
-    <ModuleLightboxTrigger
-      slideId={getFeedSlideId(item)}
-      label={getFeedItemLabel(item, rank)}
-    >
-      {thumbnail}
-    </ModuleLightboxTrigger>
-  ) : item.target.href === '#' ? (
-    thumbnail
-  ) : (
-    <Link
-      href={item.target.href}
-      className="block"
-      aria-label={getFeedItemLabel(item, rank)}
-    >
-      {thumbnail}
-    </Link>
-  )
-
-  return (
-    <div className="group/feed relative">
-      {media}
-      <div className="absolute bottom-3 left-3 z-20 opacity-100 transition-opacity duration-150 desktop:pointer-events-none desktop:opacity-0 desktop:group-hover/feed:pointer-events-auto desktop:group-hover/feed:opacity-100 desktop:group-focus-within/feed:pointer-events-auto desktop:group-focus-within/feed:opacity-100">
-        <LazyModuleLikeButton targetId={item.targetId} initialCount={item.likeCount} />
-      </div>
+      {hasThumbnail ? item.target.href !== '#' ? (
+        <Link href={item.target.href} className="self-center" aria-label={getActivitySentence(item)}>
+          <ActivityThumbnail item={item} />
+        </Link>
+      ) : <ActivityThumbnail item={item} /> : null}
     </div>
   )
 }
 
-function FeedGrid({ items }: { items: ModuleLikeFeedItem[] }) {
-  const slides = getFeedLightboxSlides(items)
-  const grid = (
-    <div className="grid grid-cols-1 gap-x-5 gap-y-5 tablet:grid-cols-2 tablet:gap-y-10 desktop:grid-cols-3">
-      {items.map((item, index) => (
-        <FeedItem key={item.id} item={item} rank={index + 1} />
-      ))}
-    </div>
-  )
-
-  if (slides.length === 0) return grid
-
-  return (
-    <ModuleLightboxProvider slides={slides}>
-      {grid}
-    </ModuleLightboxProvider>
-  )
-}
-
-function EmptyState({ view, unavailable = false }: { view: ActivityView; unavailable?: boolean }) {
-  const message = unavailable
-    ? view === 'feed' ? 'Feed is temporarily unavailable.' : 'Activity is temporarily unavailable.'
-    : view === 'feed' ? 'No liked images yet.' : 'No activity yet.'
+function EmptyState({ unavailable = false }: { unavailable?: boolean }) {
+  const message = unavailable ? 'Activity is temporarily unavailable.' : 'No activity yet.'
 
   return (
     <div className="border-t border-border py-6">
-      <p className="text-body text-muted text-pretty">{message}</p>
+      <p className="text-body text-text-body">{message}</p>
       <Link href="/work" className="mt-4 inline-flex text-body transition-opacity duration-150 hover:opacity-60">
         Browse work
       </Link>
@@ -763,7 +605,7 @@ function LoadMoreControl({
 
   return (
     <div ref={rootRef} className="pt-8">
-      {error ? <p className="pb-3 text-caption text-muted">{error}</p> : null}
+      {error ? <p className="pb-3 text-caption text-text-error">{error}</p> : null}
       {hasMore ? (
         <button
           type="button"
@@ -788,19 +630,6 @@ async function fetchActivityPage(cursor: ModuleLikeActivityCursor) {
   const response = await fetch(`/api/activity?${params}`, { cache: 'no-store' })
   if (!response.ok) throw new Error('Unable to load more activity.')
   return response.json() as Promise<ModuleLikeActivityPage>
-}
-
-async function fetchFeedPage(cursor: ModuleLikeFeedCursor) {
-  const params = new URLSearchParams({
-    view: 'feed',
-    limit: String(MODULE_LIKE_FEED_PAGE_SIZE),
-    cursorLikeCount: String(cursor.likeCount),
-    cursorUpdatedAt: cursor.updatedAt,
-    cursorTargetId: cursor.targetId,
-  })
-  const response = await fetch(`/api/activity?${params}`, { cache: 'no-store' })
-  if (!response.ok) throw new Error('Unable to load more feed items.')
-  return response.json() as Promise<ModuleLikeFeedPage>
 }
 
 function ActivityItems({
@@ -860,7 +689,7 @@ function ActivityItems({
         <div className="space-y-10">
           {groups.map((group) => (
             <section key={group.title}>
-              <h4 className="mb-2 text-muted">{group.title}</h4>
+              <h4 className="mb-2 text-text-body">{group.title}</h4>
               <div>
                 {group.items.map((item, index) => (
                   <ActivityRow key={item.id} item={item} nowMs={nowMs} isFirst={index === 0} />
@@ -870,70 +699,7 @@ function ActivityItems({
           ))}
         </div>
       ) : (
-        <EmptyState view="activity" />
-      )}
-      <LoadMoreControl
-        error={error}
-        hasMore={Boolean(cursor)}
-        loading={loading}
-        onLoadMore={loadMore}
-      />
-    </>
-  )
-}
-
-function FeedItems({
-  initialCursor,
-  initialItems,
-}: {
-  initialCursor: ModuleLikeFeedCursor | null
-  initialItems: ModuleLikeFeedItem[]
-}) {
-  const [items, setItems] = useState(initialItems)
-  const [cursor, setCursor] = useState(initialCursor)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const loadingRef = useRef(false)
-
-  useEffect(() => {
-    loadingRef.current = false
-    setItems(initialItems)
-    setCursor(initialCursor)
-    setLoading(false)
-    setError('')
-  }, [initialCursor, initialItems])
-
-  const loadMore = useCallback(() => {
-    if (!cursor || loadingRef.current) return
-
-    loadingRef.current = true
-    setLoading(true)
-    setError('')
-
-    void fetchFeedPage(cursor)
-      .then((page) => {
-        setItems((currentItems) => {
-          const seenIds = new Set(currentItems.map((item) => item.id))
-          const nextItems = page.items.filter((item) => !seenIds.has(item.id))
-          return [...currentItems, ...nextItems]
-        })
-        setCursor(page.nextCursor)
-      })
-      .catch((caught) => {
-        setError(caught instanceof Error ? caught.message : 'Unable to load more feed items.')
-      })
-      .finally(() => {
-        loadingRef.current = false
-        setLoading(false)
-      })
-  }, [cursor])
-
-  return (
-    <>
-      {items.length > 0 ? (
-        <FeedGrid items={items} />
-      ) : (
-        <EmptyState view="feed" />
+        <EmptyState />
       )}
       <LoadMoreControl
         error={error}
@@ -947,27 +713,14 @@ function FeedItems({
 
 export function ActivityLazyContent({
   initialActivityPage,
-  initialFeedPage,
   initialNow,
   unavailable = false,
-  view,
 }: {
   initialActivityPage: ModuleLikeActivityPage
-  initialFeedPage: ModuleLikeFeedPage
   initialNow: string
   unavailable?: boolean
-  view: ActivityView
 }) {
-  if (unavailable) return <EmptyState view={view} unavailable />
-
-  if (view === 'feed') {
-    return (
-      <FeedItems
-        initialCursor={initialFeedPage.nextCursor}
-        initialItems={initialFeedPage.items}
-      />
-    )
-  }
+  if (unavailable) return <EmptyState unavailable />
 
   return (
     <ActivityItems

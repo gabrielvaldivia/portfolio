@@ -68,11 +68,11 @@ function NoteViews({ noteId, enabled }: { noteId: string; enabled: boolean }) {
     <Popover open={tooltipOpen} onOpenChange={setTooltipOpen}>
       <PopoverTrigger asChild>
         <button type="button" data-note-views
-          className="inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted hover:bg-background-alt hover:text-content focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content"
+          className="inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full px-3 text-sm font-medium text-text-body hover:bg-background-alt hover:text-text-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content"
           aria-label={count === null ? 'Views unavailable' : `${count.toLocaleString('en-US')} ${count === 1 ? 'view' : 'views'}`}
           aria-describedby={tooltipOpen ? tooltipId : undefined} aria-controls={tooltipOpen ? tooltipId : undefined} aria-haspopup={undefined}>
           <Eye className="size-[18px]" aria-hidden="true" />
-          <span className="font-mono tabular-nums" aria-hidden="true">{count === null ? '—' : count.toLocaleString('en-US', { notation: 'compact' })}</span>
+          <span className="font-mono tabular-nums text-text-muted" aria-hidden="true">{count === null ? '—' : count.toLocaleString('en-US', { notation: 'compact' })}</span>
         </button>
       </PopoverTrigger>
       <PopoverContent id={tooltipId} role="tooltip" side="top" sideOffset={10} collisionPadding={16}
@@ -110,9 +110,9 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, hi
 
   const trigger = (
     <button type="button" aria-label={highlightsReady ? `${highlights.length} highlighted passages. Show highlights` : 'Show highlights'}
-      className="inline-grid h-11 min-w-11 grid-cols-[18px_minmax(1ch,auto)] items-center justify-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted hover:bg-background-alt hover:text-content focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content">
+      className="inline-grid h-11 min-w-11 grid-cols-[18px_minmax(1ch,auto)] items-center justify-center gap-1.5 rounded-full px-3 text-sm font-medium text-text-body hover:bg-background-alt hover:text-text-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content">
       <Highlighter className={cn('col-start-1 row-start-1 size-[18px]', highlightsReady && highlights.length === 0 && 'col-span-2 justify-self-center')} aria-hidden="true" />
-      <span className={cn('col-start-2 row-start-1 min-w-[1ch] text-left font-mono tabular-nums', highlightsReady && highlights.length === 0 && 'invisible')} aria-hidden="true">{highlightsReady ? highlights.length : '—'}</span>
+      <span className={cn('col-start-2 row-start-1 min-w-[1ch] text-left font-mono tabular-nums text-text-muted', highlightsReady && highlights.length === 0 && 'invisible')} aria-hidden="true">{highlightsReady ? highlights.length : '—'}</span>
     </button>
   )
   const visibilitySwitch = (
@@ -128,11 +128,11 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, hi
       <p role="alert">{error}</p>
       <button type="button" onClick={onRefreshHighlights} className="mt-2 min-h-11 underline">Try again</button>
     </div>
-  ) : !highlightsReady ? <p role="status" className="px-5 pb-5 text-muted">Loading highlights…</p>
+  ) : !highlightsReady ? <p role="status" className="px-5 pb-5 text-text-body">Loading highlights…</p>
     : highlights.length === 0 ? (
       <div className={cn('flex flex-col items-center justify-center gap-2 px-8 text-center', mobile ? 'min-h-full py-8' : 'min-h-48 py-6')}>
-        <p className="text-sm font-medium text-content">No highlights yet.</p>
-        <p className="max-w-64 text-sm leading-relaxed text-muted">Select text in the note to highlight it.</p>
+        <p className="text-sm font-medium text-text-strong">No highlights yet.</p>
+        <p className="max-w-64 text-sm leading-relaxed text-text-body">Select text in the note to highlight it.</p>
       </div>
     )
     : <ul className={cn('min-h-0 px-2 pb-2', !mobile && 'overflow-y-auto overscroll-contain')}>
@@ -179,7 +179,7 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, hi
               if (skipRestoreFocus.current) event.preventDefault()
               finishSelection()
             }}
-            className="z-50 flex max-h-[min(28rem,var(--radix-popover-content-available-height))] w-80 max-w-[calc(100vw-32px)] flex-col overflow-hidden rounded-2xl bg-elevated text-sm text-content shadow-lg outline-none">
+            className="z-50 flex max-h-[min(28rem,var(--radix-popover-content-available-height))] w-80 max-w-[calc(100vw-32px)] flex-col overflow-hidden rounded-2xl bg-elevated text-sm text-text-strong shadow-lg outline-none">
             <div className="flex shrink-0 items-center justify-between gap-4 px-5 py-2">
               <p className="text-sm font-medium">Highlights</p>
               {visibilitySwitch}

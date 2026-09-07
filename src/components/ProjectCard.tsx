@@ -37,7 +37,7 @@ export function ProjectCard({ title, slug, subtitle, featuredImage, href, icon, 
           )}
         >
           {icon ? (
-            <div className="absolute inset-0 flex items-center justify-center p-16 text-content">
+            <div className="absolute inset-0 flex items-center justify-center p-16 text-text-strong">
               {icon}
             </div>
           ) : featuredImage?.url ? (
@@ -52,16 +52,16 @@ export function ProjectCard({ title, slug, subtitle, featuredImage, href, icon, 
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-muted text-lg">{title}</span>
+              <span className="text-text-body text-lg">{title}</span>
             </div>
           )}
         </div>
         {/* Title and description */}
         <div className="shrink-0 p-5 tablet:p-7">
-          <h4 className="text-content">
+          <h4 className="text-text-strong">
             {title}
           </h4>
-          {subtitle && <p className="text-muted text-caption" style={{ marginTop: '8px' }}>{subtitle}</p>}
+          {subtitle && <p className="text-text-muted text-caption" style={{ marginTop: '8px' }}>{subtitle}</p>}
         </div>
       </div>
     </Link>

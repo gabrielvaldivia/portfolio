@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 function MetaRow({ label, children, baseline }: { label: string; children: React.ReactNode; baseline?: boolean }) {
   return (
     <div className={`flex gap-10 ${baseline ? 'items-baseline' : 'items-start'}`}>
-      <h6 className="w-[50px] tablet:w-[100px] shrink-0 text-muted" style={baseline ? undefined : { paddingTop: '10px' }}>{label}</h6>
+      <h6 className="w-[50px] tablet:w-[100px] shrink-0 text-text-muted" style={baseline ? undefined : { paddingTop: '10px' }}>{label}</h6>
       <div className="flex-1">{children}</div>
     </div>
   )

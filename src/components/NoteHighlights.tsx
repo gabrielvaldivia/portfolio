@@ -6,13 +6,15 @@ import { Popover, PopoverContent } from '@/components/ui/Popover'
 import { NoteActions } from '@/components/NoteActions'
 import { HighlightAttributionDetails } from '@/components/HighlightAttributionDetails'
 import { anchorFromRange, indexHighlightText, rangeFromAnchor } from '@/lib/noteHighlightDOM'
+import { navigateToNoteHighlight } from '@/lib/noteHighlightNavigation'
+import { attachNoteHighlightHover } from '@/lib/noteHighlightHover'
 import { MAX_HIGHLIGHT_LENGTH, type HighlightAnchor, type HighlightResponse, type PublicHighlight } from '@/lib/noteHighlightAnchors'
 import { cn } from '@/lib/cn'
 
 type ActivePassage = { anchor: HighlightAnchor; range: Range; fromSelection: boolean }
 const visibilityStorageKey = 'gv-note-highlights-visible-v1'
 const panelClass = 'z-50 w-72 max-w-[calc(100vw-32px)] max-h-[var(--radix-popover-content-available-height)] overflow-y-auto rounded-xl bg-content px-3 py-2 text-center text-sm leading-relaxed text-background shadow-lg outline-none'
-const actionClass = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-content px-4 py-2 text-background disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content'
+const actionClass = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-content px-4 py-2 text-xs leading-none text-background disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content'
 
 export function NoteHighlights({ noteId, likeTargetId, version, children }: { noteId: string; likeTargetId: string; version: string; children: ReactNode }) {
   const rootRef = useRef<HTMLDivElement>(null)
@@ -20,6 +22,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
   const requestRef = useRef(0)
   const savingRef = useRef(false)
   const mountedRef = useRef(true)
+  const navigationCleanupRef = useRef<(() => void) | null>(null)
   const [highlights, setHighlights] = useState<PublicHighlight[]>([])
   const [active, setActive] = useState<ActivePassage | null>(null)
   const [ready, setReady] = useState(false)
@@ -51,6 +54,8 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
   }
   const current = active ? highlights.find((h) => h.start === active.anchor.start && h.end === active.anchor.end) : null
 
+  useEffect(() => () => navigationCleanupRef.current?.(), [noteId, version])
+
   useEffect(() => {
     try { setHighlightsVisible(localStorage.getItem(visibilityStorageKey) !== 'false') } catch { /* Storage is optional. */ }
     const onStorage = (event: StorageEvent) => {
@@ -65,6 +70,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
   }, [])
 
   function changeHighlightsVisible(visible: boolean) {
+    navigationCleanupRef.current?.()
     setHighlightsVisible(visible)
     if (!visible) setActive((current) => current?.fromSelection ? current : null)
     try { localStorage.setItem(visibilityStorageKey, String(visible)) } catch { /* Still works for this visit. */ }
@@ -137,6 +143,12 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
   }, [highlights, ready, highlightsVisible])
 
   useEffect(() => {
+    const root = rootRef.current
+    if (!root || !ready || !highlightsVisible || !highlights.length) return
+    return attachNoteHighlightHover(root, highlights)
+  }, [highlights, ready, highlightsVisible])
+
+  useEffect(() => {
     let timer: ReturnType<typeof setTimeout>
     setTouchSelection(navigator.maxTouchPoints > 0 || window.matchMedia('(pointer: coarse)').matches)
     const updateSelection = () => {
@@ -174,7 +186,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
   }, [])
 
   async function save(remove = false) {
-    if (!active || !ready || savingRef.current) return
+    if (!active || !ready || savingRef.current || (remove && !current?.mine)) return
     savingRef.current = true
     setSaving(true)
     requestRef.current++ // Ignore a refresh that was started before this mutation.
@@ -224,6 +236,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
         onRefreshHighlights={() => void refresh()}
         onOpenHighlights={() => { setActive(null); window.getSelection()?.removeAllRanges() }}
         onSelectHighlight={(mark) => {
+          navigationCleanupRef.current?.()
           const root = rootRef.current
           if (!root) return
           const range = rangeFromAnchor(root, mark)
@@ -231,9 +244,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
           setActive(null)
           window.getSelection()?.removeAllRanges()
           root.focus({ preventScroll: true })
-          const rect = Array.from(range.getClientRects()).find((rect) => rect.width && rect.height) || range.getBoundingClientRect()
-          const viewport = window.visualViewport
-          window.scrollBy({ top: rect.top - (viewport?.offsetTop || 0) - (viewport?.height || window.innerHeight) / 3, behavior: 'instant' })
+          navigationCleanupRef.current = navigateToNoteHighlight(root, range, mark.start)
           setAnnouncement(`Jumped to highlighted passage: ${mark.exact}`)
         }} />
 
@@ -244,7 +255,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
           className={cn(active?.fromSelection ? 'z-50 outline-none' : panelClass, 'note-highlight-action')}
           side="top" sideOffset={8}
           updatePositionStrategy="always"
-          collisionPadding={16} role={active?.fromSelection || (current?.attributions?.length || 0) > 1 ? 'dialog' : 'tooltip'} aria-label={active?.fromSelection ? 'Highlight passage' : 'Highlight attribution'}
+          collisionPadding={16} role={active?.fromSelection || current?.mine || (current?.attributions?.length || 0) > 1 ? 'dialog' : 'tooltip'} aria-label={active?.fromSelection ? 'Highlight passage' : 'Highlight attribution'}
           onOpenAutoFocus={(event) => event.preventDefault()}
           onCloseAutoFocus={(event) => {
             event.preventDefault()
@@ -267,9 +278,9 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
                 onClick={() => void save()}>
                 {saving ? 'Saving…' : 'Highlight'}
               </button>
-              {error ? <p role="alert" className="mt-2 max-w-64 rounded-lg bg-background p-3 text-sm text-content shadow-lg">{error}</p> : null}
+              {error ? <p role="alert" className="mt-2 max-w-64 rounded-lg bg-background p-3 text-sm text-text-strong shadow-lg">{error}</p> : null}
             </>
-          ) : current ? <HighlightAttributionDetails key={current.id} highlight={current} /> : null}
+          ) : current ? <HighlightAttributionDetails key={current.id} highlight={current} onRemove={() => void save(true)} removing={saving} error={error} /> : null}
         </PopoverContent>
       </Popover>
       <span role="status" aria-live="polite" className="sr-only">{announcement}</span>

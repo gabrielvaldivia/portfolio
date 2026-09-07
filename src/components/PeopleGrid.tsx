@@ -32,7 +32,7 @@ export function PeopleGrid({ people }: { people: Person[] }) {
             onClick={() => setActiveRole(null)}
             aria-pressed={!activeRole}
             className={`shrink-0 whitespace-nowrap px-4 py-2 text-caption rounded-full transition-colors cursor-pointer ${
-              !activeRole ? 'bg-content text-background' : 'bg-background-alt text-muted hover:text-content'
+              !activeRole ? 'bg-content text-background' : 'bg-background-alt text-text-body hover:text-text-strong'
             }`}
           >
             All
@@ -44,7 +44,7 @@ export function PeopleGrid({ people }: { people: Person[] }) {
               onClick={() => setActiveRole(activeRole === role ? null : role)}
               aria-pressed={activeRole === role}
               className={`shrink-0 whitespace-nowrap px-4 py-2 text-caption rounded-full transition-colors cursor-pointer ${
-                activeRole === role ? 'bg-content text-background' : 'bg-background-alt text-muted hover:text-content'
+                activeRole === role ? 'bg-content text-background' : 'bg-background-alt text-text-body hover:text-text-strong'
               }`}
             >
               {role}
@@ -65,7 +65,7 @@ export function PeopleGrid({ people }: { people: Person[] }) {
               <div className="flex-1 min-w-0 flex items-center gap-1">
                 <h4 className="truncate">{person.name}</h4>
                 {href && (
-                  <svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 17L17 7M17 7H9M17 7V15" /></svg>
+                  <svg className="shrink-0 text-text-body opacity-0 group-hover:opacity-100 transition-opacity" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 17L17 7M17 7H9M17 7V15" /></svg>
                 )}
               </div>
             </div>

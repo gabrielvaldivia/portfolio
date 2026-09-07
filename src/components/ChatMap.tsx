@@ -212,7 +212,7 @@ export function ChatMap() {
   const sidebarInner = (
     <>
       <div className="px-3 pb-4 pt-1">
-        <span className="text-body font-medium text-content">Conversations</span>
+        <span className="text-body font-medium text-text-strong">Conversations</span>
       </div>
       <ConversationSidebarList
         conversations={conversations}
@@ -260,11 +260,11 @@ export function ChatMap() {
         <div className="map-conversation-panel absolute bottom-2 left-2 right-2 z-10 flex max-h-[calc(50%-8px)] flex-col rounded-[12px] bg-background shadow-lg">
           <div className="flex items-start justify-between gap-2 p-4 pb-3">
             <div className="min-w-0">
-              <div className="text-[15px] font-medium text-content truncate">
+              <div className="text-[15px] font-medium text-text-strong truncate">
                 {selectedConversation.location || 'Unknown location'}
               </div>
               {selectedConversation.createdAt && (
-                <div className="text-[11px] text-muted truncate mt-0.5">
+                <div className="text-[11px] text-text-muted truncate mt-0.5">
                   {formatDateTime(selectedConversation.createdAt, selectedConversation.timezone)}
                 </div>
               )}
@@ -276,7 +276,7 @@ export function ChatMap() {
                 setSelectedConversation(null)
               }}
               aria-label="Close"
-              className="shrink-0 w-6 h-6 flex items-center justify-center text-muted hover:text-content transition-colors cursor-pointer"
+              className="shrink-0 w-6 h-6 flex items-center justify-center text-text-body hover:text-text-strong transition-colors cursor-pointer"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <path d="M18 6L6 18M6 6l12 12" />
@@ -285,7 +285,7 @@ export function ChatMap() {
           </div>
           <div className="flex-1 overflow-y-auto p-4 pb-6 space-y-3 min-h-0">
             {!selectedConversation.messages && (
-              <p className="text-[14px] text-muted">Loading conversation…</p>
+              <p className="text-[14px] text-text-body">Loading conversation…</p>
             )}
             {(selectedConversation.messages || []).map((m, i) => {
               const text = stripFollowups(m.content)
@@ -296,7 +296,7 @@ export function ChatMap() {
                     className={`max-w-[85%] rounded-[14px] px-3 py-2 text-[14px] leading-snug whitespace-pre-wrap ${
                       m.role === 'user'
                         ? 'bg-content text-inverse'
-                        : 'bg-background-alt text-content'
+                        : 'bg-background-alt text-text-strong'
                     }`}
                   >
                     {text}

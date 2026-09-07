@@ -43,7 +43,7 @@ test('includes pre-existing saved quotes, grouped per passage, with no reader id
   const first = rows.find(row => row.activity_id.startsWith('highlight:1:') && row.highlight.anchor && (row.highlight.anchor as {exact: string}).exact === anchor.exact)!
   assert.equal(first.amount, 2)
   assert.equal(rows.filter(row => row.activity_id.startsWith('highlight:1:')).length, 2)
-  assert.deepEqual(resolveHighlightActivity(first.highlight), {quote: anchor.exact, title: 'Note 1', href: '/notes/note-1', locations: [{location: '', count: 2}]})
+  assert.deepEqual(resolveHighlightActivity(first.highlight), {quote: anchor.exact, title: 'Note 1', href: '/notes/note-1', locations: [{location: '', count: 2, country: ''}]})
   assert.equal(JSON.stringify(rows).includes('private-reader'), false)
   assert.equal(JSON.stringify(resolveHighlightActivity(first.highlight)).includes('body'), false)
 })
@@ -55,9 +55,9 @@ test('retains each location and unknown reader without assigning all readers to 
   let row = (await load()).find(row => row.activity_id.startsWith('highlight:4:'))!
   const locations = resolveHighlightActivity(row.highlight)!.locations
   assert.equal(row.amount, 4)
-  assert.deepEqual(locations.find(group => group.location === 'Mislata, Spain'), {location: 'Mislata, Spain', count: 2})
-  assert.deepEqual(locations.find(group => group.location === 'Newburgh, NY'), {location: 'Newburgh, NY', count: 1})
-  assert.deepEqual(locations.find(group => !group.location), {location: '', count: 1})
+  assert.deepEqual(locations.find(group => group.location === 'Mislata, Spain'), {location: 'Mislata, Spain', count: 2, country: 'ES'})
+  assert.deepEqual(locations.find(group => group.location === 'Newburgh, NY'), {location: 'Newburgh, NY', count: 1, country: 'US'})
+  assert.deepEqual(locations.find(group => !group.location), {location: '', count: 1, country: ''})
   assert.equal(JSON.stringify(row).includes('private-reader'), false)
   await writeHighlight(db, 4, text, 'private-reader-new-york', anchor, true)
   row = (await load()).find(row => row.activity_id.startsWith('highlight:4:'))!

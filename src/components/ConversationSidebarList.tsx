@@ -79,20 +79,20 @@ export function ConversationSidebarList({
               }`}
               style={{ top: index * ROW_HEIGHT, height: ROW_CONTENT_HEIGHT }}
             >
-              <div className="truncate text-[13px] text-muted">{getConversationTitle(conversation.title)}</div>
-              <div className="mt-0.5 truncate text-[16px] text-content">
+              <div className="truncate text-[13px] text-text-muted">{getConversationTitle(conversation.title)}</div>
+              <div className="mt-0.5 truncate text-[16px] text-text-strong">
                 {conversation.preview || conversation.messages?.find((message) => message.role === 'user')?.content || 'No messages'}
               </div>
             </button>
           )
         })}
         {loading && (
-          <p className="absolute inset-x-0 px-3 py-2 text-caption text-muted" style={{ top: conversations.length * ROW_HEIGHT }}>
+          <p className="absolute inset-x-0 px-3 py-2 text-caption text-text-muted" style={{ top: conversations.length * ROW_HEIGHT }}>
             Loading…
           </p>
         )}
         {!loading && conversations.length === 0 && (
-          <p className="px-3 py-2 text-caption text-muted">No conversations yet</p>
+          <p className="px-3 py-2 text-caption text-text-muted">No conversations yet</p>
         )}
       </div>
     </div>

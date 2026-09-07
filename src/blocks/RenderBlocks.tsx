@@ -211,7 +211,7 @@ export function RenderBlocks({ blocks, likeNamespace }: { blocks?: any[]; likeNa
               </div>
             )}
             {rendersCaptionOutsideSurface && (
-              <p className="text-muted text-caption" style={{ marginTop: 10 }}>
+              <p className="text-text-muted text-caption" style={{ marginTop: 10 }}>
                 {block.caption}
               </p>
             )}

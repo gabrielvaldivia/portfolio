@@ -12,7 +12,7 @@ export type HighlightAnchor = {
   end: number
 }
 
-export type HighlightAttribution = { location: string | null; createdAt: string }
+export type HighlightAttribution = { location: string | null; createdAt: string; mine?: boolean }
 
 export type PublicHighlight = HighlightAnchor & {
   id: string

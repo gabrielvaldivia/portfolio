@@ -30,6 +30,16 @@ export function ThreadsIcon({ className }: { className?: string }) {
   )
 }
 
+export function HighlighterFilledIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+      <path d="M13.1 3.1a.7.7 0 0 1 1 0l7.7 7.6a.7.7 0 0 1 0 1l-4 4a.7.7 0 0 1-1 0L9.1 7.9a.7.7 0 0 1 0-1Z" />
+      <path d="m8.2 9 7.8 7.8-1.3 1.3h-1.2l-3.4 1.4a1 1 0 0 1-1.1-.2L5.7 16a.9.9 0 0 1-.1-1.1l1.5-2.5v-1.3a1 1 0 0 1 .3-.7Z" />
+      <path d="m4.9 17 3.3 3.3-.8.8H2.7a.6.6 0 0 1-.4-1Z" />
+    </svg>
+  )
+}
+
 export function EmailIcon({ className }: { className?: string }) {
   return (
     <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -52,12 +62,12 @@ const socialIcons: Record<string, React.FC<{ className?: string }>> = {
 
 export function HoverChevron() {
   return (
-    <svg className="hidden tablet:inline-block shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[4px]" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg>
+    <svg className="hidden tablet:inline-block shrink-0 text-text-body opacity-0 group-hover:opacity-100 transition-opacity translate-y-[4px]" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg>
   )
 }
 
 export function HoverArrow({
-  className = 'inline-block ml-2 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[0px]',
+  className = 'inline-block ml-2 text-text-body opacity-0 group-hover:opacity-100 transition-opacity translate-y-[0px]',
 }: {
   className?: string
 }) {

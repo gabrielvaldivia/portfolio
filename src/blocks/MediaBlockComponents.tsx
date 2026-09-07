@@ -145,7 +145,7 @@ export function ImageBlockComponent({
         {border && <div className="absolute inset-0 z-10 ring-1 ring-inset ring-black/10 dark:ring-white/10 pointer-events-none" />}
         {_likeTargetId && <ModuleLikeOverlay targetId={_likeTargetId} />}
       </div>
-      {caption && <p className="text-muted text-caption" style={{ marginTop: 10 }}>{caption}</p>}
+      {caption && <p className="text-text-muted text-caption" style={{ marginTop: 10 }}>{caption}</p>}
     </div>
   )
 }
@@ -218,7 +218,7 @@ export function VideoBlockComponent({
         <VideoPlayer src={src} loop={loop} muted={muted} controls={controls} className={`w-full h-full ${objectFit}`} />
         {_likeTargetId && <ModuleLikeOverlay targetId={_likeTargetId} />}
       </div>
-      {caption && <p className="text-muted text-caption" style={{ marginTop: 10 }}>{caption}</p>}
+      {caption && <p className="text-text-muted text-caption" style={{ marginTop: 10 }}>{caption}</p>}
     </div>
   )
 }
@@ -299,7 +299,7 @@ export function BrowserBlockComponent({
         </div>
         {_likeTargetId && <ModuleLikeOverlay targetId={_likeTargetId} />}
       </div>
-      {caption && <p className="text-muted text-caption" style={{ marginTop: 10 }}>{caption}</p>}
+      {caption && <p className="text-text-muted text-caption" style={{ marginTop: 10 }}>{caption}</p>}
     </div>
   )
 }

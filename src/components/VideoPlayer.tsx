@@ -129,7 +129,7 @@ export function VideoPlayer({
           <button
             type="button"
             aria-label={isPlaying ? 'Pause video' : 'Play video'}
-            className="pointer-events-auto absolute left-1/2 top-1/2 flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white transition-colors duration-150 hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+            className="pointer-events-auto absolute left-1/2 top-1/2 flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-text-on-media-strong transition-colors duration-150 hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
             onClick={(event) => {
               event.stopPropagation()
               togglePlayback()
@@ -141,7 +141,7 @@ export function VideoPlayer({
           <button
             type="button"
             aria-label="Open video in lightbox"
-            className="video-open-lightbox-button pointer-events-auto absolute right-3 top-3 flex size-10 items-center justify-center rounded-full bg-black/60 text-white transition-colors duration-150 hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+            className="video-open-lightbox-button pointer-events-auto absolute right-3 top-3 flex size-10 items-center justify-center rounded-full bg-black/60 text-text-on-media-strong transition-colors duration-150 hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
             onClick={(event) => {
               event.stopPropagation()
               openLightbox?.()
@@ -150,7 +150,7 @@ export function VideoPlayer({
             <Maximize2 aria-hidden="true" size={20} strokeWidth={2} />
           </button>
 
-          <div className="absolute bottom-3 right-3 inline-flex h-8 items-center rounded-full bg-black/60 px-2.5 text-caption font-medium tabular-nums text-white backdrop-blur-sm">
+          <div className="absolute bottom-3 right-3 inline-flex h-8 items-center rounded-full bg-black/60 px-2.5 text-caption font-medium tabular-nums text-text-on-media-strong backdrop-blur-sm">
             {formatVideoTime(currentTime)}
           </div>
 

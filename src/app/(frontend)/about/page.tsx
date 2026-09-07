@@ -133,14 +133,14 @@ export default async function AboutPage() {
                 <a href={item.url} target="_blank" rel="noopener noreferrer" className="w-full tablet:w-52 tablet:shrink-0 aspect-video rounded-lg overflow-hidden border border-border relative block">
                   <Image src={thumb.url} alt={thumb.alt || item.title} fill className="object-cover object-center" sizes="(min-width: 768px) 208px, 100vw" />
                   {item.duration && (
-                    <span className="absolute bottom-1.5 right-1.5 bg-black/75 text-white text-[11px] font-mono px-1.5 py-0.5 rounded uppercase">{item.duration}</span>
+                    <span className="absolute bottom-1.5 right-1.5 bg-black/75 text-text-on-media-strong text-[11px] font-mono px-1.5 py-0.5 rounded uppercase">{item.duration}</span>
                   )}
                 </a>
               ) : (
                 <div className="w-full tablet:w-52 tablet:shrink-0 aspect-video rounded-lg overflow-hidden border border-border relative">
                   <Image src={thumb.url} alt={thumb.alt || item.title} fill className="object-cover object-center" sizes="(min-width: 768px) 208px, 100vw" />
                   {item.duration && (
-                    <span className="absolute bottom-1.5 right-1.5 bg-black/75 text-white text-[11px] font-mono px-1.5 py-0.5 rounded uppercase">{item.duration}</span>
+                    <span className="absolute bottom-1.5 right-1.5 bg-black/75 text-text-on-media-strong text-[11px] font-mono px-1.5 py-0.5 rounded uppercase">{item.duration}</span>
                   )}
                 </div>
               )
@@ -153,7 +153,7 @@ export default async function AboutPage() {
               ) : (
                 <h4>{item.title}</h4>
               )}
-              <p className="text-muted" style={{ marginTop: '8px' }}>{item.event}{item.year && `, ${item.year}`}</p>
+              <p className="text-text-muted" style={{ marginTop: '8px' }}>{item.event}{item.year && `, ${item.year}`}</p>
             </div>
           </div>
         )
@@ -176,7 +176,7 @@ export default async function AboutPage() {
                 <div className="flex flex-col tablet:flex-row tablet:flex-1 tablet:items-baseline gap-1 tablet:gap-4">
                   <h4>{project.title}</h4>
                   {project.description && (
-                    <p className="text-muted inline-flex items-baseline gap-2">{project.description}<HoverChevron /></p>
+                    <p className="text-text-muted inline-flex items-baseline gap-2">{project.description}<HoverChevron /></p>
                   )}
                 </div>
               </Link>
@@ -185,14 +185,14 @@ export default async function AboutPage() {
                 <div className="flex flex-col tablet:flex-row tablet:flex-1 tablet:items-baseline gap-1 tablet:gap-4">
                   <h4>{project.title}</h4>
                   {project.description && (
-                    <p className="text-muted">{project.description}</p>
+                    <p className="text-text-muted">{project.description}</p>
                   )}
                 </div>
               </div>
             )
           })}
         </div>
-        <Link href="/playground" className="text-muted hover:opacity-50 transition-opacity inline-flex items-center gap-2 mt-8">
+        <Link href="/playground" className="text-text-body hover:opacity-50 transition-opacity inline-flex items-center gap-2 mt-8">
           {section.linkText || 'View all'}
           <svg className="shrink-0 translate-y-[1px]" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg>
         </Link>
@@ -220,7 +220,7 @@ export default async function AboutPage() {
             <AboutBio />
             <Link
               href="/timeline"
-              className="mt-8 inline-flex items-center gap-2 text-body-large text-muted transition-opacity duration-150 hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
+              className="mt-8 inline-flex items-center gap-2 text-body-large text-text-body transition-opacity duration-150 hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
             >
               View timeline
               <svg

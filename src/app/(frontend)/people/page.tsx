@@ -53,7 +53,7 @@ export default async function PeoplePage() {
               <FitText className="font-heading" maxSize={120}>{heading}</FitText>
             </div>
           </div>
-          {description && <p className="text-muted text-body-large max-w-[600px] pb-8">{description}</p>}
+          {description && <p className="text-text-body text-body-large max-w-[600px] pb-8">{description}</p>}
           <PeopleGrid people={serialized} />
         </Container>
       </section>

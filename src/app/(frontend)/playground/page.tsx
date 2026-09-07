@@ -49,7 +49,7 @@ export default async function PlaygroundPage() {
             {sortedYears.map((year) => (
               <div key={year} className="tablet:flex tablet:gap-4">
                 <div className="sticky top-0 z-10 bg-background py-7 tablet:relative tablet:top-auto tablet:z-auto tablet:w-[100px] tablet:py-0 shrink-0">
-                  <h4 className="text-muted tablet:sticky tablet:top-5 tablet:py-4">{year}</h4>
+                  <h4 className="text-text-body tablet:sticky tablet:top-5 tablet:py-4">{year}</h4>
                 </div>
                 <div className="flex-1">
                   {(grouped[year] as any[]).map((project: any) => {
@@ -62,7 +62,7 @@ export default async function PlaygroundPage() {
                             <Link href={href} className="flex flex-col tablet:flex-row tablet:items-baseline gap-1 tablet:gap-4 tablet:hover:opacity-60 transition-colors min-w-0">
                               <h4>{project.title}</h4>
                               {project.description && (
-                                <p className="text-muted tablet:overflow-hidden tablet:text-ellipsis tablet:whitespace-nowrap tablet:inline-flex tablet:items-baseline tablet:gap-2">{project.description}<HoverChevron /></p>
+                                <p className="text-text-muted tablet:overflow-hidden tablet:text-ellipsis tablet:whitespace-nowrap tablet:inline-flex tablet:items-baseline tablet:gap-2">{project.description}<HoverChevron /></p>
                               )}
                               {!project.description && (
                                 <HoverChevron />
@@ -72,7 +72,7 @@ export default async function PlaygroundPage() {
                             <a href={href} target="_blank" rel="noopener noreferrer" className="flex flex-col tablet:flex-row tablet:items-baseline gap-1 tablet:gap-4 tablet:hover:opacity-60 transition-colors min-w-0">
                               <h4>{project.title}</h4>
                               {project.description && (
-                                <p className="text-muted tablet:overflow-hidden tablet:text-ellipsis tablet:whitespace-nowrap tablet:inline-flex tablet:items-baseline tablet:gap-2">{project.description}<HoverChevron /></p>
+                                <p className="text-text-muted tablet:overflow-hidden tablet:text-ellipsis tablet:whitespace-nowrap tablet:inline-flex tablet:items-baseline tablet:gap-2">{project.description}<HoverChevron /></p>
                               )}
                               {!project.description && (
                                 <HoverChevron />
@@ -83,7 +83,7 @@ export default async function PlaygroundPage() {
                           <>
                             <h4>{project.title}</h4>
                             {project.description && (
-                              <p className="text-muted">{project.description}</p>
+                              <p className="text-text-muted">{project.description}</p>
                             )}
                           </>
                         )}

@@ -57,22 +57,22 @@ export default async function SideProjectPage({ params }: { params: Promise<{ sl
                 ) : null}
                 {project.year && (
                   <p style={{ marginTop: 20 }}>
-                    <span className="text-muted opacity-50">{project.year}</span>
+                    <span className="text-text-muted">{project.year}</span>
                     {(project.collaborators as any[])?.length > 0 && (
                       <>
-                        <span className="text-muted opacity-50"> · In collaboration with </span>
+                        <span className="text-text-muted"> · In collaboration with </span>
                         {(project.collaborators as any[]).map((c: any, i: number, arr: any[]) => {
                           const name = typeof c === 'object' ? c.name : c
                           const linkedin = typeof c === 'object' ? c.linkedIn : null
                           const separator = i === 0 ? '' : i === arr.length - 1 ? ' and ' : ', '
                           return (
                             <span key={i}>
-                              {separator && <span className="text-muted opacity-50">{separator}</span>}
-                              {linkedin ? <a href={linkedin} target="_blank" rel="noopener noreferrer" className="text-muted opacity-55 hover:opacity-100 hover:underline underline-offset-[3px] transition-all">{name}</a> : <span className="text-muted opacity-50">{name}</span>}
+                              {separator && <span className="text-text-muted">{separator}</span>}
+                              {linkedin ? <a href={linkedin} target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-text-strong hover:underline underline-offset-[3px] transition-all">{name}</a> : <span className="text-text-muted">{name}</span>}
                             </span>
                           )
                         })}
-                        <span className="text-muted opacity-50">.</span>
+                        <span className="text-text-muted">.</span>
                       </>
                     )}
                   </p>

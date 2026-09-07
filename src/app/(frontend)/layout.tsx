@@ -95,7 +95,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </>
         )}
       </head>
-      <body className="bg-background text-content">
+      <body className="bg-background text-text-strong">
         <OverlayManager overlays={(s?.overlays as any[]) || []} />
         <NavMenu pages={navigationPages} />
         <Suspense fallback={<SiteHeaderFallback />}>

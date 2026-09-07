@@ -58,7 +58,7 @@ export function PortraitGrid() {
               </div>
               <div className="flex items-baseline justify-between gap-3 border-t border-border-strong px-3 py-3 tablet:px-4">
                 <p className="text-body leading-none">Age {portrait.age}</p>
-                <p className="font-mono text-[11px] leading-none text-muted">{portrait.year}</p>
+                <p className="font-mono text-[11px] leading-none text-text-muted">{portrait.year}</p>
               </div>
             </button>
           </article>

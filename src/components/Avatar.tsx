@@ -48,7 +48,7 @@ export function Avatar({
             )}
           </>
         ) : (
-          <span className="text-muted text-[10px] font-medium">{initials}</span>
+          <span className="text-text-body text-[10px] font-medium">{initials}</span>
         )}
         <div className="absolute inset-0 rounded-full border border-border pointer-events-none" />
       </div>

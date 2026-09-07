@@ -63,7 +63,7 @@ export default async function NotesPage() {
             {sortedYears.map((year) => (
               <div className="tablet:flex tablet:gap-4" key={year}>
                 <div className="sticky top-0 z-10 shrink-0 bg-background py-7 tablet:relative tablet:top-auto tablet:z-auto tablet:w-[100px] tablet:py-0">
-                  <h4 className="text-muted tablet:sticky tablet:top-5 tablet:py-4">{year}</h4>
+                  <h4 className="text-text-body tablet:sticky tablet:top-5 tablet:py-4">{year}</h4>
                 </div>
                 <div className="flex-1">
                   {grouped[year].map((note) => (
@@ -82,7 +82,7 @@ export default async function NotesPage() {
           </div>
         ) : (
           <div className="border-t border-border py-8">
-            <p className="text-body text-muted">No notes published yet.</p>
+            <p className="text-body text-text-body">No notes published yet.</p>
           </div>
         )}
       </Container>

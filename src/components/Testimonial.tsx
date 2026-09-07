@@ -14,16 +14,16 @@ type Props = {
 export function Testimonial({ quote, name, company, companyLogo, photo, linkedIn, variant = 'default' }: Props) {
   const isHero = variant === 'hero'
   const authorBlock = isHero ? (
-    <p className="text-caption font-medium text-white/70">{name}</p>
+    <p className="text-caption font-medium text-text-on-media-muted">{name}</p>
   ) : (
     <div className="flex items-center justify-between gap-3">
       <div>
         {companyLogo?.url ? (
           <img src={companyLogo.url} alt={companyLogo.alt || company || ''} className="object-contain opacity-40" style={{ filter: 'var(--logo-filter)', height: '32px', maxHeight: '32px', width: 'auto', maxWidth: '150px' }} />
         ) : company ? (
-          <p className="text-muted text-caption">{company}</p>
+          <p className="text-text-muted text-caption">{company}</p>
         ) : (
-          <p className="text-content font-medium">{name}</p>
+          <p className="text-text-strong font-medium">{name}</p>
         )}
       </div>
       {photo?.url && (
@@ -44,8 +44,8 @@ export function Testimonial({ quote, name, company, companyLogo, photo, linkedIn
         className={cn(
           'leading-[1.4]',
           isHero
-            ? 'text-balance text-[16px] text-white tablet:text-[18px] desktop:text-[20px]'
-            : 'text-content flex-1 pb-10 text-[18px] tablet:text-[22px] desktop:text-[26px]',
+            ? 'text-balance text-[16px] text-text-on-media-strong tablet:text-[18px] desktop:text-[20px]'
+            : 'text-text-strong flex-1 pb-10 text-[18px] tablet:text-[22px] desktop:text-[26px]',
         )}
         style={{ textIndent: '-0.4em' }}
       >

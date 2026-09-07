@@ -100,7 +100,7 @@ function WorkThumbnail({ thumbnail }: { thumbnail: LikedWorkThumbnail }) {
             </div>
             <div className="flex h-4 min-w-0 flex-1 items-center justify-center rounded-full bg-white/80 px-2 tablet:h-5">
               {thumbnail.browser.address && (
-                <span className="truncate text-[8px] leading-none text-black/45 tablet:text-[9px]">
+                <span className="truncate text-[8px] leading-none text-text-on-light-muted tablet:text-[9px]">
                   {thumbnail.browser.address}
                 </span>
               )}

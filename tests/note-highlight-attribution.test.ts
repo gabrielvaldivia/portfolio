@@ -37,7 +37,7 @@ test('uses only coarse Vercel geography, decoding and bounding labels', () => {
 
 test('old highlights preserve their date and have an honest missing-location fallback', async () => {
   const [mark] = await loadPublicHighlights(db, 1, text, 'another-reader')
-  assert.deepEqual(mark.attributions, [{ location: null, createdAt: '2026-09-06T12:34:56.000Z' }])
+  assert.deepEqual(mark.attributions, [{ location: null, createdAt: '2026-09-06T12:34:56.000Z', mine: false }])
   assert.equal(getHighlightAttributionHeading(mark), 'Highlighted by someone')
   assert.equal(JSON.stringify(mark).includes('legacy-private-reader'), false)
 })
@@ -50,7 +50,8 @@ test('keeps original attribution on retries and returns no visitor identities', 
   assert.deepEqual(retried.attributions, first.attributions)
   assert.equal(getHighlightAttributionHeading(retried), 'Highlighted by someone from Brooklyn, NY')
   assert.equal(JSON.stringify(retried).includes('private-reader'), false)
-  assert.deepEqual(Object.keys(retried.attributions[0]).sort(), ['createdAt', 'location'])
+  assert.deepEqual(Object.keys(retried.attributions[0]).sort(), ['createdAt', 'location', 'mine'])
+  assert.equal(retried.attributions[0].mine, true)
 })
 
 test('groups multiple people by location and minute, retaining dates for each contribution', async () => {
@@ -60,6 +61,10 @@ test('groups multiple people by location and minute, retaining dates for each co
   const [mark] = await loadPublicHighlights(db, 2, text, 'unknown-reader')
   assert.equal(mark.count, 3)
   assert.equal(mark.attributions.length, 3)
+  assert.ok(mark.attributions.every(attribution => !attribution.mine))
+  const [owned] = await loadPublicHighlights(db, 2, text, 'private-reader-c')
+  assert.equal(owned.attributions.filter(attribution => attribution.mine).length, 1)
+  assert.equal(owned.attributions.find(attribution => attribution.mine)?.location, 'London, United Kingdom')
   assert.equal(getHighlightAttributionHeading(mark), 'Highlighted by 3 people')
   const brooklyn = groupHighlightAttributions(mark.attributions).find(group => group.location === 'Brooklyn, NY')!
   assert.equal(brooklyn.count, 2)
@@ -73,6 +78,7 @@ test('owner-only removal updates the public attribution list', async () => {
   const [mark] = await loadPublicHighlights(db, 2, text, 'private-reader-b')
   assert.equal(mark.count, 2)
   assert.equal(mark.mine, false)
+  assert.ok(mark.attributions.every(attribution => !attribution.mine))
   assert.equal(groupHighlightAttributions(mark.attributions).find(group => group.location === 'Brooklyn, NY')?.count, 1)
 })
 
@@ -82,7 +88,7 @@ test('converging old anchors count a reader once and keep their first attributio
   await db.execute(sql`INSERT INTO note_highlights VALUES (3, ${'b'.repeat(64)}, 'same-private-reader', ${anchor.exact}, '', '', 0, ${text.length}, '2026-09-06T12:00:00Z', 'Brooklyn, NY')`)
   const [mark] = await loadPublicHighlights(db, 3, text, 'same-private-reader')
   assert.equal(mark.count, 1)
-  assert.deepEqual(mark.attributions, [{ location: 'Paris, France', createdAt: '2026-09-05T12:00:00.000Z' }])
+  assert.deepEqual(mark.attributions, [{ location: 'Paris, France', createdAt: '2026-09-05T12:00:00.000Z', mine: true }])
 })
 
 test('formats explicit date, year, local time and timezone', () => {

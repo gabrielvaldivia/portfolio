@@ -214,8 +214,8 @@ function rubberBandInfoCounterDragOffset(offset: number) {
 
 function PhotoInfoTile({ label, value, className }: { label: string; value: string; className?: string }) {
   return (
-    <div className={cn('min-w-0 break-words rounded-xl bg-white/[0.07] px-2 pb-3 pt-2.5 font-mono text-[13px] leading-tight text-white/90 tablet:px-4 tablet:text-[15px]', className)}>
-      <span className="mb-0.5 block text-[10px] leading-tight text-white/45 tablet:text-[11px]">
+    <div className={cn('min-w-0 break-words rounded-xl bg-white/[0.07] px-2 pb-3 pt-2.5 font-mono text-[13px] leading-tight text-text-on-media-body tablet:px-4 tablet:text-[15px]', className)}>
+      <span className="mb-0.5 block text-[10px] leading-tight text-text-on-media-subtle tablet:text-[11px]">
         {label}
       </span>
       {value}
@@ -393,7 +393,7 @@ function PhotoInfoPopover({
       style={{ transformOrigin: 'bottom right' }}
     >
       <motion.div
-        className="pointer-events-auto cursor-grab touch-none rounded-[24px] bg-[#181818]/[0.96] p-3 text-white/[0.92] shadow-[0_8px_30px_rgba(0,0,0,0.24)] active:cursor-grabbing"
+        className="pointer-events-auto cursor-grab touch-none rounded-[24px] bg-[#181818]/[0.96] p-3 text-text-on-media-body shadow-[0_8px_30px_rgba(0,0,0,0.24)] active:cursor-grabbing"
         style={{
           opacity: dragOpacity,
           scale: dragScale,
@@ -467,7 +467,7 @@ function PhotoLightboxMeta({
           aria-expanded={infoOpen}
           title="Photo information"
           className={cn(
-            'inline-flex h-8 touch-manipulation select-none items-center gap-1.5 rounded-full bg-elevated px-2.5 text-caption font-medium text-muted shadow-sm outline outline-1 outline-offset-0 outline-gray-400/40 transition-[color,opacity,background-color] duration-150 hover:text-content focus-visible:ring-2 focus-visible:ring-content/30',
+            'inline-flex h-8 touch-manipulation select-none items-center gap-1.5 rounded-full bg-elevated px-2.5 text-caption font-medium text-text-body shadow-sm outline outline-1 outline-offset-0 outline-gray-400/40 transition-[color,opacity,background-color] duration-150 hover:text-text-strong focus-visible:ring-2 focus-visible:ring-content/30',
             infoOpen ? 'pointer-events-none opacity-0' : 'pointer-events-auto opacity-100',
           )}
           onClick={(event) => {
@@ -2233,7 +2233,7 @@ export function ModuleLightboxOverlay({
   const lightbox = lightboxMounted ? (
     <div
       className={cn(
-        'fixed inset-0 z-[100010] overflow-hidden text-black dark:text-white',
+        'fixed inset-0 z-[100010] overflow-hidden text-text-strong',
         open ? '' : 'pointer-events-none',
       )}
       onClick={(event) => {
@@ -2318,7 +2318,7 @@ export function ModuleLightboxOverlay({
                   : 'inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] justify-center px-4 tablet:bottom-6',
               )}
             >
-              <div className="pointer-events-auto text-black dark:text-white">
+              <div className="pointer-events-auto text-text-strong">
                 <ModuleLikeButton targetId={activeSlide.likeTargetId} />
               </div>
             </div>

@@ -60,7 +60,7 @@ export function NotesSubscribeForm({ initialMessage }: { initialMessage?: Subscr
             aria-describedby={error ? 'notes-subscribe-error' : undefined}
             aria-invalid={Boolean(error)}
             autoComplete="email"
-            className="w-full bg-transparent text-left text-body text-content outline-none placeholder:text-muted"
+            className="w-full bg-transparent text-left text-body text-text-strong outline-none placeholder:text-text-muted"
             id="notes-subscribe-email"
             name="email"
             onChange={(event) => setEmail(event.target.value)}
@@ -83,9 +83,9 @@ export function NotesSubscribeForm({ initialMessage }: { initialMessage?: Subscr
       </form>
 
       <div className="mt-3 text-center text-[14px] leading-6" aria-live="polite">
-        {error ? <p className="text-red-600" id="notes-subscribe-error">{error}</p> : null}
-        {!error && message ? <p className="text-muted">{message}</p> : null}
-        <a className="inline-block text-muted underline underline-offset-4 transition-opacity hover:opacity-60" href="/notes/rss.xml">
+        {error ? <p className="text-text-error" id="notes-subscribe-error">{error}</p> : null}
+        {!error && message ? <p className="text-text-body">{message}</p> : null}
+        <a className="inline-block text-text-body underline underline-offset-4 transition-opacity hover:opacity-60" href="/notes/rss.xml">
           Or follow via RSS
         </a>
       </div>

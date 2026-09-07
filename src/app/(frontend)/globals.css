@@ -84,8 +84,27 @@
   --breakpoint-desktop: 1280px;
   --breakpoint-desktopXL: 1560px;
 
+  /* Text roles are namespaced so text-body remains the font-size utility. */
+  --color-text-strong: rgb(var(--color-content-rgb));
+  --color-text-body: rgb(var(--color-content-rgb) / var(--text-body-alpha));
+  --color-text-muted: rgb(var(--color-content-rgb) / 0.6);
+  --color-text-subtle: rgb(var(--color-content-rgb) / 0.4);
+  --color-text-inverse-muted: rgb(var(--color-inverse-rgb) / 0.6);
+  --color-text-on-media-strong: #fff;
+  --color-text-on-media-body: rgb(255 255 255 / 0.9);
+  --color-text-on-media-control: rgb(255 255 255 / 0.8);
+  --color-text-on-media-muted: rgb(255 255 255 / 0.7);
+  --color-text-on-media-subtle: rgb(255 255 255 / 0.45);
+  --color-text-on-light: #000;
+  --color-text-on-light-muted: rgb(0 0 0 / 0.45);
+  --color-text-on-accent: #fff;
+  --color-text-error: var(--text-error-color);
+  --color-text-like: #ef4444;
+  --color-text-like-hover: #dc2626;
+  --color-text-highlight: var(--text-highlight-color);
+  --color-text-chat: rgb(var(--color-accent-rgb));
+  /* Non-text surfaces, borders, and focus rings retain their existing token. */
   --color-content: rgb(var(--color-content-rgb));
-  --color-muted: rgb(var(--color-muted-rgb));
   --color-background: rgb(var(--color-background-rgb));
   --color-background-alt: rgb(var(--color-background-alt-rgb));
   --color-background-alt-hover: rgb(var(--color-background-alt-hover-rgb));
@@ -99,7 +118,9 @@
 
 :root {
   --color-content-rgb: 0 0 0;
-  --color-muted-rgb: 0 0 0 / 0.9;
+  --text-body-alpha: 0.9;
+  --text-error-color: #dc2626;
+  --text-highlight-color: #b45309;
   --color-background-rgb: 255 255 255;
   --color-background-alt-rgb: 0 0 0 / 0.03;
   --color-background-alt-hover-rgb: 0 0 0 / 0.06;
@@ -118,7 +139,9 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --color-content-rgb: 255 255 255;
-    --color-muted-rgb: 255 255 255 / 0.8;
+    --text-body-alpha: 0.8;
+    --text-error-color: #f87171;
+    --text-highlight-color: #fbbf24;
     --color-background-rgb: 0 0 0;
     --color-background-alt-rgb: 255 255 255 / 0.1;
     --color-background-alt-hover-rgb: 255 255 255 / 0.15;
@@ -175,7 +198,7 @@
 
 html {
   font-family: var(--font-body);
-  color: var(--color-content);
+  color: var(--color-text-strong);
   background-color: var(--color-background);
   font-size: 16px;
   scroll-behavior: smooth;
@@ -301,7 +324,7 @@ h1 {
 }
 
 .home-approach-copy .rich-text {
-  color: var(--color-muted);
+  color: var(--color-text-body);
 }
 
 .home-approach-row {
@@ -345,10 +368,6 @@ h1 {
 
   .home-approach-title {
     font-size: 26px;
-  }
-
-  .home-approach-copy .rich-text {
-    color: var(--color-content);
   }
 
   .home-approach-row {
@@ -593,9 +612,12 @@ p {
   margin: 0;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+/* Base link defaults must not override explicit text-role utilities. */
+@layer base {
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }
 
 .marquee {
@@ -728,7 +750,7 @@ a {
   left: 0;
   top: -0.25em;
   line-height: inherit;
-  opacity: 0.3;
+  color: var(--color-text-subtle);
 }
 
 .rich-text ol {
@@ -746,11 +768,11 @@ a {
 }
 
 .rich-text {
-  color: var(--color-muted);
+  color: var(--color-text-body);
 }
 
 .rich-text a {
-  color: var(--color-content);
+  color: var(--color-text-strong);
   text-decoration: none;
 }
 
@@ -763,14 +785,19 @@ a {
   font-weight: 600;
 }
 
+.rich-text blockquote {
+  border-left: 2px solid var(--color-border-strong);
+  padding-left: 24px;
+}
+
 .longform-body .rich-text {
-  color: var(--color-muted);
+  color: var(--color-text-body);
   font-size: 18px;
   line-height: 1.65;
 }
 
-.longform-body .rich-text :is(h1, h2, h3, h4, h5, h6) {
-  color: var(--color-content);
+.rich-text :is(h1, h2, h3, h4, h5, h6) {
+  color: var(--color-text-strong);
 }
 
 @media (min-width: 810px) {
@@ -780,7 +807,15 @@ a {
 }
 
 .note-page .rich-text ul li::before {
-  opacity: 1;
+  color: inherit;
+}
+
+.note-page .rich-text hr {
+  width: 250px;
+  max-width: 100%;
+  margin-inline: auto;
+  border: 0;
+  border-top: 1px solid var(--color-text-subtle);
 }
 
 /* Easing gradients following cubic-bezier(0.4, 0, 0.2, 1) curve */

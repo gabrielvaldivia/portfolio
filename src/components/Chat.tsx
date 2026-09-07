@@ -241,7 +241,7 @@ function AssistantMessage({
         {visible.map((block, blockIndex) => (
           <div
             key={`${block.type}-${blockIndex}`}
-            className="w-fit px-4 py-2.5 text-body rounded-[23px] bg-background-alt text-content chat-bubble"
+            className="w-fit px-4 py-2.5 text-body rounded-[23px] bg-background-alt text-text-strong chat-bubble"
             style={animate ? { animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both' } : undefined}
           >
             {block.type === 'paragraph' && !block.text ? (
@@ -709,14 +709,14 @@ export function Chat({
   const sidebarInner = (
     <>
       <div className="flex items-center justify-between pt-1 pb-4 pl-3 pr-1">
-        <span className="text-body font-medium text-content">Conversations</span>
+        <span className="text-body font-medium text-text-strong">Conversations</span>
         {conversationId && (
           <button
             type="button"
             onClick={startNewConversation}
             title="New chat"
             aria-label="New chat"
-            className="flex size-8 cursor-pointer items-center justify-center rounded-full text-muted transition-colors hover:bg-black/5 hover:text-content dark:hover:bg-white/5"
+            className="flex size-8 cursor-pointer items-center justify-center rounded-full text-text-body transition-colors hover:bg-black/5 hover:text-text-strong dark:hover:bg-white/5"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
               <path d="M12 5v14M5 12h14" />
@@ -767,7 +767,7 @@ export function Chat({
                   style={animateBubbles ? { animation: 'bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both' } : undefined}
                 >
                   <div
-                    className="w-fit max-w-[85%] px-4 py-2.5 text-body rounded-[23px] bg-blue-500 text-white chat-bubble"
+                    className="w-fit max-w-[85%] px-4 py-2.5 text-body rounded-[23px] bg-blue-500 text-text-on-accent chat-bubble"
                   >
                     {msg.content}
                   </div>
@@ -804,7 +804,7 @@ export function Chat({
             <button
               key={i}
               onClick={() => sendMessage(q)}
-              className="w-fit px-3 py-1.5 text-caption tablet:px-4 tablet:py-2.5 tablet:text-body text-left text-black/45 dark:text-white/45 rounded-[16px] tablet:rounded-[20px] hover:text-content transition-colors cursor-pointer border border-dashed border-black/15 dark:border-white/15"
+              className="w-fit px-3 py-1.5 text-caption tablet:px-4 tablet:py-2.5 tablet:text-body text-left text-text-muted rounded-[16px] tablet:rounded-[20px] hover:text-text-strong transition-colors cursor-pointer border border-dashed border-black/15 dark:border-white/15"
             >
               {q}
             </button>
@@ -820,7 +820,7 @@ export function Chat({
               <button
                 key={i}
                 onClick={() => sendMessage(q)}
-                className="shrink-0 px-3 py-1.5 text-caption tablet:px-4 tablet:py-2.5 tablet:text-body text-black/45 dark:text-white/45 rounded-full hover:text-content transition-colors whitespace-nowrap cursor-pointer border border-dashed border-black/15 dark:border-white/15"
+                className="shrink-0 px-3 py-1.5 text-caption tablet:px-4 tablet:py-2.5 tablet:text-body text-text-muted rounded-full hover:text-text-strong transition-colors whitespace-nowrap cursor-pointer border border-dashed border-black/15 dark:border-white/15"
               >
                 {q}
               </button>
@@ -858,7 +858,7 @@ export function Chat({
                   href={shouldCollapse ? undefined : link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`w-[42px] tablet:w-[45px] desktop:w-[48px] h-[42px] tablet:h-[45px] desktop:h-[48px] flex items-center justify-center rounded-full bg-black/[0.02] dark:bg-white/[0.02] hover:bg-black/5 dark:hover:bg-white/5 text-muted hover:text-content cursor-pointer shrink-0 transition-all duration-300 ease-in-out ${
+                  className={`w-[42px] tablet:w-[45px] desktop:w-[48px] h-[42px] tablet:h-[45px] desktop:h-[48px] flex items-center justify-center rounded-full bg-black/[0.02] dark:bg-white/[0.02] hover:bg-black/5 dark:hover:bg-white/5 text-text-body hover:text-text-strong cursor-pointer shrink-0 transition-all duration-300 ease-in-out ${
                     shouldCollapse ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
                   }`}
                   style={{
@@ -878,7 +878,7 @@ export function Chat({
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 px-4 py-2 text-caption text-muted hover:text-content hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
+                    className="flex items-center gap-3 px-4 py-2 text-caption text-text-body hover:text-text-strong hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
                     onClick={() => setShowLinks(false)}
                   >
                     <span className="w-[16px] h-[16px] flex items-center justify-center shrink-0">
@@ -921,13 +921,13 @@ export function Chat({
             placeholder="Message..."
             disabled={isStreaming}
             rows={1}
-            className="block w-full bg-black/[0.02] dark:bg-floating rounded-[23px] px-4 py-2.5 pr-11 text-body text-content placeholder:text-muted outline-none disabled:opacity-50 resize-none overflow-hidden"
+            className="block w-full bg-black/[0.02] dark:bg-floating rounded-[23px] px-4 py-2.5 pr-11 text-body text-text-strong placeholder:text-text-muted outline-none disabled:opacity-50 resize-none overflow-hidden"
           />
           {input.trim() && (
             <button
               type="submit"
               disabled={isStreaming}
-              className={`absolute right-[6px] w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 text-white disabled:opacity-30 transition-opacity shrink-0 cursor-pointer ${isMultiline ? 'bottom-[6px]' : 'top-1/2 -translate-y-1/2'}`}
+              className={`absolute right-[6px] w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 text-text-on-accent disabled:opacity-30 transition-opacity shrink-0 cursor-pointer ${isMultiline ? 'bottom-[6px]' : 'top-1/2 -translate-y-1/2'}`}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 19V5M5 12l7-7 7 7" />

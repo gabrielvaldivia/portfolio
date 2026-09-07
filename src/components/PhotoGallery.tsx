@@ -53,7 +53,7 @@ export async function PhotoGallery({ initialPhotoSlug }: { initialPhotoSlug?: st
   return (
     <section className="pb-20 tablet:pb-40">
       {photos.length === 0 ? (
-        <p className="px-5 text-muted tablet:px-10">No photos yet.</p>
+        <p className="px-5 text-text-body tablet:px-10">No photos yet.</p>
       ) : (
         <ModuleLightboxProvider slides={getPhotoSlides(photos)} initialSlideId={initialSlideId}>
           <div className="columns-[350px] gap-[10px] px-[10px]">

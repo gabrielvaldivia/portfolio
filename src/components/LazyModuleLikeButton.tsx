@@ -51,9 +51,9 @@ export function ModuleLikeButtonShell({
         disabled
         aria-label={`Like this ${noun}. ${initialCount} total likes.`}
         className={cn(
-          'touch-manipulation select-none items-center gap-1.5 rounded-full font-medium text-muted transition-colors duration-150',
+          'touch-manipulation select-none items-center gap-1.5 rounded-full font-medium text-text-body transition-colors duration-150',
           variant === 'pill'
-            ? 'inline-grid h-11 min-w-11 grid-cols-[18px_minmax(1ch,auto)] justify-center px-3 text-sm hover:bg-background-alt hover:text-content'
+            ? 'inline-grid h-11 min-w-11 grid-cols-[18px_minmax(1ch,auto)] justify-center px-3 text-sm hover:bg-background-alt hover:text-text-strong'
             : 'inline-flex h-8 bg-elevated px-2.5 text-caption shadow-sm outline outline-1 outline-offset-0 outline-gray-400/40',
           'disabled:cursor-default',
           variant !== 'pill' && 'disabled:opacity-70',
@@ -64,7 +64,7 @@ export function ModuleLikeButtonShell({
             ? <Heart className="size-[18px]" aria-hidden="true" />
             : <HeartIcon className={cn('size-[18px]', variant !== 'pill' && 'opacity-45')} />}
         </span>
-        <span aria-hidden="true" className={cn('relative inline-flex h-[1em] min-w-[1ch] items-center overflow-hidden tabular-nums leading-none', variant === 'pill' && 'col-start-2 row-start-1 font-mono', initialCount === 0 && 'invisible')}>
+        <span aria-hidden="true" className={cn('relative inline-flex h-[1em] min-w-[1ch] items-center overflow-hidden tabular-nums leading-none', variant === 'pill' && 'col-start-2 row-start-1 font-mono text-text-muted', initialCount === 0 && 'invisible')}>
           <span className="inline-block">{variant === 'pill' ? initialCount.toLocaleString('en-US', { notation: 'compact' }) : initialCount}</span>
         </span>
       </button>

@@ -10,7 +10,7 @@ const ALTERNATE_COPYRIGHT = '© Copyright is a fallacy'
 const SCRAMBLE_CHARACTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?#$%&'
 const SCRAMBLE_DURATION = 600
 const FOOTER_TEXT_LINK_CLASS =
-  'font-mono text-sm uppercase tracking-[-0.03em] text-content opacity-50 transition-opacity duration-150 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content'
+  'font-mono text-sm uppercase tracking-[-0.03em] text-text-muted transition-colors duration-150 hover:text-text-strong focus-visible:text-text-strong focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content'
 const FOOTER_LINKS = [
   { label: 'Photo', href: '/photo' },
   { label: 'Activity', href: '/activity' },
@@ -108,14 +108,14 @@ export function Footer({
   if (pathname.startsWith('/chat') || pathname === '/timeline') return null
 
   return (
-    <footer className="pt-5 pb-24 tablet:pb-20">
+    <footer className="pt-5 pb-5 tablet:pb-10">
       <div className="w-full px-5 tablet:px-10">
         <div className="flex flex-col items-center gap-5 tablet:grid tablet:grid-cols-3 tablet:items-center">
           <div className="tablet:justify-self-start">
             <button
               type="button"
               aria-pressed={flipped}
-              className="block cursor-pointer select-none text-center tablet:text-left font-mono text-sm uppercase tracking-[-0.03em] text-content opacity-50 transition-opacity duration-150 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
+              className="block cursor-pointer select-none text-center tablet:text-left font-mono text-sm uppercase tracking-[-0.03em] text-text-muted transition-colors duration-150 hover:text-text-strong focus-visible:text-text-strong focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
               onClick={handleCopyrightClick}
             >
               <span className="sr-only">
@@ -140,7 +140,7 @@ export function Footer({
                 target={link.url.startsWith('mailto:') ? undefined : '_blank'}
                 rel={link.url.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
                 aria-label={link.platform}
-                className="flex size-5 items-center justify-center text-content opacity-50 transition-opacity duration-150 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
+                className="flex size-5 items-center justify-center text-text-muted transition-colors duration-150 hover:text-text-strong focus-visible:text-text-strong focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
               >
                 <span aria-hidden="true">
                   <SocialIcon platform={link.platform} />

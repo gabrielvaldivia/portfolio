@@ -59,7 +59,8 @@ export async function loadPublicHighlights(db: HighlightDB, noteId: number, text
   // Explicit allowlist: never send anonymous reader identities or ownership keys to clients.
   return groups.map(({ id, exact, prefix, suffix, start, end, count, mine, readers }): PublicHighlight =>
     ({ id, exact, prefix, suffix, start, end, count, mine,
-      attributions: [...readers.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+      attributions: [...readers.entries()].map(([reader, { location, createdAt }]) =>
+        ({ location, createdAt, mine: reader === visitorHash })).sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
     }))
 }
 

@@ -610,7 +610,7 @@ export function SprayPaintPortrait({
         title="Vandalize"
         onClick={() => setMobileControlsOpen(true)}
         className={cn(
-          'absolute bottom-4 left-1/2 z-30 flex size-8 -translate-x-1/2 items-center justify-center rounded-full bg-black/45 text-white/70 shadow-sm backdrop-blur-sm transition-[opacity,transform,background-color] duration-150 ease-out hover:bg-black/55 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white desktop:hidden',
+          'absolute bottom-4 left-1/2 z-30 flex size-8 -translate-x-1/2 items-center justify-center rounded-full bg-black/45 text-text-on-media-muted shadow-sm backdrop-blur-sm transition-[opacity,transform,background-color] duration-150 ease-out hover:bg-black/55 hover:text-text-on-media-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white desktop:hidden',
           mobileControlsOpen || isDrawing
             ? 'pointer-events-none translate-y-2 opacity-0'
             : 'translate-y-0 opacity-100',
@@ -624,7 +624,7 @@ export function SprayPaintPortrait({
         aria-hidden={isDrawing || (isMobile && !mobileControlsOpen)}
         inert={isDrawing || (isMobile && !mobileControlsOpen)}
         className={cn(
-          'absolute bottom-3 left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/20 bg-black/75 p-1.5 text-white shadow-sm transition-[opacity,transform] duration-150 ease-out',
+          'absolute bottom-3 left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/20 bg-black/75 p-1.5 text-text-on-media-strong shadow-sm transition-[opacity,transform] duration-150 ease-out',
           mobileControlsOpen
             ? 'translate-y-0 opacity-100'
             : 'pointer-events-none translate-y-2 opacity-0',
@@ -676,7 +676,7 @@ export function SprayPaintPortrait({
                   sideOffset={8}
                   collisionPadding={8}
                   onOpenAutoFocus={(event) => event.preventDefault()}
-                  className="z-50 flex h-10 items-center rounded-full border border-white/20 bg-black/75 px-3 text-white shadow-sm"
+                  className="z-50 flex h-10 items-center rounded-full border border-white/20 bg-black/75 px-3 text-text-on-media-strong shadow-sm"
                 >
                   <label className="flex items-center" title="Brush size">
                     <input
@@ -729,7 +729,7 @@ export function SprayPaintPortrait({
           type="button"
           onClick={clearPaint}
           disabled={!hasPainted}
-          className="flex size-8 shrink-0 items-center justify-center rounded-full text-white/80 transition-colors duration-150 hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-default disabled:opacity-35"
+          className="flex size-8 shrink-0 items-center justify-center rounded-full text-text-on-media-control transition-colors duration-150 hover:bg-white/15 hover:text-text-on-media-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-default disabled:opacity-35"
           aria-label="Clear spray paint"
           title="Clear paint"
         >

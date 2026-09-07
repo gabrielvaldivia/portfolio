@@ -54,7 +54,7 @@ export function ClientsList({ clients }: { clients: Client[] }) {
               onClick={() => setActiveTag(null)}
               aria-pressed={!activeTag}
               className={`shrink-0 whitespace-nowrap px-4 py-2 text-caption rounded-full transition-colors cursor-pointer ${
-                !activeTag ? 'bg-content text-background' : 'bg-background-alt text-muted hover:text-content'
+                !activeTag ? 'bg-content text-background' : 'bg-background-alt text-text-body hover:text-text-strong'
               }`}
             >
               All
@@ -66,7 +66,7 @@ export function ClientsList({ clients }: { clients: Client[] }) {
                 onClick={() => setActiveTag(activeTag === tagKey ? null : tagKey)}
                 aria-pressed={activeTag === tagKey}
                 className={`shrink-0 whitespace-nowrap px-4 py-2 text-caption rounded-full transition-colors cursor-pointer ${
-                  activeTag === tagKey ? 'bg-content text-background' : 'bg-background-alt text-muted hover:text-content'
+                  activeTag === tagKey ? 'bg-content text-background' : 'bg-background-alt text-text-body hover:text-text-strong'
                 }`}
               >
                 {tagLabel}
@@ -80,7 +80,7 @@ export function ClientsList({ clients }: { clients: Client[] }) {
         {Object.entries(grouped).sort().map(([letter, letterClients]) => (
           <div key={letter} className="flex gap-4">
             <div className="w-[40px] tablet:w-[100px] shrink-0">
-              <h4 className="text-muted sticky top-5 py-4">{letter}</h4>
+              <h4 className="text-text-body sticky top-5 py-4">{letter}</h4>
             </div>
             <div className="flex-1">
               {letterClients.map((client) => {
@@ -96,14 +96,14 @@ export function ClientsList({ clients }: { clients: Client[] }) {
                   <>
                     <h4 className="shrink-0">{client.name}</h4>
                     {client.description ? (
-                      <p className="text-muted hidden tablet:inline-flex tablet:items-baseline tablet:gap-2">
+                      <p className="text-text-body hidden tablet:inline-flex tablet:items-baseline tablet:gap-2">
                         {client.description}
-                        <svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity translate-y-[7px]" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                        <svg className="shrink-0 text-text-body opacity-0 group-hover:opacity-100 transition-opacity translate-y-[7px]" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
                           <path d="M7 17L17 7M17 7H9M17 7V15" />
                         </svg>
                       </p>
                     ) : (
-                      <svg className="shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity hidden tablet:block translate-y-[3px]" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                      <svg className="shrink-0 text-text-body opacity-0 group-hover:opacity-100 transition-opacity hidden tablet:block translate-y-[3px]" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
                         <path d="M7 17L17 7M17 7H9M17 7V15" />
                       </svg>
                     )}
@@ -120,7 +120,7 @@ export function ClientsList({ clients }: { clients: Client[] }) {
                       <>
                         <h4 className="shrink-0">{client.name}</h4>
                         {client.description && (
-                          <p className="text-muted hidden tablet:block">{client.description}</p>
+                          <p className="text-text-body hidden tablet:block">{client.description}</p>
                         )}
                       </>
                     )}

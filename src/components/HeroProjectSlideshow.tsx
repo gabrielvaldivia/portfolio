@@ -201,7 +201,7 @@ function MobileHeroSlide({
   return (
     // Keep snap targets stable when Safari changes dvh after a swipe. Only
     // inset the foreground content for browser chrome; don't resize the pages.
-    <div className="hero-mobile-slide relative h-lvh w-full text-white" data-project-id={project.id}>
+    <div className="hero-mobile-slide relative h-lvh w-full text-text-on-media-strong" data-project-id={project.id}>
       {/* Snap to the actual slide's start. A one-pixel target cannot become an
           oversized snap area with intermediate stops when browser chrome changes. */}
       <div aria-hidden="true" className="hero-project-snap-point pointer-events-none absolute inset-x-0 top-0 h-px" />
@@ -249,7 +249,7 @@ function MobileHeroSlide({
         >
           <h2 className="hero-project-title text-balance">{project.title}</h2>
           {project.subtitle ? (
-            <p className="max-w-2xl text-body text-pretty text-white/70">{project.subtitle}</p>
+            <p className="max-w-2xl text-body text-pretty text-text-on-media-muted">{project.subtitle}</p>
           ) : null}
         </Link>
         <Link
@@ -258,7 +258,7 @@ function MobileHeroSlide({
           className="absolute right-5 z-20 flex size-12 items-center justify-center rounded-full bg-white transition-colors duration-150 hover:bg-white/90 active:bg-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
           style={{ bottom: MOBILE_CONTENT_BOTTOM }}
         >
-          <svg aria-hidden="true" className="size-6 text-black" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+          <svg aria-hidden="true" className="size-6 text-text-on-light" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
             <path d="M6 16h20M18 8l8 8-8 8" />
           </svg>
         </Link>
@@ -740,7 +740,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
           role="region"
           aria-label="Featured projects"
           aria-roledescription="carousel"
-          className="hero-project-slideshow relative hidden w-full origin-center overflow-hidden bg-background-alt text-white tablet:block tablet:aspect-video"
+          className="hero-project-slideshow relative hidden w-full origin-center overflow-hidden bg-background-alt text-text-on-media-strong tablet:block tablet:aspect-video"
           style={{ scale: slideshowScale, borderRadius: slideshowRadius }}
           onPointerEnter={updateCaseStudyCursor}
           onPointerMove={updateCaseStudyCursor}
@@ -822,7 +822,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
               if (isMobileViewport) selectSlide(Math.max(0, activeIndex - 1))
               else showPrevious()
             }}
-            className="absolute bottom-4 right-16 z-20 hidden size-10 translate-y-0 cursor-pointer items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-[40px] transition-colors duration-150 hover:bg-black/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white dark:bg-floating dark:hover:bg-white/25 tablet:bottom-auto tablet:left-8 tablet:right-auto tablet:top-1/2 tablet:flex tablet:-translate-y-1/2"
+            className="absolute bottom-4 right-16 z-20 hidden size-10 translate-y-0 cursor-pointer items-center justify-center rounded-full bg-black/55 text-text-on-media-strong backdrop-blur-[40px] transition-colors duration-150 hover:bg-black/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white dark:bg-floating dark:hover:bg-white/25 tablet:bottom-auto tablet:left-8 tablet:right-auto tablet:top-1/2 tablet:flex tablet:-translate-y-1/2"
           >
             <svg aria-hidden="true" className="size-[18px]" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M11 4.5L6.5 9l4.5 4.5" />
@@ -836,7 +836,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
               if (isMobileViewport) selectSlide(Math.min(projects.length - 1, activeIndex + 1))
               else showNext()
             }}
-            className="absolute bottom-4 right-4 z-20 hidden size-10 translate-y-0 cursor-pointer items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-[40px] transition-colors duration-150 hover:bg-black/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white dark:bg-floating dark:hover:bg-white/25 tablet:bottom-auto tablet:right-8 tablet:top-1/2 tablet:flex tablet:-translate-y-1/2"
+            className="absolute bottom-4 right-4 z-20 hidden size-10 translate-y-0 cursor-pointer items-center justify-center rounded-full bg-black/55 text-text-on-media-strong backdrop-blur-[40px] transition-colors duration-150 hover:bg-black/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white dark:bg-floating dark:hover:bg-white/25 tablet:bottom-auto tablet:right-8 tablet:top-1/2 tablet:flex tablet:-translate-y-1/2"
           >
             <svg aria-hidden="true" className="size-[18px]" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M7 4.5L11.5 9 7 13.5" />
@@ -867,7 +867,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
               >
                 <h2 className="hero-project-title text-balance">{activeProject.title}</h2>
                 {activeProject.subtitle ? (
-                  <p className="max-w-2xl text-body text-pretty text-white/70">
+                  <p className="max-w-2xl text-body text-pretty text-text-on-media-muted">
                     {activeProject.subtitle}
                   </p>
                 ) : null}
@@ -915,7 +915,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
             transformOrigin: '0 0',
           }}
         >
-          <div className="relative size-40 -translate-x-1/2 -translate-y-1/2 text-white">
+          <div className="relative size-40 -translate-x-1/2 -translate-y-1/2 text-text-on-media-strong">
             <motion.svg
               aria-hidden="true"
               className="absolute inset-0 size-full overflow-visible"

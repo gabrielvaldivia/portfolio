@@ -1,6 +1,7 @@
 import { Container } from '@/components/Container'
 import { RichText } from '@/components/RichText'
 import { NoteHighlights } from '@/components/NoteHighlights'
+import { HoverChevron } from '@/components/Icons'
 import { getNoteHighlightText } from '@/lib/noteHighlightAnchors'
 import { highlightTextVersion } from '@/lib/noteHighlightStore'
 import { getNoteLikeTargetId } from '@/lib/moduleLikes'
@@ -73,14 +74,14 @@ export default async function NotePage({ params }: NotePageProps) {
   const readNextNotes = await getReadNextNotes(note.id, note.publishedAt)
 
   return (
-    <article className="note-page pb-20 text-content">
+    <article className="note-page pb-20 text-text-strong">
       <Container>
         <div className="mx-auto max-w-[760px]">
           <header className="flex flex-col gap-4 pb-12 text-center tablet:pb-16">
             <h1 className="note-page-title text-balance">
               {note.title}
             </h1>
-            {noteDate ? <p className="text-[16px] text-muted opacity-60 tablet:text-[18px]">{noteDate}</p> : null}
+            {noteDate ? <p className="text-[16px] text-text-muted tablet:text-[18px]">{noteDate}</p> : null}
           </header>
         </div>
 
@@ -104,19 +105,20 @@ export default async function NotePage({ params }: NotePageProps) {
         </div>
 
         {readNextNotes.length > 0 ? (
-          <section aria-labelledby="continue-reading-heading" className="mx-auto mt-16 max-w-[760px] border-t border-border pt-12">
-            <h2 id="continue-reading-heading" className="note-continue-reading-heading text-balance">
+          <section aria-labelledby="continue-reading-heading" className="mx-auto mt-16 max-w-[760px] border-t border-border pt-12 desktop:grid desktop:grid-cols-2 desktop:items-start desktop:gap-8">
+            <h2 id="continue-reading-heading" className="note-continue-reading-heading text-text-strong">
               Continue reading
             </h2>
-            <ul className="mt-5 flex flex-col gap-4">
+            <ul className="mt-5 flex min-w-0 flex-col gap-4 desktop:mt-0">
               {readNextNotes.map((readNextNote) => (
                 <li key={readNextNote.slug}>
-                  <h3 className="note-recommendation-title text-balance">
+                  <h3 className="note-recommendation-title">
                     <Link
-                      className="inline-block transition-opacity hover:opacity-60"
+                      className="group transition-opacity tablet:hover:opacity-60"
                       href={`/notes/${readNextNote.slug}`}
                     >
-                      {readNextNote.title}
+                      <span>{readNextNote.title}</span>
+                      <span className="ml-2 hidden tablet:inline"><HoverChevron /></span>
                     </Link>
                   </h3>
                 </li>

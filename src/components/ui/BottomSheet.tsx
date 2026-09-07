@@ -144,7 +144,7 @@ function SheetSurface({ title, headerAction, children, onOpenChange, onCloseAuto
       onOpenAutoFocus={(event) => { event.preventDefault(); contentRef.current?.focus({ preventScroll: true }) }}
       onCloseAutoFocus={onCloseAutoFocus}>
       <motion.div ref={contentRef} data-bottom-sheet data-expanded={expanded}
-        className="fixed inset-x-0 bottom-0 top-[env(safe-area-inset-top)] z-70 overflow-hidden rounded-t-3xl bg-elevated text-content shadow-lg outline-none"
+        className="fixed inset-x-0 bottom-0 top-[env(safe-area-inset-top)] z-70 overflow-hidden rounded-t-3xl bg-elevated text-text-strong shadow-lg outline-none"
         style={{ y }} exit={{ y: '100%' }} transition={{ duration: reduceMotion ? 0 : 0.18, ease: 'easeOut' }}
         onClickCapture={(event) => {
           if (suppressClickRef.current) { event.preventDefault(); event.stopPropagation(); suppressClickRef.current = false }

@@ -24,7 +24,7 @@ export function ChatHeader() {
         onClick={() => window.dispatchEvent(new CustomEvent('chat:toggle-sidebar'))}
         aria-label="Toggle conversation sidebar"
         title="Toggle conversation sidebar"
-        className="chat-sidebar-toggle pointer-events-auto absolute left-4 top-4 z-30 flex size-10 cursor-pointer items-center justify-center rounded-full bg-floating text-muted backdrop-blur-[40px] transition-[color,background-color,transform] duration-200 hover:bg-hover hover:text-content tablet:left-10 tablet:top-10"
+        className="chat-sidebar-toggle pointer-events-auto absolute left-4 top-4 z-30 flex size-10 cursor-pointer items-center justify-center rounded-full bg-floating text-text-body backdrop-blur-[40px] transition-[color,background-color,transform] duration-200 hover:bg-hover hover:text-text-strong tablet:left-10 tablet:top-10"
       >
         <SidebarIcon />
       </button>

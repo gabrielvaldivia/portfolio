@@ -1,5 +1,6 @@
 import { sql } from '@payloadcms/db-postgres'
 import { getNoteHighlightText, parseHighlightAnchor, resolveHighlightAnchor } from './noteHighlightAnchors'
+import { getHighlightLocationCountry } from './locationCountries'
 
 export type HighlightActivityData = {
   anchor: unknown
@@ -9,7 +10,7 @@ export type HighlightActivityData = {
   locations?: (string | null)[]
 }
 
-export type HighlightActivityLocation = { location: string; count: number }
+export type HighlightActivityLocation = { location: string; count: number; country: string }
 
 // Read the saved highlights directly, including those created before activity
 // support. One entry per passage; reader identities never leave the database.
@@ -53,7 +54,7 @@ export function resolveHighlightActivity(data: HighlightActivityData | null) {
   const locations = new Map<string, HighlightActivityLocation>()
   for (const value of data.locations || []) {
     const location = typeof value === 'string' ? value.trim().slice(0, 180) : ''
-    const group = locations.get(location) || { location, count: 0 }
+    const group = locations.get(location) || { location, count: 0, country: getHighlightLocationCountry(location) }
     group.count++
     locations.set(location, group)
   }

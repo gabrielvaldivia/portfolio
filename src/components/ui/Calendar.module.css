@@ -3,7 +3,7 @@
   position: relative;
   width: fit-content;
   padding: 10px 8px 8px;
-  color: var(--color-content);
+  color: var(--color-text-strong);
   font-family: var(--font-body);
 }
 
@@ -65,7 +65,7 @@
 .chevron {
   width: 13px;
   height: 13px;
-  color: var(--color-muted);
+  color: var(--color-text-muted);
 }
 
 .nav {
@@ -88,7 +88,7 @@
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: var(--color-muted);
+  color: var(--color-text-muted);
   cursor: pointer;
   pointer-events: auto;
 }
@@ -96,7 +96,7 @@
 .previousButton:hover,
 .nextButton:hover {
   background: var(--color-background-alt-hover);
-  color: var(--color-content);
+  color: var(--color-text-strong);
 }
 
 .previousButton svg,
@@ -125,7 +125,7 @@
 .weekday {
   display: grid;
   place-items: center;
-  color: var(--color-muted);
+  color: var(--color-text-muted);
   font-size: 11px;
   font-weight: 400;
 }
@@ -159,8 +159,7 @@
 }
 
 .outside {
-  color: var(--color-muted);
-  opacity: 0.35;
+  color: var(--color-text-subtle);
 }
 
 .disabled {

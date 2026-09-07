@@ -177,7 +177,7 @@ function createHeartFragments(intensity: number): Particle[] {
 
 function AnimatedCount({ value, pill }: { value: number; pill: boolean }) {
   return (
-    <span aria-hidden="true" className={cn('relative inline-flex h-[1em] min-w-[1ch] items-center overflow-hidden tabular-nums leading-none', pill && 'col-start-2 row-start-1 font-mono', value === 0 && 'invisible')}>
+    <span aria-hidden="true" className={cn('relative inline-flex h-[1em] min-w-[1ch] items-center overflow-hidden tabular-nums leading-none', pill && 'col-start-2 row-start-1 font-mono text-text-muted', value === 0 && 'invisible')}>
       <AnimatePresence mode="popLayout" initial={false}>
         <motion.span
           key={value}
@@ -752,13 +752,13 @@ export function ModuleLikeButton({
         disabled={isLoading}
         aria-label={`Like this ${noun}. Hold for a super like worth ${SUPER_MODULE_LIKE_AMOUNT} likes. ${data.count} total likes. You have liked it ${data.userLikes} times.`}
         className={cn(
-          'touch-manipulation select-none items-center gap-1.5 rounded-full font-medium text-muted transition-colors duration-150',
+          'touch-manipulation select-none items-center gap-1.5 rounded-full font-medium text-text-body transition-colors duration-150',
           variant === 'pill'
             ? 'inline-grid h-11 min-w-11 grid-cols-[18px_minmax(1ch,auto)] justify-center px-3 text-sm hover:bg-background-alt'
             : 'inline-flex h-8 bg-elevated px-2.5 text-caption shadow-sm outline outline-1 outline-offset-0 outline-gray-400/40',
-          'hover:text-content focus-visible:ring-2 focus-visible:ring-content/30 disabled:cursor-default',
+          'hover:text-text-strong focus-visible:ring-2 focus-visible:ring-content/30 disabled:cursor-default',
           variant !== 'pill' && 'disabled:opacity-70',
-          isHeartActive && 'text-red-500 hover:text-red-600',
+          isHeartActive && 'text-text-like hover:text-text-like-hover',
         )}
         style={heartColor ? { color: heartColor } : undefined}
         animate={{
@@ -819,7 +819,7 @@ export function ModuleLikeButton({
               >
                 <motion.span
                   key={`super-like-bonus-${superLikeBonusId}`}
-                  className="inline-flex select-none items-center justify-center rounded-full px-1 font-heading text-[19px] font-semibold leading-none text-red-500"
+                  className="inline-flex select-none items-center justify-center rounded-full px-1 font-heading text-[19px] font-semibold leading-none text-text-like"
                   style={{ textShadow: 'none', WebkitTextStroke: '0' }}
                   initial={
                     prefersReducedMotion

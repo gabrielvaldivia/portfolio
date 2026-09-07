@@ -15,8 +15,8 @@
 }
 
 .note-page {
-  --note-content: var(--color-content);
-  --note-body-color: var(--color-muted);
+  --note-content: var(--color-text-strong);
+  --note-body-color: var(--color-text-body);
   --note-border: var(--color-border-strong);
 }
 
@@ -127,7 +127,7 @@ html[data-theme='dark'] .collection-edit--notes {
     margin: 40px 0;
     padding: 0 0 0 24px;
     border: 0;
-    border-left: 1px solid var(--note-border);
+    border-left: 2px solid var(--note-border);
   }
 
   ul { list-style: none; padding-left: 0; margin: 1em 0; }

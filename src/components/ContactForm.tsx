@@ -91,13 +91,13 @@ export function ContactForm({ email }: { email: string }) {
   return (
     <form noValidate onSubmit={handleSubmit} className="flex flex-col" aria-label="Contact form">
       <div className="grid grid-cols-6 items-baseline gap-x-4 border-b border-border pb-4">
-        <span className="text-body text-muted">To</span>
+        <span className="text-body text-text-muted">To</span>
         <div className="col-span-5 flex w-full min-w-0 items-baseline gap-3 text-left">
           <span className="truncate text-body">{email}</span>
           <button
             type="button"
             onClick={copyEmail}
-            className="ml-auto shrink-0 cursor-pointer text-caption text-muted transition-colors duration-150 hover:text-content"
+            className="ml-auto shrink-0 cursor-pointer text-caption text-text-muted transition-colors duration-150 hover:text-text-strong"
           >
             {copyLabel}
           </button>
@@ -108,7 +108,7 @@ export function ContactForm({ email }: { email: string }) {
         'grid grid-cols-6 items-baseline gap-x-4 border-b py-4',
         fieldErrors.fromEmail ? 'border-red-500/50' : 'border-border',
       )}>
-        <span className="text-body text-muted">From</span>
+        <span className="text-body text-text-muted">From</span>
         <input
           name="fromEmail"
           type="email"
@@ -119,10 +119,10 @@ export function ContactForm({ email }: { email: string }) {
           aria-invalid={Boolean(fieldErrors.fromEmail)}
           aria-describedby={fieldErrors.fromEmail ? 'contact-from-error' : undefined}
           onChange={() => clearFieldError('fromEmail')}
-          className="col-span-5 w-full bg-transparent text-left text-body text-content outline-none placeholder:text-muted"
+          className="col-span-5 w-full bg-transparent text-left text-body text-text-strong outline-none placeholder:text-text-muted"
         />
         {fieldErrors.fromEmail && (
-          <span id="contact-from-error" className="col-span-5 col-start-2 mt-2 text-caption text-red-600 dark:text-red-400">
+          <span id="contact-from-error" className="col-span-5 col-start-2 mt-2 text-caption text-text-error">
             {fieldErrors.fromEmail}
           </span>
         )}
@@ -132,7 +132,7 @@ export function ContactForm({ email }: { email: string }) {
         'grid grid-cols-6 items-baseline gap-x-4 border-b py-4',
         fieldErrors.subject ? 'border-red-500/50' : 'border-border',
       )}>
-        <span className="text-body text-muted">Subject</span>
+        <span className="text-body text-text-muted">Subject</span>
         <input
           name="subject"
           type="text"
@@ -141,10 +141,10 @@ export function ContactForm({ email }: { email: string }) {
           aria-invalid={Boolean(fieldErrors.subject)}
           aria-describedby={fieldErrors.subject ? 'contact-subject-error' : undefined}
           onChange={() => clearFieldError('subject')}
-          className="col-span-5 w-full bg-transparent text-left text-body text-content outline-none placeholder:text-muted"
+          className="col-span-5 w-full bg-transparent text-left text-body text-text-strong outline-none placeholder:text-text-muted"
         />
         {fieldErrors.subject && (
-          <span id="contact-subject-error" className="col-span-5 col-start-2 mt-2 text-caption text-red-600 dark:text-red-400">
+          <span id="contact-subject-error" className="col-span-5 col-start-2 mt-2 text-caption text-text-error">
             {fieldErrors.subject}
           </span>
         )}
@@ -168,10 +168,10 @@ export function ContactForm({ email }: { email: string }) {
             textarea.style.height = 'auto'
             textarea.style.height = `${textarea.scrollHeight}px`
           }}
-          className="block w-full resize-none overflow-hidden bg-transparent text-left text-body text-content outline-none placeholder:text-muted"
+          className="block w-full resize-none overflow-hidden bg-transparent text-left text-body text-text-strong outline-none placeholder:text-text-muted"
         />
         {fieldErrors.message && (
-          <span id="contact-message-error" className="mt-2 block text-caption text-red-600 dark:text-red-400">
+          <span id="contact-message-error" className="mt-2 block text-caption text-text-error">
             {fieldErrors.message}
           </span>
         )}
@@ -187,8 +187,8 @@ export function ContactForm({ email }: { email: string }) {
         >
           {submitState === 'sending' ? 'Sending…' : 'Send'}
         </button>
-        {submitState === 'sent' && <p className="text-caption text-muted" role="status">Message sent.</p>}
-        {submitState === 'error' && <p className="text-caption text-red-600 dark:text-red-400" role="alert">{error}</p>}
+        {submitState === 'sent' && <p className="text-caption text-text-muted" role="status">Message sent.</p>}
+        {submitState === 'error' && <p className="text-caption text-text-error" role="alert">{error}</p>}
       </div>
     </form>
   )

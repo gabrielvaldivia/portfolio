@@ -123,7 +123,7 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
                   href={page.url}
                   prefetch
                   aria-current={pathname === page.url || pathname.startsWith(`${page.url}/`) ? 'page' : undefined}
-                  className="rounded-sm text-body text-content opacity-50 transition-opacity duration-150 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content"
+                  className="rounded-sm text-body text-text-muted transition-colors duration-150 hover:text-text-strong focus-visible:text-text-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content"
                 >
                   {page.label}
                 </Link>
@@ -144,11 +144,11 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
             }}
             transition={navTransition}
             className={cn(
-              'group absolute right-0 top-0 flex h-10 items-center rounded-sm text-body text-content focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content',
+              'group absolute right-0 top-0 flex h-10 items-center rounded-sm text-body text-text-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content',
               expandedControlsHidden && 'pointer-events-none',
             )}
           >
-            <span className="opacity-50 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
+            <span className="text-text-muted transition-colors duration-150 group-hover:text-text-strong group-focus-visible:text-text-strong">
               More
             </span>
           </motion.button>
@@ -202,8 +202,8 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
                   onClick={() => setOpen(false)}
                   className={`flex items-center gap-2 py-1.5 transition-all text-body ${
                     isActive
-                      ? 'text-content opacity-100'
-                      : 'text-content opacity-30 hover:opacity-100'
+                      ? 'text-text-strong opacity-100'
+                      : 'text-text-subtle hover:text-text-strong'
                   }`}
                 >
                   <span className={`w-2 h-2 rounded-full shrink-0 ${isActive ? 'bg-current' : 'bg-transparent'}`} />
@@ -261,8 +261,8 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
                   onClick={() => setOpen(false)}
                   className={`flex items-center gap-2 py-1.5 transition-all text-body ${
                     isActive
-                      ? 'text-content opacity-100'
-                      : 'text-content opacity-30 hover:opacity-100'
+                      ? 'text-text-strong opacity-100'
+                      : 'text-text-subtle hover:text-text-strong'
                   }`}
                 >
                   <span className={`w-2 h-2 rounded-full shrink-0 ${isActive ? 'bg-current' : 'bg-transparent'}`} />

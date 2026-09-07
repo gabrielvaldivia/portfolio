@@ -14,6 +14,7 @@ import { getPageBySlug } from '@/lib/queries'
 import { getPayload, isPayloadUnavailable } from '@/lib/payload'
 import { getFAQItemsFromSections } from '@/lib/buildContext'
 import { getModuleLikeFeed } from '@/lib/moduleLikeActivity'
+import { resolveHeroTestimonial } from '@/lib/heroTestimonial'
 import { cn } from '@/lib/cn'
 import Link from 'next/link'
 import type { Metadata } from 'next'
@@ -186,19 +187,13 @@ function buildHeroProjectSlides(projects: any[], testimonials: any[]) {
             mimeType: project.featuredImage.mimeType,
           }
         : undefined,
-      testimonial: testimonialQuote
-        ? {
-            id: `${projectId}-testimonial-override`,
-            quote: testimonialQuote,
-            name: testimonialName || testimonial?.name || project.title,
-          }
-        : testimonial?.testimonial
-        ? {
-            id: String(testimonial.id || `${project.id || index}-testimonial`),
-            quote: testimonial.testimonial,
-            name: testimonial.name,
-          }
-        : undefined,
+      testimonial: resolveHeroTestimonial({
+        projectId,
+        projectTitle: project.title,
+        quoteOverride: testimonialQuote,
+        nameOverride: testimonialName,
+        source: testimonial,
+      }),
     }
   })
 }
@@ -587,7 +582,7 @@ export default async function HomePage() {
                 <h2 className="text-balance">Work</h2>
                 <Link
                   href="/work"
-                  className="inline-flex items-center gap-1 rounded-sm text-body text-muted transition-opacity hover:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content"
+                  className="inline-flex items-center gap-1 rounded-sm text-body text-text-body transition-opacity hover:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content"
                 >
                   See all
                   <svg
@@ -633,14 +628,14 @@ export default async function HomePage() {
               <SectionWithTitle title={block.heading}>
                 <div className="bg-background-alt rounded-[20px] tablet:rounded-[30px] desktop:rounded-[40px] p-6 tablet:p-8 desktop:p-10 h-full">
                   {block.text && (
-                    <div className="text-muted text-body text-pretty">
+                    <div className="text-text-body text-body text-pretty">
                       <RichText data={block.text} />
                     </div>
                   )}
                   {block.availability && (
                     <a href="mailto:gabe@valdivia.works" className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border mt-8 hover:border-muted transition-colors">
                       <span className="relative flex size-2"><span className="absolute inset-0 rounded-full bg-green-400 animate-ping opacity-75" /><span className="relative size-2 rounded-full bg-green-500" /></span>
-                      <span className="text-sm text-muted group-hover:text-content transition-colors">{block.availability}</span>
+                      <span className="text-sm text-text-body group-hover:text-text-strong transition-colors">{block.availability}</span>
                     </a>
                   )}
                 </div>
