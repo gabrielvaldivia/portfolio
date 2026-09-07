@@ -9,7 +9,8 @@
   const tablet = innerWidth >= 810;
   const bodySize = tablet ? 20 : 18;
   const titleSize = desktop ? 64 : tablet ? 60 : 34;
-  const headingSizes = [desktop ? 100 : tablet ? 60 : 34, desktop ? 48 : tablet ? 36 : 28, desktop ? 30 : tablet ? 26 : 22, Math.min(24, Math.max(20, innerWidth * 0.02)), 20, tablet ? 14 : 13];
+  const headingSizes = [desktop ? 100 : tablet ? 60 : 34, desktop ? 48 : tablet ? 36 : 28, desktop ? 30 : tablet ? 26 : 22, desktop ? 24 : tablet ? 22 : 20, tablet ? 20 : 18, tablet ? 14 : 13];
+  const headingPadding = [[72, 24], [64, 16], [48, 16], [40, 12], [32, 8], [24, 8]];
   const bodyColor = dark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.9)';
   const contentColor = dark ? 'rgb(255, 255, 255)' : 'rgb(0, 0, 0)';
   const fixture = document.createElement('div');
@@ -71,10 +72,9 @@
       check(heading, 'fontWeight', index === 4 ? '500' : '400', `h${index + 1} weight`);
       check(heading, 'color', contentColor, `h${index + 1} color`);
       check(heading, 'marginBottom', '0px', `h${index + 1} margin`);
+      check(heading, 'paddingTop', `${headingPadding[index][0]}px`, `h${index + 1} top spacing`);
+      check(heading, 'paddingBottom', `${headingPadding[index][1]}px`, `h${index + 1} bottom spacing`);
     }
-    check(root.querySelector('h2'), 'paddingTop', '64px', 'h2 top spacing');
-    check(root.querySelector('h3'), 'paddingTop', '48px', 'h3 top spacing');
-    check(root.querySelector('h3'), 'paddingBottom', '16px', 'h3 bottom spacing');
     check(root.querySelector('strong'), 'fontWeight', '600', 'bold weight');
     check(root.querySelector('a'), 'color', contentColor, 'link color');
     check(root.querySelector('a'), 'textDecorationLine', 'none', 'link decoration');
