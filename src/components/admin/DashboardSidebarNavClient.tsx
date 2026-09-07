@@ -5,8 +5,8 @@ import {
   BrowserIcon,
   BubbleChatIcon,
   Camera01Icon,
+  Clock01Icon,
   CustomerService01Icon,
-  DashboardSquare03Icon,
   File02Icon,
   IdentityCardIcon,
   Image03Icon,
@@ -22,7 +22,8 @@ import {
 import { Link, useNav } from '@payloadcms/ui'
 import { usePathname } from 'next/navigation'
 import type { IconSvgElement } from '@hugeicons/react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 import { AdminHugeIcon } from './Hugeicons'
 
@@ -31,7 +32,6 @@ export type DashboardSidebarIconKey =
   | 'clients'
   | 'collections'
   | 'conversations'
-  | 'dashboard'
   | 'media'
   | 'notes'
   | 'page'
@@ -39,6 +39,7 @@ export type DashboardSidebarIconKey =
   | 'people'
   | 'photos'
   | 'projects'
+  | 'recent'
   | 'services'
   | 'settings'
   | 'sideProjects'
@@ -64,7 +65,6 @@ const icons: Record<DashboardSidebarIconKey, IconSvgElement> = {
   clients: IdentityCardIcon,
   collections: LayoutGridIcon,
   conversations: BubbleChatIcon,
-  dashboard: DashboardSquare03Icon,
   media: Image03Icon,
   notes: File02Icon,
   page: BrowserIcon,
@@ -72,6 +72,7 @@ const icons: Record<DashboardSidebarIconKey, IconSvgElement> = {
   people: UserMultiple02Icon,
   photos: Camera01Icon,
   projects: BriefcaseBusinessIcon,
+  recent: Clock01Icon,
   services: CustomerService01Icon,
   settings: Setting06Icon,
   sideProjects: Layers01Icon,
@@ -157,6 +158,11 @@ function SidebarRow({
 export function DashboardSidebarNavClient({ items }: DashboardSidebarNavClientProps) {
   const pathname = usePathname()
   const { navOpen, navRef, setNavOpen } = useNav()
+  const [overlayRoot, setOverlayRoot] = useState<HTMLElement | null>(null)
+
+  useEffect(() => {
+    setOverlayRoot(document.body)
+  }, [])
 
   useEffect(() => {
     if (!navOpen || !window.matchMedia(mobileNavMediaQuery).matches) return
@@ -238,55 +244,73 @@ export function DashboardSidebarNavClient({ items }: DashboardSidebarNavClientPr
   }, [navRef, setNavOpen])
 
   return (
-    <div className="custom-sidebar-nav" aria-label="CMS navigation">
-      {items.map((item) => {
-        const children = item.children ?? []
-        const hasChildren = children.length > 0
-        const parentCurrent = isHrefActive(pathname, item.href, item.match)
-        const parentActive = isItemActive(pathname, item) && !hasChildren
-        const groupContent = (
-          <>
-            <SidebarRow
-              active={parentActive}
-              current={parentCurrent}
-              hasChildren={hasChildren}
-              item={item}
-              level="parent"
-            />
-            {hasChildren ? (
-              <div className="custom-sidebar-nav__children" id={`custom-sidebar-nav-children-${item.id}`}>
-                {children.map((child) => {
-                  const childCurrent = isHrefActive(pathname, child.href, child.match)
-
-                  return (
-                    <SidebarRow
-                      active={isItemActive(pathname, child)}
-                      current={childCurrent}
-                      item={child}
-                      key={child.id}
-                      level="child"
-                    />
-                  )
-                })}
-              </div>
-            ) : null}
-          </>
-        )
-
-        if (hasChildren) {
-          return (
-            <details className="custom-sidebar-nav__group custom-sidebar-nav__group--collapsible" key={item.id} open>
-              {groupContent}
-            </details>
+    <>
+      {overlayRoot && navOpen
+        ? createPortal(
+            <button
+              aria-label="Close admin navigation"
+              className="admin-sidebar-scrim"
+              onClick={() => setNavOpen(false)}
+              type="button"
+            />,
+            overlayRoot,
           )
-        }
+        : null}
+      <div className="custom-sidebar-nav" aria-label="CMS navigation">
+        <h2 className="custom-sidebar-nav__title">Admin</h2>
+        {items.map((item) => {
+          const children = item.children ?? []
+          const hasChildren = children.length > 0
+          const parentCurrent = isHrefActive(pathname, item.href, item.match)
+          const parentActive = isItemActive(pathname, item) && !hasChildren
+          const groupContent = (
+            <>
+              <SidebarRow
+                active={parentActive}
+                current={parentCurrent}
+                hasChildren={hasChildren}
+                item={item}
+                level="parent"
+              />
+              {hasChildren ? (
+                <div className="custom-sidebar-nav__children" id={`custom-sidebar-nav-children-${item.id}`}>
+                  {children.map((child) => {
+                    const childCurrent = isHrefActive(pathname, child.href, child.match)
 
-        return (
-          <section className="custom-sidebar-nav__group" key={item.id}>
-            {groupContent}
-          </section>
-        )
-      })}
-    </div>
+                    return (
+                      <SidebarRow
+                        active={isItemActive(pathname, child)}
+                        current={childCurrent}
+                        item={child}
+                        key={child.id}
+                        level="child"
+                      />
+                    )
+                  })}
+                </div>
+              ) : null}
+            </>
+          )
+
+          if (hasChildren) {
+            return (
+              <details
+                className="custom-sidebar-nav__group custom-sidebar-nav__group--collapsible"
+                key={item.id}
+                open
+              >
+                {groupContent}
+              </details>
+            )
+          }
+
+          return (
+            <section className="custom-sidebar-nav__group" key={item.id}>
+              {groupContent}
+            </section>
+          )
+        })}
+      </div>
+    </>
   )
 }

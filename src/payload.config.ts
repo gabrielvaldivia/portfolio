@@ -23,11 +23,6 @@ import { SiteSettings } from './globals/SiteSettings'
 import { Timeline } from './globals/Timeline'
 import { getPayloadSecret } from './lib/payloadSecret'
 
-const dashboardDefaultLayout = [
-  { widgetSlug: 'page-shortcuts', width: 'full' },
-  { widgetSlug: 'collections', width: 'full' },
-] as const
-
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 const rawDatabaseURI = process.env.DATABASE_URI || process.env.DATABASE_URL || ''
@@ -109,18 +104,14 @@ export default buildConfig({
         Logo: './components/admin/Hugeicons#AdminBrandLogo',
       },
       providers: ['./components/admin/AdminCreateHeaderProvider#AdminCreateHeaderProvider'],
-    },
-    dashboard: {
-      defaultLayout: dashboardDefaultLayout as any,
-      widgets: [
-        {
-          slug: 'page-shortcuts',
-          Component: './components/admin/PageDashboard#PageDashboard',
-          label: 'Nav',
-          maxWidth: 'full',
-          minWidth: 'full',
+      views: {
+        dashboard: {
+          Component: './components/admin/RecentDashboard#RecentDashboard',
+          meta: {
+            title: 'Recent',
+          },
         },
-      ],
+      },
     },
     importMap: {
       baseDir: path.resolve(dirname),

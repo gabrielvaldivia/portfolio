@@ -41,7 +41,7 @@ import { SidebarAccount as SidebarAccount_6824242b93ea38525d48c2f04b269307 } fro
 import { DashboardSidebarNav as DashboardSidebarNav_6a758ad7cb5cc101d90941723d3113c7 } from '../../../components/admin/DashboardSidebarNav'
 import { AdminCreateHeaderProvider as AdminCreateHeaderProvider_4aa9eaf97521636c719f2232cc0ea64b } from '../../../components/admin/AdminCreateHeaderProvider'
 import { S3ClientUploadHandler as S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24 } from '@payloadcms/storage-s3/client'
-import { PageDashboard as PageDashboard_491ef0657d213372c3a0c4c2f5fa1d78 } from '../../../components/admin/PageDashboard'
+import { RecentDashboard as RecentDashboard_4faa576baf2dd80e3ba876847f6a3f95 } from '../../../components/admin/RecentDashboard'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 /** @type import('payload').ImportMap */
@@ -89,6 +89,6 @@ export const importMap = {
   "./components/admin/DashboardSidebarNav#DashboardSidebarNav": DashboardSidebarNav_6a758ad7cb5cc101d90941723d3113c7,
   "./components/admin/AdminCreateHeaderProvider#AdminCreateHeaderProvider": AdminCreateHeaderProvider_4aa9eaf97521636c719f2232cc0ea64b,
   "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24,
-  "./components/admin/PageDashboard#PageDashboard": PageDashboard_491ef0657d213372c3a0c4c2f5fa1d78,
+  "./components/admin/RecentDashboard#RecentDashboard": RecentDashboard_4faa576baf2dd80e3ba876847f6a3f95,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }

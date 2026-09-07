@@ -55,9 +55,9 @@ export function DashboardSidebarNav({ payload, permissions }: ServerProps) {
         adminRoute,
         path: '',
       }),
-      icon: 'dashboard',
-      id: 'dashboard',
-      label: 'Dashboard',
+      icon: 'recent',
+      id: 'recent',
+      label: 'Recent',
       match: 'exact',
     },
   ]
