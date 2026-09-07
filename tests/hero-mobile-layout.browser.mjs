@@ -16,6 +16,7 @@ try {
   page.on('pageerror', error => errors.push(error.message))
   await page.goto(process.env.HERO_TEST_URL || 'http://localhost:3000', { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('.hero-mobile-media')
+  await page.waitForFunction(() => document.querySelector('.hero-project-scroll-region')?.style.getPropertyValue('--hero-mobile-height'))
   await page.evaluate(() => document.fonts.ready)
   await page.addStyleTag({ content: '[data-agentation-root], nextjs-portal { display: none !important; }' })
   const slides = page.locator('.hero-mobile-slide')

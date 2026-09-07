@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/cn'
@@ -32,6 +32,10 @@ const expandedDesktopCollapseOffsets = [196, 124, 60] as const
 const desktopNavCollapseThreshold = 64
 const desktopNavExpandThreshold = 16
 
+const subscribeToHydration = () => () => {}
+const getHydratedSnapshot = () => true
+const getServerHydratedSnapshot = () => false
+
 function orderNavigationPages(pages: NavMenuPage[]) {
   const notesPage = pages.find((page) => page.url === '/notes') ?? {
     label: 'Notes',
@@ -50,11 +54,16 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
   const [open, setOpen] = useState(false)
   const [expandedNavHidden, setExpandedNavHidden] = useState(false)
   const pathname = usePathname()
+  const hydrated = useSyncExternalStore(subscribeToHydration, getHydratedSnapshot, getServerHydratedSnapshot)
+  // A cached shared layout can be prerendered under a different route. Keep
+  // shortcut text identical in server HTML and the first hydration render,
+  // then use the actual browser route without rebuilding the whole page.
+  const shortcutPathname = hydrated ? pathname : '/'
   const isChat = pathname.startsWith('/chat')
   const navPages = orderNavigationPages(pages?.length ? pages : fallbackPages)
-  const currentShortcutUrl = pathname === '/'
+  const currentShortcutUrl = shortcutPathname === '/'
     ? '/'
-    : expandedDesktopPagePool.find((page) => page.url !== '/' && pathname.startsWith(page.url))?.url
+    : expandedDesktopPagePool.find((page) => page.url !== '/' && shortcutPathname.startsWith(page.url))?.url
   const desktopPages = expandedDesktopPagePool
     .filter((page) => page.url !== currentShortcutUrl)
     .slice(0, 3)

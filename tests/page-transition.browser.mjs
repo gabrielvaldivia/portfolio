@@ -39,6 +39,8 @@ try {
   await page.locator('nav:visible a[href="/about"]:visible').first().click()
   await page.waitForURL('**/about')
   await page.waitForSelector('main.page-transition-enter')
+  assert.equal(await page.locator('nav:visible [aria-hidden="false"] a[href="/"]').count(), 1, 'About offers the Home shortcut after navigation')
+  assert.equal(await page.locator('nav:visible [aria-hidden="false"] a[href="/about"]').count(), 0, 'About does not offer its own shortcut')
   assert.equal(await page.locator('main').evaluate(el => getComputedStyle(el).animationName), 'fadeInUp', 'client navigation still animates')
   await page.waitForTimeout(600)
   await page.locator('header a[href="/"]').click()
@@ -48,11 +50,13 @@ try {
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.waitForFunction(() => window.entranceFrames.length >= 45)
   assert.ok((await page.evaluate(() => window.entranceFrames)).every(frame => frame.opacity === '1' && frame.animation === 'none'), 'refresh after navigation does not animate')
+  assert.equal(await page.locator('nav:visible [aria-hidden="false"] a[href="/about"]').count(), 1, 'Home offers the About shortcut after refresh')
 
   const noJS = await browser.newPage({ javaScriptEnabled: false })
   await noJS.goto(url, { waitUntil: 'domcontentloaded' })
   await noJS.waitForSelector('main.page-transition')
   assert.equal(await noJS.locator('main').evaluate(el => getComputedStyle(el).opacity), '1', 'server-rendered content never depends on JavaScript to become visible')
+  assert.equal(await noJS.locator('nav:visible [aria-hidden="false"] a[href="/about"]').count(), 1, 'cached server HTML uses deterministic shortcut labels')
   assert.deepEqual(errors, [], 'no runtime errors')
   console.log(JSON.stringify({ engine, result: 'PASS', checks: ['first paint', 'refresh', 'client navigation', 'return navigation', 'server-rendered visibility'] }))
 } finally {
