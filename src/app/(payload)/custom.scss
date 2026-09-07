@@ -241,9 +241,10 @@ body,
   line-height: var(--cms-control-line-height);
 }
 
+/* Compact admin chrome, not the note content governed by note-typography.css. */
 .app-header :is(h1, h2, h3, h4),
 .collection-list :is(h1, h2, h3, h4),
-.collection-edit :is(h1, h2, h3, h4),
+.collection-edit :is(h1, h2, h3, h4):not(:where(.collection-edit--notes .notes-editor-body .ContentEditable__root *)),
 .global-edit :is(h1, h2, h3, h4),
 .dashboard :is(h1, h2, h3, h4),
 .doc-header__title,
@@ -276,7 +277,7 @@ body,
   color: var(--cms-text-primary);
 }
 
-body:has(.template-default .app-header)::before {
+body:has(.template-default .app-header):not(:has(.collection-edit--notes))::before {
   content: "";
   position: fixed;
   top: calc(var(--cms-header-height) - 0.5px);

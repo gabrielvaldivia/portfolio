@@ -904,6 +904,8 @@ export function HeroProjectSlideshow({ projects }: Props) {
         <motion.div
           aria-hidden="true"
           className="hero-case-study-cursor pointer-events-none fixed left-0 top-0 z-20"
+          // Mount hidden at (0, 0); only pointer input should reveal the cursor.
+          initial={false}
           animate={{
             opacity: isCaseStudyCursorVisible ? 1 : 0,
             scale: isCaseStudyCursorVisible ? 1 : 0,

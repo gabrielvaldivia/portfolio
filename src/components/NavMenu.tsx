@@ -160,6 +160,8 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
             aria-expanded={open}
             aria-hidden={!collapsedMenuButtonVisible}
             tabIndex={collapsedMenuButtonVisible ? 0 : -1}
+            // Emit the hidden state in server HTML instead of fading out on mount.
+            initial={false}
             animate={{
               opacity: collapsedMenuButtonVisible ? 1 : 0,
               scale: collapsedMenuButtonVisible ? 1 : 0.82,

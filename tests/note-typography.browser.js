@@ -9,12 +9,14 @@
   const tablet = innerWidth >= 810;
   const bodySize = tablet ? 20 : 18;
   const titleSize = desktop ? 64 : tablet ? 60 : 34;
-  const headingSizes = [desktop ? 100 : tablet ? 60 : 34, desktop ? 48 : tablet ? 36 : 28, desktop ? 30 : tablet ? 26 : 22];
+  const headingSizes = [desktop ? 100 : tablet ? 60 : 34, desktop ? 48 : tablet ? 36 : 28, desktop ? 30 : tablet ? 26 : 22, Math.min(24, Math.max(20, innerWidth * 0.02)), 20, tablet ? 14 : 13];
   const bodyColor = dark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.9)';
   const contentColor = dark ? 'rgb(255, 255, 255)' : 'rgb(0, 0, 0)';
   const fixture = document.createElement('div');
-  fixture.className = admin ? 'collection-edit--notes' : 'note-page';
+  // Include Payload's base class: it participates in the real editor cascade.
+  fixture.className = admin ? 'collection-edit collection-edit--notes collection-edit--is-editing' : 'note-page';
   fixture.innerHTML = `
+    ${admin ? '<h2 data-admin-chrome>Editor controls</h2>' : ''}
     <div class="document-fields__edit" style="max-width:840px;margin:auto">
       ${admin
         ? '<div class="field-type textarea notes-editor-title"><textarea rows="1" placeholder="Untitled note">The new cost of creation</textarea></div>'
@@ -26,6 +28,9 @@
           <h1 class="LexicalEditorTheme__h1">Heading one</h1>
           <h2 class="LexicalEditorTheme__h2">Heading two</h2>
           <h3 class="LexicalEditorTheme__h3">Vision</h3>
+          <h4 class="LexicalEditorTheme__h4">Heading four</h4>
+          <h5 class="LexicalEditorTheme__h5">Heading five</h5>
+          <h6 class="LexicalEditorTheme__h6">Heading six</h6>
           <p class="LexicalEditorTheme__paragraph">Body text after a heading.</p>
           <blockquote class="LexicalEditorTheme__quote">Sometimes magic is just someone spending more time on something.</blockquote>
           <ul class="LexicalEditorTheme__ul"><li class="LexicalEditorTheme__listItem">A list item</li></ul>
@@ -61,6 +66,9 @@
     for (const [index, size] of headingSizes.entries()) {
       const heading = root.querySelector(`h${index + 1}`);
       check(heading, 'fontSize', `${size}px`, `h${index + 1} size`);
+      const lineHeight = size * (index === 0 ? 1.1 : index === 5 ? 1.2 : 1.3);
+      check(heading, 'lineHeight', `${Number(lineHeight.toFixed(3))}px`, `h${index + 1} line height`);
+      check(heading, 'fontWeight', index === 4 ? '500' : '400', `h${index + 1} weight`);
       check(heading, 'color', contentColor, `h${index + 1} color`);
       check(heading, 'marginBottom', '0px', `h${index + 1} margin`);
     }
@@ -74,6 +82,9 @@
     check(root.querySelector('blockquote'), 'borderLeftWidth', '2px', 'quote rule');
     check(root.querySelector('blockquote'), 'paddingLeft', '24px', 'quote indent');
     if (admin) {
+      const control = fixture.querySelector('[data-admin-chrome]');
+      const controlSize = getComputedStyle(document.documentElement).getPropertyValue('--cms-control-font-size').trim();
+      check(control, 'fontSize', controlSize, 'admin controls retain compact type');
       const placeholder = fixture.querySelector('.LexicalEditorTheme__placeholder');
       for (const property of ['fontFamily', 'fontSize', 'lineHeight', 'letterSpacing']) {
         check(placeholder, property, getComputedStyle(root)[property], `placeholder ${property}`);

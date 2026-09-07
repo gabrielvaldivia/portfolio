@@ -215,7 +215,8 @@ export function VideoBlockComponent({
           ...(customBg ? { backgroundColor: customBg } : {}),
         }}
       >
-        <VideoPlayer src={src} loop={loop} muted={muted} controls={controls} className={`w-full h-full ${objectFit}`} />
+        {/* Let the module surface supply the color, including fitted-video gutters. */}
+        <VideoPlayer src={src} loop={loop} muted={muted} controls={controls} backgroundColor="transparent" className={`w-full h-full ${objectFit}`} />
         {_likeTargetId && <ModuleLikeOverlay targetId={_likeTargetId} />}
       </div>
       {caption && <p className="text-text-muted text-caption" style={{ marginTop: 10 }}>{caption}</p>}

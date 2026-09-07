@@ -23,6 +23,7 @@ export function VideoPlayer({
   active = true,
   className = '',
   style,
+  backgroundColor,
   onLoadedMetadata,
 }: {
   src: string
@@ -32,6 +33,7 @@ export function VideoPlayer({
   active?: boolean
   className?: string
   style?: CSSProperties
+  backgroundColor?: CSSProperties['backgroundColor']
   onLoadedMetadata?: (event: SyntheticEvent<HTMLVideoElement>) => void
 }) {
   const rootRef = useRef<HTMLDivElement>(null)
@@ -100,7 +102,7 @@ export function VideoPlayer({
   })
 
   return (
-    <div ref={rootRef} className="video-player-group relative h-full w-full overflow-hidden bg-black">
+    <div ref={rootRef} className="video-player-group relative h-full w-full overflow-hidden bg-black" style={{ backgroundColor }}>
       <video
         ref={videoRef}
         src={src}
