@@ -638,8 +638,7 @@ p {
   --liked-work-marquee-gap: 20px;
 }
 
-.liked-work-marquee-track,
-.liked-work-marquee-group {
+.liked-work-marquee-track {
   display: flex;
   gap: var(--liked-work-marquee-gap);
   width: max-content;
@@ -659,10 +658,6 @@ p {
 @media (prefers-reduced-motion: reduce) {
   .liked-work-marquee-track {
     transform: none;
-  }
-
-  .liked-work-marquee-group[aria-hidden='true'] {
-    display: none;
   }
 }
 

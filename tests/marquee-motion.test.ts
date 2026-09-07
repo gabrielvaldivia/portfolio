@@ -1,6 +1,35 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { advanceMarquee, getMarqueeReleaseVelocity, wrapMarqueePosition } from '../src/lib/marqueeMotion'
+import {
+  advanceMarquee,
+  getCircularMarqueeEntries,
+  getMarqueeReleaseVelocity,
+  getMarqueeWindowSize,
+  wrapMarqueePosition,
+} from '../src/lib/marqueeMotion'
+
+test('sizes the mounted card window to the viewport with a buffer', () => {
+  assert.equal(getMarqueeWindowSize(390, 129), 6)
+  assert.equal(getMarqueeWindowSize(1440, 129), 9)
+  assert.equal(getMarqueeWindowSize(3840, 129), 16)
+  assert.equal(getMarqueeWindowSize(1440, 5), 5)
+  assert.equal(getMarqueeWindowSize(1440, 0), 0)
+})
+
+test('reads stable windows in both directions around a circular list', () => {
+  const items = ['a', 'b', 'c', 'd']
+  assert.deepEqual(getCircularMarqueeEntries(items, 3, 4), [
+    { item: 'd', position: 3 },
+    { item: 'a', position: 4 },
+    { item: 'b', position: 5 },
+    { item: 'c', position: 6 },
+  ])
+  assert.deepEqual(getCircularMarqueeEntries(items, -2, 3), [
+    { item: 'c', position: -2 },
+    { item: 'd', position: -1 },
+    { item: 'a', position: 0 },
+  ])
+})
 
 test('wraps both directions, including throws across multiple copies', () => {
   assert.equal(wrapMarqueePosition(-110, 100), -10)

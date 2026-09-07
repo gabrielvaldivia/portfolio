@@ -9,7 +9,8 @@ import {
   useMotionValue,
   useReducedMotion,
 } from 'motion/react'
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
+import { flushSync } from 'react-dom'
 import { ActivityVideoThumbnail } from '@/components/ActivityVideoThumbnail'
 import { LazyModuleLikeButton } from '@/components/LazyModuleLikeButton'
 import { PayloadImage } from '@/components/PayloadImage'
@@ -20,7 +21,6 @@ import {
   getCircularMarqueeEntries,
   getMarqueeReleaseVelocity,
   getMarqueeWindowSize,
-  wrapMarqueePosition,
   type DragSample,
 } from '@/lib/marqueeMotion'
 
@@ -223,24 +223,31 @@ function WorkCard({
 }
 
 const MARQUEE_SPEED_PX_PER_SECOND = -64
+const DEFAULT_MARQUEE_WINDOW_SIZE = 8
 
 type MarqueeDrag = {
   pointerId: number
   startX: number
   startY: number
-  startOffset: number
+  lastX: number
   active: boolean
   samples: DragSample[]
 }
 
 export function LikedWorkMarquee({ items }: { items: LikedWorkMarqueeItem[] }) {
   const marqueeRef = useRef<HTMLDivElement>(null)
-  const firstGroupRef = useRef<HTMLDivElement>(null)
-  const duplicateGroupRef = useRef<HTMLDivElement>(null)
+  const firstCardRef = useRef<HTMLDivElement>(null)
+  const nextWindowRef = useRef<HTMLDivElement>(null)
   const loopDistanceRef = useRef(0)
+  const windowStartRef = useRef(0)
   const isInView = useInView(marqueeRef, { amount: 0.1 })
   const prefersReducedMotion = useReducedMotion()
   const [isDragging, setIsDragging] = useState(false)
+  const [keyboardExpanded, setKeyboardExpanded] = useState(false)
+  const [windowSize, setWindowSize] = useState(() => (
+    Math.min(items.length, DEFAULT_MARQUEE_WINDOW_SIZE)
+  ))
+  const [windowStart, setWindowStart] = useState(0)
   const hoveredRef = useRef(false)
   const focusedRef = useRef(false)
   const dragRef = useRef<MarqueeDrag | null>(null)
@@ -248,23 +255,93 @@ export function LikedWorkMarquee({ items }: { items: LikedWorkMarqueeItem[] }) {
   const velocityRef = useRef(MARQUEE_SPEED_PX_PER_SECOND)
   const coastingRef = useRef(false)
   const x = useMotionValue(0)
+  const effectiveWindowSize = Math.min(windowSize, items.length)
+  const renderAllItems = Boolean(prefersReducedMotion || keyboardExpanded)
+  const mountedEntries = getCircularMarqueeEntries(
+    items,
+    windowStart,
+    renderAllItems ? items.length : effectiveWindowSize * 2,
+  )
 
   useEffect(() => {
-    const firstGroup = firstGroupRef.current
-    const duplicateGroup = duplicateGroupRef.current
-    if (!firstGroup || !duplicateGroup) return
+    const marquee = marqueeRef.current
+    if (!marquee) return
 
-    const updateLoopDistance = () => {
-      loopDistanceRef.current = duplicateGroup.offsetLeft - firstGroup.offsetLeft
+    const updateWindowSize = () => {
+      const nextWindowSize = getMarqueeWindowSize(
+        marquee.getBoundingClientRect().width,
+        items.length,
+      )
+      setWindowSize((current) => current === nextWindowSize ? current : nextWindowSize)
     }
-    const observer = new ResizeObserver(updateLoopDistance)
+    const observer = new ResizeObserver(updateWindowSize)
 
-    updateLoopDistance()
-    observer.observe(firstGroup)
-    observer.observe(duplicateGroup)
+    updateWindowSize()
+    observer.observe(marquee)
 
     return () => observer.disconnect()
-  }, [items])
+  }, [items.length])
+
+  useLayoutEffect(() => {
+    windowStartRef.current = 0
+    setWindowStart(0)
+    x.set(0)
+  }, [items, x])
+
+  useLayoutEffect(() => {
+    if (renderAllItems) {
+      loopDistanceRef.current = 0
+      x.set(0)
+      return
+    }
+
+    const firstCard = firstCardRef.current
+    const nextWindow = nextWindowRef.current
+    loopDistanceRef.current = firstCard && nextWindow
+      ? nextWindow.offsetLeft - firstCard.offsetLeft
+      : 0
+    x.set(0)
+  }, [effectiveWindowSize, renderAllItems, x])
+
+  const rotateWindow = (direction: -1 | 1, carry: number) => {
+    const nextStart = windowStartRef.current + direction * effectiveWindowSize
+    windowStartRef.current = nextStart
+    flushSync(() => setWindowStart(nextStart))
+
+    const firstCard = firstCardRef.current
+    const nextWindow = nextWindowRef.current
+    const nextDistance = firstCard && nextWindow
+      ? nextWindow.offsetLeft - firstCard.offsetLeft
+      : 0
+    loopDistanceRef.current = nextDistance
+
+    return direction === 1 ? carry : -nextDistance + carry
+  }
+
+  const setTrackPosition = (position: number) => {
+    if (renderAllItems || effectiveWindowSize <= 0) {
+      x.set(0)
+      return
+    }
+
+    let nextPosition = position
+    for (let attempts = 0; attempts < 4; attempts += 1) {
+      const distance = loopDistanceRef.current
+      if (distance <= 0) break
+
+      if (nextPosition <= -distance) {
+        nextPosition = rotateWindow(1, nextPosition + distance)
+        continue
+      }
+      if (nextPosition > 0) {
+        nextPosition = rotateWindow(-1, nextPosition)
+        continue
+      }
+      break
+    }
+
+    x.set(nextPosition)
+  }
 
   useAnimationFrame((_time, delta) => {
     if (!isInView || prefersReducedMotion || dragRef.current) return
@@ -280,7 +357,7 @@ export function LikedWorkMarquee({ items }: { items: LikedWorkMarqueeItem[] }) {
       coastingRef.current = false
       if (target === 0) return
     }
-    x.set(wrapMarqueePosition(x.get() + next.distance, loopDistance))
+    setTrackPosition(x.get() + next.distance)
   })
 
   const startDrag = (event: PointerEvent<HTMLDivElement>) => {
@@ -293,7 +370,7 @@ export function LikedWorkMarquee({ items }: { items: LikedWorkMarqueeItem[] }) {
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
-      startOffset: x.get(),
+      lastX: event.clientX,
       active: false,
       samples: [{ x: event.clientX, time: event.timeStamp }],
     }
@@ -317,9 +394,11 @@ export function LikedWorkMarquee({ items }: { items: LikedWorkMarqueeItem[] }) {
       event.currentTarget.setPointerCapture(event.pointerId)
     }
     event.preventDefault()
+    const movementX = drag.active ? event.clientX - drag.lastX : deltaX
+    drag.lastX = event.clientX
     drag.samples = drag.samples.filter((sample) => event.timeStamp - sample.time <= 100)
     drag.samples.push({ x: event.clientX, time: event.timeStamp })
-    x.set(wrapMarqueePosition(drag.startOffset + deltaX, loopDistanceRef.current))
+    setTrackPosition(x.get() + movementX)
   }
 
   const finishDrag = (event: PointerEvent<HTMLDivElement>) => {
@@ -373,29 +452,42 @@ export function LikedWorkMarquee({ items }: { items: LikedWorkMarqueeItem[] }) {
           suppressClickRef.current = false
         }
       }}
-      onFocus={(event) => { focusedRef.current = event.target.matches(':focus-visible') }}
+      onFocus={(event) => {
+        if (event.target.matches(':focus-visible')) {
+          focusedRef.current = true
+          setKeyboardExpanded(true)
+        }
+      }}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) focusedRef.current = false
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+          focusedRef.current = false
+          setKeyboardExpanded(false)
+        }
       }}
     >
       <motion.div
         className="liked-work-marquee-track"
+        role="list"
         style={{ x }}
       >
-        <div ref={firstGroupRef} className="liked-work-marquee-group" role="list">
-          {items.map((item) => (
-            <div key={item.id} role="listitem">
-              <WorkCard item={item} reduceMotion={Boolean(prefersReducedMotion)} />
+        {mountedEntries.map(({ item, position }, index) => {
+          const duplicate = !renderAllItems && index >= effectiveWindowSize
+          return (
+            <div
+              key={`${position}:${item.id}`}
+              ref={index === 0 ? firstCardRef : index === effectiveWindowSize ? nextWindowRef : undefined}
+              role={duplicate ? undefined : 'listitem'}
+              aria-hidden={duplicate ? 'true' : undefined}
+              className="shrink-0"
+            >
+              <WorkCard
+                item={item}
+                duplicate={duplicate}
+                reduceMotion={Boolean(prefersReducedMotion)}
+              />
             </div>
-          ))}
-        </div>
-        <div ref={duplicateGroupRef} className="liked-work-marquee-group" aria-hidden="true">
-          {items.map((item) => (
-            <div key={`duplicate-${item.id}`}>
-              <WorkCard item={item} duplicate reduceMotion={Boolean(prefersReducedMotion)} />
-            </div>
-          ))}
-        </div>
+          )
+        })}
       </motion.div>
     </div>
   )
