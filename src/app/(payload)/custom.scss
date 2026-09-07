@@ -4279,16 +4279,17 @@ body:has(.drawer--is-open) :is(.template-default__nav-toggler-container, .app-he
 
 .custom-sidebar-account-menu {
   position: absolute;
-  right: 20px;
+  right: calc(var(--cms-nav-gutter) + 12px);
   bottom: 20px;
-  left: 20px;
+  left: var(--cms-nav-gutter);
   z-index: 6;
 }
 
 .custom-sidebar-account {
-  display: flex;
+  display: grid;
   align-items: center;
-  gap: 2px;
+  grid-template-columns: var(--cms-icon-size) minmax(0, 1fr);
+  gap: 8px;
   width: 100%;
   min-height: var(--cms-control-height);
   min-width: 0;
@@ -4302,6 +4303,7 @@ body:has(.drawer--is-open) :is(.template-default__nav-toggler-container, .app-he
   color: var(--cms-text-tertiary);
   cursor: pointer;
   font: inherit;
+  text-align: left;
   text-decoration: none;
   transition:
     background-color 100ms cubic-bezier(0, 0.2, 0.2, 1),
@@ -4319,9 +4321,8 @@ body:has(.drawer--is-open) :is(.template-default__nav-toggler-container, .app-he
 .custom-sidebar-account__icon {
   display: grid;
   place-items: center;
-  width: var(--cms-nav-footer-control-size);
-  height: var(--cms-nav-footer-control-size);
-  flex: 0 0 var(--cms-nav-footer-control-size);
+  width: var(--cms-icon-size);
+  height: var(--cms-icon-size);
   color: currentColor;
 }
 
@@ -4681,7 +4682,14 @@ body:has(.drawer--is-open) :is(.template-default__nav-toggler-container, .app-he
     height: 100dvh;
     max-height: 100dvh;
     overscroll-behavior-y: contain;
+    padding-top: calc((var(--cms-header-height) - var(--cms-button-height)) / 2);
     -webkit-overflow-scrolling: touch;
+  }
+
+  .nav .custom-sidebar-nav__title {
+    display: flex;
+    min-height: var(--cms-button-height);
+    align-items: center;
   }
 
   .admin-sidebar-scrim {
