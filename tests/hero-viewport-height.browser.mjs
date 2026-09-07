@@ -49,17 +49,56 @@ try {
     }
   }
 
-  // Some mobile browsers update dvh without sending a window resize event.
-  // Change only the measuring probe to exercise that ResizeObserver path.
-  await page.locator('.hero-project-scroll-region > [aria-hidden="true"]').evaluate(el => {
-    el.style.height = '804px'
+  // Browser chrome can update the visual viewport before dvh/window.resize.
+  // Every intermediate size must reach the slide AND its bottom inset in the
+  // same frame, rather than waiting until native pagination has finished.
+  for (const height of [824, 804, 784, 814, 844]) {
+    await page.evaluate(async height => {
+      Object.defineProperty(window.visualViewport, 'height', { configurable: true, value: height })
+      window.visualViewport.dispatchEvent(new Event('resize'))
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+    }, height)
+    near((await snapshot()).heights.at(-1), height, 'live visual viewport resize before dvh settles')
+    const inset = await slideElements.last().locator('a[aria-label^="Open"]').evaluate(el => parseFloat(getComputedStyle(el).bottom))
+    near(inset, 20, 'caption inset uses the same live viewport measurement')
+  }
+  await page.evaluate(() => {
+    delete window.visualViewport.height
+    window.visualViewport.dispatchEvent(new Event('resize'))
   })
-  await settle()
-  near((await snapshot()).heights.at(-1), 804, 'dynamic viewport probe resize')
-  await page.locator('.hero-project-scroll-region > [aria-hidden="true"]').evaluate(el => {
-    el.style.removeProperty('height')
-  })
-  await settle()
+
+  // Leave a shorter page frozen ahead of us, then paginate into it. Its height
+  // must already be correct while less than half of it is visible (in either
+  // direction), not just after scrollIntoView has finished.
+  const checkIncomingHeight = async (from, to) => {
+    await slideElements.nth(to).evaluate(el => el.scrollIntoView({ behavior: 'instant' }))
+    await settle()
+    await page.setViewportSize({ width: 390, height: 784 })
+    await settle()
+    await slideElements.nth(from).evaluate(el => el.scrollIntoView({ behavior: 'instant' }))
+    await settle()
+    await page.setViewportSize({ width: 390, height: 844 })
+    await settle()
+    near((await snapshot()).heights[to], 784, 'incoming page starts with frozen height')
+    const samples = await page.evaluate(async to => {
+      const target = document.querySelectorAll('.hero-mobile-slide')[to]
+      const samples = []
+      target.scrollIntoView({ behavior: 'smooth' })
+      const start = performance.now()
+      while (performance.now() - start < 900) {
+        await new Promise(requestAnimationFrame)
+        const { top, bottom, height } = target.getBoundingClientRect()
+        const visible = Math.min(innerHeight, bottom) - Math.max(0, top)
+        if (visible > 100 && visible < height * 0.45) samples.push({ height, visible })
+      }
+      return samples
+    }, to)
+    assert.ok(samples.length > 0, 'recorded incoming slide before halfway through pagination')
+    for (const sample of samples) near(sample.height, 844, `incoming slide ${to + 1} ready during pagination`)
+    near((await slideElements.nth(to).boundingBox()).y, 0, 'pagination lands without a height correction')
+  }
+  await checkIncomingHeight(2, 3)
+  await checkIncomingHeight(3, 2)
 
   // Enter free scroll using the actual Approach boundary before reaching Work.
   await page.locator('.hero-approach-snap-point').evaluate(el => el.scrollIntoView({ behavior: 'instant' }))
@@ -160,7 +199,7 @@ try {
   await settle()
   assert.match((await snapshot()).snap, /mandatory/, 'return to slideshow re-enables pagination')
   assert.deepEqual(errors, [], 'no browser runtime errors')
-  console.log(JSON.stringify({ engine, result: 'PASS', checks: ['active viewport resize', 'slide alignment', 'dynamic viewport probe', 'stable off-screen resize', 're-entry refresh', 'visible captions', 'width change', 'rotation', 'Approach handoff'] }))
+  console.log(JSON.stringify({ engine, result: 'PASS', checks: ['active viewport resize', 'slide alignment', 'live viewport before dvh', 'early incoming resize both directions', 'stable off-screen resize', 're-entry refresh', 'visible captions', 'width change', 'rotation', 'Approach handoff'] }))
 } finally {
   await browser.close()
 }

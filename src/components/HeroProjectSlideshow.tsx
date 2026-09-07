@@ -26,6 +26,7 @@ import { Testimonial } from '@/components/Testimonial'
 import { ServicePill } from '@/components/ServicePill'
 import { PayloadImage } from '@/components/PayloadImage'
 import type { ResponsiveImageMedia } from '@/lib/responsiveImage'
+import { observeMobileHeroViewport } from '@/lib/observeMobileHeroViewport'
 
 type HeroTestimonial = {
   id: string
@@ -51,7 +52,8 @@ type Props = {
 const AUTOPLAY_DELAY_MS = 6000
 const CURSOR_IDLE_ROTATION_SPEED = 14
 const MOBILE_SLIDE_HEIGHT = 'var(--hero-mobile-height, 100dvh)'
-const MOBILE_BROWSER_INSET = `max(0px, ${MOBILE_SLIDE_HEIGHT} - 100dvh)`
+const MOBILE_VIEWPORT_HEIGHT = 'var(--hero-mobile-viewport-height, 100dvh)'
+const MOBILE_BROWSER_INSET = `max(0px, ${MOBILE_SLIDE_HEIGHT} - ${MOBILE_VIEWPORT_HEIGHT})`
 const MOBILE_CONTENT_BOTTOM = `calc(1.25rem + ${MOBILE_BROWSER_INSET})`
 // Smoothstep alpha stops: a gentle fade with flat tangents at both ends.
 const MOBILE_IMAGE_MASK = 'linear-gradient(to bottom, #000 60%, rgb(0 0 0 / .972) 64%, rgb(0 0 0 / .896) 68%, rgb(0 0 0 / .784) 72%, rgb(0 0 0 / .648) 76%, rgb(0 0 0 / .5) 80%, rgb(0 0 0 / .352) 84%, rgb(0 0 0 / .216) 88%, rgb(0 0 0 / .104) 92%, rgb(0 0 0 / .028) 96%, transparent 100%)'
@@ -320,6 +322,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
   const isInView = useInView(regionRef, { amount: 0.25 })
   const prefersReducedMotion = useReducedMotion()
   const [isMobileViewport, setIsMobileViewport] = useState(false)
+  const [isMobilePaginationVisible, setIsMobilePaginationVisible] = useState(false)
   const progress = useMotionValue(0)
   const insetScale = useMotionValue(1)
   const insetRadius = useMotionValue(20)
@@ -561,56 +564,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
     const region = regionRef.current
     const probe = mobileViewportProbeRef.current
     if (!region || !probe) return
-
-    const slides = [...region.querySelectorAll<HTMLElement>('.hero-mobile-slide')]
-    let measuredWidth = 0
-    let frame: number | null = null
-    const measureHeight = () => {
-      frame = null
-      const width = document.documentElement.clientWidth
-      const height = probe.getBoundingClientRect().height
-      if (height <= 0) return
-
-      // Width changes reset all pages, including after phone rotation.
-      if (width !== measuredWidth) {
-        measuredWidth = width
-        region.style.setProperty('--hero-mobile-height', `${height}px`)
-        slides.forEach(slide => slide.style.removeProperty('--hero-mobile-height'))
-        return
-      }
-
-      const visibleSlide = slides.map(slide => ({ slide, bounds: slide.getBoundingClientRect() }))
-        .find(({ bounds }) => bounds.top <= height / 2 && bounds.bottom > height / 2)
-      if (!visibleSlide || Math.abs(visibleSlide.bounds.height - height) < 0.5) return
-
-      // Resize only the page being viewed. Earlier pages retain their heights,
-      // so the current snap target does not move when browser chrome changes.
-      // Once outside the slideshow, every page stays frozen to avoid shifting
-      // Approach or Work. No scroll-position compensation is needed.
-      visibleSlide.slide.style.setProperty('--hero-mobile-height', `${height}px`)
-    }
-    const scheduleMeasurement = () => {
-      if (frame === null) frame = requestAnimationFrame(measureHeight)
-    }
-
-    measureHeight()
-    // Dynamic viewport units also change in browsers that don't emit a window
-    // resize for their toolbar. Batch both signals into a single measurement.
-    const viewportObserver = new ResizeObserver(scheduleMeasurement)
-    viewportObserver.observe(probe)
-    // Refresh a previously frozen height when scrolling back into a slide,
-    // without measuring layout on every scroll event.
-    const visibilityObserver = new IntersectionObserver(scheduleMeasurement, { threshold: 0.5 })
-    slides.forEach(slide => visibilityObserver.observe(slide))
-    window.addEventListener('resize', scheduleMeasurement)
-    return () => {
-      window.removeEventListener('resize', scheduleMeasurement)
-      viewportObserver.disconnect()
-      visibilityObserver.disconnect()
-      if (frame !== null) cancelAnimationFrame(frame)
-      region.style.removeProperty('--hero-mobile-height')
-      slides.forEach(slide => slide.style.removeProperty('--hero-mobile-height'))
-    }
+    return observeMobileHeroViewport(region, probe, setIsMobilePaginationVisible)
   }, [isMobileViewport, projects])
 
   useEffect(() => {
@@ -824,11 +778,13 @@ export function HeroProjectSlideshow({ projects }: Props) {
         {projects.length > 1 ? (
           // Share one viewport-height overlay without adding scroll height.
           // Sticky keeps the lines still between slides, but scoped to the hero.
-          <div className="pointer-events-none sticky top-0 z-20 col-start-1 row-start-1 h-dvh self-start">
+          <div className="pointer-events-none sticky top-0 z-20 col-start-1 row-start-1 self-start" style={{ height: MOBILE_VIEWPORT_HEIGHT }}>
             <div
               role="group"
               aria-label="Project pagination"
-              className="hero-mobile-pagination absolute right-3 flex -translate-y-1/2 flex-col gap-1"
+              aria-hidden={!isMobilePaginationVisible}
+              inert={!isMobilePaginationVisible}
+              className={`hero-mobile-pagination absolute right-3 flex -translate-y-1/2 flex-col gap-1 ${isMobilePaginationVisible ? '' : 'invisible'}`}
               style={{ top: 'calc(var(--hero-mobile-image-height, 75dvh) / 2)' }}
             >
               {projects.map((project, index) => (
