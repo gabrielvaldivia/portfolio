@@ -802,6 +802,7 @@ export async function getModuleLikeActivityPage({
   const payload = await getPayload()
   if (isPayloadUnavailable(payload)) throw new Error('Activity data is temporarily unavailable')
   const db = payload.db.drizzle
+  const targetIndexPromise = getActivityTargetIndex()
   const normalizedCursor = normalizeActivityCursor(cursor)
   const normalizedLimit = normalizePageLimit(limit)
   const cursorFilter = normalizedCursor
@@ -996,7 +997,7 @@ export async function getModuleLikeActivityPage({
   const pageRows = normalizedLimit ? rows.slice(0, normalizedLimit) : rows
   const hasMore = Boolean(normalizedLimit && rows.length > normalizedLimit)
   const lastPageRow = pageRows[pageRows.length - 1]
-  const targetIndex = await getActivityTargetIndex()
+  const targetIndex = await targetIndexPromise
 
   return {
     items: pageRows.flatMap((row) => {
@@ -1022,6 +1023,7 @@ export async function getModuleLikeFeedPage({
   const payload = await getPayload()
   if (isPayloadUnavailable(payload)) throw new Error('Activity feed data is temporarily unavailable')
   const db = payload.db.drizzle
+  const targetIndexPromise = getActivityTargetIndex()
   const normalizedCursor = normalizeFeedCursor(cursor)
   const normalizedLimit = normalizePageLimit(limit)
   const cursorFilter = normalizedCursor
@@ -1076,7 +1078,7 @@ export async function getModuleLikeFeedPage({
   const pageRows = normalizedLimit ? rows.slice(0, normalizedLimit) : rows
   const hasMore = Boolean(normalizedLimit && rows.length > normalizedLimit)
   const lastPageRow = pageRows[pageRows.length - 1]
-  const targetIndex = await getActivityTargetIndex()
+  const targetIndex = await targetIndexPromise
 
   return {
     items: pageRows.flatMap((row) => {
