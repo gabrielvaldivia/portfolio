@@ -269,12 +269,37 @@ body,
 
 /* Campsite-style page chrome: one compact title/action bar everywhere. */
 .app-header {
-  position: sticky;
   top: 0;
   min-height: var(--cms-header-height);
   border-bottom: 0;
   background: var(--cms-bg-primary);
   color: var(--cms-text-primary);
+}
+
+/* Use the same viewport anchor as Publish and the sidebar toggle during overscroll. */
+.template-default {
+  --cms-header-left: 0px;
+}
+
+.template-default--nav-open {
+  --cms-header-left: var(--nav-width);
+}
+
+.template-default--nav-hydrated > .template-default__wrap:has(> .app-header) {
+  padding-top: var(--cms-header-height);
+}
+
+.template-default--nav-hydrated > .template-default__wrap > .app-header {
+  position: fixed;
+  left: var(--cms-header-left);
+  right: 0;
+  width: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .template-default--nav-animate .app-header {
+    transition: left var(--nav-trans-time) linear;
+  }
 }
 
 body:has(.template-default .app-header):not(:has(.collection-edit--notes))::before {
@@ -4218,6 +4243,7 @@ body:has(.drawer--is-open) :is(.template-default__nav-toggler-container, .app-he
   }
 
   .template-default {
+    --cms-header-left: 0px;
     grid-template-columns: 0 minmax(100vw, 100vw) !important;
     width: 100vw;
     max-width: 100vw;
@@ -4225,6 +4251,7 @@ body:has(.drawer--is-open) :is(.template-default__nav-toggler-container, .app-he
   }
 
   .template-default--nav-hydrated.template-default--nav-open {
+    --cms-header-left: var(--nav-width);
     grid-template-columns: var(--nav-width) minmax(100vw, 100vw) !important;
     max-width: 100vw;
     overflow-x: hidden;
@@ -4258,6 +4285,11 @@ body:has(.drawer--is-open) :is(.template-default__nav-toggler-container, .app-he
   .template-default__wrap {
     width: 100vw;
     min-width: 100vw !important;
+  }
+
+  .template-default--nav-hydrated > .template-default__wrap > .app-header {
+    right: auto;
+    width: 100vw;
   }
 
   body:has(.template-default--nav-hydrated.template-default--nav-open) :is(.collection-edit, .global-edit) .doc-controls.gutter,
