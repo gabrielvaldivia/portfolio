@@ -81,7 +81,7 @@ export function buildPageMetadata(
             card: 'summary_large_image' as const,
             title,
             description,
-            images: [openGraphImage.url],
+            images: [{ url: openGraphImage.url, ...(image?.alt ? { alt: image.alt } : {}) }],
           },
         }
       : {}),

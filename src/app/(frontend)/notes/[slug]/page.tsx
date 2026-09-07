@@ -6,6 +6,7 @@ import { getNoteHighlightText } from '@/lib/noteHighlightAnchors'
 import { highlightTextVersion } from '@/lib/noteHighlightStore'
 import { getNoteLikeTargetId } from '@/lib/moduleLikes'
 import { buildPageMetadata } from '@/lib/pageMetadata'
+import { SITE_ORIGIN } from '@/lib/siteMetadata'
 import { getPublishedNoteBySlug, getPublishedNoteSlugs, getReadNextNotes } from '@/lib/queries'
 import type { Metadata } from 'next'
 import Image from 'next/image'
@@ -13,6 +14,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 export const revalidate = 60
+// Notes published after deployment must render without another build.
+export const dynamicParams = true
 
 type NotePageProps = {
   params: Promise<{ slug: string }>
@@ -46,15 +49,21 @@ export async function generateMetadata({ params }: NotePageProps): Promise<Metad
   const note = await getPublishedNoteBySlug(slug)
   if (!note) return {}
 
-  const metaImage = typeof note.meta?.image === 'object' ? note.meta.image : undefined
-  const coverImage = typeof note.coverImage === 'object' ? note.coverImage : undefined
+  const canonical = new URL(`/notes/${encodeURIComponent(note.slug)}`, SITE_ORIGIN).toString()
+  const imageURL = new URL(`${canonical}/og`)
+  imageURL.searchParams.set('v', note.updatedAt)
 
-  return buildPageMetadata(
+  const metadata = buildPageMetadata(
     {
       meta: {
         title: note.meta?.title || note.title,
         description: note.meta?.description || note.excerpt,
-        image: metaImage || coverImage,
+        image: {
+          url: imageURL.toString(),
+          width: 1200,
+          height: 630,
+          alt: `${note.title} — By Gabriel Valdivia`,
+        },
       },
     },
     {
@@ -62,6 +71,19 @@ export async function generateMetadata({ params }: NotePageProps): Promise<Metad
       fallbackDescription: note.excerpt || '',
     },
   )
+
+  return {
+    ...metadata,
+    alternates: { canonical },
+    openGraph: {
+      ...metadata.openGraph,
+      type: 'article',
+      url: canonical,
+      authors: ['Gabriel Valdivia'],
+      publishedTime: note.publishedAt || note.createdAt,
+      modifiedTime: note.updatedAt,
+    },
+  }
 }
 
 export default async function NotePage({ params }: NotePageProps) {

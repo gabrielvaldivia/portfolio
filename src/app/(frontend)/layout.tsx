@@ -9,6 +9,7 @@ import { OverlayManager } from '@/components/OverlayManager'
 import { PageTransition } from '@/components/PageTransition'
 import { getNavigationPages, getPageBySlug, getSiteSettings } from '@/lib/queries'
 import { normalizeSocialLink } from '@/lib/socialLinks'
+import { SITE_ORIGIN, SITE_TAGLINE } from '@/lib/siteMetadata'
 
 export const revalidate = 60
 
@@ -31,11 +32,11 @@ async function getPublicHomepagePreview() {
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings() as any
   const title = settings?.siteTitle || 'Gabriel Valdivia'
-  const description = settings?.siteDescription || 'Fractional Design Partner for Early-Stage Teams'
+  const description = settings?.siteDescription || SITE_TAGLINE
   return {
     title,
     description,
-    ...(settings?.canonicalUrl ? { metadataBase: new URL(settings.canonicalUrl) } : {}),
+    metadataBase: new URL(settings?.canonicalUrl || SITE_ORIGIN),
     ...(settings?.noIndex ? { robots: { index: false, follow: false } } : {}),
     icons: {
       icon: settings?.favicon?.url || undefined,

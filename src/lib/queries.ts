@@ -129,6 +129,27 @@ export const getPublishedNoteBySlug = cache(async function getPublishedNoteBySlu
   return (result.docs[0] as unknown as PublishedNote | undefined) || null
 })
 
+// Social crawlers only need the title, not the full body or related media.
+export async function getPublishedNoteTitleBySlug(slug: string) {
+  const payload = await getPayload()
+  const result = await payload.find({
+    collection: 'notes',
+    where: {
+      and: [
+        { slug: { equals: slug } },
+        { _status: { equals: 'published' } },
+      ],
+    },
+    select: { title: true },
+    depth: 0,
+    limit: 1,
+    pagination: false,
+    draft: false,
+  })
+
+  return result.docs[0]?.title || null
+}
+
 export const getReadNextNotes = cache(async function getReadNextNotes(
   currentNoteId: string | number,
   publishedAt?: string | null,

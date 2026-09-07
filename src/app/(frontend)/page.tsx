@@ -10,6 +10,7 @@ import { HeroProjectSlideshow } from '@/components/HeroProjectSlideshow'
 import { LikedWorkMarquee, type LikedWorkMarqueeItem } from '@/components/LikedWorkMarquee'
 import { ApproachTimelineItem } from '@/components/ApproachTimelineItem'
 import { buildPageMetadata } from '@/lib/pageMetadata'
+import { SITE_TAGLINE } from '@/lib/siteMetadata'
 import { getPageBySlug } from '@/lib/queries'
 import { getPayload, isPayloadUnavailable } from '@/lib/payload'
 import { getFAQItemsFromSections } from '@/lib/buildContext'
@@ -22,7 +23,7 @@ import type { Metadata } from 'next'
 export const revalidate = 300
 
 const PUBLIC_CMS_API = 'https://www.gabrielvaldivia.com/api'
-const HOME_HERO_TAGLINE = 'Your design partner for first-generation products.'
+const HOME_HERO_TAGLINE = SITE_TAGLINE
 
 function HomeContainer({
   children,
@@ -81,7 +82,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return buildPageMetadata(page, {
     fallbackTitle: 'Gabriel Valdivia',
-    fallbackDescription: 'Fractional design partner for early-stage teams.',
+    fallbackDescription: SITE_TAGLINE,
     appendSiteName: false,
   })
 }
