@@ -130,7 +130,7 @@ export const getPublishedNoteBySlug = cache(async function getPublishedNoteBySlu
 })
 
 // Social crawlers only need the title, not the full body or related media.
-export async function getPublishedNoteTitleBySlug(slug: string) {
+export async function getPublishedNoteTitleBySlug(slug: string): Promise<string | null> {
   const payload = await getPayload()
   const result = await payload.find({
     collection: 'notes',
@@ -147,7 +147,8 @@ export async function getPublishedNoteTitleBySlug(slug: string) {
     draft: false,
   })
 
-  return result.docs[0]?.title || null
+  const title = result.docs[0]?.title
+  return typeof title === 'string' && title.trim() ? title : null
 }
 
 export const getReadNextNotes = cache(async function getReadNextNotes(
