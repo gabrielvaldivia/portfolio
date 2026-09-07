@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { useReducedMotion } from 'motion/react'
 import { SocialIcon } from './Icons'
 
 const ALTERNATE_COPYRIGHT = '© Copyright is a fallacy'
@@ -40,7 +39,6 @@ export function Footer({
   const displayedCopyrightRef = useRef(original)
   const flippedRef = useRef(false)
   const animationFrameRef = useRef<number | null>(null)
-  const prefersReducedMotion = useReducedMotion()
   const footerSocialLinks = [
     { platform: 'Email', url: `mailto:${email}` },
     ...socialLinks,
@@ -70,7 +68,7 @@ export function Footer({
       cancelAnimationFrame(animationFrameRef.current)
     }
 
-    if (prefersReducedMotion) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       updateDisplayedCopyright(target)
       return
     }

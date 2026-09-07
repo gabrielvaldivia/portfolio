@@ -1,9 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { motion, useMotionValueEvent, useReducedMotion, useScroll } from 'motion/react'
 import { cn } from '@/lib/cn'
 
 type NavMenuPage = {
@@ -63,21 +62,35 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
       ...page,
       collapseOffset: expandedDesktopCollapseOffsets[index],
     }))
-  const prefersReducedMotion = useReducedMotion()
-  const { scrollY } = useScroll()
   const expandedControlsHidden = expandedNavHidden || open
   const collapsedMenuButtonVisible = expandedNavHidden || open
-  const navTransition = prefersReducedMotion
-    ? { duration: 0 }
-    : { duration: 0.18, ease: 'easeOut' as const }
 
-  useMotionValueEvent(scrollY, 'change', (latest) => {
-    setExpandedNavHidden((currentlyHidden) => (
-      currentlyHidden
-        ? latest > desktopNavExpandThreshold
-        : latest >= desktopNavCollapseThreshold
-    ))
-  })
+  useEffect(() => {
+    let animationFrame: number | null = null
+
+    const updateExpandedNav = () => {
+      animationFrame = null
+      const latest = window.scrollY
+      setExpandedNavHidden((currentlyHidden) => (
+        currentlyHidden
+          ? latest > desktopNavExpandThreshold
+          : latest >= desktopNavCollapseThreshold
+      ))
+    }
+
+    const handleScroll = () => {
+      if (animationFrame === null) {
+        animationFrame = requestAnimationFrame(updateExpandedNav)
+      }
+    }
+
+    updateExpandedNav()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      if (animationFrame !== null) cancelAnimationFrame(animationFrame)
+    }
+  }, [])
 
   return (
     <>
@@ -96,15 +109,15 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
             )}
           >
             {desktopPages.map((page) => (
-              <motion.div
+              <div
                 key={page.collapseOffset}
-                animate={{
+                style={{
                   opacity: expandedControlsHidden ? 0 : 1,
-                  scale: expandedControlsHidden ? 0.82 : 1,
-                  x: expandedControlsHidden ? page.collapseOffset : 0,
+                  transform: expandedControlsHidden
+                    ? `translateX(${page.collapseOffset}px) scale(0.82)`
+                    : 'translateX(0) scale(1)',
                 }}
-                transition={navTransition}
-                className="origin-right"
+                className="origin-right transition-[opacity,transform] duration-200 ease-out motion-reduce:duration-0"
               >
                 <Link
                   href={page.url}
@@ -114,50 +127,46 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
                 >
                   {page.label}
                 </Link>
-              </motion.div>
+              </div>
             ))}
           </div>
 
-          <motion.button
+          <button
             type="button"
             onClick={() => setOpen(true)}
             aria-label="Open navigation menu"
             aria-expanded={false}
             aria-hidden={expandedControlsHidden}
             tabIndex={expandedControlsHidden ? -1 : 0}
-            animate={{
+            style={{
               opacity: expandedControlsHidden ? 0 : 1,
-              scale: expandedControlsHidden ? 0.82 : 1,
+              transform: `scale(${expandedControlsHidden ? 0.82 : 1})`,
             }}
-            transition={navTransition}
             className={cn(
-              'group absolute right-0 top-0 flex h-10 items-center rounded-sm text-body text-text-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content',
+              'group absolute right-0 top-0 flex h-10 origin-right items-center rounded-sm text-body text-text-strong transition-[opacity,transform] duration-200 ease-out motion-reduce:duration-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content',
               expandedControlsHidden && 'pointer-events-none',
             )}
           >
             <span className="text-text-muted transition-colors duration-150 group-hover:text-text-strong group-focus-visible:text-text-strong">
               More
             </span>
-          </motion.button>
+          </button>
 
-          <motion.button
+          <button
             type="button"
             onClick={() => setOpen(!open)}
             aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
             aria-expanded={open}
             aria-hidden={!collapsedMenuButtonVisible}
             tabIndex={collapsedMenuButtonVisible ? 0 : -1}
-            // Emit the hidden state in server HTML instead of fading out on mount.
-            initial={false}
-            animate={{
+            style={{
+              ...(open ? { color: 'var(--color-nav-active-text)' } : {}),
               opacity: collapsedMenuButtonVisible ? 1 : 0,
-              scale: collapsedMenuButtonVisible ? 1 : 0.82,
+              transform: `scale(${collapsedMenuButtonVisible ? 1 : 0.82})`,
             }}
-            transition={navTransition}
             className={cn(`flex size-10 items-center justify-center rounded-full backdrop-blur-[40px] transition-colors cursor-pointer ${
               open ? 'bg-content' : 'bg-floating hover:bg-hover'
-            }`, !collapsedMenuButtonVisible && 'pointer-events-none')}
-            style={open ? { color: 'var(--color-nav-active-text)' } : undefined}
+            }`, 'origin-center transition-[background-color,color,opacity,transform] duration-200 ease-out motion-reduce:duration-0', !collapsedMenuButtonVisible && 'pointer-events-none')}
           >
             <div className="w-4 h-3 relative flex flex-col justify-center items-center">
               <span
@@ -171,10 +180,12 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
                 }`}
               />
             </div>
-          </motion.button>
+          </button>
 
           {/* Popover */}
           <div
+            aria-hidden={!open}
+            inert={open ? undefined : true}
             className={`absolute top-full right-0 mt-2 bg-floating backdrop-blur-[40px] rounded-[20px] py-2 px-4 min-w-[200px] flex flex-col transition-all duration-300 ease-out origin-top-right ${
               open
                 ? 'opacity-100 scale-100 pointer-events-auto'
@@ -234,6 +245,8 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
 
           {/* Popover — opens downward on mobile */}
           <div
+            aria-hidden={!open}
+            inert={open ? undefined : true}
             className={`absolute top-full right-0 mt-2 bg-floating backdrop-blur-[40px] rounded-[20px] py-2 px-4 min-w-[200px] flex flex-col transition-all duration-300 ease-out origin-top-right ${
               open
                 ? 'opacity-100 scale-100 pointer-events-auto'
