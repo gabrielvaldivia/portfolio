@@ -1,5 +1,8 @@
 import type { Metadata } from 'next'
 
+import { CreditsPlaybackControl } from '@/components/CreditsPlaybackControl'
+import { cn } from '@/lib/cn'
+
 type Credit = {
   role: string
   name: string
@@ -7,10 +10,23 @@ type Credit = {
   packageName?: string
 }
 
-type CreditSection = {
-  title: string
-  credits: Credit[]
+type NamedCredit = {
+  name: string
+  href?: string
 }
+
+type CreditSection =
+  | {
+      title: string
+      credits: Credit[]
+      names?: never
+    }
+  | {
+      title: string
+      names: NamedCredit[]
+      nameLayout?: 'horizontal' | 'vertical'
+      credits?: never
+    }
 
 const creditSections: CreditSection[] = [
   {
@@ -288,6 +304,10 @@ const creditSections: CreditSection[] = [
         href: 'https://openfeed.photo',
       },
       {
+        role: 'End credits music',
+        name: 'Exit Music (For a Film), Epic Orchestra',
+      },
+      {
         role: 'Photo feed format',
         name: 'JSON Feed 1.1',
         href: 'https://www.jsonfeed.org/version/1.1/',
@@ -454,6 +474,21 @@ const creditSections: CreditSection[] = [
       },
     ],
   },
+  {
+    title: 'Special thanks',
+    names: [
+      { name: 'Daniel Chung', href: 'https://danielchung.design/' },
+      { name: 'Marimar Cabrero', href: 'https://marimardesign.framer.website/' },
+      { name: 'Charlie Deets', href: 'https://charliedeets.com/' },
+      { name: 'Brian Lovin', href: 'https://brianlovin.com/' },
+      { name: 'Jeff Smith', href: 'https://fieldwork.software/' },
+    ],
+    nameLayout: 'horizontal',
+  },
+  {
+    title: 'Dedicated to',
+    names: [{ name: 'Leah, Goose, and Theo' }],
+  },
 ]
 
 export const metadata: Metadata = {
@@ -461,14 +496,14 @@ export const metadata: Metadata = {
   description: 'The people, tools, libraries, typefaces, data, and services behind this website.',
 }
 
-function CreditName({ credit }: { credit: Credit }) {
-  const content = <span>{credit.name}</span>
+function LinkedName({ name, href }: NamedCredit) {
+  const content = <span>{name}</span>
 
-  if (!credit.href) return content
+  if (!href) return content
 
   return (
     <a
-      href={credit.href}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       className="inline-block transition-opacity duration-150 hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
@@ -478,48 +513,72 @@ function CreditName({ credit }: { credit: Credit }) {
   )
 }
 
+function CreditName({ credit }: { credit: Credit }) {
+  return <LinkedName name={credit.name} href={credit.href} />
+}
+
 export default function CreditsPage() {
   return (
-    <main className="px-5 pt-16 pb-32 tablet:px-10 tablet:pt-24 tablet:pb-48">
-      <div className="mx-auto flex max-w-3xl flex-col gap-32 tablet:gap-48">
-        <div className="flex w-full justify-center px-5 tablet:px-10">
-          <h5 className="w-full max-w-xl text-center !font-semibold text-text-body">
-            With gratitude to everyone who builds in the open.
-          </h5>
-        </div>
+    <>
+      <main className="px-5 pt-16 pb-32 tablet:px-10 tablet:pt-24 tablet:pb-48">
+        <div className="mx-auto flex max-w-3xl flex-col gap-32 tablet:gap-48">
+          <div className="flex w-full justify-center px-5 tablet:px-10">
+            <h5 className="w-full max-w-xl text-center !font-semibold text-text-body">
+              With gratitude to everyone who builds in the open.
+            </h5>
+          </div>
 
-        <div className="space-y-24 tablet:space-y-32">
-          {creditSections.map((section) => {
-            const headingId = `credits-${section.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+          <div className="space-y-24 tablet:space-y-32">
+            {creditSections.map((section) => {
+              const headingId = `credits-${section.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
 
-            return (
-              <section key={section.title} aria-labelledby={headingId}>
-                <h2
-                  id={headingId}
-                  className="text-center !font-mono !text-caption !font-normal uppercase text-text-muted"
-                >
-                  {section.title}
-                </h2>
-                <dl className="mt-10 space-y-6 tablet:mt-12 tablet:space-y-7">
-                  {section.credits.map((credit) => (
-                    <div
-                      key={`${credit.role}:${credit.name}`}
-                      className="grid grid-cols-2 items-start gap-5 tablet:gap-10"
+              return (
+                <section key={section.title} aria-labelledby={headingId}>
+                  <h2
+                    id={headingId}
+                    className="text-center !font-mono !text-caption !font-normal uppercase text-text-muted"
+                  >
+                    {section.title}
+                  </h2>
+                  {section.names ? (
+                    <ul
+                      className={cn(
+                        'mt-10 text-center tablet:mt-12',
+                        section.nameLayout === 'horizontal'
+                          ? 'mx-auto flex w-full max-w-md flex-wrap items-center justify-center gap-x-8 gap-y-6'
+                          : 'space-y-6 tablet:space-y-7',
+                      )}
                     >
-                      <dt className="text-right text-text-muted">
-                        {credit.role}
-                      </dt>
-                      <dd className="min-w-0 text-left">
-                        <CreditName credit={credit} />
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              </section>
-            )
-          })}
+                      {section.names.map((name) => (
+                        <li key={name.name}>
+                          <LinkedName name={name.name} href={name.href} />
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <dl className="mt-10 space-y-6 tablet:mt-12 tablet:space-y-7">
+                      {section.credits.map((credit) => (
+                        <div
+                          key={`${credit.role}:${credit.name}`}
+                          className="grid grid-cols-2 items-start gap-5 tablet:gap-10"
+                        >
+                          <dt className="text-right text-text-muted">
+                            {credit.role}
+                          </dt>
+                          <dd className="min-w-0 text-left">
+                            <CreditName credit={credit} />
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  )}
+                </section>
+              )
+            })}
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+      <CreditsPlaybackControl />
+    </>
   )
 }
