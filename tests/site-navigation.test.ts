@@ -7,16 +7,17 @@ import {
   photosNavigationItem,
 } from '../src/lib/siteNavigation'
 
-test('places Notes after Playground and Photos after Notes', () => {
+test('removes Playground, then places Notes after Work and Photos after Notes', () => {
   const items = orderSiteNavigationItems([
     { label: 'Home', url: '/' },
+    { label: 'Work', url: '/work' },
     { label: 'Playground', url: '/playground' },
     { label: 'Clients', url: '/clients' },
   ])
 
   assert.deepEqual(items.map((item) => item.url), [
     '/',
-    '/playground',
+    '/work',
     '/notes',
     '/photos',
     '/clients',
@@ -37,9 +38,10 @@ test('preserves saved collection positions', () => {
   assert.equal(items[1], existingNotes)
   assert.equal(items.filter((item) => item.url === '/notes').length, 1)
   assert.equal(items.filter((item) => item.url === '/photos').length, 1)
+  assert.equal(items.some((item) => item.url === '/playground'), false)
 })
 
-test('appends the collection fallbacks when Playground is absent', () => {
+test('appends the collection fallbacks when Work is absent', () => {
   const items = orderSiteNavigationItems([{ label: 'Home', url: '/' }])
 
   assert.equal(items.at(-2), notesNavigationItem)

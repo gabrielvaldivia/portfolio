@@ -23,12 +23,14 @@ export const photosNavigationItem = {
 } as const satisfies CollectionNavigationItem
 
 export function orderSiteNavigationItems<T extends SiteNavigationItem>(items: readonly T[]) {
-  const orderedItems: Array<T | CollectionNavigationItem> = [...items]
+  const orderedItems: Array<T | CollectionNavigationItem> = items.filter(
+    (item) => item.url !== '/playground',
+  )
 
   if (!orderedItems.some((item) => item.url === notesNavigationItem.url)) {
-    const playgroundIndex = orderedItems.findIndex((item) => item.url === '/playground')
+    const workIndex = orderedItems.findIndex((item) => item.url === '/work')
     orderedItems.splice(
-      playgroundIndex >= 0 ? playgroundIndex + 1 : orderedItems.length,
+      workIndex >= 0 ? workIndex + 1 : orderedItems.length,
       0,
       notesNavigationItem,
     )

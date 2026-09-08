@@ -15,7 +15,6 @@ const fallbackPages: NavMenuPage[] = [
   { label: 'Home', url: '/' },
   { label: 'About', url: '/about' },
   { label: 'Work', url: '/work' },
-  { label: 'Playground', url: '/playground' },
   { label: 'Notes', url: '/notes' },
   { label: 'Photos', url: '/photos' },
   { label: 'Clients', url: '/clients' },
@@ -26,7 +25,7 @@ const expandedDesktopPagePool = [
   { label: 'Home', url: '/' },
   { label: 'About', url: '/about' },
   { label: 'Work', url: '/work' },
-  { label: 'Play', url: '/playground' },
+  { label: 'Notes', url: '/notes' },
 ] as const
 
 const expandedDesktopCollapseOffsets = [196, 124, 60] as const
@@ -37,6 +36,11 @@ const desktopNavExpandThreshold = 16
 const subscribeToHydration = () => () => {}
 const getHydratedSnapshot = () => true
 const getServerHydratedSnapshot = () => false
+
+function isNavPageActive(pathname: string, url: string) {
+  return pathname === url
+    || (url !== '/' && pathname.startsWith(`${url}/`))
+}
 
 export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
   const [open, setOpen] = useState(false)
@@ -51,7 +55,7 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
   const navPages = orderSiteNavigationItems(pages?.length ? pages : fallbackPages)
   const currentShortcutUrl = shortcutPathname === '/'
     ? '/'
-    : expandedDesktopPagePool.find((page) => page.url !== '/' && shortcutPathname.startsWith(page.url))?.url
+    : expandedDesktopPagePool.find((page) => isNavPageActive(shortcutPathname, page.url))?.url
   const desktopPages = expandedDesktopPagePool
     .filter((page) => page.url !== currentShortcutUrl)
     .slice(0, 3)
@@ -119,7 +123,7 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
                 <Link
                   href={page.url}
                   prefetch
-                  aria-current={pathname === page.url || pathname.startsWith(`${page.url}/`) ? 'page' : undefined}
+                  aria-current={isNavPageActive(pathname, page.url) ? 'page' : undefined}
                   className="rounded-sm text-body text-text-muted transition-colors duration-150 hover:text-text-strong focus-visible:text-text-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content"
                 >
                   {page.label}
@@ -190,7 +194,7 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
             }`}
           >
             {navPages.map((page) => {
-              const isActive = pathname === page.url || (page.url !== '/' && pathname?.startsWith(page.url))
+              const isActive = isNavPageActive(pathname, page.url)
               return (
                 <Link
                   key={page.url}
@@ -251,7 +255,7 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
             }`}
           >
             {navPages.map((page) => {
-              const isActive = pathname === page.url || (page.url !== '/' && pathname?.startsWith(page.url))
+              const isActive = isNavPageActive(pathname, page.url)
               return (
                 <Link
                   key={page.url}

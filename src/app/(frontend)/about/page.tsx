@@ -109,6 +109,9 @@ export default async function AboutPage() {
     ? sideProjectsResult.docs
     : publicPreview?.sideProjects || []) as any[]
   const aboutSections = (page?.aboutSections as any[]) || []
+  const hasPlaygroundSection = aboutSections.some(
+    (section: any) => section.blockType === 'aboutPlaygroundSection',
+  )
   const homeAboutSection = ((homePage?.sections as any[]) || []).find(
     (section: any) => section.blockType === 'aboutSection',
   )
@@ -298,6 +301,11 @@ export default async function AboutPage() {
                 {renderSection(section)}
               </div>
             ))}
+            {!hasPlaygroundSection && (
+              <div>
+                {renderPlayground({ title: 'Playground', itemLimit: 5, linkText: 'View all' })}
+              </div>
+            )}
           </div>
         </Container>
       </section>
