@@ -130,7 +130,7 @@ export default async function NotePage({ params }: NotePageProps) {
 
         {readNextNotes.length > 0 ? (
           <section aria-labelledby="continue-reading-heading" className="mx-auto mt-16 max-w-[760px] border-t border-border pt-12 desktop:grid desktop:grid-cols-2 desktop:items-start desktop:gap-8">
-            <h2 id="continue-reading-heading" className="note-continue-reading-heading text-text-strong">
+            <h2 id="continue-reading-heading" className="note-continue-reading-heading text-text-muted">
               Continue reading
             </h2>
             <ul className="mt-5 flex min-w-0 flex-col gap-4 desktop:mt-0">
