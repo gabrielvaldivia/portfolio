@@ -14,6 +14,7 @@ const FOOTER_LINKS = [
   { label: 'Photo', href: '/photo' },
   { label: 'Activity', href: '/activity' },
   { label: 'Chat', href: '/chat' },
+  { label: 'Credits', href: '/credits' },
 ]
 
 type FooterSocialLink = {
