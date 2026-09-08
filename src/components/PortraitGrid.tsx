@@ -6,7 +6,7 @@ import { useState } from 'react'
 const portraits = Array.from({ length: 40 }, (_, age) => ({
   age,
   year: 1987 + age,
-  image: `/portrait-ages/age-${String(age).padStart(2, '0')}.png`,
+  image: `/portrait-ages/age-${String(age).padStart(2, '0')}.webp`,
 }))
 
 export function PortraitGrid() {
@@ -52,6 +52,7 @@ export function PortraitGrid() {
                   alt={`Engraved portrait of Gabriel Valdivia at age ${portrait.age}`}
                   className="object-cover"
                   fill
+                  preload={portrait.age === 0}
                   sizes="(min-width: 1536px) 12.5vw, (min-width: 1280px) 20vw, (min-width: 768px) 25vw, 50vw"
                   src={portrait.image}
                 />
