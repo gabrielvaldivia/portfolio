@@ -14,7 +14,6 @@ const FOOTER_LINKS = [
   { label: 'Photo', href: '/photo' },
   { label: 'Activity', href: '/activity' },
   { label: 'Chat', href: '/chat' },
-  { label: 'Timeline', href: '/timeline' },
 ]
 
 type FooterSocialLink = {
@@ -155,7 +154,6 @@ export function Footer({
               <Link
                 key={link.href}
                 href={link.href}
-                scroll={link.href === '/timeline' ? false : undefined}
                 className={FOOTER_TEXT_LINK_CLASS}
               >
                 {link.label}
