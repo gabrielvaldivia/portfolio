@@ -75,5 +75,18 @@
     "tailwindcss": "^4.3.2",
     "tsx": "^4.23.0",
     "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "fast-uri": "3.1.6",
+    "js-yaml": "4.3.1",
+    "@payloadcms/next": {
+      "sass": {
+        "immutable": "4.3.9"
+      }
+    },
+    "sass": {
+      ".": "$sass",
+      "immutable": "5.1.8"
+    }
   }
 }
