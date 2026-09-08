@@ -15,6 +15,7 @@ import { formatAdminURL } from 'payload/shared'
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 
 import { getPagePath, sortPagesByOrder } from '@/lib/pageOrdering'
+import { orderSiteNavigationItems } from '@/lib/siteNavigation'
 
 type NavPage = {
   id: number | string
@@ -44,6 +45,7 @@ export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListVi
   const [pages, setPages] = useState(queriedPages)
   const [savingOrder, setSavingOrder] = useState(false)
   const canUpdatePages = Boolean(permissions?.collections?.pages?.update)
+  const canReadNotes = Boolean(permissions?.collections?.notes?.read)
 
   useEffect(() => {
     setPages(queriedPages)
@@ -103,6 +105,11 @@ export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListVi
   }, [pages, savePageOrder, savingOrder])
 
   const pageIDs = pages.map((page) => String(page.id))
+  const navigationItems = orderSiteNavigationItems(pages.map((page) => ({
+    ...page,
+    label: page.title || page.slug || 'Untitled page',
+    url: getPagePath(page.slug) || '',
+  }))).filter((item) => 'id' in item || canReadNotes)
 
   const renderPageLink = (page: NavPage) => {
     const label = page.title || page.slug || 'Untitled page'
@@ -132,30 +139,50 @@ export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListVi
         {BeforeListTable}
         <div className="nav-pages-list-view__list" aria-busy={savingOrder} aria-label="Editable pages" role="list">
           <DraggableSortable className="nav-pages-list-view__sortable" ids={pageIDs} onDragEnd={handleReorder}>
-            {pages.map((page) => (
-              <DraggableSortableItem disabled={!canUpdatePages || savingOrder} id={String(page.id)} key={page.id}>
-                {({ attributes, isDragging, listeners, setNodeRef, transform, transition }) => (
-                  <div
-                    className={`nav-pages-list-view__item${isDragging ? ' nav-pages-list-view__item--dragging' : ''}`}
-                    ref={setNodeRef}
-                    role="listitem"
-                    style={{ transform, transition } as CSSProperties}
-                  >
-                    <button
-                      {...attributes}
-                      {...listeners}
-                      aria-label={`Reorder ${page.title || page.slug || 'page'}`}
-                      className="nav-pages-list-view__drag-handle"
-                      disabled={!canUpdatePages || savingOrder}
-                      type="button"
+            {navigationItems.map((item) => {
+              if (!('id' in item)) {
+                return (
+                  <div className="nav-pages-list-view__item nav-pages-list-view__item--fixed" key={item.url} role="listitem">
+                    <span className="nav-pages-list-view__drag-placeholder" aria-hidden="true" />
+                    <Link
+                      aria-label="Edit Notes"
+                      className="nav-pages-list-view__link"
+                      href={formatAdminURL({ adminRoute, path: '/collections/notes' })}
+                      prefetch={false}
                     >
-                      <DragHandleIcon />
-                    </button>
-                    {renderPageLink(page)}
+                      <span className="nav-pages-list-view__label">{item.label}</span>
+                      <span className="nav-pages-list-view__path">{item.url}</span>
+                      <span className="nav-pages-list-view__chevron" aria-hidden="true" />
+                    </Link>
                   </div>
-                )}
-              </DraggableSortableItem>
-            ))}
+                )
+              }
+
+              return (
+                <DraggableSortableItem disabled={!canUpdatePages || savingOrder} id={String(item.id)} key={item.id}>
+                  {({ attributes, isDragging, listeners, setNodeRef, transform, transition }) => (
+                    <div
+                      className={`nav-pages-list-view__item${isDragging ? ' nav-pages-list-view__item--dragging' : ''}`}
+                      ref={setNodeRef}
+                      role="listitem"
+                      style={{ transform, transition } as CSSProperties}
+                    >
+                      <button
+                        {...attributes}
+                        {...listeners}
+                        aria-label={`Reorder ${item.title || item.slug || 'page'}`}
+                        className="nav-pages-list-view__drag-handle"
+                        disabled={!canUpdatePages || savingOrder}
+                        type="button"
+                      >
+                        <DragHandleIcon />
+                      </button>
+                      {renderPageLink(item)}
+                    </div>
+                  )}
+                </DraggableSortableItem>
+              )
+            })}
           </DraggableSortable>
 
         </div>

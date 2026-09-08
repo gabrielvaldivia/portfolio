@@ -4,6 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/cn'
+import { orderSiteNavigationItems } from '@/lib/siteNavigation'
 
 type NavMenuPage = {
   label: string
@@ -36,20 +37,6 @@ const subscribeToHydration = () => () => {}
 const getHydratedSnapshot = () => true
 const getServerHydratedSnapshot = () => false
 
-function orderNavigationPages(pages: NavMenuPage[]) {
-  const notesPage = pages.find((page) => page.url === '/notes') ?? {
-    label: 'Notes',
-    url: '/notes',
-  }
-  const orderedPages = pages
-    .filter((page) => page.url !== '/notes')
-
-  const playgroundIndex = orderedPages.findIndex((page) => page.url === '/playground')
-  orderedPages.splice(playgroundIndex >= 0 ? playgroundIndex + 1 : orderedPages.length, 0, notesPage)
-
-  return orderedPages
-}
-
 export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
   const [open, setOpen] = useState(false)
   const [expandedNavHidden, setExpandedNavHidden] = useState(false)
@@ -60,7 +47,7 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
   // then use the actual browser route without rebuilding the whole page.
   const shortcutPathname = hydrated ? pathname : '/'
   const isChat = pathname.startsWith('/chat')
-  const navPages = orderNavigationPages(pages?.length ? pages : fallbackPages)
+  const navPages = orderSiteNavigationItems(pages?.length ? pages : fallbackPages)
   const currentShortcutUrl = shortcutPathname === '/'
     ? '/'
     : expandedDesktopPagePool.find((page) => page.url !== '/' && shortcutPathname.startsWith(page.url))?.url

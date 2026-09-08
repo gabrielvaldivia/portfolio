@@ -5,6 +5,7 @@ import type { Where } from 'payload'
 import { getPayload } from './payload'
 import type { PageLike } from './pageMetadata'
 import { getPagePath, sortPagesByOrder, type OrderedPage } from './pageOrdering'
+import { orderSiteNavigationItems } from './siteNavigation'
 
 type GetProjectsOptions = {
   includeHidden?: boolean
@@ -290,11 +291,7 @@ export const getNavigationPages = unstable_cache(async function getNavigationPag
     ]
   })
 
-  if (pages.length > 0 && !pages.some((page) => page.url === '/notes')) {
-    pages.push({ label: 'Notes', url: '/notes' })
-  }
-
-  return pages
+  return pages.length > 0 ? orderSiteNavigationItems(pages) : pages
 }, ['navigation-pages'], { revalidate: 60, tags: ['navigation-pages'] })
 
 export const getSiteSettings = unstable_cache(async function getSiteSettings() {
