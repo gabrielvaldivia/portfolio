@@ -1,7 +1,7 @@
 const DEFAULT_MODEL = '@cf/meta/llama-3.1-8b-instruct-fast'
 const DEFAULT_TIMEOUT_MS = 20_000
 
-export type WorkersAIToolCall = {
+type WorkersAIToolCall = {
   id: string
   type: 'function'
   function: {
@@ -74,7 +74,7 @@ export function isWorkersAIConfigured() {
   return Boolean(getCloudflareAccountId() && process.env.CLOUDFLARE_AI_API_TOKEN?.trim())
 }
 
-export function getWorkersAIModel() {
+function getWorkersAIModel() {
   const model = process.env.CLOUDFLARE_AI_MODEL?.trim() || DEFAULT_MODEL
   if (!model.startsWith('@cf/')) {
     throw new Error('CLOUDFLARE_AI_MODEL must be a Cloudflare-hosted @cf model')

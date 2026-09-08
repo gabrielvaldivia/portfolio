@@ -1,4 +1,4 @@
-export type ResponsiveImageVariant = {
+type ResponsiveImageVariant = {
   url?: string | null
   width?: number | null
   height?: number | null

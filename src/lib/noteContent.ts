@@ -1,4 +1,4 @@
-export function extractRichText(value: unknown): string {
+function extractRichText(value: unknown): string {
   if (!value || typeof value !== 'object') return ''
 
   const visit = (node: unknown): string => {

@@ -1,4 +1,4 @@
-export type TimelineWorldContext = {
+type TimelineWorldContext = {
   href: string
   summary: string
 }

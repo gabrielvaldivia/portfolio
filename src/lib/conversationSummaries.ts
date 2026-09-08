@@ -2,7 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from 'react'
 
-export type ConversationMessage = {
+type ConversationMessage = {
   role: 'user' | 'assistant'
   content: string
 }
@@ -53,7 +53,7 @@ function mergeItems(incoming: ConversationSummary[]) {
   return Array.from(merged.values())
 }
 
-export function loadMoreConversationSummaries() {
+function loadMoreConversationSummaries() {
   if (pendingPage) return pendingPage
   if (state.loaded && !state.nextCursor) return Promise.resolve()
 

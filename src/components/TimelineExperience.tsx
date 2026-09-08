@@ -1331,7 +1331,7 @@ export function TimelineExperience({
     }
   }
 
-  const scheduleAgePortraitPosition = (clientX: number) => {
+  const scheduleAgePortraitPosition = () => {
     const anchorX = agePortraitAnchorXRef.current
     const anchorY = agePortraitAnchorYRef.current
     if (anchorX === null || anchorY === null) return
@@ -1362,14 +1362,14 @@ export function TimelineExperience({
     const ageBounds = (ageValueRef.current ?? event.currentTarget).getBoundingClientRect()
     agePortraitAnchorXRef.current = ageBounds.left + ageBounds.width / 2
     agePortraitAnchorYRef.current = ageBounds.top
-    scheduleAgePortraitPosition(event.clientX)
+    scheduleAgePortraitPosition()
     setIsLocationGlobeVisible(false)
     setIsAgePortraitVisible(true)
   }
 
   const handleAgePointerMove = (event: React.PointerEvent<HTMLElement>) => {
     if (event.pointerType === 'mouse') {
-      scheduleAgePortraitPosition(event.clientX)
+      scheduleAgePortraitPosition()
     }
     handleMetadataPointerMove(event)
   }

@@ -80,7 +80,7 @@ function getValidAspectRatio(value: unknown) {
     : undefined
 }
 
-export function ImageBlockComponent({
+function ImageBlockComponent({
   image,
   caption,
   border,
@@ -151,7 +151,7 @@ export function ImageBlockComponent({
   )
 }
 
-export function VideoBlockComponent({
+function VideoBlockComponent({
   video,
   url,
   caption,
@@ -225,7 +225,7 @@ export function VideoBlockComponent({
   )
 }
 
-export function BrowserBlockComponent({
+function BrowserBlockComponent({
   image,
   caption,
   columns,
@@ -378,7 +378,7 @@ function DeviceFrameImage({ src }: { src: string }) {
   )
 }
 
-export function DC1Block({ id: blockId, video, rows, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; rows?: string } & ModuleRenderProps) {
+function DC1Block({ id: blockId, video, rows, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; rows?: string } & ModuleRenderProps) {
   const src = video?.url
   if (!src) return null
   const rowCount = parseInt(rows || '1', 10)
@@ -405,7 +405,7 @@ export function DC1Block({ id: blockId, video, rows, _containedInLightbox, _mode
   )
 }
 
-export function iPhone15Block({ id: blockId, video, image, rows, showNotch, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string; showNotch?: boolean | string | number } & ModuleRenderProps) {
+function iPhone15Block({ id: blockId, video, image, rows, showNotch, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string; showNotch?: boolean | string | number } & ModuleRenderProps) {
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url
@@ -450,7 +450,7 @@ export function iPhone15Block({ id: blockId, video, image, rows, showNotch, _con
   )
 }
 
-export function iPhone13MiniBlock({ id: blockId, video, image, rows, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
+function iPhone13MiniBlock({ id: blockId, video, image, rows, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url
@@ -484,7 +484,7 @@ export function iPhone13MiniBlock({ id: blockId, video, image, rows, _containedI
   )
 }
 
-export function iPhone5Block({ id: blockId, video, image, rows, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
+function iPhone5Block({ id: blockId, video, image, rows, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url
@@ -518,7 +518,7 @@ export function iPhone5Block({ id: blockId, video, image, rows, _containedInLigh
   )
 }
 
-export function iPhone6Block({ id: blockId, video, image, rows, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
+function iPhone6Block({ id: blockId, video, image, rows, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url
@@ -552,7 +552,7 @@ export function iPhone6Block({ id: blockId, video, image, rows, _containedInLigh
   )
 }
 
-export function iPhoneXBlock({ id: blockId, video, image, rows, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
+function iPhoneXBlock({ id: blockId, video, image, rows, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string } & ModuleRenderProps) {
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url

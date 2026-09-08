@@ -20,7 +20,7 @@ type NavigationPageResult = OrderedPage & {
   status?: string | null
 }
 
-export type FooterSocialLink = {
+type FooterSocialLink = {
   platform: string | null
   url: string | null
 }
@@ -37,7 +37,7 @@ type NoteMedia = {
   width?: number | null
 }
 
-export type PublishedNote = {
+type PublishedNote = {
   _status?: 'draft' | 'published' | null
   body: unknown
   coverImage?: number | string | NoteMedia | null
@@ -57,17 +57,12 @@ export type PublishedNote = {
 
 export async function getProjects(options: GetProjectsOptions = {}) {
   const payload = await getPayload()
-  const filters = []
-
-  if (!options.includeHidden) {
-    filters.push({ hide: { not_equals: true } })
-  }
 
   return payload.find({
     collection: 'projects',
     sort: 'order',
     limit: 100,
-    where: filters.length > 1 ? { and: filters } : filters[0] || {},
+    where: options.includeHidden ? {} : { hide: { not_equals: true } },
     depth: 2,
   })
 }
@@ -93,11 +88,6 @@ export const getProjectSlugs = cache(async function getProjectSlugs() {
   })
   return result.docs.flatMap((project) => project.slug ? [project.slug] : [])
 })
-
-export async function getClients() {
-  const payload = await getPayload()
-  return payload.find({ collection: 'clients', limit: 100, depth: 1 })
-}
 
 export async function getSideProjects() {
   const payload = await getPayload()
@@ -244,16 +234,6 @@ export const getSideProjectSlugs = cache(async function getSideProjectSlugs() {
   })
   return result.docs.flatMap((project) => project.slug ? [project.slug] : [])
 })
-
-export async function getFeaturedTestimonials() {
-  const payload = await getPayload()
-  return payload.find({
-    collection: 'people',
-    where: { featuredTestimonial: { equals: true } },
-    limit: 20,
-    depth: 2,
-  })
-}
 
 export const getPageBySlug = cache(async function getPageBySlug(slug: string): Promise<PageQueryResult | null> {
   const payload = await getPayload()

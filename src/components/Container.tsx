@@ -5,11 +5,3 @@ export function Container({ children, className = '', id }: { children: React.Re
     </div>
   )
 }
-
-export function NarrowContainer({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={`max-w-[800px] ${className}`}>
-      {children}
-    </div>
-  )
-}

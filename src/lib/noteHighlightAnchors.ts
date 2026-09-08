@@ -1,7 +1,7 @@
 import { getLinkedImage } from './richTextImages'
 
 export const MAX_HIGHLIGHT_LENGTH = 1_000
-export const HIGHLIGHT_CONTEXT_LENGTH = 64
+const HIGHLIGHT_CONTEXT_LENGTH = 64
 const MAX_POSITION = 2_000_000
 
 export type HighlightAnchor = {

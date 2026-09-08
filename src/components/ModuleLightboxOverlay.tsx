@@ -1755,7 +1755,6 @@ export function ModuleLightboxOverlay({
     const startDistance = getDistance(first, second)
     if (startDistance <= 0) return false
 
-    const center = getCenter(first, second)
     const currentZoom = getCurrentPhotoZoom()
 
     cancelLightboxDragForPhotoGesture()

@@ -338,8 +338,20 @@ function getSuggestedQuestions(faqItems: FAQItem[]) {
   return faqItems
     .filter((item) => item.showAsPill !== false)
     .map((item) => item.question)
-    .sort(() => Math.random() - 0.5)
     .slice(0, 4)
+}
+
+function getRandomSuggestedQuestions(faqItems: FAQItem[]) {
+  const questions = faqItems
+    .filter((item) => item.showAsPill !== false)
+    .map((item) => item.question)
+
+  for (let index = questions.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1))
+    ;[questions[index], questions[randomIndex]] = [questions[randomIndex], questions[index]]
+  }
+
+  return questions.slice(0, 4)
 }
 
 export function Chat({
@@ -440,7 +452,11 @@ export function Chat({
   const locationRef = useRef('')
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
   const blogIndexRequested = useRef(false)
-  const [suggestions] = useState<string[]>(() => getSuggestedQuestions(faqItems))
+  const [suggestions, setSuggestions] = useState<string[]>(() => getSuggestedQuestions(faqItems))
+
+  useEffect(() => {
+    setSuggestions(getRandomSuggestedQuestions(faqItems))
+  }, [faqItems])
 
   useEffect(() => {
     // Resolve the initial conversation id. On the dedicated /chat page
@@ -800,10 +816,10 @@ export function Chat({
       {/* Suggested pills */}
       {showSuggestions && suggestions.length > 0 && (
         <div className="mx-auto flex w-full max-w-[800px] flex-col items-start gap-2 px-1 pb-3">
-          {suggestions.map((q, i) => (
+          {suggestions.map((q) => (
             <button
               type="button"
-              key={i}
+              key={q}
               onClick={() => sendMessage(q)}
               className="w-fit px-3 py-1.5 text-caption tablet:px-4 tablet:py-2.5 tablet:text-body text-left text-text-muted rounded-[16px] tablet:rounded-[20px] hover:text-text-strong transition-colors cursor-pointer border border-dashed border-black/15 dark:border-white/15"
             >

@@ -38,7 +38,7 @@ export type ModuleLightboxPhotoExif = {
   focal?: string
 }
 
-export type ModuleLightboxPhotoInfo = {
+type ModuleLightboxPhotoInfo = {
   dateLabel?: string
   exif?: ModuleLightboxPhotoExif
 }
@@ -96,7 +96,7 @@ const DynamicModuleLightboxOverlay = dynamic(
 
 const ModuleLightboxContext = createContext<ModuleLightboxContextValue | null>(null)
 
-export function preloadModuleLightboxOverlay() {
+function preloadModuleLightboxOverlay() {
   void import('./ModuleLightboxOverlay')
 }
 

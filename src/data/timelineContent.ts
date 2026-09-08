@@ -330,7 +330,7 @@ export function enrichTimelineRichText(content: TimelineRichText): TimelineRichT
   }
 }
 
-export function paragraphsToTimelineRichText(paragraphs: readonly string[]): TimelineRichText {
+function paragraphsToTimelineRichText(paragraphs: readonly string[]): TimelineRichText {
   return enrichTimelineRichText({
     root: {
       children: paragraphs.map((text) => ({

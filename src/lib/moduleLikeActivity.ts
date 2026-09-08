@@ -1008,11 +1008,6 @@ export async function getModuleLikeActivityPage({
   }
 }
 
-export async function getModuleLikeActivity(limit?: number | null): Promise<ModuleLikeActivityItem[]> {
-  const page = await getModuleLikeActivityPage({ limit: limit ?? null })
-  return page.items
-}
-
 export async function getModuleLikeFeedPage({
   cursor,
   limit = MODULE_LIKE_FEED_PAGE_SIZE,
