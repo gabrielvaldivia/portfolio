@@ -2,7 +2,7 @@ import { cache } from 'react'
 import { getPayload } from './payload'
 
 export const SITE_URL = 'https://gabrielvaldivia.com'
-export const PHOTO_FEED_URL = `${SITE_URL}/photo/feed.json`
+export const PHOTO_FEED_URL = `${SITE_URL}/photos/feed.json`
 
 export type PhotoExif = {
   camera?: string

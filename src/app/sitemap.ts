@@ -20,7 +20,7 @@ const STATIC_ROUTES: Array<{
   { path: '/notes', changeFrequency: 'weekly', priority: 0.8 },
   { path: '/clients', changeFrequency: 'monthly', priority: 0.6 },
   { path: '/people', changeFrequency: 'monthly', priority: 0.6 },
-  { path: '/photo', changeFrequency: 'weekly', priority: 0.7 },
+  { path: '/photos', changeFrequency: 'weekly', priority: 0.7 },
   { path: '/timeline', changeFrequency: 'monthly', priority: 0.5 },
   { path: '/activity', changeFrequency: 'daily', priority: 0.4 },
 ]
@@ -135,7 +135,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const photo of photos.docs) {
     const slug = typeof photo.slug === 'string' ? photo.slug : undefined
     if (slug) {
-      addEntry(`/photo/${encodeURIComponent(slug)}`, {
+      addEntry(`/photos/${encodeURIComponent(slug)}`, {
         changeFrequency: 'yearly',
         lastModified: getLastModified(photo.updatedAt),
         priority: 0.4,

@@ -15,7 +15,10 @@ import { formatAdminURL } from 'payload/shared'
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 
 import { getPagePath, sortPagesByOrder } from '@/lib/pageOrdering'
-import { orderSiteNavigationItems } from '@/lib/siteNavigation'
+import {
+  orderSiteNavigationItems,
+  type CollectionNavigationItem,
+} from '@/lib/siteNavigation'
 
 type NavPage = {
   id: number | string
@@ -27,18 +30,16 @@ type NavPage = {
 type NavListItem = (NavPage & {
   label: string
   url: string
-}) | {
-  kind: 'notes'
-  label: string
-  url: '/notes'
-}
+}) | CollectionNavigationItem
 
 type NavPagesListViewProps = {
   BeforeList?: ReactNode
   BeforeListTable?: ReactNode
 }
 
-const notesSortableID = 'nav-notes'
+function getSortableID(item: NavListItem) {
+  return 'id' in item ? String(item.id) : `nav-${item.collectionSlug}`
+}
 
 export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListViewProps) {
   const {
@@ -56,13 +57,17 @@ export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListVi
   const canUpdatePages = Boolean(permissions?.collections?.pages?.update)
   const canCreatePages = Boolean(permissions?.collections?.pages?.create)
   const canReadNotes = Boolean(permissions?.collections?.notes?.read)
+  const canReadPhotos = Boolean(permissions?.collections?.photos?.read)
   const queriedNavigationItems = useMemo(
     () => orderSiteNavigationItems(queriedPages.map((page) => ({
       ...page,
       label: page.title || page.slug || 'Untitled page',
       url: getPagePath(page.slug) || '',
-    }))).filter((item) => item.url !== '/notes' || canReadNotes) as NavListItem[],
-    [canReadNotes, queriedPages],
+    }))).filter((item) => (
+      (item.url !== '/notes' || canReadNotes)
+      && (item.url !== '/photos' || canReadPhotos)
+    )) as NavListItem[],
+    [canReadNotes, canReadPhotos, queriedPages],
   )
   const [navigationItems, setNavigationItems] = useState(queriedNavigationItems)
   const [savingOrder, setSavingOrder] = useState(false)
@@ -76,18 +81,18 @@ export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListVi
   }, [setStepNav])
 
   const saveNavigationOrder = useCallback(async (orderedItems: NavListItem[]) => {
-    let persistedItems = orderedItems
-    const unpersistedNotesIndex = persistedItems.findIndex(
-      (item) => item.url === '/notes' && !('id' in item),
-    )
+    const persistedItems = [...orderedItems]
 
-    if (unpersistedNotesIndex >= 0) {
+    for (let index = 0; index < persistedItems.length; index += 1) {
+      const item = persistedItems[index]
+      if ('id' in item) continue
+
       const response = await fetch(formatAdminURL({ adminRoute: apiRoute, path: '/pages' }), {
         body: JSON.stringify({
-          order: unpersistedNotesIndex,
-          slug: 'notes',
+          order: index,
+          slug: item.collectionSlug,
           status: 'published',
-          title: 'Notes',
+          title: item.label,
           type: 'custom',
         }),
         credentials: 'same-origin',
@@ -95,20 +100,17 @@ export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListVi
         method: 'POST',
       })
 
-      if (!response.ok) throw new Error('Could not make Notes reorderable')
+      if (!response.ok) throw new Error(`Could not make ${item.label} reorderable`)
 
       const result = await response.json() as { doc?: NavPage }
-      const createdNotesPage = result.doc ?? (result as NavPage)
-      if (!createdNotesPage?.id) throw new Error('Could not make Notes reorderable')
+      const createdPage = result.doc ?? (result as NavPage)
+      if (!createdPage?.id) throw new Error(`Could not make ${item.label} reorderable`)
 
-      const persistedNotes: NavListItem = {
-        ...createdNotesPage,
-        label: createdNotesPage.title || 'Notes',
-        url: '/notes',
+      persistedItems[index] = {
+        ...createdPage,
+        label: createdPage.title || item.label,
+        url: item.url,
       }
-      persistedItems = orderedItems.map((item, index) => (
-        index === unpersistedNotesIndex ? persistedNotes : item
-      ))
     }
 
     const orderedPages = persistedItems.flatMap((item, index) => (
@@ -167,13 +169,9 @@ export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListVi
     }
   }, [navigationItems, saveNavigationOrder, savingOrder])
 
-  const navigationIDs = navigationItems.map((item) => (
-    'id' in item ? String(item.id) : notesSortableID
-  ))
-  const hasUnpersistedNotes = navigationItems.some(
-    (item) => item.url === '/notes' && !('id' in item),
-  )
-  const canReorderNavigation = canUpdatePages && (!hasUnpersistedNotes || canCreatePages)
+  const navigationIDs = navigationItems.map(getSortableID)
+  const hasUnpersistedCollections = navigationItems.some((item) => !('id' in item))
+  const canReorderNavigation = canUpdatePages && (!hasUnpersistedCollections || canCreatePages)
 
   const renderPageLink = (page: NavPage) => {
     const label = page.title || page.slug || 'Untitled page'
@@ -204,8 +202,12 @@ export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListVi
         <div className="nav-pages-list-view__list" aria-busy={savingOrder} aria-label="Editable pages" role="list">
           <DraggableSortable className="nav-pages-list-view__sortable" ids={navigationIDs} onDragEnd={handleReorder}>
             {navigationItems.map((item) => {
-              const isNotes = item.url === '/notes'
-              const sortableID = 'id' in item ? String(item.id) : notesSortableID
+              const collectionSlug = item.url === '/notes'
+                ? 'notes'
+                : item.url === '/photos'
+                  ? 'photos'
+                  : null
+              const sortableID = getSortableID(item)
 
               return (
                 <DraggableSortableItem disabled={!canReorderNavigation || savingOrder} id={sortableID} key={sortableID}>
@@ -226,11 +228,11 @@ export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListVi
                       >
                         <DragHandleIcon />
                       </button>
-                      {isNotes ? (
+                      {collectionSlug ? (
                         <Link
-                          aria-label="Edit Notes"
+                          aria-label={`Edit ${item.label}`}
                           className="nav-pages-list-view__link"
-                          href={formatAdminURL({ adminRoute, path: '/collections/notes' })}
+                          href={formatAdminURL({ adminRoute, path: `/collections/${collectionSlug}` })}
                           prefetch={false}
                         >
                           <span className="nav-pages-list-view__label">{item.label}</span>

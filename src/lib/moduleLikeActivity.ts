@@ -531,7 +531,7 @@ function indexPhotoTargets(index: Map<string, ActivityTarget>, photos: Photo[]) 
     const label = photo.alt.trim() || (dateLabel ? `Photo from ${dateLabel}` : 'Photo')
 
     index.set(getPhotoLikeTargetId(photo.slug), {
-      href: `/photo/${photo.slug}`,
+      href: `/photos/${photo.slug}`,
       sourceTitle: 'Photos',
       label,
       noun: 'photo',
@@ -625,7 +625,7 @@ function getFallbackTarget(targetId: string): ActivityTarget {
     : parsed?.sourceType === 'side-project'
       ? `/playground/${parsed.slug}`
       : parsed?.sourceType === 'photo'
-        ? `/photo/${parsed.slug}`
+        ? `/photos/${parsed.slug}`
         : parsed?.sourceType === 'note'
           ? `/notes/${parsed.slug}`
           : '#'

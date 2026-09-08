@@ -7,6 +7,20 @@ const nextConfig: NextConfig = {
   experimental: {
     globalNotFound: true,
   },
+  async redirects() {
+    return [
+      {
+        source: '/photo',
+        destination: '/photos',
+        permanent: true,
+      },
+      {
+        source: '/photo/:path+',
+        destination: '/photos/:path+',
+        permanent: true,
+      },
+    ]
+  },
   async headers() {
     return [
       {

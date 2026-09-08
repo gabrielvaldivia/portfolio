@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   },
 }
 
-type PhotoPageSearchParams = {
+type PhotosPageSearchParams = {
   photo?: string | string[]
 }
 
@@ -20,10 +20,10 @@ function getSearchParamValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value
 }
 
-export default async function PhotoPage({
+export default async function PhotosPage({
   searchParams,
 }: {
-  searchParams?: Promise<PhotoPageSearchParams>
+  searchParams?: Promise<PhotosPageSearchParams>
 }) {
   const resolvedSearchParams = searchParams ? await searchParams : {}
   return <PhotoGallery initialPhotoSlug={getSearchParamValue(resolvedSearchParams.photo)} />

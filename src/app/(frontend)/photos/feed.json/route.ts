@@ -8,7 +8,7 @@ export async function GET() {
   const feed = {
     version: 'https://jsonfeed.org/version/1.1',
     title: 'Gabriel Valdivia — Photos',
-    home_page_url: `${SITE_URL}/photo/`,
+    home_page_url: `${SITE_URL}/photos/`,
     feed_url: PHOTO_FEED_URL,
     authors: [
       {
@@ -19,7 +19,7 @@ export async function GET() {
     ],
     _photoring: { ring: 'openfeed-demo', creator: 'gabrielvaldivia' },
     items: photos.map((photo) => {
-      const permalink = `${SITE_URL}/photo/${photo.slug}/`
+      const permalink = `${SITE_URL}/photos/${photo.slug}/`
       const exif = Object.fromEntries(
         Object.entries(photo.exif).filter(([, value]) => value != null),
       )

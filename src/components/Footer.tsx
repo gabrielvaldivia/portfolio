@@ -11,7 +11,6 @@ const SCRAMBLE_DURATION = 600
 const FOOTER_TEXT_LINK_CLASS =
   'font-mono text-sm uppercase tracking-[-0.03em] text-text-muted transition-colors duration-150 hover:text-text-strong focus-visible:text-text-strong focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content'
 const FOOTER_LINKS = [
-  { label: 'Photo', href: '/photo' },
   { label: 'Activity', href: '/activity' },
   { label: 'Chat', href: '/chat' },
   { label: 'Credits', href: '/credits' },

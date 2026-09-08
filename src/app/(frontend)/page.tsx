@@ -251,7 +251,7 @@ function buildLikedWorkMarqueeItems(items: any[]): LikedWorkMarqueeItem[] {
       || !href
       || href === '#'
       || likeCount < 1
-      || href.startsWith('/photo/')
+      || href.startsWith('/photos/')
     ) return []
 
     const frame = thumbnail.frame?.url && thumbnail.frame?.aspectRatio
