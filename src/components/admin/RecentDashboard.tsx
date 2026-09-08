@@ -2,10 +2,11 @@ import type { DashboardViewServerProps } from '@payloadcms/next/views'
 import { Gutter, SetStepNav } from '@payloadcms/ui'
 import { formatAdminURL } from 'payload/shared'
 
+import { formatActivityTime } from '@/lib/activityTime'
+
 type RecentItem = {
   href: string
   id: string
-  label: string
   title: string
   updatedAt: string
 }
@@ -33,36 +34,6 @@ const recentGlobalSources = [
   { label: 'Settings', slug: 'site-settings' },
   { label: 'Timeline', slug: 'timeline' },
 ]
-
-const editedDateFormatter = new Intl.DateTimeFormat('en', {
-  day: 'numeric',
-  month: 'short',
-  timeZone: 'America/New_York',
-  year: 'numeric',
-})
-
-const editedDayFormatter = new Intl.DateTimeFormat('en-CA', {
-  day: '2-digit',
-  month: '2-digit',
-  timeZone: 'America/New_York',
-  year: 'numeric',
-})
-
-function formatEditedTime(updatedAt: string) {
-  const editedAt = new Date(updatedAt)
-  const now = new Date()
-
-  if (editedDayFormatter.format(editedAt) === editedDayFormatter.format(now)) {
-    const minutesAgo = Math.max(0, Math.floor((now.getTime() - editedAt.getTime()) / 60_000))
-    if (minutesAgo < 1) return 'Edited just now'
-    if (minutesAgo < 60) return `Edited ${minutesAgo} min ago`
-
-    const hoursAgo = Math.floor(minutesAgo / 60)
-    return `Edited ${hoursAgo} ${hoursAgo === 1 ? 'hr' : 'hrs'} ago`
-  }
-
-  return editedDateFormatter.format(editedAt)
-}
 
 function getItemTitle(doc: Record<string, unknown>, fields: string[], fallback: string) {
   for (const field of fields) {
@@ -119,7 +90,6 @@ export async function RecentDashboard({ initPageResult: { req }, permissions }: 
                 path: `/collections/${source.slug}/${doc.id}`,
               }),
               id: `${source.slug}-${doc.id}`,
-              label: source.label,
               title: getItemTitle(doc, source.titleFields, `Untitled ${source.label.toLowerCase()}`),
               updatedAt: doc.updatedAt,
             },
@@ -150,7 +120,6 @@ export async function RecentDashboard({ initPageResult: { req }, permissions }: 
             path: `/globals/${source.slug}`,
           }),
           id: `global-${source.slug}`,
-          label: 'Global',
           title: source.label,
           updatedAt: global.updatedAt,
         }
@@ -166,6 +135,7 @@ export async function RecentDashboard({ initPageResult: { req }, permissions }: 
   ]
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
     .slice(0, 30)
+  const nowMs = Date.now()
 
   const emptyStateHref = readableCollectionSources[0]
     ? formatAdminURL({
@@ -189,11 +159,12 @@ export async function RecentDashboard({ initPageResult: { req }, permissions }: 
               {recentItems.map((item) => (
                 <li className="recent-dashboard__item" key={item.id}>
                   <a aria-label={`Edit ${item.title}`} className="recent-dashboard__link" href={item.href}>
-                    <span className="recent-dashboard__title">{item.title}</span>
-                    <span className="recent-dashboard__details">
-                      <span className="recent-dashboard__type">{item.label}</span>
-                      <span aria-hidden="true">·</span>
-                      <time dateTime={item.updatedAt}>{formatEditedTime(item.updatedAt)}</time>
+                    <span className="recent-dashboard__title">
+                      {item.title}
+                      <span className="recent-dashboard__time">
+                        <span aria-hidden="true"> · </span>
+                        <time dateTime={item.updatedAt}>{formatActivityTime(item.updatedAt, nowMs)}</time>
+                      </span>
                     </span>
                   </a>
                 </li>

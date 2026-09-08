@@ -892,11 +892,8 @@ body:has(.collections) .collections:not(.page-dashboard) .collections__group:has
 }
 
 .recent-dashboard__link {
-  display: grid;
+  display: block;
   min-width: 0;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 24px;
   margin-inline: -12px;
   padding: 14px 12px;
   border-radius: var(--cms-control-radius);
@@ -912,22 +909,17 @@ body:has(.collections) .collections:not(.page-dashboard) .collections__group:has
 }
 
 .recent-dashboard__title {
-  min-width: 0;
-  overflow: hidden;
+  display: block;
   color: var(--cms-text-primary);
   font-weight: 500;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
-.recent-dashboard__details {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.recent-dashboard__time {
   color: var(--cms-text-tertiary);
-  font-size: var(--cms-control-small-font-size);
+  font-weight: 400;
   font-variant-numeric: tabular-nums;
-  line-height: var(--cms-control-small-line-height);
   white-space: nowrap;
 }
 
@@ -1145,13 +1137,7 @@ body:has(.dashboard) .collections:not(.page-dashboard) .card {
   }
 
   .recent-dashboard__link {
-    gap: 16px;
     padding-block: 13px;
-  }
-
-  .recent-dashboard__type,
-  .recent-dashboard__type + span {
-    display: none;
   }
 }
 
