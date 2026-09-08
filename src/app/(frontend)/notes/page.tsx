@@ -1,5 +1,6 @@
 import { Container } from '@/components/Container'
 import { FitText } from '@/components/FitText'
+import { HoverChevron } from '@/components/Icons'
 import { buildPageMetadata } from '@/lib/pageMetadata'
 import { getPublishedNotes } from '@/lib/queries'
 import type { Metadata } from 'next'
@@ -69,10 +70,11 @@ export default async function NotesPage() {
                   {grouped[year].map((note) => (
                     <div className="py-4" key={note.id}>
                       <Link
-                        className="inline-block min-w-0 transition-opacity hover:opacity-60"
+                        className="group inline-flex min-w-0 items-baseline gap-2 transition-colors tablet:hover:opacity-60"
                         href={`/notes/${note.slug}`}
                       >
                         <h4 className="text-balance">{note.title}</h4>
+                        <HoverChevron />
                       </Link>
                     </div>
                   ))}
