@@ -11,7 +11,7 @@
       <div class="template-default__nav-toggler-container"><button>Sidebar</button></div>
     </div>
     <div class="template-default template-default--nav-hydrated">
-      <aside></aside>
+      <aside class="nav nav--nav-open"></aside>
       <div class="template-default__wrap">
         <header class="app-header">
           <div class="app-header__bg"></div>

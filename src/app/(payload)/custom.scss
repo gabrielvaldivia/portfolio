@@ -4632,6 +4632,7 @@ body:has(.drawer--is-open) :is(.template-default__nav-toggler-container, .app-he
   }
 
   .template-default__wrap {
+    grid-column: 2;
     width: 100vw;
     min-width: 100vw !important;
   }
