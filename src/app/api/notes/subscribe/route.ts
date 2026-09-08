@@ -8,32 +8,16 @@ import {
 } from '@/lib/noteSubscriptions'
 import { Resend } from 'resend'
 import { assertSameOrigin, readJSONBody, requestErrorResponse } from '@/lib/httpRequest'
+import { checkNoteSubscriptionRateLimit } from '@/lib/chatRateLimit'
 
 export const dynamic = 'force-dynamic'
 
 const CONFIRM_TTL_SECONDS = 60 * 60 * 48
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
-const RATE_LIMIT_MAX = 6
 const MAX_BODY_BYTES = 2_048
-const attempts = new Map<string, { count: number; resetAt: number }>()
 
 function clean(value: unknown) {
   return typeof value === 'string' ? value.trim() : ''
-}
-
-function isRateLimited(request: Request) {
-  const now = Date.now()
-  const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-  const key = forwarded || request.headers.get('x-real-ip') || 'unknown'
-  const current = attempts.get(key)
-
-  if (!current || current.resetAt <= now) {
-    attempts.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
-    return false
-  }
-
-  current.count += 1
-  return current.count > RATE_LIMIT_MAX
 }
 
 function confirmationEmail(email: string, confirmationURL: string) {
@@ -60,16 +44,34 @@ export async function POST(request: Request) {
 
   if (clean(body.website)) return Response.json({ ok: true })
 
-  if (isRateLimited(request)) {
-    return Response.json({ error: 'Please wait a little before trying again.' }, { status: 429 })
-  }
-
   const email = normalizeSubscriberEmail(body.email)
   if (!isValidSubscriberEmail(email)) {
     return Response.json({ error: 'Add a valid email address.' }, { status: 400 })
   }
   if (!process.env.RESEND_API_KEY) {
     return Response.json({ error: 'Email signup is temporarily unavailable.' }, { status: 503 })
+  }
+
+  let rateLimit: Awaited<ReturnType<typeof checkNoteSubscriptionRateLimit>>
+  try {
+    rateLimit = await checkNoteSubscriptionRateLimit(request.headers)
+  } catch (error) {
+    console.error('Notes subscription rate limit unavailable:', error instanceof Error ? error.name : 'unknown')
+    return Response.json({ error: 'Email signup is temporarily unavailable.' }, { status: 503 })
+  }
+
+  if (!rateLimit.allowed) {
+    return Response.json(
+      { error: 'Please wait a little before trying again.' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(rateLimit.retryAfterSeconds),
+          'X-RateLimit-Limit': String(rateLimit.limit),
+          'X-RateLimit-Remaining': '0',
+        },
+      },
+    )
   }
 
   try {

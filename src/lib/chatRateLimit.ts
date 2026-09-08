@@ -3,11 +3,14 @@ import { sql } from '@payloadcms/db-postgres'
 import { getPayload } from './payload'
 import { getPayloadSecret } from './payloadSecret'
 
-const WINDOW_MS = 60 * 60 * 1_000
+const HOUR_MS = 60 * 60 * 1_000
+const SUBSCRIPTION_WINDOW_MS = 15 * 60 * 1_000
 const DEFAULT_REQUEST_LIMIT = 12
 const DEFAULT_DAILY_REQUEST_LIMIT = 40
 const DEFAULT_CONTACT_REQUEST_LIMIT = 5
 const DEFAULT_CONTACT_DAILY_REQUEST_LIMIT = 50
+const DEFAULT_SUBSCRIPTION_REQUEST_LIMIT = 6
+const DEFAULT_SUBSCRIPTION_DAILY_REQUEST_LIMIT = 100
 
 function getRequestLimit() {
   const configured = Number(process.env.CHAT_RATE_LIMIT_PER_HOUR)
@@ -33,6 +36,18 @@ function getContactDailyRequestLimit() {
   return Math.min(Math.max(Math.trunc(configured), 1), 500)
 }
 
+function getSubscriptionRequestLimit() {
+  const configured = Number(process.env.NOTES_SUBSCRIBE_RATE_LIMIT_PER_15_MINUTES)
+  if (!Number.isFinite(configured)) return DEFAULT_SUBSCRIPTION_REQUEST_LIMIT
+  return Math.min(Math.max(Math.trunc(configured), 1), 100)
+}
+
+function getSubscriptionDailyRequestLimit() {
+  const configured = Number(process.env.NOTES_SUBSCRIBE_DAILY_RATE_LIMIT)
+  if (!Number.isFinite(configured)) return DEFAULT_SUBSCRIPTION_DAILY_REQUEST_LIMIT
+  return Math.min(Math.max(Math.trunc(configured), 1), 1_000)
+}
+
 function getClientIdentity(headers: Headers) {
   const forwarded = headers.get('x-forwarded-for')?.split(',')[0]?.trim()
   const ip = forwarded || headers.get('x-real-ip')?.trim() || 'unknown'
@@ -47,7 +62,7 @@ function readCounts(result: unknown) {
     row = result.rows[0]
   }
   return {
-    hourly: Number(row?.hourly_count) || 0,
+    window: Number(row?.window_count) || 0,
     daily: Number(row?.daily_count) || 0,
   }
 }
@@ -57,22 +72,24 @@ async function checkPersistentRateLimit({
   namespace = '',
   limit,
   dailyLimit,
+  windowMs = HOUR_MS,
 }: {
   headers: Headers
   namespace?: string
   limit: number
   dailyLimit: number
+  windowMs?: number
 }) {
   const now = new Date()
-  const hourStartMs = Math.floor(now.getTime() / WINDOW_MS) * WINDOW_MS
+  const windowStartMs = Math.floor(now.getTime() / windowMs) * windowMs
   const dayStartMs = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
-  const hourStartedAt = new Date(hourStartMs)
+  const windowStartedAt = new Date(windowStartMs)
   const dayStartedAt = new Date(dayStartMs)
   const identity = getClientIdentity(headers)
   const secret = getPayloadSecret()
   const keyNamespace = namespace ? `${namespace}:` : ''
   const hourlyKeyHash = createHash('sha256')
-    .update(`${secret}:${keyNamespace}hourly:${identity}:${hourStartMs}`)
+    .update(`${secret}:${keyNamespace}hourly:${identity}:${windowStartMs}`)
     .digest('hex')
   const dailyKeyHash = createHash('sha256')
     .update(`${secret}:${keyNamespace}global-daily:${dayStartMs}`)
@@ -91,32 +108,32 @@ async function checkPersistentRateLimit({
       DO UPDATE SET "request_count" = "chat_rate_limits"."request_count" + 1
       RETURNING "request_count"
     ),
-    "hourly_counter" AS (
+    "window_counter" AS (
       INSERT INTO "chat_rate_limits" ("key_hash", "window_started_at", "request_count")
-      VALUES (${hourlyKeyHash}, ${hourStartedAt}, 1)
+      VALUES (${hourlyKeyHash}, ${windowStartedAt}, 1)
       ON CONFLICT ("key_hash")
       DO UPDATE SET "request_count" = "chat_rate_limits"."request_count" + 1
       RETURNING "request_count"
     )
     SELECT
-      (SELECT "request_count" FROM "hourly_counter") AS "hourly_count",
+      (SELECT "request_count" FROM "window_counter") AS "window_count",
       (SELECT "request_count" FROM "daily_counter") AS "daily_count";
   `)
 
   const counts = readCounts(result)
-  const hourlyAllowed = counts.hourly > 0 && counts.hourly <= limit
+  const windowAllowed = counts.window > 0 && counts.window <= limit
   const dailyAllowed = counts.daily > 0 && counts.daily <= dailyLimit
-  const hourRetrySeconds = Math.max(Math.ceil((hourStartMs + WINDOW_MS - Date.now()) / 1_000), 1)
-  const dayRetrySeconds = Math.max(Math.ceil((dayStartMs + 24 * WINDOW_MS - Date.now()) / 1_000), 1)
+  const windowRetrySeconds = Math.max(Math.ceil((windowStartMs + windowMs - Date.now()) / 1_000), 1)
+  const dayRetrySeconds = Math.max(Math.ceil((dayStartMs + 24 * HOUR_MS - Date.now()) / 1_000), 1)
 
   return {
-    allowed: hourlyAllowed && dailyAllowed,
+    allowed: windowAllowed && dailyAllowed,
     limit,
-    remaining: Math.max(limit - counts.hourly, 0),
+    remaining: Math.max(limit - counts.window, 0),
     dailyLimit,
     dailyRemaining: Math.max(dailyLimit - counts.daily, 0),
     retryAfterSeconds: Math.max(
-      hourlyAllowed ? 0 : hourRetrySeconds,
+      windowAllowed ? 0 : windowRetrySeconds,
       dailyAllowed ? 0 : dayRetrySeconds,
     ),
   }
@@ -136,5 +153,15 @@ export function checkContactRateLimit(headers: Headers) {
     namespace: 'contact',
     limit: getContactRequestLimit(),
     dailyLimit: getContactDailyRequestLimit(),
+  })
+}
+
+export function checkNoteSubscriptionRateLimit(headers: Headers) {
+  return checkPersistentRateLimit({
+    headers,
+    namespace: 'notes-subscribe',
+    limit: getSubscriptionRequestLimit(),
+    dailyLimit: getSubscriptionDailyRequestLimit(),
+    windowMs: SUBSCRIPTION_WINDOW_MS,
   })
 }
