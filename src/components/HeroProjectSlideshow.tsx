@@ -27,7 +27,6 @@ import { ServicePill } from '@/components/ServicePill'
 import { PayloadImage } from '@/components/PayloadImage'
 import type { ResponsiveImageMedia } from '@/lib/responsiveImage'
 import { observeMobileHeroViewport } from '@/lib/observeMobileHeroViewport'
-import { isMobileSafariUserAgent } from '@/lib/mobileSafari'
 
 type HeroTestimonial = {
   id: string
@@ -632,34 +631,15 @@ export function HeroProjectSlideshow({ projects }: Props) {
     const root = document.documentElement
     const region = regionRef.current
     if (!region) return
-    const isMobileSafari = isMobileSafariUserAgent(navigator.userAgent)
 
     const approach = document.querySelector<HTMLElement>('.hero-approach-snap-point')
     if (!approach) return
 
     let approachSnapY = 0
-    let regionTopY = 0
-    let regionBottomY = 0
-    let viewportHeight = 0
     let touchY: number | null = null
     const measureBoundary = () => {
       const margin = Number.parseFloat(getComputedStyle(approach).scrollMarginTop) || 0
-      const regionBounds = region.getBoundingClientRect()
-      const scrollY = window.scrollY
       approachSnapY = approach.getBoundingClientRect().top + window.scrollY - margin
-      regionTopY = regionBounds.top + scrollY
-      regionBottomY = regionBounds.bottom + scrollY
-      viewportHeight = window.visualViewport?.height || window.innerHeight
-    }
-    const isHeroInView = () => (
-      window.scrollY < regionBottomY - 1
-      && window.scrollY + viewportHeight > regionTopY + 1
-    )
-    const setSafariPaginationFade = (visible: boolean) => {
-      region.classList.toggle(
-        'hero-mobile-safari-paginating',
-        isMobileSafari && visible,
-      )
     }
     const setFreeScroll = (free: boolean) => {
       root.classList.toggle('hero-project-pagination-free', free)
@@ -672,7 +652,6 @@ export function HeroProjectSlideshow({ projects }: Props) {
 
     const handleScrollEnd = () => {
       measureBoundary()
-      setSafariPaginationFade(false)
       // Keep pagination ready at the exact boundary for the next upward swipe.
       // Downward input disables it before moving into Approach. Switching it
       // on during an upward gesture can consume that first gesture in WebKit.
@@ -688,7 +667,6 @@ export function HeroProjectSlideshow({ projects }: Props) {
     const handleTouchMove = (event: TouchEvent) => {
       if (touchY === null || event.touches.length !== 1) return
       const nextY = event.touches[0].clientY
-      if (nextY !== touchY && isHeroInView()) setSafariPaginationFade(true)
       updateGestureMode(touchY - nextY)
       touchY = nextY
     }
@@ -696,7 +674,6 @@ export function HeroProjectSlideshow({ projects }: Props) {
     const handleWheel = (event: WheelEvent) => {
       if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return
       measureBoundary()
-      if (event.deltaY && isHeroInView()) setSafariPaginationFade(true)
       updateGestureMode(event.deltaY)
     }
 
@@ -705,7 +682,6 @@ export function HeroProjectSlideshow({ projects }: Props) {
     let settleTimeout: ReturnType<typeof setTimeout> | undefined
     const supportsScrollEnd = 'onscrollend' in window
     const handleScroll = () => {
-      if (isHeroInView()) setSafariPaginationFade(true)
       // Also catch re-entry during momentum or keyboard scrolling. Use the
       // cached boundary so the scroll listener doesn't measure layout.
       if (window.scrollY < approachSnapY - 1) setFreeScroll(false)
@@ -715,7 +691,6 @@ export function HeroProjectSlideshow({ projects }: Props) {
       }
     }
     root.classList.add('hero-project-pagination-active')
-    region.classList.toggle('hero-mobile-safari', isMobileSafari)
     handleScrollEnd()
     if (supportsScrollEnd) window.addEventListener('scrollend', handleScrollEnd)
     window.addEventListener('scroll', handleScroll, { passive: true })
@@ -738,8 +713,6 @@ export function HeroProjectSlideshow({ projects }: Props) {
       clearTimeout(settleTimeout)
       root.classList.remove('hero-project-pagination-active')
       root.classList.remove('hero-project-pagination-free')
-      region.classList.remove('hero-mobile-safari')
-      region.classList.remove('hero-mobile-safari-paginating')
     }
   }, [isMobileViewport, projects.length])
 
@@ -830,8 +803,6 @@ export function HeroProjectSlideshow({ projects }: Props) {
           // Share one viewport-height overlay without adding scroll height.
           // Sticky keeps the lines still between slides, but scoped to the hero.
           <div className="pointer-events-none sticky top-0 z-20 col-start-1 row-start-1 self-start" style={{ height: MOBILE_VIEWPORT_HEIGHT }}>
-            <div aria-hidden="true" className="hero-mobile-safari-edge hero-mobile-safari-edge-top absolute inset-x-0 top-0" />
-            <div aria-hidden="true" className="hero-mobile-safari-edge hero-mobile-safari-edge-bottom absolute inset-x-0 bottom-0" />
             <div
               role="group"
               aria-label="Project pagination"
