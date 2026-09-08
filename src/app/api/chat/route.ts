@@ -1,6 +1,7 @@
 import { buildContext, type FAQItem } from '@/lib/buildContext'
 import { normalizeAIChatMessages } from '@/lib/chatMessages'
 import { checkChatRateLimit } from '@/lib/chatRateLimit'
+import { assertSameOrigin, readJSONBody, requestErrorResponse } from '@/lib/httpRequest'
 import {
   breaksChatPersona,
   CHAT_IMPLEMENTATION_BOUNDARY,
@@ -19,6 +20,7 @@ export const maxDuration = 30
 
 const GABOS_API = process.env.GABOS_API_URL?.trim() || 'https://gabos.vercel.app'
 const MAX_SYSTEM_PROMPT_CHARS = 60_000
+const MAX_BODY_BYTES = 80_000
 
 function truncate(value: unknown, maxLength: number) {
   const text = typeof value === 'string' ? value.trim() : ''
@@ -133,13 +135,15 @@ function eventStream(
 }
 
 export async function POST(req: Request) {
-  const contentLength = Number(req.headers.get('content-length'))
-  if (Number.isFinite(contentLength) && contentLength > 80_000) {
-    return Response.json({ error: 'Request too large' }, { status: 413 })
+  let body: Record<string, unknown>
+  try {
+    assertSameOrigin(req)
+    body = await readJSONBody(req, { maxBytes: MAX_BODY_BYTES })
+  } catch (error) {
+    return requestErrorResponse(error) || Response.json({ error: 'Invalid request' }, { status: 400 })
   }
 
-  const body = await req.json().catch(() => null)
-  const messages = normalizeAIChatMessages(body?.messages)
+  const messages = normalizeAIChatMessages(body.messages)
   if (!messages) {
     return Response.json({ error: 'Valid messages are required' }, { status: 400 })
   }

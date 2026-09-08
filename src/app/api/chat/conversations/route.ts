@@ -6,12 +6,14 @@ import {
   getConversationOwner,
 } from '@/lib/conversationOwnership'
 import { toPublicConversation } from '@/lib/publicConversation'
+import { assertSameOrigin, readJSONBody, requestErrorResponse } from '@/lib/httpRequest'
 import { NextRequest, NextResponse } from 'next/server'
 // @ts-expect-error — tz-lookup ships no types; the runtime signature is (lat, lng) => string
 import tzlookup from 'tz-lookup'
 
 const DEFAULT_SUMMARY_LIMIT = 40
 const MAX_SUMMARY_LIMIT = 100
+const MAX_BODY_BYTES = 80_000
 
 function lookupTz(lat: unknown, lng: unknown): string | null {
   if (typeof lat !== 'number' || typeof lng !== 'number') return null
@@ -105,10 +107,17 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => null)
-  const title = typeof body?.title === 'string' ? body.title.trim().slice(0, 160) : ''
-  const location = typeof body?.location === 'string' ? body.location.trim().slice(0, 160) : ''
-  const messages = normalizeConversationMessages(body?.messages)
+  let body: Record<string, unknown>
+  try {
+    assertSameOrigin(req)
+    body = await readJSONBody(req, { maxBytes: MAX_BODY_BYTES })
+  } catch (error) {
+    return requestErrorResponse(error) || Response.json({ error: 'Invalid request' }, { status: 400 })
+  }
+
+  const title = typeof body.title === 'string' ? body.title.trim().slice(0, 160) : ''
+  const location = typeof body.location === 'string' ? body.location.trim().slice(0, 160) : ''
+  const messages = normalizeConversationMessages(body.messages)
 
   if (!title || !messages) {
     return Response.json({ error: 'A valid title and messages are required' }, { status: 400 })

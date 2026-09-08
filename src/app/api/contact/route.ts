@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
 import { checkContactRateLimit } from '@/lib/chatRateLimit'
+import { assertSameOrigin, readJSONBody, requestErrorResponse } from '@/lib/httpRequest'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -11,53 +12,14 @@ function cleanField(value: unknown) {
   return typeof value === 'string' ? value.trim() : ''
 }
 
-async function readBody(request: Request) {
-  if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
-    return { error: Response.json({ error: 'JSON is required.' }, { status: 415 }) }
-  }
-
-  const contentLength = Number(request.headers.get('content-length'))
-  if (Number.isFinite(contentLength) && contentLength > MAX_BODY_BYTES) {
-    return { error: Response.json({ error: 'The request is too large.' }, { status: 413 }) }
-  }
-
-  const reader = request.body?.getReader()
-  if (!reader) return { error: Response.json({ error: 'Invalid request.' }, { status: 400 }) }
-
-  const chunks: Uint8Array[] = []
-  let size = 0
-  while (true) {
-    const { value, done } = await reader.read()
-    if (done) break
-    size += value.byteLength
-    if (size > MAX_BODY_BYTES) {
-      await reader.cancel()
-      return { error: Response.json({ error: 'The request is too large.' }, { status: 413 }) }
-    }
-    chunks.push(value)
-  }
-
-  try {
-    const parsed: unknown = JSON.parse(Buffer.concat(chunks).toString('utf8'))
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Invalid body')
-    return { body: parsed as Record<string, unknown> }
-  } catch {
-    return { error: Response.json({ error: 'Invalid request.' }, { status: 400 }) }
-  }
-}
-
 export async function POST(request: Request) {
-  const origin = request.headers.get('origin')
-  if (
-    (origin && origin !== new URL(request.url).origin)
-    || request.headers.get('sec-fetch-site') === 'cross-site'
-  ) {
-    return Response.json({ error: 'Invalid request origin.' }, { status: 403 })
+  let body: Record<string, unknown>
+  try {
+    assertSameOrigin(request)
+    body = await readJSONBody(request, { maxBytes: MAX_BODY_BYTES })
+  } catch (error) {
+    return requestErrorResponse(error) || Response.json({ error: 'Invalid request.' }, { status: 400 })
   }
-
-  const parsed = await readBody(request)
-  if (parsed.error) return parsed.error
-  const body = parsed.body
 
   const subject = cleanField(body.subject)
   const message = cleanField(body.message)

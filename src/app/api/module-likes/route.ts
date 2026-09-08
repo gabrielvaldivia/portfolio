@@ -6,6 +6,7 @@ import {
 } from '@/lib/moduleLikeActivity'
 import { getPayload } from '@/lib/payload'
 import { getVisitor, getVisitorHash, withVisitorCookie } from '@/lib/anonymousVisitor'
+import { assertSameOrigin, HTTPRequestError, readJSONBody } from '@/lib/httpRequest'
 import {
   MAX_MODULE_LIKES_PER_VISITOR,
   SUPER_MODULE_LIKE_AMOUNT,
@@ -16,6 +17,7 @@ export const runtime = 'nodejs'
 
 const MAX_BATCH_IDS = 80
 const MAX_TARGET_ID_LENGTH = 180
+const MAX_BODY_BYTES = 2_048
 const targetIdPattern = /^[a-z0-9:_./-]+$/i
 
 type ModuleLikeRow = {
@@ -107,11 +109,14 @@ export async function POST(req: NextRequest) {
   let amount = 1
 
   try {
-    const body = await req.json()
-    id = normalizeTargetId(body?.id)
-    amount = normalizeLikeAmount(body?.amount)
-  } catch {
-    id = null
+    assertSameOrigin(req)
+    const body = await readJSONBody(req, { maxBytes: MAX_BODY_BYTES })
+    id = normalizeTargetId(body.id)
+    amount = normalizeLikeAmount(body.amount)
+  } catch (error) {
+    if (error instanceof HTTPRequestError) {
+      return withVisitorCookie({ error: error.message }, visitor, { status: error.status })
+    }
   }
 
   if (!id) {

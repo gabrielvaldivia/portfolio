@@ -7,12 +7,14 @@ import {
   normalizeSubscriberEmail,
 } from '@/lib/noteSubscriptions'
 import { Resend } from 'resend'
+import { assertSameOrigin, readJSONBody, requestErrorResponse } from '@/lib/httpRequest'
 
 export const dynamic = 'force-dynamic'
 
 const CONFIRM_TTL_SECONDS = 60 * 60 * 48
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
 const RATE_LIMIT_MAX = 6
+const MAX_BODY_BYTES = 2_048
 const attempts = new Map<string, { count: number; resetAt: number }>()
 
 function clean(value: unknown) {
@@ -48,23 +50,19 @@ function confirmationEmail(email: string, confirmationURL: string) {
 }
 
 export async function POST(request: Request) {
-  const origin = request.headers.get('origin')
-  if (origin && origin !== new URL(request.url).origin) {
-    return Response.json({ error: 'Invalid request origin.' }, { status: 403 })
+  let body: Record<string, unknown>
+  try {
+    assertSameOrigin(request)
+    body = await readJSONBody(request, { maxBytes: MAX_BODY_BYTES })
+  } catch (error) {
+    return requestErrorResponse(error) || Response.json({ error: 'Invalid request.' }, { status: 400 })
   }
+
+  if (clean(body.website)) return Response.json({ ok: true })
 
   if (isRateLimited(request)) {
     return Response.json({ error: 'Please wait a little before trying again.' }, { status: 429 })
   }
-
-  let body: Record<string, unknown>
-  try {
-    body = await request.json()
-  } catch {
-    return Response.json({ error: 'Invalid request.' }, { status: 400 })
-  }
-
-  if (clean(body.website)) return Response.json({ ok: true })
 
   const email = normalizeSubscriberEmail(body.email)
   if (!isValidSubscriberEmail(email)) {

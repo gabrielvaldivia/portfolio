@@ -5,7 +5,10 @@ import {
   getConversationOwner,
 } from '@/lib/conversationOwnership'
 import { toPublicConversation } from '@/lib/publicConversation'
+import { assertSameOrigin, readJSONBody, requestErrorResponse } from '@/lib/httpRequest'
 import { NextRequest } from 'next/server'
+
+const MAX_BODY_BYTES = 80_000
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -26,8 +29,15 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const body = await req.json().catch(() => null)
-  const messages = normalizeConversationMessages(body?.messages)
+  let body: Record<string, unknown>
+  try {
+    assertSameOrigin(req)
+    body = await readJSONBody(req, { maxBytes: MAX_BODY_BYTES })
+  } catch (error) {
+    return requestErrorResponse(error) || Response.json({ error: 'Invalid request' }, { status: 400 })
+  }
+
+  const messages = normalizeConversationMessages(body.messages)
 
   if (!messages) {
     return Response.json({ error: 'Valid messages are required' }, { status: 400 })
