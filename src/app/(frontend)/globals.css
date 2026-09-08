@@ -1,6 +1,16 @@
 @import 'tailwindcss';
 @import '../../styles/note-typography.css';
 
+html[data-credits-playing='true'] {
+  overscroll-behavior: none;
+  scrollbar-width: none;
+  touch-action: none;
+}
+
+html[data-credits-playing='true']::-webkit-scrollbar {
+  display: none;
+}
+
 .video-player-controls {
   opacity: 1;
 }

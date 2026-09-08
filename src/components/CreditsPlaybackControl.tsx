@@ -33,16 +33,9 @@ export function CreditsPlaybackControl() {
     if (!isPlaying) return
 
     const root = document.documentElement
-    const body = document.body
-    const previousRootOverflow = root.style.overflow
-    const previousRootOverscrollBehavior = root.style.overscrollBehavior
-    const previousBodyOverflow = body.style.overflow
-    const previousBodyOverscrollBehavior = body.style.overscrollBehavior
+    const previousCreditsPlaying = root.getAttribute('data-credits-playing')
 
-    root.style.overflow = 'hidden'
-    root.style.overscrollBehavior = 'none'
-    body.style.overflow = 'hidden'
-    body.style.overscrollBehavior = 'none'
+    root.setAttribute('data-credits-playing', 'true')
 
     const preventScroll = (event: Event) => event.preventDefault()
     const preventKeyboardScroll = (event: KeyboardEvent) => {
@@ -65,10 +58,12 @@ export function CreditsPlaybackControl() {
     window.addEventListener('keydown', preventKeyboardScroll)
 
     return () => {
-      root.style.overflow = previousRootOverflow
-      root.style.overscrollBehavior = previousRootOverscrollBehavior
-      body.style.overflow = previousBodyOverflow
-      body.style.overscrollBehavior = previousBodyOverscrollBehavior
+      if (previousCreditsPlaying === null) {
+        root.removeAttribute('data-credits-playing')
+      } else {
+        root.setAttribute('data-credits-playing', previousCreditsPlaying)
+      }
+
       window.removeEventListener('wheel', preventScroll)
       window.removeEventListener('touchmove', preventScroll)
       window.removeEventListener('keydown', preventKeyboardScroll)
@@ -94,7 +89,7 @@ export function CreditsPlaybackControl() {
       <audio
         ref={audioRef}
         id="credits-soundtrack"
-        src="/media/credits-exit-music.mp3"
+        src="/audio/credits-exit-music.mp3"
         preload="auto"
         hidden
         onPlaying={() => setIsPlaying(true)}
@@ -105,54 +100,59 @@ export function CreditsPlaybackControl() {
           setIsPlaying(false)
         }}
       />
-      <button
-        type="button"
-        aria-controls="credits-soundtrack"
-        aria-label={label}
-        title={label}
-        className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-[calc(1rem+env(safe-area-inset-left))] z-40 flex size-10 cursor-pointer items-center justify-center rounded-full bg-floating text-text-strong backdrop-blur-[40px] transition-colors hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content"
-        onClick={() => {
-          const audio = audioRef.current
-          if (!audio) return
-
-          if (isPlaying) {
-            audio.pause()
-            return
-          }
-
-          const maximumScroll = getMaximumScroll()
-
-          if (window.scrollY >= maximumScroll - 1 || audio.ended) {
-            window.scrollTo({ top: 0, behavior: 'instant' })
-            audio.currentTime = 0
-          } else if (
-            maximumScroll > 0 &&
-            Number.isFinite(audio.duration) &&
-            audio.duration > 0
-          ) {
-            const expectedScroll = maximumScroll * (audio.currentTime / audio.duration)
-
-            if (Math.abs(window.scrollY - expectedScroll) > 2) {
-              audio.currentTime = (window.scrollY / maximumScroll) * audio.duration
-            }
-          }
-
-          void audio.play().catch(() => {
-            setIsPlaying(false)
-          })
-        }}
+      <div
+        data-credits-playback-control
+        className="pointer-events-none sticky bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-40 flex justify-start px-4 tablet:px-10"
       >
-        <svg aria-hidden="true" viewBox="0 0 20 20" className="size-4" fill="currentColor">
-          {isPlaying ? (
-            <>
-              <rect x="4" y="3" width="4" height="14" rx="1" />
-              <rect x="12" y="3" width="4" height="14" rx="1" />
-            </>
-          ) : (
-            <path d="M6 4.5v11l9-5.5-9-5.5Z" />
-          )}
-        </svg>
-      </button>
+        <button
+          type="button"
+          aria-controls="credits-soundtrack"
+          aria-label={label}
+          title={label}
+          className="pointer-events-auto flex size-10 cursor-pointer items-center justify-center rounded-full bg-floating text-text-strong backdrop-blur-[40px] transition-colors hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content"
+          onClick={() => {
+            const audio = audioRef.current
+            if (!audio) return
+
+            if (isPlaying) {
+              audio.pause()
+              return
+            }
+
+            const maximumScroll = getMaximumScroll()
+
+            if (window.scrollY >= maximumScroll - 1 || audio.ended) {
+              window.scrollTo({ top: 0, behavior: 'instant' })
+              audio.currentTime = 0
+            } else if (
+              maximumScroll > 0 &&
+              Number.isFinite(audio.duration) &&
+              audio.duration > 0
+            ) {
+              const expectedScroll = maximumScroll * (audio.currentTime / audio.duration)
+
+              if (Math.abs(window.scrollY - expectedScroll) > 2) {
+                audio.currentTime = (window.scrollY / maximumScroll) * audio.duration
+              }
+            }
+
+            void audio.play().catch(() => {
+              setIsPlaying(false)
+            })
+          }}
+        >
+          <svg aria-hidden="true" viewBox="0 0 20 20" className="size-4" fill="currentColor">
+            {isPlaying ? (
+              <>
+                <rect x="4" y="3" width="4" height="14" rx="1" />
+                <rect x="12" y="3" width="4" height="14" rx="1" />
+              </>
+            ) : (
+              <path d="M6 4.5v11l9-5.5-9-5.5Z" />
+            )}
+          </svg>
+        </button>
+      </div>
     </>
   )
 }
