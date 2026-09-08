@@ -10,6 +10,7 @@ type Props = {
   linkedIn?: string
   size?: number
   showTooltip?: boolean
+  eager?: boolean
   className?: string
 }
 
@@ -20,6 +21,7 @@ export function Avatar({
   linkedIn,
   size = 30,
   showTooltip = true,
+  eager = false,
   className,
 }: Props) {
   const initials = name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
@@ -33,6 +35,7 @@ export function Avatar({
               media={photo}
               alt={photo.alt || name}
               fill
+              loading={eager ? 'eager' : undefined}
               sizes={`${size}px`}
               className={cn('object-cover', photoDark?.url && 'light-only')}
             />
@@ -41,6 +44,7 @@ export function Avatar({
                 media={photoDark}
                 alt={photoDark.alt || name}
                 fill
+                loading={eager ? 'eager' : undefined}
                 sizes={`${size}px`}
                 className="object-cover dark-only"
               />

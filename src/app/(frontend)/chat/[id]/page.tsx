@@ -10,6 +10,7 @@ import { normalizeSocialLink } from '@/lib/socialLinks'
 export const metadata: Metadata = {
   title: 'Chat — Gabriel Valdivia',
   description: 'Ask me anything.',
+  robots: { index: false, follow: false },
 }
 
 export const revalidate = 300

@@ -197,6 +197,7 @@ function AssistantMessage({
   blogPosts = [],
   talks = [],
   animate = true,
+  eagerAvatar = false,
 }: {
   blocks: AssistantContentBlock[]
   avatarUrl?: string
@@ -208,6 +209,7 @@ function AssistantMessage({
   blogPosts?: BlogPost[]
   talks?: TalkLink[]
   animate?: boolean
+  eagerAvatar?: boolean
 }) {
   const [visibleCount, setVisibleCount] = useState(animate ? 1 : blocks.length)
 
@@ -234,6 +236,7 @@ function AssistantMessage({
           photoDark={avatarUrlDark ? { url: avatarUrlDark } : undefined}
           size={48}
           showTooltip={false}
+          eager={eagerAvatar}
           className="!hidden tablet:!block"
         />
       )}
@@ -763,6 +766,7 @@ export function Chat({
             photoDark={avatarUrlDark ? { url: avatarUrlDark } : undefined}
             size={32}
             showTooltip={false}
+            eager
           />
         </div>
       )}
@@ -807,6 +811,7 @@ export function Chat({
                 blogPosts={blogPosts}
                 talks={talks}
                 animate={animateBubbles}
+                eagerAvatar={i === 0}
               />
             )
           })}
