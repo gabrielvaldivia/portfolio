@@ -780,11 +780,12 @@ p {
 
 .rich-text a {
   color: var(--color-text-strong);
+  font-weight: 600;
   text-decoration: none;
 }
 
-.note-page .rich-text a {
-  font-weight: 500;
+p a {
+  font-weight: 600;
 }
 
 .rich-text a:is(:hover, :focus-visible) {
