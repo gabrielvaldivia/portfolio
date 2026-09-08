@@ -66,6 +66,13 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
   const expandedControlsHidden = expandedNavHidden || open
   const collapsedMenuButtonVisible = expandedNavHidden || open
 
+  const handleMenuNavigate = (event: { preventDefault: () => void }, url: string) => {
+    if (url !== '/' || pathname !== '/') return
+
+    event.preventDefault()
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }
+
   useEffect(() => {
     let animationFrame: number | null = null
 
@@ -201,6 +208,7 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
                   href={page.url}
                   prefetch={true}
                   onClick={() => setOpen(false)}
+                  onNavigate={(event) => handleMenuNavigate(event, page.url)}
                   className={`flex items-center gap-2 py-1.5 transition-all text-body ${
                     isActive
                       ? 'text-text-strong opacity-100'
@@ -262,6 +270,7 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
                   href={page.url}
                   prefetch={true}
                   onClick={() => setOpen(false)}
+                  onNavigate={(event) => handleMenuNavigate(event, page.url)}
                   className={`flex items-center gap-2 py-1.5 transition-all text-body ${
                     isActive
                       ? 'text-text-strong opacity-100'
