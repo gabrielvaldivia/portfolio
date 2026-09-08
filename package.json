@@ -7,6 +7,9 @@
     "node": ">=22.0.0 <23"
   },
   "scripts": {
+    "test": "node --import tsx --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm test && npm run build",
     "test:highlights": "tsx --test tests/note-highlights.test.ts",
     "test:highlight-activity": "tsx --test tests/note-highlight-activity.test.ts",
     "test:highlight-attribution": "tsx --test tests/note-highlight-attribution.test.ts",
