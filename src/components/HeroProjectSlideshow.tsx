@@ -27,6 +27,7 @@ import { ServicePill } from '@/components/ServicePill'
 import { PayloadImage } from '@/components/PayloadImage'
 import type { ResponsiveImageMedia } from '@/lib/responsiveImage'
 import { observeMobileHeroViewport } from '@/lib/observeMobileHeroViewport'
+import { isMobileSafariUserAgent } from '@/lib/mobileSafari'
 
 type HeroTestimonial = {
   id: string
@@ -55,6 +56,20 @@ const MOBILE_SLIDE_HEIGHT = 'var(--hero-mobile-height, 100dvh)'
 const MOBILE_VIEWPORT_HEIGHT = 'var(--hero-mobile-viewport-height, 100dvh)'
 const MOBILE_BROWSER_INSET = `max(0px, ${MOBILE_SLIDE_HEIGHT} - ${MOBILE_VIEWPORT_HEIGHT})`
 const MOBILE_CONTENT_BOTTOM = `calc(1.25rem + ${MOBILE_BROWSER_INSET})`
+const MOBILE_HERO_MEDIA_OVERRIDES: Record<string, ResponsiveImageMedia> = {
+  dex: {
+    url: '/hero/dex.webp',
+    width: 3000,
+    height: 1687,
+    mimeType: 'image/webp',
+  },
+  twinsi: {
+    url: '/hero/twinsi.webp',
+    width: 3000,
+    height: 1687,
+    mimeType: 'image/webp',
+  },
+}
 // Smoothstep alpha stops: a gentle fade with flat tangents at both ends.
 const MOBILE_IMAGE_MASK = 'linear-gradient(to bottom, #000 60%, rgb(0 0 0 / .972) 64%, rgb(0 0 0 / .896) 68%, rgb(0 0 0 / .784) 72%, rgb(0 0 0 / .648) 76%, rgb(0 0 0 / .5) 80%, rgb(0 0 0 / .352) 84%, rgb(0 0 0 / .216) 88%, rgb(0 0 0 / .104) 92%, rgb(0 0 0 / .028) 96%, transparent 100%)'
 
@@ -216,13 +231,18 @@ function HeroProjectPills({ pills = [] }: { pills?: string[] }) {
 function MobileHeroSlide({
   project,
   active,
+  priority,
   visualStyle,
 }: {
   project: HeroProjectSlide
   active: boolean
+  priority: boolean
   visualStyle?: MotionStyle
 }) {
-  const media = project.featuredImage
+  const mediaOverride = MOBILE_HERO_MEDIA_OVERRIDES[project.slug]
+  const media = mediaOverride
+    ? { ...project.featuredImage, ...mediaOverride, sizes: null }
+    : project.featuredImage
   const [sampledColor, setSampledColor] = useState('24 24 24')
   const [canSampleColor, setCanSampleColor] = useState(true)
   const gradientColor = hexToRgbChannels(project.gradientColor) ?? sampledColor
@@ -272,8 +292,12 @@ function MobileHeroSlide({
                 alt={media.alt || ''}
                 fill
                 className="object-cover"
-                sizes="100vw"
-                priority={active}
+                // The image is 16:9 and object-cover crops it into a portrait
+                // viewport. Describe that pre-crop width so Retina screens
+                // select enough pixels for the visible height, not just 100vw.
+                sizes="180vh"
+                loading={priority || active ? 'eager' : undefined}
+                fetchPriority={priority || active ? 'high' : undefined}
                 crossOrigin={needsColorSample ? 'anonymous' : undefined}
                 onLoad={(event) => updateMediaColor(event.currentTarget)}
                 onError={() => setCanSampleColor(false)}
@@ -608,15 +632,34 @@ export function HeroProjectSlideshow({ projects }: Props) {
     const root = document.documentElement
     const region = regionRef.current
     if (!region) return
+    const isMobileSafari = isMobileSafariUserAgent(navigator.userAgent)
 
     const approach = document.querySelector<HTMLElement>('.hero-approach-snap-point')
     if (!approach) return
 
     let approachSnapY = 0
+    let regionTopY = 0
+    let regionBottomY = 0
+    let viewportHeight = 0
     let touchY: number | null = null
     const measureBoundary = () => {
       const margin = Number.parseFloat(getComputedStyle(approach).scrollMarginTop) || 0
+      const regionBounds = region.getBoundingClientRect()
+      const scrollY = window.scrollY
       approachSnapY = approach.getBoundingClientRect().top + window.scrollY - margin
+      regionTopY = regionBounds.top + scrollY
+      regionBottomY = regionBounds.bottom + scrollY
+      viewportHeight = window.visualViewport?.height || window.innerHeight
+    }
+    const isHeroInView = () => (
+      window.scrollY < regionBottomY - 1
+      && window.scrollY + viewportHeight > regionTopY + 1
+    )
+    const setSafariPaginationFade = (visible: boolean) => {
+      region.classList.toggle(
+        'hero-mobile-safari-paginating',
+        isMobileSafari && visible,
+      )
     }
     const setFreeScroll = (free: boolean) => {
       root.classList.toggle('hero-project-pagination-free', free)
@@ -629,6 +672,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
 
     const handleScrollEnd = () => {
       measureBoundary()
+      setSafariPaginationFade(false)
       // Keep pagination ready at the exact boundary for the next upward swipe.
       // Downward input disables it before moving into Approach. Switching it
       // on during an upward gesture can consume that first gesture in WebKit.
@@ -644,6 +688,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
     const handleTouchMove = (event: TouchEvent) => {
       if (touchY === null || event.touches.length !== 1) return
       const nextY = event.touches[0].clientY
+      if (nextY !== touchY && isHeroInView()) setSafariPaginationFade(true)
       updateGestureMode(touchY - nextY)
       touchY = nextY
     }
@@ -651,6 +696,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
     const handleWheel = (event: WheelEvent) => {
       if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return
       measureBoundary()
+      if (event.deltaY && isHeroInView()) setSafariPaginationFade(true)
       updateGestureMode(event.deltaY)
     }
 
@@ -659,6 +705,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
     let settleTimeout: ReturnType<typeof setTimeout> | undefined
     const supportsScrollEnd = 'onscrollend' in window
     const handleScroll = () => {
+      if (isHeroInView()) setSafariPaginationFade(true)
       // Also catch re-entry during momentum or keyboard scrolling. Use the
       // cached boundary so the scroll listener doesn't measure layout.
       if (window.scrollY < approachSnapY - 1) setFreeScroll(false)
@@ -668,6 +715,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
       }
     }
     root.classList.add('hero-project-pagination-active')
+    region.classList.toggle('hero-mobile-safari', isMobileSafari)
     handleScrollEnd()
     if (supportsScrollEnd) window.addEventListener('scrollend', handleScrollEnd)
     window.addEventListener('scroll', handleScroll, { passive: true })
@@ -690,6 +738,8 @@ export function HeroProjectSlideshow({ projects }: Props) {
       clearTimeout(settleTimeout)
       root.classList.remove('hero-project-pagination-active')
       root.classList.remove('hero-project-pagination-free')
+      region.classList.remove('hero-mobile-safari')
+      region.classList.remove('hero-mobile-safari-paginating')
     }
   }, [isMobileViewport, projects.length])
 
@@ -771,6 +821,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
               key={project.id}
               project={project}
               active={isMobileViewport && index === activeIndex}
+              priority={index === 0}
               visualStyle={index === 0 ? { scale: slideshowScale, borderRadius: slideshowRadius } : undefined}
             />
           ))}
@@ -779,6 +830,8 @@ export function HeroProjectSlideshow({ projects }: Props) {
           // Share one viewport-height overlay without adding scroll height.
           // Sticky keeps the lines still between slides, but scoped to the hero.
           <div className="pointer-events-none sticky top-0 z-20 col-start-1 row-start-1 self-start" style={{ height: MOBILE_VIEWPORT_HEIGHT }}>
+            <div aria-hidden="true" className="hero-mobile-safari-edge hero-mobile-safari-edge-top absolute inset-x-0 top-0" />
+            <div aria-hidden="true" className="hero-mobile-safari-edge hero-mobile-safari-edge-bottom absolute inset-x-0 bottom-0" />
             <div
               role="group"
               aria-label="Project pagination"

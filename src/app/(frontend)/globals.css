@@ -453,6 +453,30 @@ h2 {
 }
 
 @media (max-width: 809px) {
+  .hero-project-scroll-region.hero-mobile-safari-paginating {
+    background: #000;
+  }
+
+  .hero-mobile-safari-edge {
+    height: 6rem;
+    opacity: 0;
+    transform: translateZ(0);
+    transition: opacity 180ms ease-out;
+    will-change: opacity;
+  }
+
+  .hero-mobile-safari-edge-top {
+    background: linear-gradient(to bottom, #000 0, rgb(0 0 0 / 0.88) 18%, transparent 100%);
+  }
+
+  .hero-mobile-safari-edge-bottom {
+    background: linear-gradient(to top, #000 0, rgb(0 0 0 / 0.88) 18%, transparent 100%);
+  }
+
+  .hero-mobile-safari-paginating .hero-mobile-safari-edge {
+    opacity: 1;
+  }
+
   html.hero-project-pagination-active {
     scroll-snap-type: y mandatory;
   }
