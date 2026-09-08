@@ -3508,8 +3508,7 @@ html[data-theme="dark"] .media-masonry-viewer__footer-delete:focus-visible {
   opacity: 0.92;
 }
 
-.nav-pages-list-view__drag-handle,
-.nav-pages-list-view__drag-placeholder {
+.nav-pages-list-view__drag-handle {
   display: grid;
   width: 34px;
   min-width: 34px;
@@ -3603,8 +3602,7 @@ html[data-theme="dark"] .media-masonry-viewer__footer-delete:focus-visible {
     padding-left: 2px;
   }
 
-  .nav-pages-list-view__drag-handle,
-  .nav-pages-list-view__drag-placeholder {
+  .nav-pages-list-view__drag-handle {
     min-height: 58px;
   }
 }

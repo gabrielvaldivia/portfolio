@@ -10,13 +10,12 @@ export const notesNavigationItem = {
 } as const satisfies SiteNavigationItem & { kind: 'notes' }
 
 export function orderSiteNavigationItems<T extends SiteNavigationItem>(items: readonly T[]) {
-  const notesItem = items.find((item) => item.url === notesNavigationItem.url) ?? notesNavigationItem
-  const orderedItems: Array<T | typeof notesNavigationItem> = items.filter(
-    (item) => item.url !== notesNavigationItem.url,
-  )
+  if (items.some((item) => item.url === notesNavigationItem.url)) return [...items]
+
+  const orderedItems: Array<T | typeof notesNavigationItem> = [...items]
   const playgroundIndex = orderedItems.findIndex((item) => item.url === '/playground')
 
-  orderedItems.splice(playgroundIndex >= 0 ? playgroundIndex + 1 : orderedItems.length, 0, notesItem)
+  orderedItems.splice(playgroundIndex >= 0 ? playgroundIndex + 1 : orderedItems.length, 0, notesNavigationItem)
 
   return orderedItems
 }

@@ -13,7 +13,7 @@ test('places Notes after Playground', () => {
   assert.deepEqual(items.map((item) => item.url), ['/', '/playground', '/notes', '/clients'])
 })
 
-test('repositions an existing Notes item without replacing it', () => {
+test('preserves the saved position of an existing Notes item', () => {
   const existingNotes = { id: 7, label: 'Writing', url: '/notes' }
   const items = orderSiteNavigationItems([
     existingNotes,
@@ -21,11 +21,11 @@ test('repositions an existing Notes item without replacing it', () => {
     { id: 2, label: 'Playground', url: '/playground' },
   ])
 
-  assert.equal(items[2], existingNotes)
+  assert.equal(items[0], existingNotes)
   assert.equal(items.filter((item) => item.url === '/notes').length, 1)
 })
 
-test('appends the fixed Notes item when Playground is absent', () => {
+test('appends the Notes fallback when Playground is absent', () => {
   const items = orderSiteNavigationItems([{ label: 'Home', url: '/' }])
 
   assert.equal(items.at(-1), notesNavigationItem)

@@ -24,10 +24,21 @@ type NavPage = {
   title?: string | null
 }
 
+type NavListItem = (NavPage & {
+  label: string
+  url: string
+}) | {
+  kind: 'notes'
+  label: string
+  url: '/notes'
+}
+
 type NavPagesListViewProps = {
   BeforeList?: ReactNode
   BeforeListTable?: ReactNode
 }
+
+const notesSortableID = 'nav-notes'
 
 export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListViewProps) {
   const {
@@ -42,29 +53,76 @@ export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListVi
     () => sortPagesByOrder(((data?.docs || []) as NavPage[]).filter(Boolean)),
     [data?.docs],
   )
-  const [pages, setPages] = useState(queriedPages)
-  const [savingOrder, setSavingOrder] = useState(false)
   const canUpdatePages = Boolean(permissions?.collections?.pages?.update)
+  const canCreatePages = Boolean(permissions?.collections?.pages?.create)
   const canReadNotes = Boolean(permissions?.collections?.notes?.read)
+  const queriedNavigationItems = useMemo(
+    () => orderSiteNavigationItems(queriedPages.map((page) => ({
+      ...page,
+      label: page.title || page.slug || 'Untitled page',
+      url: getPagePath(page.slug) || '',
+    }))).filter((item) => item.url !== '/notes' || canReadNotes) as NavListItem[],
+    [canReadNotes, queriedPages],
+  )
+  const [navigationItems, setNavigationItems] = useState(queriedNavigationItems)
+  const [savingOrder, setSavingOrder] = useState(false)
 
   useEffect(() => {
-    setPages(queriedPages)
-  }, [queriedPages])
+    setNavigationItems(queriedNavigationItems)
+  }, [queriedNavigationItems])
 
   useEffect(() => {
     setStepNav([{ label: 'Nav' }])
   }, [setStepNav])
 
-  const savePageOrder = useCallback(async (orderedPages: NavPage[]) => {
+  const saveNavigationOrder = useCallback(async (orderedItems: NavListItem[]) => {
+    let persistedItems = orderedItems
+    const unpersistedNotesIndex = persistedItems.findIndex(
+      (item) => item.url === '/notes' && !('id' in item),
+    )
+
+    if (unpersistedNotesIndex >= 0) {
+      const response = await fetch(formatAdminURL({ adminRoute: apiRoute, path: '/pages' }), {
+        body: JSON.stringify({
+          order: unpersistedNotesIndex,
+          slug: 'notes',
+          status: 'published',
+          title: 'Notes',
+          type: 'custom',
+        }),
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+      })
+
+      if (!response.ok) throw new Error('Could not make Notes reorderable')
+
+      const result = await response.json() as { doc?: NavPage }
+      const createdNotesPage = result.doc ?? (result as NavPage)
+      if (!createdNotesPage?.id) throw new Error('Could not make Notes reorderable')
+
+      const persistedNotes: NavListItem = {
+        ...createdNotesPage,
+        label: createdNotesPage.title || 'Notes',
+        url: '/notes',
+      }
+      persistedItems = orderedItems.map((item, index) => (
+        index === unpersistedNotesIndex ? persistedNotes : item
+      ))
+    }
+
+    const orderedPages = persistedItems.flatMap((item, index) => (
+      'id' in item ? [{ ...item, order: index }] : []
+    ))
     const responses = await Promise.all(
-      orderedPages.map((page, index) => {
+      orderedPages.map((page) => {
         const apiPath = formatAdminURL({
           adminRoute: apiRoute,
           path: `/pages/${page.id}`,
         })
 
         return fetch(apiPath, {
-          body: JSON.stringify({ order: index }),
+          body: JSON.stringify({ order: page.order }),
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
           method: 'PATCH',
@@ -75,6 +133,10 @@ export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListVi
     if (responses.some((response) => !response.ok)) {
       throw new Error('Could not save the navigation order')
     }
+
+    return persistedItems.map((item, index) => (
+      'id' in item ? { ...item, order: index } : item
+    ))
   }, [apiRoute])
 
   const handleReorder = useCallback(async ({
@@ -86,30 +148,32 @@ export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListVi
   }) => {
     if (savingOrder || moveFromIndex < 0 || moveToIndex < 0 || moveFromIndex === moveToIndex) return
 
-    const previousPages = pages
-    const reorderedPages = [...pages]
-    const [movedPage] = reorderedPages.splice(moveFromIndex, 1)
-    reorderedPages.splice(moveToIndex, 0, movedPage)
-    setPages(reorderedPages)
+    const previousItems = navigationItems
+    const reorderedItems = [...navigationItems]
+    const [movedItem] = reorderedItems.splice(moveFromIndex, 1)
+    reorderedItems.splice(moveToIndex, 0, movedItem)
+    setNavigationItems(reorderedItems)
     setSavingOrder(true)
 
     try {
-      await savePageOrder(reorderedPages)
+      const persistedItems = await saveNavigationOrder(reorderedItems)
+      setNavigationItems(persistedItems)
       toast.success('Navigation order updated')
     } catch (error) {
-      setPages(previousPages)
+      setNavigationItems(previousItems)
       toast.error(error instanceof Error ? error.message : 'Could not save the navigation order')
     } finally {
       setSavingOrder(false)
     }
-  }, [pages, savePageOrder, savingOrder])
+  }, [navigationItems, saveNavigationOrder, savingOrder])
 
-  const pageIDs = pages.map((page) => String(page.id))
-  const navigationItems = orderSiteNavigationItems(pages.map((page) => ({
-    ...page,
-    label: page.title || page.slug || 'Untitled page',
-    url: getPagePath(page.slug) || '',
-  }))).filter((item) => 'id' in item || canReadNotes)
+  const navigationIDs = navigationItems.map((item) => (
+    'id' in item ? String(item.id) : notesSortableID
+  ))
+  const hasUnpersistedNotes = navigationItems.some(
+    (item) => item.url === '/notes' && !('id' in item),
+  )
+  const canReorderNavigation = canUpdatePages && (!hasUnpersistedNotes || canCreatePages)
 
   const renderPageLink = (page: NavPage) => {
     const label = page.title || page.slug || 'Untitled page'
@@ -138,28 +202,13 @@ export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListVi
       <main className="nav-pages-list-view">
         {BeforeListTable}
         <div className="nav-pages-list-view__list" aria-busy={savingOrder} aria-label="Editable pages" role="list">
-          <DraggableSortable className="nav-pages-list-view__sortable" ids={pageIDs} onDragEnd={handleReorder}>
+          <DraggableSortable className="nav-pages-list-view__sortable" ids={navigationIDs} onDragEnd={handleReorder}>
             {navigationItems.map((item) => {
-              if (!('id' in item)) {
-                return (
-                  <div className="nav-pages-list-view__item nav-pages-list-view__item--fixed" key={item.url} role="listitem">
-                    <span className="nav-pages-list-view__drag-placeholder" aria-hidden="true" />
-                    <Link
-                      aria-label="Edit Notes"
-                      className="nav-pages-list-view__link"
-                      href={formatAdminURL({ adminRoute, path: '/collections/notes' })}
-                      prefetch={false}
-                    >
-                      <span className="nav-pages-list-view__label">{item.label}</span>
-                      <span className="nav-pages-list-view__path">{item.url}</span>
-                      <span className="nav-pages-list-view__chevron" aria-hidden="true" />
-                    </Link>
-                  </div>
-                )
-              }
+              const isNotes = item.url === '/notes'
+              const sortableID = 'id' in item ? String(item.id) : notesSortableID
 
               return (
-                <DraggableSortableItem disabled={!canUpdatePages || savingOrder} id={String(item.id)} key={item.id}>
+                <DraggableSortableItem disabled={!canReorderNavigation || savingOrder} id={sortableID} key={sortableID}>
                   {({ attributes, isDragging, listeners, setNodeRef, transform, transition }) => (
                     <div
                       className={`nav-pages-list-view__item${isDragging ? ' nav-pages-list-view__item--dragging' : ''}`}
@@ -170,14 +219,25 @@ export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListVi
                       <button
                         {...attributes}
                         {...listeners}
-                        aria-label={`Reorder ${item.title || item.slug || 'page'}`}
+                        aria-label={`Reorder ${item.label}`}
                         className="nav-pages-list-view__drag-handle"
-                        disabled={!canUpdatePages || savingOrder}
+                        disabled={!canReorderNavigation || savingOrder}
                         type="button"
                       >
                         <DragHandleIcon />
                       </button>
-                      {renderPageLink(item)}
+                      {isNotes ? (
+                        <Link
+                          aria-label="Edit Notes"
+                          className="nav-pages-list-view__link"
+                          href={formatAdminURL({ adminRoute, path: '/collections/notes' })}
+                          prefetch={false}
+                        >
+                          <span className="nav-pages-list-view__label">{item.label}</span>
+                          <span className="nav-pages-list-view__path">{item.url}</span>
+                          <span className="nav-pages-list-view__chevron" aria-hidden="true" />
+                        </Link>
+                      ) : 'id' in item ? renderPageLink(item) : null}
                     </div>
                   )}
                 </DraggableSortableItem>
