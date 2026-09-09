@@ -36,6 +36,7 @@ export default async function WorkPage() {
                 slug={project.slug}
                 subtitle={project.subtitle}
                 featuredImage={project.featuredImage}
+                emphasizeHover
               />
             ))}
           </div>

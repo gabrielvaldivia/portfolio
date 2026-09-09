@@ -13,27 +13,36 @@ type Props = {
   priority?: boolean
   variant?: 'default' | 'hero'
   tabIndex?: number
+  emphasizeHover?: boolean
 }
 
-export function ProjectCard({ title, slug, subtitle, featuredImage, href, icon, priority, variant = 'default', tabIndex }: Props) {
+export function ProjectCard({ title, slug, subtitle, featuredImage, href, icon, priority, variant = 'default', tabIndex, emphasizeHover = false }: Props) {
   const isHero = variant === 'hero'
 
   return (
     <Link
       href={href || `/work/${slug}`}
       tabIndex={tabIndex}
-      className={cn('group block tablet:p-2', isHero && 'h-full')}
+      className={cn(
+        'group block tablet:p-2',
+        isHero && 'h-full',
+        emphasizeHover &&
+          'rounded-[20px] transition-transform duration-200 ease-out hover:scale-[1.025] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content motion-reduce:transition-none motion-reduce:hover:scale-100 tablet:rounded-[30px] desktop:rounded-[40px]',
+      )}
     >
       <div
         className={cn(
-          'flex flex-col overflow-hidden rounded-[20px] bg-background-alt transition-colors group-hover:bg-alt-hover tablet:rounded-[30px] desktop:rounded-[40px]',
+          'flex flex-col overflow-hidden rounded-[20px] bg-background-alt transition-colors duration-150 ease-out tablet:rounded-[30px] desktop:rounded-[40px]',
+          emphasizeHover
+            ? 'group-hover:bg-background-alt-strong-hover'
+            : 'group-hover:bg-alt-hover',
           isHero && 'h-full',
         )}
       >
         {/* Project image */}
         <div
           className={cn(
-            'relative m-1.5 overflow-hidden rounded-[14px] tablet:m-2 tablet:rounded-[26px] desktop:rounded-[32px]',
+            'relative overflow-hidden',
             isHero ? 'min-h-0 flex-1' : 'aspect-square',
           )}
         >
@@ -46,7 +55,10 @@ export function ProjectCard({ title, slug, subtitle, featuredImage, href, icon, 
               media={featuredImage}
               alt={featuredImage.alt || title}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+              className={cn(
+                'object-cover',
+                !emphasizeHover && 'transition-transform duration-500 group-hover:scale-[1.03]',
+              )}
               sizes="(max-width: 810px) 100vw, (max-width: 1280px) 50vw, 33vw"
               priority={priority}
             />
