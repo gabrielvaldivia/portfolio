@@ -329,12 +329,12 @@ function framedLightboxSizeStyle(aspectRatio: number, contained: boolean) {
     : lightboxFrameSizeStyle(aspectRatio)
 }
 
-function framedDesktopSizeStyle(isLightbox: boolean, rowHeight: number, aspectRatio: number, contained = false) {
-  const rowWidth = (rowHeight * aspectRatio).toFixed(2)
+function framedDesktopSizeStyle(isLightbox: boolean, rowHeight: number | null, aspectRatio: number, contained = false) {
+  if (isLightbox) return framedLightboxSizeStyle(aspectRatio, contained)
+  if (rowHeight === null) return ''
 
-  return isLightbox
-    ? framedLightboxSizeStyle(aspectRatio, contained)
-    : `width: min(${rowWidth}px, 100%); height: auto;`
+  const rowWidth = (rowHeight * aspectRatio).toFixed(2)
+  return `width: ${rowWidth}px; max-width: 100%; height: auto;`
 }
 
 function FramedVideoOrImage({
@@ -381,8 +381,7 @@ function DeviceFrameImage({ src }: { src: string }) {
 function DC1Block({ id: blockId, video, rows, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; rows?: string } & ModuleRenderProps) {
   const src = video?.url
   if (!src) return null
-  const rowCount = parseInt(rows || '1', 10)
-  const rowHeight = ROW_HEIGHT * rowCount + ROW_GAP * (rowCount - 1)
+  const rowHeight = getRowHeight(rows)
   const id = `dc1-${blockId || 'x'}${_mode === 'lightbox' ? '-lightbox' : ''}`
   const isLightbox = _mode === 'lightbox'
   const isContainedLightbox = isLightbox && Boolean(_containedInLightbox)
@@ -409,8 +408,7 @@ function iPhone15Block({ id: blockId, video, image, rows, showNotch, _containedI
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url
-  const rowCount = parseInt(rows || '1', 10)
-  const rowHeight = ROW_HEIGHT * rowCount + ROW_GAP * (rowCount - 1)
+  const rowHeight = getRowHeight(rows)
   const id = `iphone15-${blockId || 'x'}${_mode === 'lightbox' ? '-lightbox' : ''}`
   const frameUrl = isChecked(showNotch) ? IPHONE15_NOTCH_FRAME_URL : IPHONE15_FRAME_URL
   const isLightbox = _mode === 'lightbox'
@@ -454,8 +452,7 @@ function iPhone13MiniBlock({ id: blockId, video, image, rows, _containedInLightb
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url
-  const rowCount = parseInt(rows || '1', 10)
-  const rowHeight = ROW_HEIGHT * rowCount + ROW_GAP * (rowCount - 1)
+  const rowHeight = getRowHeight(rows)
   const id = `iphone13mini-${blockId || 'x'}${_mode === 'lightbox' ? '-lightbox' : ''}`
   const isLightbox = _mode === 'lightbox'
   const isContainedLightbox = isLightbox && Boolean(_containedInLightbox)
@@ -488,8 +485,7 @@ function iPhone5Block({ id: blockId, video, image, rows, _containedInLightbox, _
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url
-  const rowCount = parseInt(rows || '1', 10)
-  const rowHeight = ROW_HEIGHT * rowCount + ROW_GAP * (rowCount - 1)
+  const rowHeight = getRowHeight(rows)
   const id = `iphone5-${blockId || 'x'}${_mode === 'lightbox' ? '-lightbox' : ''}`
   const isLightbox = _mode === 'lightbox'
   const isContainedLightbox = isLightbox && Boolean(_containedInLightbox)
@@ -522,8 +518,7 @@ function iPhone6Block({ id: blockId, video, image, rows, _containedInLightbox, _
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url
-  const rowCount = parseInt(rows || '1', 10)
-  const rowHeight = ROW_HEIGHT * rowCount + ROW_GAP * (rowCount - 1)
+  const rowHeight = getRowHeight(rows)
   const id = `iphone6-${blockId || 'x'}${_mode === 'lightbox' ? '-lightbox' : ''}`
   const isLightbox = _mode === 'lightbox'
   const isContainedLightbox = isLightbox && Boolean(_containedInLightbox)
@@ -556,8 +551,7 @@ function iPhoneXBlock({ id: blockId, video, image, rows, _containedInLightbox, _
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url
-  const rowCount = parseInt(rows || '1', 10)
-  const rowHeight = ROW_HEIGHT * rowCount + ROW_GAP * (rowCount - 1)
+  const rowHeight = getRowHeight(rows)
   const id = `iphonex-${blockId || 'x'}${_mode === 'lightbox' ? '-lightbox' : ''}`
   const isLightbox = _mode === 'lightbox'
   const isContainedLightbox = isLightbox && Boolean(_containedInLightbox)
