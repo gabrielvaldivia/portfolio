@@ -22,6 +22,8 @@ type BuildPageMetadataOptions = {
   fallbackTitle: string
   fallbackDescription?: string
   appendSiteName?: boolean
+  canonicalPath?: string
+  markdownPath?: string
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -50,6 +52,8 @@ export function buildPageMetadata(
     fallbackTitle,
     fallbackDescription = '',
     appendSiteName = true,
+    canonicalPath,
+    markdownPath,
   }: BuildPageMetadataOptions,
 ): Metadata {
   const meta = getPageMeta(page)
@@ -70,11 +74,20 @@ export function buildPageMetadata(
   return {
     title,
     description,
+    ...((canonicalPath || markdownPath)
+      ? {
+          alternates: {
+            ...(canonicalPath ? { canonical: canonicalPath } : {}),
+            ...(markdownPath ? { types: { 'text/markdown': markdownPath } } : {}),
+          },
+        }
+      : {}),
     ...(openGraphImage
       ? {
           openGraph: {
             title,
             description,
+            ...(canonicalPath ? { url: canonicalPath } : {}),
             images: [openGraphImage],
           },
           twitter: {

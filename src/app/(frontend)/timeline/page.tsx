@@ -12,9 +12,11 @@ const description = 'An interactive timeline from March 23, 1987 to today.'
 export const metadata: Metadata = {
   title,
   description,
+  alternates: { canonical: '/timeline' },
   openGraph: {
     title,
     description,
+    url: '/timeline',
     images: [],
   },
   twitter: {

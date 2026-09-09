@@ -5,6 +5,8 @@ import { buildPageMetadata } from '@/lib/pageMetadata'
 import { getPublishedNotes } from '@/lib/queries'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { JsonLd } from '@/components/JsonLd'
+import { absoluteSiteUrl, buildSiteStructuredData, websiteReference } from '@/lib/structuredData'
 
 export const revalidate = 60
 
@@ -19,6 +21,8 @@ export function generateMetadata(): Metadata {
   const metadata = buildPageMetadata(null, {
     fallbackTitle: 'Notes',
     fallbackDescription: 'Essays and notes by Gabriel Valdivia.',
+    canonicalPath: '/notes',
+    markdownPath: '/notes/index.md',
   })
 
   return {
@@ -35,6 +39,24 @@ export function generateMetadata(): Metadata {
 
 export default async function NotesPage() {
   const { docs: notes } = await getPublishedNotes()
+  const structuredData = buildSiteStructuredData([{
+    '@type': 'CollectionPage',
+    '@id': absoluteSiteUrl('/notes#collection-page'),
+    url: absoluteSiteUrl('/notes'),
+    name: 'Notes by Gabriel Valdivia',
+    description: 'Essays and notes by Gabriel Valdivia.',
+    inLanguage: 'en-US',
+    isPartOf: websiteReference(),
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: notes.map((note, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: note.title,
+        url: absoluteSiteUrl(`/notes/${encodeURIComponent(note.slug)}`),
+      })),
+    },
+  }])
   const grouped: Record<string, typeof notes> = {}
 
   notes.forEach((note) => {
@@ -50,8 +72,10 @@ export default async function NotesPage() {
   })
 
   return (
-    <section className="pb-20">
-      <Container>
+    <>
+      <JsonLd data={structuredData} />
+      <section className="pb-20">
+        <Container>
         <div className="pb-20">
           <h1 className="text-[34px] tablet:hidden">Notes</h1>
           <div className="hidden tablet:block">
@@ -87,7 +111,8 @@ export default async function NotesPage() {
             <p className="text-body text-text-body">No notes published yet.</p>
           </div>
         )}
-      </Container>
-    </section>
+        </Container>
+      </section>
+    </>
   )
 }

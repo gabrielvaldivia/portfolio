@@ -18,6 +18,7 @@ import {
 } from '@payloadcms/richtext-lexical'
 import config from '@payload-config'
 import { getPayload } from 'payload'
+import { normalizeNoteBodyFormatting } from '../src/lib/noteFormatting'
 
 type Essay = {
   body: string
@@ -249,10 +250,11 @@ if (!isDryRun) {
   const editorConfig = await editorConfigFactory.default({ config: payload.config })
 
   const noteData = (essay: Essay) => {
-    const body = convertMarkdownToLexical({
+    const convertedBody = convertMarkdownToLexical({
       editorConfig,
       markdown: essay.body,
     })
+    const body = normalizeNoteBodyFormatting(convertedBody, { title: essay.title }).body
 
     return {
       _status: 'draft' as const,

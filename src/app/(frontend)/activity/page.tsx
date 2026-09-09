@@ -11,6 +11,7 @@ export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
   title: 'Activity - Gabriel Valdivia',
   description: 'Recent chats, highlights, and likes across Gabriel Valdivia’s notes, projects, and media.',
+  alternates: { canonical: '/activity' },
 }
 
 function getEmptyActivityPage(): ModuleLikeActivityPage {

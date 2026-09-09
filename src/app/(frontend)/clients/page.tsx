@@ -12,6 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildPageMetadata(page, {
     fallbackTitle: 'Clients',
     fallbackDescription: 'Companies I have worked with',
+    canonicalPath: '/clients',
   })
 }
 

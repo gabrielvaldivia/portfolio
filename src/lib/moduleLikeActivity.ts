@@ -660,6 +660,12 @@ function normalizePageLimit(limit: number | null | undefined) {
   return normalizedLimit > 0 ? normalizedLimit : null
 }
 
+function normalizeActivitySince(since: Date | string | null | undefined) {
+  if (!since) return null
+  const date = since instanceof Date ? since : new Date(since)
+  return Number.isNaN(date.getTime()) ? null : date.toISOString()
+}
+
 function normalizeFeedCursor(cursor: ModuleLikeFeedCursor | null | undefined) {
   if (!cursor) return null
 
@@ -795,9 +801,11 @@ function getFeedItem(row: ModuleLikeFeedRow, targetIndex: Map<string, ActivityTa
 export async function getModuleLikeActivityPage({
   cursor,
   limit = MODULE_LIKE_ACTIVITY_PAGE_SIZE,
+  since,
 }: {
   cursor?: ModuleLikeActivityCursor | null
   limit?: number | null
+  since?: Date | string | null
 } = {}): Promise<ModuleLikeActivityPage> {
   const payload = await getPayload()
   if (isPayloadUnavailable(payload)) throw new Error('Activity data is temporarily unavailable')
@@ -805,9 +813,14 @@ export async function getModuleLikeActivityPage({
   const targetIndexPromise = getActivityTargetIndex()
   const normalizedCursor = normalizeActivityCursor(cursor)
   const normalizedLimit = normalizePageLimit(limit)
-  const cursorFilter = normalizedCursor
-    ? sql`WHERE ("activity_at", "activity_id") < (${normalizedCursor.createdAt}, ${normalizedCursor.id})`
-    : sql``
+  const normalizedSince = normalizeActivitySince(since)
+  const activityFilter = normalizedCursor && normalizedSince
+    ? sql`WHERE ("activity_at", "activity_id") < (${normalizedCursor.createdAt}, ${normalizedCursor.id}) AND "activity_at" >= ${normalizedSince}`
+    : normalizedCursor
+      ? sql`WHERE ("activity_at", "activity_id") < (${normalizedCursor.createdAt}, ${normalizedCursor.id})`
+      : normalizedSince
+        ? sql`WHERE "activity_at" >= ${normalizedSince}`
+        : sql``
   const rowLimit = normalizedLimit ? normalizedLimit + 1 : null
 
   const result = rowLimit
@@ -898,7 +911,7 @@ export async function getModuleLikeActivityPage({
       )
       SELECT "activity_id", "event_type", "entity_id", "target_id", "amount", "location", "city", "region", "country", "latitude", "longitude", "activity_at", "highlight"
       FROM "activity_rows"
-      ${cursorFilter}
+      ${activityFilter}
       ORDER BY "activity_at" DESC, "activity_id" DESC
       LIMIT ${rowLimit}
     `)
@@ -989,7 +1002,7 @@ export async function getModuleLikeActivityPage({
       )
       SELECT "activity_id", "event_type", "entity_id", "target_id", "amount", "location", "city", "region", "country", "latitude", "longitude", "activity_at", "highlight"
       FROM "activity_rows"
-      ${cursorFilter}
+      ${activityFilter}
       ORDER BY "activity_at" DESC, "activity_id" DESC
     `)
 

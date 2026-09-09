@@ -8,14 +8,17 @@ import type { Metadata } from 'next'
 export const revalidate = 60
 
 // Reserved slugs handled by other routes
-const RESERVED = ['work', 'about', 'clients', 'playground', 'notes', 'design-system', 'admin']
+const RESERVED = ['work', 'about', 'clients', 'playground', 'notes', 'pricing', 'engagement-models', 'design-system', 'admin']
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   if (RESERVED.includes(slug)) return {}
   const page = await getPublishedPageBySlug(slug)
   if (!page) return {}
-  return buildPageMetadata(page, { fallbackTitle: page.title })
+  return buildPageMetadata(page, {
+    fallbackTitle: page.title,
+    canonicalPath: `/${encodeURIComponent(slug)}`,
+  })
 }
 
 export default async function DynamicPage({ params }: { params: Promise<{ slug: string }> }) {

@@ -1,7 +1,8 @@
 import { cache } from 'react'
 import { getPayload } from './payload'
+import { normalizeSiteOrigin } from './structuredData'
 
-export const SITE_URL = 'https://gabrielvaldivia.com'
+export const SITE_URL = normalizeSiteOrigin()
 export const PHOTO_FEED_URL = `${SITE_URL}/photos/feed.json`
 
 export type PhotoExif = {

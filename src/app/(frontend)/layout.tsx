@@ -21,6 +21,9 @@ export async function generateMetadata(): Promise<Metadata> {
     title,
     description,
     metadataBase: new URL(settings?.canonicalUrl || SITE_ORIGIN),
+    authors: [{ name: 'Gabriel Valdivia', url: '/about' }],
+    creator: 'Gabriel Valdivia',
+    publisher: 'Gabriel Valdivia',
     ...(settings?.noIndex ? { robots: { index: false, follow: false } } : {}),
     icons: {
       icon: settings?.favicon?.url || undefined,
@@ -63,6 +66,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
+        <link rel="describedby" href="/llms.txt" />
         {s?.googleAnalyticsId && (
           <>
             <script async src={`https://www.googletagmanager.com/gtag/js?id=${s.googleAnalyticsId}`} />

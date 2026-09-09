@@ -7,11 +7,17 @@ import { getNoteHighlightText } from '@/lib/noteHighlightAnchors'
 import { highlightTextVersion } from '@/lib/noteHighlightStore'
 import { getNoteLikeTargetId } from '@/lib/moduleLikes'
 import { buildPageMetadata } from '@/lib/pageMetadata'
-import { SITE_ORIGIN } from '@/lib/siteMetadata'
 import { getPublishedNoteBySlug, getPublishedNoteSlugs, getReadNextNotes } from '@/lib/queries'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { JsonLd } from '@/components/JsonLd'
+import {
+  absoluteSiteUrl,
+  buildSiteStructuredData,
+  personReference,
+  websiteReference,
+} from '@/lib/structuredData'
 
 export const revalidate = 60
 // Notes published after deployment must render without another build.
@@ -49,7 +55,8 @@ export async function generateMetadata({ params }: NotePageProps): Promise<Metad
   const note = await getPublishedNoteBySlug(slug)
   if (!note) return {}
 
-  const canonical = new URL(`/notes/${encodeURIComponent(note.slug)}`, SITE_ORIGIN).toString()
+  const canonicalPath = `/notes/${encodeURIComponent(note.slug)}`
+  const canonical = absoluteSiteUrl(canonicalPath)
   const imageURL = new URL(`${canonical}/og`)
   imageURL.searchParams.set('v', note.updatedAt)
   // Bust immutable/social image caches when the shared design changes too.
@@ -76,11 +83,14 @@ export async function generateMetadata({ params }: NotePageProps): Promise<Metad
 
   return {
     ...metadata,
-    alternates: { canonical },
+    alternates: {
+      canonical: canonicalPath,
+      types: { 'text/markdown': `${canonicalPath}/index.md` },
+    },
     openGraph: {
       ...metadata.openGraph,
       type: 'article',
-      url: canonical,
+      url: canonicalPath,
       authors: ['Gabriel Valdivia'],
       publishedTime: note.publishedAt || note.createdAt,
       modifiedTime: note.updatedAt,
@@ -96,10 +106,38 @@ export default async function NotePage({ params }: NotePageProps) {
   const coverImage = typeof note.coverImage === 'object' ? note.coverImage : null
   const noteDate = formatNoteDate(note.publishedAt || note.createdAt)
   const readNextNotes = await getReadNextNotes(note.id, note.publishedAt)
+  const canonicalPath = `/notes/${encodeURIComponent(note.slug)}`
+  const canonical = absoluteSiteUrl(canonicalPath)
+  const imageURL = new URL(`${canonical}/og`)
+  imageURL.searchParams.set('v', note.updatedAt)
+  imageURL.searchParams.set('design', 'centered-name-v1')
+  const structuredData = buildSiteStructuredData([{
+    '@type': 'Article',
+    '@id': `${canonical}#article`,
+    url: canonical,
+    headline: note.title,
+    ...(note.excerpt ? { description: note.excerpt } : {}),
+    image: imageURL.toString(),
+    datePublished: note.publishedAt || note.createdAt,
+    dateModified: note.updatedAt,
+    inLanguage: 'en-US',
+    author: personReference(),
+    publisher: personReference(),
+    isPartOf: websiteReference(),
+    mainEntityOfPage: { '@id': `${canonical}#webpage` },
+  }, {
+    '@type': 'WebPage',
+    '@id': `${canonical}#webpage`,
+    url: canonical,
+    name: note.title,
+    isPartOf: websiteReference(),
+  }])
 
   return (
-    <article className="note-page pb-20 text-text-strong">
-      <Container>
+    <>
+      <JsonLd data={structuredData} />
+      <article className="note-page pb-20 text-text-strong">
+        <Container>
         <div className="mx-auto max-w-[760px]">
           <header className="flex flex-col gap-4 pb-12 text-center tablet:pb-16">
             <h1 className="note-page-title text-balance">
@@ -151,7 +189,8 @@ export default async function NotePage({ params }: NotePageProps) {
           </section>
         ) : null}
 
-      </Container>
-    </article>
+        </Container>
+      </article>
+    </>
   )
 }

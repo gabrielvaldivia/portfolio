@@ -494,6 +494,7 @@ const creditSections: CreditSection[] = [
 export const metadata: Metadata = {
   title: 'Credits',
   description: 'The people, tools, libraries, typefaces, data, and services behind this website.',
+  alternates: { canonical: '/credits' },
 }
 
 function LinkedName({ name, href }: NamedCredit) {

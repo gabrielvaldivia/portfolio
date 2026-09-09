@@ -7,6 +7,15 @@ import { getProjectBySlug, getProjectSlugs } from '@/lib/queries'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { FitText } from '@/components/FitText'
+import { JsonLd } from '@/components/JsonLd'
+import { entityName, lexicalToPlainText } from '@/lib/agentMarkdown'
+import {
+  absoluteSiteUrl,
+  buildSiteStructuredData,
+  compactJsonLdValues,
+  personReference,
+  websiteReference,
+} from '@/lib/structuredData'
 
 export const revalidate = 60
 
@@ -28,12 +37,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const metaImage = typeof project.meta?.image === 'object' ? project.meta?.image : undefined
   const featuredImage = typeof project.featuredImage === 'object' ? project.featuredImage : undefined
   const ogImage = metaImage?.url || featuredImage?.url
+  const canonicalPath = `/work/${encodeURIComponent(slug)}`
   return {
     title,
     description,
+    alternates: {
+      canonical: canonicalPath,
+      types: { 'text/markdown': `${canonicalPath}/index.md` },
+    },
     openGraph: {
       title,
       description,
+      url: canonicalPath,
       ...(ogImage ? { images: [{ url: ogImage }] } : {}),
     },
     twitter: {
@@ -61,8 +76,43 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
 
   const team = (project.team || []) as any[]
   const services = (project.services || []) as any[]
+  const canonicalPath = `/work/${encodeURIComponent(slug)}`
+  const description = project.meta?.description || project.subtitle || lexicalToPlainText(project.description)
+  const projectImage = typeof project.meta?.image === 'object' && project.meta.image?.url
+    ? project.meta.image.url
+    : typeof project.featuredImage === 'object' && project.featuredImage?.url
+      ? project.featuredImage.url
+      : undefined
+  const contributors = compactJsonLdValues(team.map((person) => {
+    const name = entityName(person)
+    return name ? { '@type': 'Person', name } : null
+  }))
+  const projectYear = typeof project.year === 'string' && /^\d{4}$/.test(project.year.trim())
+    ? project.year.trim()
+    : undefined
+  const structuredData = buildSiteStructuredData([{
+    '@type': 'WebPage',
+    '@id': absoluteSiteUrl(`${canonicalPath}#webpage`),
+    url: absoluteSiteUrl(canonicalPath),
+    name: project.title,
+    ...(description ? { description } : {}),
+    inLanguage: 'en-US',
+    isPartOf: websiteReference(),
+    author: personReference(),
+    mainEntity: {
+      '@type': 'CreativeWork',
+      '@id': absoluteSiteUrl(`${canonicalPath}#project`),
+      name: project.title,
+      ...(description ? { description } : {}),
+      ...(projectYear ? { dateCreated: projectYear } : {}),
+      ...(projectImage ? { image: projectImage } : {}),
+      ...(services.length ? { keywords: services.map(entityName).filter(Boolean) } : {}),
+      ...(contributors.length ? { contributor: contributors } : {}),
+    },
+  }])
   return (
     <>
+      <JsonLd data={structuredData} />
 
       <article>
         <Container>

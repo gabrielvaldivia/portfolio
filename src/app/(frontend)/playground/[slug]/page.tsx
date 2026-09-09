@@ -21,9 +21,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const project = await getSideProjectBySlug(slug)
   if (!project) return {}
+  const canonicalPath = `/playground/${encodeURIComponent(slug)}`
   return {
     title: `${project.title} — Gabriel Valdivia`,
     description: project.description || '',
+    alternates: { canonical: canonicalPath },
   }
 }
 

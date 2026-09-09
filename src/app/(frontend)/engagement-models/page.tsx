@@ -94,6 +94,7 @@ export const metadata: Metadata = {
   title: 'Engagement Models | Gabriel Valdivia',
   description:
     'Two ways to work with Gabriel Valdivia on product design, from early product direction to ongoing design leadership.',
+  alternates: { canonical: '/engagement-models' },
 }
 
 export const revalidate = 60

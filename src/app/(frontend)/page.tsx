@@ -11,6 +11,8 @@ import { LikedWorkMarquee, type LikedWorkMarqueeItem } from '@/components/LikedW
 import { ApproachTimelineItem } from '@/components/ApproachTimelineItem'
 import { buildPageMetadata } from '@/lib/pageMetadata'
 import { SITE_TAGLINE } from '@/lib/siteMetadata'
+import { JsonLd } from '@/components/JsonLd'
+import { absoluteSiteUrl, buildSiteStructuredData, personReference, websiteReference } from '@/lib/structuredData'
 import { getPageBySlug } from '@/lib/queries'
 import { getPayload, isPayloadUnavailable } from '@/lib/payload'
 import { getFAQItemsFromSections } from '@/lib/buildContext'
@@ -85,6 +87,7 @@ export async function generateMetadata(): Promise<Metadata> {
     fallbackTitle: 'Gabriel Valdivia',
     fallbackDescription: SITE_TAGLINE,
     appendSiteName: false,
+    canonicalPath: '/',
   })
 }
 
@@ -358,6 +361,16 @@ function HomeHeroTagline({ heading = HOME_HERO_TAGLINE }: { heading?: string | n
 }
 
 export default async function HomePage() {
+  const structuredData = buildSiteStructuredData([{
+    '@type': 'WebPage',
+    '@id': absoluteSiteUrl('/#webpage'),
+    url: absoluteSiteUrl('/'),
+    name: 'Gabriel Valdivia',
+    description: SITE_TAGLINE,
+    inLanguage: 'en-US',
+    isPartOf: websiteReference(),
+    mainEntity: personReference(),
+  }])
   const payload = await getPayload()
   const usePublicPreview = process.env.NODE_ENV === 'development' && isPayloadUnavailable(payload)
   const [pageResult, services, conversationsResult, projectsResult, likedWorkResult] = usePublicPreview
@@ -415,6 +428,7 @@ export default async function HomePage() {
   if (!sections.length) {
     return (
       <>
+        <JsonLd data={structuredData} />
         <section id="hero" className="scroll-mt-0">
           <HomeHeroTagline />
         </section>
@@ -680,6 +694,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <JsonLd data={structuredData} />
 
       {(() => {
         const groups: { blocks: any[] }[] = []

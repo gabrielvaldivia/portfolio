@@ -209,6 +209,7 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
                   prefetch={true}
                   onClick={() => setOpen(false)}
                   onNavigate={(event) => handleMenuNavigate(event, page.url)}
+                  aria-current={isActive ? 'page' : undefined}
                   className={`flex items-center gap-2 py-1.5 transition-all text-body ${
                     isActive
                       ? 'text-text-strong opacity-100'
@@ -271,6 +272,7 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
                   prefetch={true}
                   onClick={() => setOpen(false)}
                   onNavigate={(event) => handleMenuNavigate(event, page.url)}
+                  aria-current={isActive ? 'page' : undefined}
                   className={`flex items-center gap-2 py-1.5 transition-all text-body ${
                     isActive
                       ? 'text-text-strong opacity-100'

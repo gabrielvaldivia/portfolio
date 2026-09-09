@@ -9,6 +9,8 @@ import Link from 'next/link'
 import { HoverArrow, HoverChevron } from '@/components/Icons'
 import { SprayPaintPortrait } from '@/components/SprayPaintPortrait'
 import { cn } from '@/lib/cn'
+import { JsonLd } from '@/components/JsonLd'
+import { absoluteSiteUrl, buildSiteStructuredData, personReference, websiteReference } from '@/lib/structuredData'
 
 const PUBLIC_CMS_API = 'https://www.gabrielvaldivia.com/api'
 
@@ -86,6 +88,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildPageMetadata(page, {
     fallbackTitle: 'About',
     fallbackDescription: 'Designer and creative technologist',
+    canonicalPath: '/about',
+    markdownPath: '/about.md',
   })
 }
 
@@ -123,6 +127,16 @@ export default async function AboutPage() {
   const portraitImageDark = typeof homeAboutSection?.imageDark === 'object'
     ? homeAboutSection.imageDark
     : null
+  const structuredData = buildSiteStructuredData([{
+    '@type': 'ProfilePage',
+    '@id': absoluteSiteUrl('/about#profile-page'),
+    url: absoluteSiteUrl('/about'),
+    name: 'About Gabriel Valdivia',
+    description: 'Designer and creative technologist',
+    inLanguage: 'en-US',
+    isPartOf: websiteReference(),
+    mainEntity: personReference(),
+  }])
 
   const renderMediaList = (items: any[]) => (
     <div className="flex flex-col gap-8">
@@ -287,6 +301,7 @@ export default async function AboutPage() {
 
   return (
     <>
+      <JsonLd data={structuredData} />
       <section className="pb-20 tablet:pb-40">
         <Container>
           <div className="pb-20">
