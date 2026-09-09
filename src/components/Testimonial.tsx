@@ -44,7 +44,7 @@ export function Testimonial({ quote, name, company, companyLogo, photo, linkedIn
         className={cn(
           'leading-[1.4]',
           isHero
-            ? 'text-balance text-[16px] text-text-on-media-strong tablet:text-[18px] desktop:text-[20px]'
+            ? 'text-[16px] text-text-on-media-strong tablet:text-[18px] desktop:text-[20px]'
             : 'text-text-strong flex-1 pb-10 text-[18px] tablet:text-[22px] desktop:text-[26px]',
         )}
         style={{ textIndent: '-0.4em' }}
