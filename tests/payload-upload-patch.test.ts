@@ -13,6 +13,14 @@ test('Payload upload compatibility patches survive a clean install', () => {
   assert.match(clientBundle, /inlineUploading/)
   assert.match(clientBundle, /Payload bulk upload success callback failed/)
   assert.match(clientBundle, /autoSaveInitialFiles/)
+  assert.match(
+    clientBundle,
+    /Mt\?ut=\{\.\.\.ut,\.\.\.Se\}:ut=Se;let It=new FormData;return It\.append\("_payload",JSON\.stringify\(ut\)\)/,
+  )
+  assert.doesNotMatch(
+    clientBundle,
+    /Mt\?ut=\{\.\.\.ut,\.\.\.Se\}:ut=Se;let It=new FormData;return It\.append\("_payload",JSON\.stringify\(ct\)\)/,
+  )
   assert.match(uploadInput, /inlineUploadProgress/)
   assert.match(s3Upload, /new XMLHttpRequest\(\)/)
   assert.match(s3Upload, /toast\.loading/)

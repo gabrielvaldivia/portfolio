@@ -83,11 +83,24 @@ const patches = [
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
-    find: [
-      'let It={_payload:JSON.stringify(ct)};return r&&"upload"in r&&r.upload&&At&&(It.file=At),(0,UD.serialize)(It,{indices:!0,nullsAsUndefineds:!1})',
-      'let It={_payload:JSON.stringify(ut)};return r&&"upload"in r&&r.upload&&At&&(It.file=At),(0,ZD.serialize)(It,{indices:!0,nullsAsUndefineds:!1})',
-    ],
+    optional: true,
+    find: 'let It={_payload:JSON.stringify(ct)};return r&&"upload"in r&&r.upload&&At&&(It.file=At),(0,UD.serialize)(It,{indices:!0,nullsAsUndefineds:!1})',
     replace: 'let It=new FormData;return It.append("_payload",JSON.stringify(ct)),r&&"upload"in r&&r.upload&&At&&It.append("file",At),It',
+  },
+  {
+    file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
+    optional: true,
+    find: 'let It={_payload:JSON.stringify(ut)};return r&&"upload"in r&&r.upload&&At&&(It.file=At),(0,ZD.serialize)(It,{indices:!0,nullsAsUndefineds:!1})',
+    replace: 'let It=new FormData;return It.append("_payload",JSON.stringify(ut)),r&&"upload"in r&&r.upload&&At&&It.append("file",At),It',
+  },
+  {
+    // Payload 3.88 renamed this local from `ct` to `ut`. An earlier version of
+    // this patch matched the new source but still injected the old identifier,
+    // causing every non-upload form save to send `_payload=undefined`.
+    file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
+    optional: true,
+    find: 'Mt?ut={...ut,...Se}:ut=Se;let It=new FormData;return It.append("_payload",JSON.stringify(ct)),r&&"upload"in r&&r.upload&&At&&It.append("file",At),It',
+    replace: 'Mt?ut={...ut,...Se}:ut=Se;let It=new FormData;return It.append("_payload",JSON.stringify(ut)),r&&"upload"in r&&r.upload&&At&&It.append("file",At),It',
   },
   {
     file: 'node_modules/@payloadcms/ui/dist/exports/client/index.js',
