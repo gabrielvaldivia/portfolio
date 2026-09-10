@@ -113,6 +113,7 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, vi
   const finishLikes = useCallback(() => setLikesSettled(true), [])
   const finishViews = useCallback(() => setViewsSettled(true), [])
   const popoverRef = useRef<HTMLDivElement>(null)
+  const [popoverHeight, setPopoverHeight] = useState<number>()
   const mobile = useSyncExternalStore(subscribeMobile, getMobileSnapshot, getServerMobileSnapshot)
   const pendingSelection = useRef<PublicHighlight | null>(null)
   const skipRestoreFocus = useRef(false)
@@ -138,10 +139,19 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, vi
   function changeOpen(next: boolean) {
     setOpen(next)
     if (next) {
+      setPopoverHeight(undefined)
       skipRestoreFocus.current = false
       onOpenHighlights()
       onRefreshHighlights()
     }
+  }
+
+  function changeHighlightVisibility(visibility: HighlightVisibility) {
+    // Keep the open popover steady while its filtered contents change.
+    if (popoverRef.current && popoverHeight === undefined) {
+      setPopoverHeight(popoverRef.current.getBoundingClientRect().height)
+    }
+    onHighlightVisibilityChange(visibility)
   }
 
   function finishSelection() {
@@ -165,9 +175,9 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, vi
         { key: 'them', label: 'Them', accessibleLabel: "Show others' highlights", count: highlights.filter(hasOtherHighlighters).length },
       ] as const).map(({ key, label, accessibleLabel, count }) => (
         <Switch.Root key={key} checked={highlightVisibility[key]}
-          onCheckedChange={(checked) => onHighlightVisibilityChange({ ...highlightVisibility, [key]: checked })}
+          onCheckedChange={(checked) => changeHighlightVisibility({ ...highlightVisibility, [key]: checked })}
           aria-label={accessibleLabel}
-          className="group inline-flex min-h-11 shrink-0 items-center gap-1 rounded-lg px-1 text-sm font-medium text-text-strong hover:bg-background-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content">
+          className="group inline-flex min-h-11 shrink-0 items-center gap-1 rounded-lg px-1 text-sm font-medium text-text-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content">
           <HighlightVisibilityIcon visible={highlightVisibility[key]} />
           <span className="group-data-[state=unchecked]:text-text-muted">{label}</span>
           <span className="tabular-nums text-text-muted group-data-[state=unchecked]:opacity-50">{highlightsReady ? count.toLocaleString('en-US') : '—'}</span>
@@ -190,9 +200,9 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, vi
     : visibleHighlights.length === 0 ? (
       <div className="flex min-h-48 flex-col items-center justify-center gap-2 px-5 py-6 text-center">
         <p className="text-sm text-text-body">No highlights to show.</p>
-        <button type="button" onClick={() => onHighlightVisibilityChange(defaultHighlightVisibility)} className="min-h-11 rounded-lg px-3 text-sm underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content">Show all highlights</button>
+        <button type="button" onClick={() => changeHighlightVisibility(defaultHighlightVisibility)} className="min-h-11 rounded-lg px-3 text-sm underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content">Show all highlights</button>
       </div>
-    ) : <ul className={cn('min-h-0 px-2 pb-2', !mobile && 'overflow-y-auto overscroll-contain')}>
+    ) : <ul className="px-2 pb-2">
       {visibleHighlights.map((highlight) => (
         <li key={highlight.id}>
           <button type="button" className="block min-h-11 w-full rounded-lg px-3 py-3 text-left text-sm leading-relaxed hover:bg-background-alt focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-content"
@@ -232,6 +242,7 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, vi
         ) : <Popover open={open} onOpenChange={changeOpen}>
           <PopoverTrigger asChild>{trigger}</PopoverTrigger>
           <PopoverContent ref={popoverRef} side="top" sideOffset={14} collisionPadding={16} aria-label="Highlighted passages"
+            style={{ height: popoverHeight }}
             onOpenAutoFocus={(event) => {
               // Open neutrally, rather than drawing a focus ring around the first
               // control. Tab still moves into the visibility controls and quotes normally.
@@ -247,7 +258,7 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, vi
               <p className="shrink-0 text-base font-semibold">Highlights</p>
               {visibilityControls}
             </div>
-            {contents}
+            <div className="min-h-0 overflow-y-auto overscroll-contain">{contents}</div>
           </PopoverContent>
         </Popover>}
         <NoteViews key={noteId} noteId={noteId} enabled={visitorReady} reveal={revealed} onLoadSettled={finishViews} />

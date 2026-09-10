@@ -23,7 +23,8 @@ entrance. Swipe up to expand it, or down to dismiss it. The quote list scrolls
 natively inside the sheet; a downward list gesture dismisses only when it starts
 at the top. The handle also toggles expansion by tapping. Safe-area spacing,
 reduced motion, focus containment, and background scroll locking are respected.
-Desktop keeps the anchored popover. Selecting a quote closes either panel before
+Desktop keeps the anchored popover at its current height while visibility is
+toggled; longer contents scroll within it. Selecting a quote closes either panel before
 scrolling to the passage.
 Text indexing ignores modal accessibility hiding on the article or its ancestors,
 while still excluding hidden decorations inside the article. Opening the sheet or
