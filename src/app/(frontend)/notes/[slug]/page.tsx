@@ -172,19 +172,27 @@ export default async function NotePage({ params }: NotePageProps) {
               Continue reading
             </h2>
             <ul className="mt-5 flex min-w-0 flex-col gap-4 desktop:mt-0">
-              {readNextNotes.map((readNextNote) => (
-                <li key={readNextNote.slug}>
-                  <h3 className="note-recommendation-title">
-                    <Link
-                      className="group transition-opacity tablet:hover:opacity-60"
-                      href={`/notes/${readNextNote.slug}`}
-                    >
-                      <span>{readNextNote.title}</span>
-                      <span className="ml-2 hidden tablet:inline"><HoverChevron /></span>
-                    </Link>
-                  </h3>
-                </li>
-              ))}
+              {readNextNotes.map((readNextNote) => {
+                const title = readNextNote.title.trim()
+                const lastWordStart = title.search(/\S+$/)
+
+                return (
+                  <li key={readNextNote.slug}>
+                    <h3 className="note-recommendation-title">
+                      <Link
+                        className="group transition-opacity tablet:hover:opacity-60"
+                        href={`/notes/${readNextNote.slug}`}
+                      >
+                        {title.slice(0, lastWordStart)}
+                        <span className="whitespace-nowrap">
+                          {title.slice(lastWordStart)}
+                          <span className="ml-2 hidden tablet:inline"><HoverChevron /></span>
+                        </span>
+                      </Link>
+                    </h3>
+                  </li>
+                )
+              })}
             </ul>
           </section>
         ) : null}
