@@ -157,8 +157,8 @@ function SheetSurface({ title, headerAction, children, onOpenChange, onCloseAuto
               onClick={() => { setExpanded(!expanded); settle(!expanded) }}>
               <span aria-hidden="true" className="h-1 w-9 rounded-full bg-border-strong" />
             </button>
-            <div className="flex items-center justify-between gap-4 px-5 pb-2">
-              <Dialog.Title asChild><h3>{title}</h3></Dialog.Title>
+            <div className="flex items-center justify-between gap-2 px-4 pb-2">
+              <Dialog.Title asChild><h3 className="shrink-0 text-base! font-semibold!">{title}</h3></Dialog.Title>
               <div data-sheet-no-drag>{headerAction}</div>
             </div>
           </div>

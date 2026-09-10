@@ -1,13 +1,14 @@
 import { createReflowObserver, highlight, rangesToLineRects } from '@highlighters/core'
 import type { PublicHighlight } from './noteHighlightAnchors'
+import { defaultHighlightVisibility, hasOtherHighlighters, type HighlightVisibility } from './noteHighlightVisibility'
 
 type HighlightSpan = { start: number; end: number; mine: boolean }
 
 /** Merge each reader style, giving your filled highlights priority at overlaps. */
-export function getNoteHighlightSpans(highlights: PublicHighlight[]): HighlightSpan[] {
+export function getNoteHighlightSpans(highlights: PublicHighlight[], visibility: HighlightVisibility = defaultHighlightVisibility): HighlightSpan[] {
   function merge(mine: boolean) {
     const spans: HighlightSpan[] = []
-    for (const mark of highlights.filter((mark) => mark.mine === mine).sort((a, b) => a.start - b.start)) {
+    for (const mark of highlights.filter((mark) => mine ? mark.mine : hasOtherHighlighters(mark)).sort((a, b) => a.start - b.start)) {
       const previous = spans.at(-1)
       if (previous && mark.start <= previous.end) previous.end = Math.max(previous.end, mark.end)
       else spans.push({ start: mark.start, end: mark.end, mine })
@@ -15,8 +16,8 @@ export function getNoteHighlightSpans(highlights: PublicHighlight[]): HighlightS
     return spans
   }
 
-  const own = merge(true)
-  const others = merge(false).flatMap((span) => {
+  const own = visibility.you ? merge(true) : []
+  const others = (visibility.them ? merge(false) : []).flatMap((span) => {
     const uncovered: HighlightSpan[] = []
     let start = span.start
     for (const mine of own) {

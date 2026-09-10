@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Anchor as PopoverAnchor } from '@radix-ui/react-popover'
 import { Popover, PopoverContent } from '@/components/ui/Popover'
 import { NoteActions } from '@/components/NoteActions'
@@ -9,10 +9,10 @@ import { anchorFromRange, indexHighlightText, rangeFromAnchor } from '@/lib/note
 import { navigateToNoteHighlight } from '@/lib/noteHighlightNavigation'
 import { attachNoteHighlightHover } from '@/lib/noteHighlightHover'
 import { MAX_HIGHLIGHT_LENGTH, type HighlightAnchor, type HighlightResponse, type PublicHighlight } from '@/lib/noteHighlightAnchors'
+import { defaultHighlightVisibility, highlightVisibilityStorageKey, isHighlightVisible, legacyHighlightVisibilityStorageKey, parseHighlightVisibility, type HighlightVisibility } from '@/lib/noteHighlightVisibility'
 import { cn } from '@/lib/cn'
 
 type ActivePassage = { anchor: HighlightAnchor; range: Range; fromSelection: boolean; fromHover?: boolean }
-const visibilityStorageKey = 'gv-note-highlights-visible-v1'
 const panelClass = 'z-50 w-72 max-w-[calc(100vw-32px)] max-h-[var(--radix-popover-content-available-height)] overflow-y-auto rounded-xl bg-content px-3 py-2 text-center text-sm leading-relaxed text-background shadow-lg outline-none'
 const actionClass = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-content px-4 py-2 text-xs leading-none text-background disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content'
 
@@ -28,7 +28,8 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
   const [active, setActive] = useState<ActivePassage | null>(null)
   const [ready, setReady] = useState(false)
   const [visitorReady, setVisitorReady] = useState(false)
-  const [highlightsVisible, setHighlightsVisible] = useState(true)
+  const [highlightVisibility, setHighlightVisibility] = useState(defaultHighlightVisibility)
+  const visibleHighlights = useMemo(() => highlights.filter((mark) => isHighlightVisible(mark, highlightVisibility)), [highlights, highlightVisibility])
   const [saving, setSaving] = useState(false)
   const [paused, setPaused] = useState(false)
   const [touchSelection, setTouchSelection] = useState(false)
@@ -61,23 +62,29 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
   useEffect(() => () => navigationCleanupRef.current?.(), [noteId, version])
 
   useEffect(() => {
-    try { setHighlightsVisible(localStorage.getItem(visibilityStorageKey) !== 'false') } catch { /* Storage is optional. */ }
+    const readVisibility = () => {
+      try { return parseHighlightVisibility(localStorage.getItem(highlightVisibilityStorageKey), localStorage.getItem(legacyHighlightVisibilityStorageKey)) }
+      catch { return defaultHighlightVisibility }
+    }
+    setHighlightVisibility(readVisibility())
     const onStorage = (event: StorageEvent) => {
-      if (event.key === visibilityStorageKey || event.key === null) {
-        const visible = event.newValue !== 'false'
-        setHighlightsVisible(visible)
-        if (!visible) setActive((current) => current?.fromSelection ? current : null)
+      if (event.key === highlightVisibilityStorageKey || event.key === legacyHighlightVisibilityStorageKey || event.key === null) {
+        navigationCleanupRef.current?.()
+        hoverRef.current?.dismiss()
+        setHighlightVisibility(readVisibility())
+        setActive((current) => current?.fromSelection ? current : null)
       }
     }
     window.addEventListener('storage', onStorage)
     return () => window.removeEventListener('storage', onStorage)
   }, [])
 
-  function changeHighlightsVisible(visible: boolean) {
+  function changeHighlightVisibility(visibility: HighlightVisibility) {
     navigationCleanupRef.current?.()
-    setHighlightsVisible(visible)
-    if (!visible) setActive((current) => current?.fromSelection ? current : null)
-    try { localStorage.setItem(visibilityStorageKey, String(visible)) } catch { /* Still works for this visit. */ }
+    hoverRef.current?.dismiss()
+    setHighlightVisibility(visibility)
+    setActive((current) => current?.fromSelection ? current : null)
+    try { localStorage.setItem(highlightVisibilityStorageKey, JSON.stringify(visibility)) } catch { /* Still works for this visit. */ }
   }
 
   const refresh = useCallback(async () => {
@@ -123,24 +130,24 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
 
   useEffect(() => {
     const root = rootRef.current
-    if (!root || !ready || !highlightsVisible || !highlights.length) return
+    if (!root || !ready || !visibleHighlights.length) return
     let disposed = false
     const handles: { remove(): void }[] = []
     void import('@/lib/noteHighlightMarks').then(({ createNoteHighlightMark, getNoteHighlightSpans }) => {
       if (disposed) return
       const index = indexHighlightText(root)
-      for (const span of getNoteHighlightSpans(highlights)) {
+      for (const span of getNoteHighlightSpans(visibleHighlights, highlightVisibility)) {
         const range = rangeFromAnchor(root, { ...span, exact: index.text.slice(span.start, span.end), prefix: '', suffix: '' }, index)
         if (range) handles.push(createNoteHighlightMark(root, range, span.start, span.mine))
       }
     }).catch(() => { if (!disposed) setError('Highlights could not be displayed. Please refresh to try again.') })
     return () => { disposed = true; handles.forEach((handle) => handle.remove()) }
-  }, [highlights, ready, highlightsVisible])
+  }, [visibleHighlights, ready, highlightVisibility])
 
   useEffect(() => {
     const root = rootRef.current
-    if (!root || !ready || !highlightsVisible || !highlights.length) return
-    const hover = attachNoteHighlightHover(root, highlights, {
+    if (!root || !ready || !visibleHighlights.length) return
+    const hover = attachNoteHighlightHover(root, visibleHighlights, {
       getPanel: () => panelRef.current,
       canHover: () => !savingRef.current && (!activeRef.current || activeRef.current.fromHover === true),
       onChange: (passage) => setActive((current) => {
@@ -150,7 +157,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
     })
     hoverRef.current = hover
     return () => { hover.destroy(); hoverRef.current = null }
-  }, [highlights, ready, highlightsVisible])
+  }, [visibleHighlights, ready])
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>
@@ -219,12 +226,12 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
   return (
     <div className="note-highlights">
       <div ref={rootRef} data-note-highlight-body tabIndex={-1} className="relative max-w-[760px] outline-none" onClick={(event) => {
-        if (!ready || !highlightsVisible || window.getSelection()?.toString() || (event.target as Element).closest('a, button')) return
+        if (!ready || !visibleHighlights.length || window.getSelection()?.toString() || (event.target as Element).closest('a, button')) return
         const root = rootRef.current
         if (!root) return
         // Overlays are non-interactive; hit-test real text without changing links or selection.
         const index = indexHighlightText(root)
-        const match = [...highlights].sort((a, b) => (a.end - a.start) - (b.end - b.start)).find((mark) => {
+        const match = [...visibleHighlights].sort((a, b) => (a.end - a.start) - (b.end - b.start)).find((mark) => {
           const range = rangeFromAnchor(root, mark, index)
           return range && [...range.getClientRects()].some((rect) =>
             event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom)
@@ -236,8 +243,8 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
       }}>{children}</div>
 
       <NoteActions noteId={noteId} likeTargetId={likeTargetId} visitorReady={visitorReady}
-        highlights={highlights} highlightsReady={ready} error={error}
-        highlightsVisible={highlightsVisible} onHighlightsVisibleChange={changeHighlightsVisible}
+        highlights={highlights} visibleHighlights={visibleHighlights} highlightsReady={ready} error={error}
+        highlightVisibility={highlightVisibility} onHighlightVisibilityChange={changeHighlightVisibility}
         onRefreshHighlights={() => void refresh()}
         onOpenHighlights={() => { setActive(null); window.getSelection()?.removeAllRanges() }}
         onSelectHighlight={(mark) => {
@@ -249,7 +256,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
           setActive(null)
           window.getSelection()?.removeAllRanges()
           root.focus({ preventScroll: true })
-          navigationCleanupRef.current = navigateToNoteHighlight(root, range, mark.start, mark.mine)
+          navigationCleanupRef.current = navigateToNoteHighlight(root, range, mark.start, mark.mine && highlightVisibility.you)
           setAnnouncement(`Jumped to highlighted passage: ${mark.exact}`)
         }} />
 

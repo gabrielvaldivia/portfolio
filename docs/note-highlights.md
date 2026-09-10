@@ -7,10 +7,17 @@ shows the full yellow highlight and attribution tooltip; moving away restores
 the saved style. The tooltip stays open while moving into it to browse readers.
 Jumping to another reader's quote uses underline emphasis. Your fill takes
 priority wherever saved passages overlap. Tapping either style shows an attribution
-tooltip, dismissed by tapping outside or pressing Escape. A minimal switch beside “Highlights” in the activity popover
-hides or shows the marks, without changing saved quotes or counts. Visibility is
-remembered across notes and reloads in `gv-note-highlights-visible-v1` local storage.
-The quote list and jump-to-passage actions still work when marks are hidden.
+tooltip, dismissed by tapping outside or pressing Escape. Independent “You” and
+“Them” controls beside “Highlights” show or hide each group's document marks and
+quotes. Open/closed eye icons indicate visibility; counts always show each group's
+saved passage total. A passage saved by both you and someone else counts in both
+groups but appears once in the list. With “You” off, shared passages retain the
+other readers' dotted underline. Hidden passages do not respond to hover or taps.
+Visibility is remembered across notes, reloads, and tabs in
+`gv-note-highlights-visible-v2` local storage. The old single-switch preference is
+used for both groups until the reader changes either control. Hiding highlights
+does not remove any saved passages. When both groups are hidden, “Show all
+highlights” restores the list and marks.
 On phones, the highlights control opens a modal bottom sheet with a small spring
 entrance. Swipe up to expand it, or down to dismiss it. The quote list scrolls
 natively inside the sheet; a downward list gesture dismisses only when it starts
