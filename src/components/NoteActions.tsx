@@ -253,7 +253,7 @@ export function NoteActions({ noteId, likeTargetId, visitorReady, highlights, vi
               if (skipRestoreFocus.current) event.preventDefault()
               finishSelection()
             }}
-            className="z-50 flex max-h-[min(28rem,var(--radix-popover-content-available-height))] w-80 max-w-[calc(100vw-32px)] flex-col overflow-hidden rounded-2xl bg-elevated text-sm text-text-strong shadow-[0_-12px_40px_-8px_rgba(0,0,0,0.18),0_8px_24px_-12px_rgba(0,0,0,0.12)] outline-none">
+            className="z-50 flex max-h-[min(28rem,var(--radix-popover-content-available-height))] w-80 max-w-[calc(100vw-32px)] flex-col overflow-hidden rounded-2xl bg-elevated text-sm text-text-strong shadow-[0_0_48px_rgba(0,0,0,0.16)] outline-none">
             <div className="flex shrink-0 items-center justify-between gap-2 px-4 py-2">
               <p className="shrink-0 text-base font-semibold">Highlights</p>
               {visibilityControls}
