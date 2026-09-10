@@ -1,17 +1,14 @@
 import { animate } from 'motion/react'
 
-export async function createNoteHighlightEmphasis(root: HTMLElement, range: Range, seed: number, kind: 'arrival' | 'hover') {
-  const { highlight } = await import('@highlighters/core')
+export async function createNoteHighlightEmphasis(root: HTMLElement, range: Range, seed: number, kind: 'arrival' | 'hover', mine: boolean) {
+  const { createNoteHighlightMark } = await import('./noteHighlightMarks')
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const overlay = document.createElement('div')
   overlay.setAttribute('aria-hidden', 'true')
   overlay.setAttribute(`data-note-highlight-${kind}`, '')
   overlay.style.cssText = `position:absolute;inset:0;pointer-events:none;opacity:${kind === 'hover' && !reducedMotion ? 0 : 1}`
   root.append(overlay)
-  const mark = highlight(range, {
-    color: '#d8b64c', opacity: 0.4, vivid: true, snap: 'none',
-    animation: { draw: false }, seed,
-  }, overlay)
+  const mark = createNoteHighlightMark(overlay, range, seed, mine, true)
   let animation: ReturnType<typeof animate> | undefined
   let removed = false
 

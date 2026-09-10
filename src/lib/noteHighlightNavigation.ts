@@ -2,7 +2,7 @@ import { createNoteHighlightEmphasis } from './noteHighlightEmphasis'
 
 // Native scrolling handles interruption and browser-specific momentum. Only the
 // temporary ink layer animates, leaving the saved highlight and text untouched.
-export function navigateToNoteHighlight(root: HTMLElement, range: Range, seed: number) {
+export function navigateToNoteHighlight(root: HTMLElement, range: Range, seed: number, mine: boolean) {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const rect = Array.from(range.getClientRects()).find((rect) => rect.width && rect.height) || range.getBoundingClientRect()
   const viewport = window.visualViewport
@@ -40,7 +40,7 @@ export function navigateToNoteHighlight(root: HTMLElement, range: Range, seed: n
     arrived = true
     stopWaiting()
     try {
-      emphasis = await createNoteHighlightEmphasis(root, range, seed, 'arrival')
+      emphasis = await createNoteHighlightEmphasis(root, range, seed, 'arrival', mine)
       if (disposed || !root.isConnected) { cleanup(); return }
       // Start the hold at arrival, not at click time (long notes can scroll far).
       holdTimer = setTimeout(() => {

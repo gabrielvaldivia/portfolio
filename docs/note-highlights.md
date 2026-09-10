@@ -1,7 +1,10 @@
 # Public note highlights
 
 Readers select 3–1,000 characters in a published note and choose **Highlight**.
-Marks are public and visible by default; tapping one shows a text-only attribution
+Marks are public and visible by default. Your own passages have a yellow fill;
+other readers' passages have a dotted yellow underline, including on hover and
+when jumping to a quote. Your fill takes priority wherever passages overlap.
+Tapping either style shows an attribution
 tooltip, dismissed by tapping outside or pressing Escape. A minimal switch beside “Highlights” in the activity popover
 hides or shows the marks, without changing saved quotes or counts. Visibility is
 remembered across notes and reloads in `gv-note-highlights-visible-v1` local storage.
@@ -36,7 +39,8 @@ excerpts use the same indented, left-bordered quote treatment as note bodies.
 
 - The essay remains server-rendered. Highlighte.rs loads only when marks exist;
   it paints overlays without modifying the text or links. Overlapping passages
-  are painted once. Native mobile selection remains available.
+  of the same style are painted once. Underlines follow wrapped lines and reflow
+  on resize and font loading. Native mobile selection remains available.
 - The selection button sits 8px above the selected text on mobile and desktop,
   follows selection-handle adjustments and viewport movement, and
   falls below the visible passage when there isn't room above. Touch release

@@ -1,8 +1,8 @@
-import type { HighlightAnchor } from './noteHighlightAnchors'
+import type { PublicHighlight } from './noteHighlightAnchors'
 import { indexHighlightText, rangeFromAnchor } from './noteHighlightDOM'
 import { createNoteHighlightEmphasis } from './noteHighlightEmphasis'
 
-export function attachNoteHighlightHover(root: HTMLElement, highlights: HighlightAnchor[]) {
+export function attachNoteHighlightHover(root: HTMLElement, highlights: PublicHighlight[]) {
   const index = indexHighlightText(root)
   const passages = [...highlights].sort((a, b) => (a.end - a.start) - (b.end - b.start)).flatMap((anchor) => {
     const range = rangeFromAnchor(root, anchor, index)
@@ -47,7 +47,7 @@ export function attachNoteHighlightHover(root: HTMLElement, highlights: Highligh
     current = next
     const requestId = ++request
     try {
-      const mark = await createNoteHighlightEmphasis(root, next.range, next.anchor.start, 'hover')
+      const mark = await createNoteHighlightEmphasis(root, next.range, next.anchor.start, 'hover', next.anchor.mine)
       if (disposed || requestId !== request) { mark.remove(); return }
       emphasis = mark
     } catch {

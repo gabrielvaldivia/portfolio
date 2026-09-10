@@ -123,22 +123,12 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
     if (!root || !ready || !highlightsVisible || !highlights.length) return
     let disposed = false
     const handles: { remove(): void }[] = []
-    void import('@highlighters/core').then(({ highlight }) => {
+    void import('@/lib/noteHighlightMarks').then(({ createNoteHighlightMark, getNoteHighlightSpans }) => {
       if (disposed) return
       const index = indexHighlightText(root)
-      // Paint overlapping passages once so popular text doesn't become an opaque stripe.
-      const spans: { start: number; end: number }[] = []
-      for (const mark of highlights) {
-        const previous = spans.at(-1)
-        if (previous && mark.start <= previous.end) previous.end = Math.max(previous.end, mark.end)
-        else spans.push({ start: mark.start, end: mark.end })
-      }
-      for (const span of spans) {
+      for (const span of getNoteHighlightSpans(highlights)) {
         const range = rangeFromAnchor(root, { ...span, exact: index.text.slice(span.start, span.end), prefix: '', suffix: '' }, index)
-        if (range) handles.push(highlight(range, {
-          color: '#d8b64c', opacity: 0.24, vivid: true, snap: 'none',
-          animation: { draw: false }, seed: span.start,
-        }, root))
+        if (range) handles.push(createNoteHighlightMark(root, range, span.start, span.mine))
       }
     }).catch(() => { if (!disposed) setError('Highlights could not be displayed. Please refresh to try again.') })
     return () => { disposed = true; handles.forEach((handle) => handle.remove()) }
@@ -247,7 +237,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
           setActive(null)
           window.getSelection()?.removeAllRanges()
           root.focus({ preventScroll: true })
-          navigationCleanupRef.current = navigateToNoteHighlight(root, range, mark.start)
+          navigationCleanupRef.current = navigateToNoteHighlight(root, range, mark.start, mark.mine)
           setAnnouncement(`Jumped to highlighted passage: ${mark.exact}`)
         }} />
 
