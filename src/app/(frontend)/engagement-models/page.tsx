@@ -22,7 +22,7 @@ const engagements = [
     steps: [
       'I embed with your team and we collaborate to define goals and deliverables each week. No scope is too large.',
       'Available for Zoom or in-person check-ins on Tuesdays and Thursdays. Heads-down design time the rest of the week.',
-      'Once we reach product market fit (typically after a 9-12 months) I help hire and onboard your in-house design team.',
+      'Once we reach product market fit (typically after 9–12 months) I help hire and onboard your in-house design team.',
     ],
     examples: [
       { slug: 'dex', name: 'Dex' },
