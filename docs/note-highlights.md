@@ -2,9 +2,11 @@
 
 Readers select 3–1,000 characters in a published note and choose **Highlight**.
 Marks are public and visible by default. Your own passages have a yellow fill;
-other readers' passages have a dotted yellow underline, including on hover and
-when jumping to a quote. Your fill takes priority wherever passages overlap.
-Tapping either style shows an attribution
+other readers' passages have a dotted yellow underline. Hovering either style
+shows the full yellow highlight and attribution tooltip; moving away restores
+the saved style. The tooltip stays open while moving into it to browse readers.
+Jumping to another reader's quote uses underline emphasis. Your fill takes
+priority wherever saved passages overlap. Tapping either style shows an attribution
 tooltip, dismissed by tapping outside or pressing Escape. A minimal switch beside “Highlights” in the activity popover
 hides or shows the marks, without changing saved quotes or counts. Visibility is
 remembered across notes and reloads in `gv-note-highlights-visible-v1` local storage.

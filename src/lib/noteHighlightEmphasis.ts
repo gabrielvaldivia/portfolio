@@ -8,7 +8,7 @@ export async function createNoteHighlightEmphasis(root: HTMLElement, range: Rang
   overlay.setAttribute(`data-note-highlight-${kind}`, '')
   overlay.style.cssText = `position:absolute;inset:0;pointer-events:none;opacity:${kind === 'hover' && !reducedMotion ? 0 : 1}`
   root.append(overlay)
-  const mark = createNoteHighlightMark(overlay, range, seed, mine, true)
+  const mark = createNoteHighlightMark(overlay, range, seed, kind === 'hover' || mine, true)
   let animation: ReturnType<typeof animate> | undefined
   let removed = false
 

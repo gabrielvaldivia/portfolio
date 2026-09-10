@@ -11,7 +11,7 @@ import { attachNoteHighlightHover } from '@/lib/noteHighlightHover'
 import { MAX_HIGHLIGHT_LENGTH, type HighlightAnchor, type HighlightResponse, type PublicHighlight } from '@/lib/noteHighlightAnchors'
 import { cn } from '@/lib/cn'
 
-type ActivePassage = { anchor: HighlightAnchor; range: Range; fromSelection: boolean }
+type ActivePassage = { anchor: HighlightAnchor; range: Range; fromSelection: boolean; fromHover?: boolean }
 const visibilityStorageKey = 'gv-note-highlights-visible-v1'
 const panelClass = 'z-50 w-72 max-w-[calc(100vw-32px)] max-h-[var(--radix-popover-content-available-height)] overflow-y-auto rounded-xl bg-content px-3 py-2 text-center text-sm leading-relaxed text-background shadow-lg outline-none'
 const actionClass = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-content px-4 py-2 text-xs leading-none text-background disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content'
@@ -23,6 +23,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
   const savingRef = useRef(false)
   const mountedRef = useRef(true)
   const navigationCleanupRef = useRef<(() => void) | null>(null)
+  const hoverRef = useRef<ReturnType<typeof attachNoteHighlightHover> | null>(null)
   const [highlights, setHighlights] = useState<PublicHighlight[]>([])
   const [active, setActive] = useState<ActivePassage | null>(null)
   const [ready, setReady] = useState(false)
@@ -35,6 +36,8 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
   const [announcement, setAnnouncement] = useState('')
   const activeRef = useRef(active)
   activeRef.current = active
+  const openedFromHoverRef = useRef(false)
+  if (active) openedFromHoverRef.current = active.fromHover === true
   const anchorRef = useRef<{ contextElement?: Element; getBoundingClientRect: () => DOMRect }>({ getBoundingClientRect: () => new DOMRect() })
   anchorRef.current.contextElement = rootRef.current || undefined
   anchorRef.current.getBoundingClientRect = () => {
@@ -137,7 +140,16 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
   useEffect(() => {
     const root = rootRef.current
     if (!root || !ready || !highlightsVisible || !highlights.length) return
-    return attachNoteHighlightHover(root, highlights)
+    const hover = attachNoteHighlightHover(root, highlights, {
+      getPanel: () => panelRef.current,
+      canHover: () => !savingRef.current && (!activeRef.current || activeRef.current.fromHover === true),
+      onChange: (passage) => setActive((current) => {
+        if (current && !current.fromHover) return current
+        return passage ? { ...passage, fromSelection: false, fromHover: true } : null
+      }),
+    })
+    hoverRef.current = hover
+    return () => { hover.destroy(); hoverRef.current = null }
   }, [highlights, ready, highlightsVisible])
 
   useEffect(() => {
@@ -241,7 +253,9 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
           setAnnouncement(`Jumped to highlighted passage: ${mark.exact}`)
         }} />
 
-      <Popover open={Boolean(active)} onOpenChange={(open) => { if (!open && !savingRef.current) setActive(null) }}>
+      <Popover open={Boolean(active)} onOpenChange={(open) => {
+        if (!open && !savingRef.current) { hoverRef.current?.dismiss(); setActive(null) }
+      }}>
         <PopoverAnchor virtualRef={anchorRef} />
         <PopoverContent
           ref={panelRef}
@@ -252,7 +266,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
           onOpenAutoFocus={(event) => event.preventDefault()}
           onCloseAutoFocus={(event) => {
             event.preventDefault()
-            if (document.activeElement === document.body || panelRef.current?.contains(document.activeElement)) rootRef.current?.focus({ preventScroll: true })
+            if ((!openedFromHoverRef.current && document.activeElement === document.body) || panelRef.current?.contains(document.activeElement)) rootRef.current?.focus({ preventScroll: true })
           }}
           onInteractOutside={(event) => { if (savingRef.current || window.getSelection()?.toString()) event.preventDefault() }}
         >
