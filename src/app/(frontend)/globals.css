@@ -935,3 +935,54 @@ img {
   height: auto;
   display: block;
 }
+
+/* Homepage variant: Swiss Grid */
+.home-v-swiss-grid {
+  counter-reset: swiss-section;
+}
+
+.home-v-swiss-grid .home-section-layout {
+  counter-increment: swiss-section;
+}
+
+.home-v-swiss-grid .home-section-layout > div:first-child {
+  border-top: 1px solid var(--color-border-strong);
+  padding-top: 12px;
+}
+
+.home-v-swiss-grid .home-section-layout h3 {
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.home-v-swiss-grid .home-section-layout h3::before {
+  content: counter(swiss-section, decimal-leading-zero) '\00a0\00a0';
+  color: var(--color-text-subtle);
+}
+
+.home-v-swiss-grid h2 {
+  border-top: 1px solid var(--color-border-strong);
+  padding-top: 16px;
+  letter-spacing: -0.035em;
+}
+
+.home-v-swiss-grid .home-hero-heading {
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+
+@media (min-width: 810px) {
+  .home-v-swiss-grid .home-section-layout {
+    grid-template-columns: 16.6667% minmax(0, 1fr);
+    column-gap: 40px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .home-v-swiss-grid .home-section-layout {
+    grid-template-columns: 16.6667% minmax(0, 1fr);
+  }
+}
