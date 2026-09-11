@@ -935,3 +935,39 @@ img {
   height: auto;
   display: block;
 }
+
+/* Homepage variant: Split Hero */
+@media (min-width: 810px) {
+  .home-v-split-hero #hero {
+    display: grid;
+    grid-template-columns: minmax(0, 38%) minmax(0, 1fr);
+    align-items: center;
+    column-gap: 40px;
+  }
+
+  .home-v-split-hero #hero > div:last-child {
+    margin-top: 0 !important;
+  }
+
+  .home-v-split-hero .hero-intro-snap-point {
+    padding-top: 0;
+    padding-right: 0;
+  }
+
+  .home-v-split-hero .home-hero-heading {
+    font-size: 52px;
+    line-height: 1.05;
+    text-wrap: balance;
+  }
+
+  .home-v-split-hero .home-hero-heading span {
+    display: inline;
+    white-space: normal;
+  }
+}
+
+@media (min-width: 1280px) {
+  .home-v-split-hero .home-hero-heading {
+    font-size: 68px;
+  }
+}
