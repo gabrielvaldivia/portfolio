@@ -935,3 +935,33 @@ img {
   height: auto;
   display: block;
 }
+
+/* Homepage variant: Soft Cards */
+.home-v-soft-cards .home-section-layout {
+  background: var(--color-background-alt);
+  border-radius: 28px;
+  padding: 24px;
+}
+
+.home-v-soft-cards a.group > div {
+  border-radius: 28px !important;
+  background: var(--color-elevated) !important;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.1);
+}
+
+.home-v-soft-cards .home-hero-heading {
+  letter-spacing: -0.025em;
+}
+
+.home-v-soft-cards .home-approach-row:not(:last-child)::after {
+  display: none;
+}
+
+@media (min-width: 810px) {
+  .home-v-soft-cards .home-section-layout {
+    padding: 36px 40px;
+    border-radius: 36px;
+    column-gap: 24px;
+    grid-template-columns: 28% minmax(0, 1fr);
+  }
+}
