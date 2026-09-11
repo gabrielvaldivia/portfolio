@@ -855,9 +855,12 @@ export function HeroProjectSlideshow({ projects }: Props) {
           <motion.div
             key={activeProject.id}
             className="absolute inset-0 hidden tablet:block"
+            // Overscan covers the 3% slide motion; the outgoing layer stays
+            // opaque so the crossfade never reveals the container background.
+            style={{ scale: 1.08 }}
             initial={prefersReducedMotion ? false : { opacity: 0, x: '3%' }}
             animate={{ opacity: 1, x: 0 }}
-            exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: '-3%' }}
+            exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, x: '-3%' }}
             transition={transition}
           >
             {activeMediaIsVideo ? (
@@ -872,7 +875,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
                 alt={activeMedia.alt || ''}
                 fill
                 className="object-cover"
-                sizes="100vw"
+                sizes="108vw"
                 priority={activeIndex === 0}
               />
             )}
@@ -950,14 +953,14 @@ export function HeroProjectSlideshow({ projects }: Props) {
         className="pointer-events-none absolute inset-x-10 bottom-10 z-10 hidden items-end gap-10 tablet:grid tablet:grid-cols-2 desktop:grid-cols-[minmax(0,1fr)_minmax(360px,480px)]"
       >
         <div className="relative min-w-0">
-          <AnimatePresence initial={false} mode="popLayout">
+          <AnimatePresence initial={false} mode="wait">
             <motion.div
               key={activeProject.id}
               className="min-w-0"
               initial={prefersReducedMotion ? false : { opacity: 0, x: '3%' }}
               animate={{ opacity: 1, x: 0 }}
               exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: '-3%' }}
-              transition={transition}
+              transition={{ ...transition, duration: prefersReducedMotion ? 0 : 0.3 }}
             >
               <Link
                 href={`/work/${activeProject.slug}`}
