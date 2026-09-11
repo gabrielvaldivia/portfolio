@@ -935,3 +935,49 @@ img {
   height: auto;
   display: block;
 }
+
+/* Homepage variant: Hairline Minimal */
+.home-v-hairline-minimal > div {
+  margin-top: 120px !important;
+}
+
+.home-v-hairline-minimal > div:first-of-type {
+  margin-top: 0 !important;
+}
+
+.home-v-hairline-minimal a.group > div {
+  background: transparent !important;
+  border: 1px solid var(--color-border);
+  border-radius: 0 !important;
+}
+
+.home-v-hairline-minimal .home-hero-heading {
+  font-weight: 300;
+  letter-spacing: -0.022em;
+  max-width: 20ch;
+}
+
+.home-v-hairline-minimal h2,
+.home-v-hairline-minimal h3,
+.home-v-hairline-minimal .home-approach-title,
+.home-v-hairline-minimal .contact-prompt {
+  font-weight: 300;
+}
+
+.home-v-hairline-minimal .home-section-layout h3 {
+  color: var(--color-text-muted);
+}
+
+.home-v-hairline-minimal .home-approach-row:not(:last-child)::after {
+  background: var(--color-border);
+}
+
+@media (min-width: 810px) {
+  .home-v-hairline-minimal > div {
+    margin-top: 180px !important;
+  }
+
+  .home-v-hairline-minimal .home-section-layout {
+    column-gap: 40px;
+  }
+}
