@@ -935,3 +935,66 @@ img {
   height: auto;
   display: block;
 }
+
+/* Homepage variant: Compact Dense */
+.home-v-compact-dense > div {
+  margin-top: 56px !important;
+}
+
+.home-v-compact-dense > div:first-of-type {
+  margin-top: 0 !important;
+}
+
+.home-v-compact-dense .hero-intro-snap-point {
+  padding-top: 8px;
+}
+
+.home-v-compact-dense #hero > div:last-child {
+  margin-top: 28px !important;
+}
+
+.home-v-compact-dense .home-hero-heading {
+  font-size: 28px;
+  line-height: 1.12;
+}
+
+.home-v-compact-dense h2 {
+  font-size: 24px;
+}
+
+.home-v-compact-dense .home-section-layout {
+  gap: 12px;
+}
+
+.home-v-compact-dense .home-approach-row {
+  --approach-row-gap: 40px;
+}
+
+.home-v-compact-dense .contact-prompt {
+  font-size: 32px;
+}
+
+@media (min-width: 810px) {
+  .home-v-compact-dense > div {
+    margin-top: 72px !important;
+  }
+
+  .home-v-compact-dense .home-hero-heading {
+    font-size: 44px;
+  }
+
+  .home-v-compact-dense h2 {
+    font-size: 28px;
+  }
+
+  .home-v-compact-dense .contact-prompt {
+    font-size: 44px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .home-v-compact-dense .home-hero-heading {
+    font-size: 56px;
+    line-height: 1.05;
+  }
+}
