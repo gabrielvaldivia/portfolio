@@ -25,6 +25,7 @@ import { createPortal } from 'react-dom'
 import { Testimonial } from '@/components/Testimonial'
 import { ServicePill } from '@/components/ServicePill'
 import { PayloadImage } from '@/components/PayloadImage'
+import { observeHeroTrackpadNavigation } from '@/lib/observeHeroTrackpadNavigation'
 import type { ResponsiveImageMedia } from '@/lib/responsiveImage'
 import { observeMobileHeroViewport } from '@/lib/observeMobileHeroViewport'
 
@@ -581,6 +582,13 @@ export function HeroProjectSlideshow({ projects }: Props) {
       mediaQuery.removeEventListener('change', updateViewport)
     }
   }, [])
+
+  useEffect(() => {
+    if (isMobileViewport || projects.length < 2) return
+    const slideshow = regionRef.current?.querySelector<HTMLElement>('.hero-project-slideshow')
+    if (!slideshow) return
+    return observeHeroTrackpadNavigation(slideshow, showPrevious, showNext)
+  }, [isMobileViewport, projects.length, showPrevious, showNext])
 
   useEffect(() => {
     if (!isMobileViewport) return
