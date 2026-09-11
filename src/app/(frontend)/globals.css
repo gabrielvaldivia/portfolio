@@ -935,3 +935,58 @@ img {
   height: auto;
   display: block;
 }
+
+/* Homepage variant: Numbered Index */
+.home-v-numbered-index .home-section-layout [class*='w-max'] {
+  display: block;
+  width: 100%;
+  counter-reset: index-row;
+  padding-right: 0 !important;
+}
+
+.home-v-numbered-index .home-section-layout [class*='w-max'] > div {
+  width: 100% !important;
+  counter-increment: index-row;
+}
+
+.home-v-numbered-index a.group {
+  padding: 0 !important;
+}
+
+.home-v-numbered-index a.group > div {
+  background: transparent !important;
+  border-radius: 0 !important;
+  border-top: 1px solid var(--color-border-strong);
+  flex-direction: row;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.home-v-numbered-index a.group > div > div:first-child {
+  display: none;
+}
+
+.home-v-numbered-index a.group > div > div:last-child {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  width: 100%;
+  padding: 18px 0;
+}
+
+.home-v-numbered-index a.group > div > div:last-child::before {
+  content: counter(index-row, decimal-leading-zero);
+  color: var(--color-text-subtle);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-v-numbered-index a.group > div > div:last-child p {
+  margin-left: auto;
+  margin-top: 0 !important;
+  text-align: right;
+}
+
+.home-v-numbered-index .home-hero-heading {
+  letter-spacing: -0.03em;
+}
