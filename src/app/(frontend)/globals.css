@@ -935,3 +935,39 @@ img {
   height: auto;
   display: block;
 }
+
+/* Homepage variant: Inverted Dark */
+.home-v-inverted-dark {
+  --color-content: #fff;
+  --color-text-strong: #fff;
+  --color-text-body: rgb(255 255 255 / 0.82);
+  --color-text-muted: rgb(255 255 255 / 0.6);
+  --color-text-subtle: rgb(255 255 255 / 0.4);
+  --color-background: #0b0b0b;
+  --color-background-alt: rgb(255 255 255 / 0.08);
+  --color-background-alt-hover: rgb(255 255 255 / 0.14);
+  --color-background-alt-strong-hover: rgb(255 255 255 / 0.18);
+  --color-border: rgb(255 255 255 / 0.16);
+  --color-border-strong: rgb(255 255 255 / 0.28);
+  --color-elevated: #171717;
+  --color-floating: rgb(64 64 64 / 0.6);
+  --color-accent: rgb(122 255 196);
+  --color-inverse: #0b0b0b;
+  background-color: #0b0b0b;
+  color: #fff;
+  padding-top: 24px;
+  padding-bottom: 96px;
+}
+
+.home-v-inverted-dark .home-hero-heading {
+  color: #fff;
+  letter-spacing: -0.03em;
+}
+
+.home-v-inverted-dark a.group > div {
+  background: rgb(255 255 255 / 0.06) !important;
+}
+
+.home-v-inverted-dark .home-section-layout h3 {
+  color: rgb(255 255 255 / 0.6);
+}
