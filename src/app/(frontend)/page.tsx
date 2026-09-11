@@ -693,7 +693,7 @@ export default async function HomePage() {
   }
 
   return (
-    <>
+    <div className="home-v-brutalist">
       <JsonLd data={structuredData} />
 
       {(() => {
@@ -794,6 +794,6 @@ export default async function HomePage() {
       })()}
 
       <div className="h-20 tablet:h-28 desktop:h-[200px]" />
-    </>
+    </div>
   )
 }

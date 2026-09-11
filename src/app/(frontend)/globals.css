@@ -935,3 +935,50 @@ img {
   height: auto;
   display: block;
 }
+
+/* Homepage variant: Brutalist */
+.home-v-brutalist h1,
+.home-v-brutalist h2,
+.home-v-brutalist h3,
+.home-v-brutalist .home-approach-title {
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.home-v-brutalist .home-hero-heading {
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+}
+
+.home-v-brutalist a.group > div {
+  border: 2px solid var(--color-content);
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: 8px 8px 0 var(--color-content);
+}
+
+.home-v-brutalist .home-section-layout > div:first-child {
+  border-bottom: 2px solid var(--color-content);
+  padding-bottom: 8px;
+}
+
+.home-v-brutalist .home-section-layout h3 {
+  font-size: 14px;
+  letter-spacing: 0.08em;
+}
+
+.home-v-brutalist h2 {
+  letter-spacing: -0.03em;
+}
+
+.home-v-brutalist .home-approach-row:not(:last-child)::after {
+  height: 2px;
+  background: var(--color-content);
+}
+
+.home-v-brutalist .contact-prompt {
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
