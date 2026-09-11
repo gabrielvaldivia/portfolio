@@ -935,3 +935,33 @@ img {
   height: auto;
   display: block;
 }
+
+/* Homepage variant: Editorial Serif */
+.home-v-editorial-serif {
+  --font-heading: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+}
+
+.home-v-editorial-serif h1,
+.home-v-editorial-serif h2,
+.home-v-editorial-serif h3,
+.home-v-editorial-serif h4,
+.home-v-editorial-serif .home-approach-title,
+.home-v-editorial-serif .contact-prompt,
+.home-v-editorial-serif .hero-project-title {
+  font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.012em;
+}
+
+.home-v-editorial-serif .home-hero-heading {
+  max-width: 16ch;
+  line-height: 1.04;
+}
+
+.home-v-editorial-serif .home-section-layout h3 {
+  font-style: italic;
+}
+
+.home-v-editorial-serif .home-approach-copy .rich-text {
+  max-width: 62ch;
+}
