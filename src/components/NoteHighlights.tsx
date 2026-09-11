@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Anchor as PopoverAnchor } from '@radix-ui/react-popover'
+import { toast } from 'sonner'
 import { Popover, PopoverContent } from '@/components/ui/Popover'
+import { Toaster } from '@/components/ui/Toaster'
 import { NoteActions } from '@/components/NoteActions'
-import { HighlightAttributionDetails } from '@/components/HighlightAttributionDetails'
+import { HighlightAttributionToast } from '@/components/HighlightAttributionToast'
 import { anchorFromRange, indexHighlightText, rangeFromAnchor } from '@/lib/noteHighlightDOM'
 import { navigateToNoteHighlight } from '@/lib/noteHighlightNavigation'
 import { attachNoteHighlightHover } from '@/lib/noteHighlightHover'
@@ -13,12 +15,12 @@ import { defaultHighlightVisibility, highlightVisibilityStorageKey, isHighlightV
 import { cn } from '@/lib/cn'
 
 type ActivePassage = { anchor: HighlightAnchor; range: Range; fromSelection: boolean; fromHover?: boolean }
-const panelClass = 'z-50 w-72 max-w-[calc(100vw-32px)] max-h-[var(--radix-popover-content-available-height)] overflow-y-auto rounded-xl bg-content px-3 py-2 text-center text-sm leading-relaxed text-background shadow-lg outline-none'
 const actionClass = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-content px-4 py-2 text-xs leading-none text-background disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content'
 
 export function NoteHighlights({ noteId, likeTargetId, version, children }: { noteId: string; likeTargetId: string; version: string; children: ReactNode }) {
   const rootRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
+  const attributionRef = useRef<HTMLDivElement>(null)
   const requestRef = useRef(0)
   const savingRef = useRef(false)
   const mountedRef = useRef(true)
@@ -35,10 +37,9 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
   const [touchSelection, setTouchSelection] = useState(false)
   const [error, setError] = useState('')
   const [announcement, setAnnouncement] = useState('')
+  const errorToastId = `note-highlight-error-${noteId}`
   const activeRef = useRef(active)
   activeRef.current = active
-  const openedFromHoverRef = useRef(false)
-  if (active) openedFromHoverRef.current = active.fromHover === true
   const anchorRef = useRef<{ contextElement?: Element; getBoundingClientRect: () => DOMRect }>({ getBoundingClientRect: () => new DOMRect() })
   anchorRef.current.contextElement = rootRef.current || undefined
   anchorRef.current.getBoundingClientRect = () => {
@@ -58,8 +59,19 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
     return new DOMRect(left, first, right - left, last - first)
   }
   const current = active ? highlights.find((h) => h.start === active.anchor.start && h.end === active.anchor.end) : null
+  const attribution = ready && !active?.fromSelection && current && isHighlightVisible(current, highlightVisibility) ? current : null
+  const dismissAttribution = useCallback(() => {
+    hoverRef.current?.dismiss()
+    setActive((passage) => passage?.fromSelection ? passage : null)
+  }, [])
 
   useEffect(() => () => navigationCleanupRef.current?.(), [noteId, version])
+
+  useEffect(() => {
+    if (error) toast(error, { id: errorToastId })
+  }, [error, errorToastId])
+
+  useEffect(() => () => { toast.dismiss(errorToastId) }, [errorToastId])
 
   useEffect(() => {
     const readVisibility = () => {
@@ -148,11 +160,13 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
     const root = rootRef.current
     if (!root || !ready || !visibleHighlights.length) return
     const hover = attachNoteHighlightHover(root, visibleHighlights, {
-      getPanel: () => panelRef.current,
+      getPanel: () => attributionRef.current,
       canHover: () => !savingRef.current && (!activeRef.current || activeRef.current.fromHover === true),
       onChange: (passage) => setActive((current) => {
         if (current && !current.fromHover) return current
-        return passage ? { ...passage, fromSelection: false, fromHover: true } : null
+        // The ink follows the pointer; the toast stays available long enough to
+        // reach its controls in the corner, including after scrolling away.
+        return passage ? { ...passage, fromSelection: false, fromHover: true } : current
       }),
     })
     hoverRef.current = hover
@@ -165,7 +179,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
     const updateSelection = () => {
       clearTimeout(timer)
       timer = setTimeout(() => {
-        if (savingRef.current || panelRef.current?.contains(document.activeElement)) return
+        if (savingRef.current || panelRef.current?.contains(document.activeElement) || attributionRef.current?.contains(document.activeElement)) return
         const selection = window.getSelection()
         const root = rootRef.current
         if (!root || !selection?.rangeCount || selection.isCollapsed) {
@@ -196,12 +210,13 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
     }
   }, [])
 
-  async function save(remove = false) {
+  const save = useCallback(async (remove = false) => {
     if (!active || !ready || savingRef.current || (!remove && paused) || (remove && !current?.mine)) return
     savingRef.current = true
     setSaving(true)
     requestRef.current++ // Ignore a refresh that was started before this mutation.
     setError('')
+    toast.dismiss(errorToastId)
     try {
       const response = await fetch('/api/notes/highlights', {
         method: remove ? 'DELETE' : 'POST', headers: { 'Content-Type': 'application/json' },
@@ -221,10 +236,16 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
       savingRef.current = false
       if (mountedRef.current) setSaving(false)
     }
-  }
+  }, [active, current, ready, paused, noteId, version, errorToastId])
+
+  const removeHighlight = useCallback(() => { void save(true) }, [save])
 
   return (
-    <div className="note-highlights">
+    <div className="note-highlights" onPointerDownCapture={(event) => {
+      // Sonner pauses dragging while text is selected. Starting a toast gesture
+      // clears the passage selection before its pointer handlers run.
+      if ((event.target as Element).closest('[data-sonner-toast]')) window.getSelection()?.removeAllRanges()
+    }}>
       <div ref={rootRef} data-note-highlight-body tabIndex={-1} className="relative max-w-[760px] outline-none" onClick={(event) => {
         if (!ready || !visibleHighlights.length || window.getSelection()?.toString() || (event.target as Element).closest('a, button')) return
         const root = rootRef.current
@@ -260,20 +281,20 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
           setAnnouncement(`Jumped to highlighted passage: ${mark.exact}`)
         }} />
 
-      <Popover open={Boolean(active)} onOpenChange={(open) => {
-        if (!open && !savingRef.current) { hoverRef.current?.dismiss(); setActive(null) }
+      <Popover open={active?.fromSelection === true} onOpenChange={(open) => {
+        if (!open && !savingRef.current) setActive((passage) => passage?.fromSelection ? null : passage)
       }}>
         <PopoverAnchor virtualRef={anchorRef} />
         <PopoverContent
           ref={panelRef}
-          className={cn(active?.fromSelection ? 'z-50 outline-none' : panelClass, 'note-highlight-action')}
+          className="note-highlight-action z-50 outline-none"
           side="top" sideOffset={8}
           updatePositionStrategy="always"
-          collisionPadding={16} role={active?.fromSelection || current?.mine || (current?.attributions?.length || 0) > 1 ? 'dialog' : 'tooltip'} aria-label={active?.fromSelection ? 'Highlight passage' : 'Highlight attribution'}
+          collisionPadding={16} role="dialog" aria-label="Highlight passage"
           onOpenAutoFocus={(event) => event.preventDefault()}
           onCloseAutoFocus={(event) => {
             event.preventDefault()
-            if ((!openedFromHoverRef.current && document.activeElement === document.body) || panelRef.current?.contains(document.activeElement)) rootRef.current?.focus({ preventScroll: true })
+            if (document.activeElement === document.body || panelRef.current?.contains(document.activeElement)) rootRef.current?.focus({ preventScroll: true })
           }}
           onInteractOutside={(event) => { if (savingRef.current || window.getSelection()?.toString()) event.preventDefault() }}
         >
@@ -292,11 +313,13 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
                 onClick={() => void save()}>
                 {paused ? 'Highlights paused' : saving ? 'Saving…' : 'Highlight'}
               </button>
-              {error ? <p role="alert" className="mt-2 max-w-64 rounded-lg bg-background p-3 text-sm text-text-strong shadow-lg">{error}</p> : null}
             </>
-          ) : current ? <HighlightAttributionDetails key={current.id} highlight={current} onRemove={() => void save(true)} removing={saving} error={error} /> : null}
+          ) : null}
         </PopoverContent>
       </Popover>
+      <Toaster />
+      <HighlightAttributionToast id={`note-highlight-attribution-${noteId}`} highlight={attribution}
+        panelRef={attributionRef} onRemove={removeHighlight} removing={saving} onDismiss={dismissAttribution} />
       <span role="status" aria-live="polite" className="sr-only">{announcement}</span>
     </div>
   )

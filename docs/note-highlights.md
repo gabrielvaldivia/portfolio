@@ -3,11 +3,15 @@
 Readers select 3–1,000 characters in a published note and choose **Highlight**.
 Marks are public and visible by default. Your own passages have a yellow fill;
 other readers' passages have a dotted yellow underline. Hovering either style
-shows the full yellow highlight and attribution tooltip; moving away restores
-the saved style. The tooltip stays open while moving into it to browse readers.
+replaces the passage's underline with a full yellow highlight and shows an attribution toast in the bottom-right
+corner; moving away restores the saved style while leaving the toast available.
+The toast replaces the previous passage's details and dismisses after eight
+seconds, pausing while hovered, using its reader controls, or removing a highlight.
+Readers can also close or swipe it away. On phones it sits above the note controls.
 Jumping to another reader's quote uses underline emphasis. Your fill takes
-priority wherever saved passages overlap. Tapping either style shows an attribution
-tooltip, dismissed by tapping outside or pressing Escape. Independent “You” and
+priority wherever saved passages overlap. Tapping either style shows the same
+attribution toast. Selecting text keeps the anchored **Highlight** button.
+Independent “You” and
 “Them” controls beside “Highlights” show or hide each group's document marks and
 quotes. Open/closed eye icons indicate visibility; counts always show each group's
 saved passage total. A passage saved by both you and someone else counts in both
@@ -34,7 +38,7 @@ it is remembered in that browser, not synced between devices. No accounts, email
 comments, or raw IP addresses are collected by this feature.
 
 Tapping a saved passage shows “Highlighted by someone from [location] on [date and time]”
-in the viewer's timezone, with no close or highlight buttons. Multiple people are
+in the viewer's timezone. Your own attribution includes **Remove**. Multiple people are
 shown one at a time; a single right chevron cycles through every reader and loops
 back to the first. Opening another passage resets to its first reader.
 New saves retain coarse city/region/country labels from Vercel's edge headers;

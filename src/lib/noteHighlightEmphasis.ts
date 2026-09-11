@@ -1,7 +1,7 @@
 import { animate } from 'motion/react'
 
 export async function createNoteHighlightEmphasis(root: HTMLElement, range: Range, seed: number, kind: 'arrival' | 'hover', mine: boolean) {
-  const { createNoteHighlightMark } = await import('./noteHighlightMarks')
+  const { createNoteHighlightMark, suppressNoteHighlightUnderlines } = await import('./noteHighlightMarks')
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const overlay = document.createElement('div')
   overlay.setAttribute('aria-hidden', 'true')
@@ -9,6 +9,7 @@ export async function createNoteHighlightEmphasis(root: HTMLElement, range: Rang
   overlay.style.cssText = `position:absolute;inset:0;pointer-events:none;opacity:${kind === 'hover' && !reducedMotion ? 0 : 1}`
   root.append(overlay)
   const mark = createNoteHighlightMark(overlay, range, seed, kind === 'hover' || mine, true)
+  const restoreUnderlines = kind === 'hover' ? suppressNoteHighlightUnderlines(root, range) : undefined
   let animation: ReturnType<typeof animate> | undefined
   let removed = false
 
@@ -17,6 +18,7 @@ export async function createNoteHighlightEmphasis(root: HTMLElement, range: Rang
     animation?.stop()
     mark.remove()
     overlay.remove()
+    restoreUnderlines?.()
   }
 
   function show() {

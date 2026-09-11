@@ -38,7 +38,7 @@
   }
   await pause(220)
   check('leaving restores the original highlight', !root.querySelector('[data-note-highlight-hover]') && root.querySelectorAll('[data-highlighters-overlay]').length === saved)
-  check('leaving dismisses attribution', !document.querySelector('[aria-label="Highlight attribution"]'))
+  check('leaving keeps the corner toast available', Boolean(document.querySelector('[data-sonner-toast] [aria-label="Highlight attribution"]')))
   move('touch')
   await pause(220)
   check('touch does not create a sticky hover', !root.querySelector('[data-note-highlight-hover]'))
@@ -48,6 +48,8 @@
   move('mouse')
   await pause(220)
   check('text selection suppresses hover', !root.querySelector('[data-note-highlight-hover]'))
+  await pause(220)
+  check('text selection dismisses attribution', !document.querySelector('[aria-label="Highlight attribution"]'))
   selection.removeAllRanges()
   check('hover never changes the note text', root.textContent === text)
   return { passed: checks.length, checks }
