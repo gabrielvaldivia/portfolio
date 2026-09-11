@@ -935,3 +935,74 @@ img {
   height: auto;
   display: block;
 }
+
+/* Homepage variant: Monospace Terminal */
+.home-v-monospace-terminal,
+.home-v-monospace-terminal h1,
+.home-v-monospace-terminal h2,
+.home-v-monospace-terminal h3,
+.home-v-monospace-terminal h4,
+.home-v-monospace-terminal p,
+.home-v-monospace-terminal a,
+.home-v-monospace-terminal .home-approach-title,
+.home-v-monospace-terminal .contact-prompt,
+.home-v-monospace-terminal .hero-project-title {
+  font-family: var(--font-mono);
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+.home-v-monospace-terminal .home-hero-heading {
+  font-size: 26px;
+  line-height: 1.35;
+  max-width: 46ch;
+}
+
+.home-v-monospace-terminal .home-section-layout h3 {
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.home-v-monospace-terminal .home-section-layout h3::before {
+  content: '[ ';
+  color: var(--color-text-subtle);
+}
+
+.home-v-monospace-terminal .home-section-layout h3::after {
+  content: ' ]';
+  color: var(--color-text-subtle);
+}
+
+.home-v-monospace-terminal a.group > div {
+  border-radius: 2px !important;
+  border: 1px solid var(--color-border-strong);
+  background: transparent !important;
+}
+
+.home-v-monospace-terminal h2 {
+  font-size: 20px;
+  text-transform: uppercase;
+}
+
+@media (min-width: 810px) {
+  .home-v-monospace-terminal .home-hero-heading {
+    font-size: 40px;
+  }
+
+  .home-v-monospace-terminal .home-hero-heading span {
+    display: inline;
+    white-space: normal;
+  }
+
+  .home-v-monospace-terminal h2 {
+    font-size: 24px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .home-v-monospace-terminal .home-hero-heading {
+    font-size: 52px;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+}
