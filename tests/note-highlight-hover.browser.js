@@ -38,7 +38,7 @@
   }
   await pause(220)
   check('leaving restores the original highlight', !root.querySelector('[data-note-highlight-hover]') && root.querySelectorAll('[data-highlighters-overlay]').length === saved)
-  check('leaving keeps the corner toast available', Boolean(document.querySelector('[data-sonner-toast] [aria-label="Highlight attribution"]')))
+  check('leaving dismisses the attribution tooltip', !document.querySelector('[data-sonner-toast]:not([data-removed="true"]) [aria-label="Highlight attribution"]'))
   move('touch')
   await pause(220)
   check('touch does not create a sticky hover', !root.querySelector('[data-note-highlight-hover]'))

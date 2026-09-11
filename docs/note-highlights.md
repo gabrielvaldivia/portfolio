@@ -4,10 +4,12 @@ Readers select 3–1,000 characters in a published note and choose **Highlight**
 Marks are public and visible by default. Your own passages have a yellow fill;
 other readers' passages have a dotted yellow underline. Hovering either style
 replaces the passage's underline with a full yellow highlight and shows an attribution toast in the bottom-right
-corner; moving away restores the saved style while leaving the toast available.
-The toast replaces the previous passage's details and dismisses after eight
-seconds, pausing while hovered, using its reader controls, or removing a highlight.
-Readers can also close or swipe it away. On phones it sits above the note controls.
+corner. On desktop, moving away or scrolling dismisses attribution and restores
+its saved style; clicking does not pin it open. Attribution stays visible during
+hover and while using its reader controls, with no close icon. Touch users can
+tap to open attribution and swipe it away; it dismisses after eight seconds unless
+interacting with its controls or removing a highlight.
+On phones it sits above the note controls.
 Jumping to another reader's quote uses underline emphasis. Your fill takes
 priority wherever saved passages overlap. Tapping either style shows the same
 attribution toast. Selecting text keeps the anchored **Highlight** button.

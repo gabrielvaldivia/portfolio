@@ -164,9 +164,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
       canHover: () => !savingRef.current && (!activeRef.current || activeRef.current.fromHover === true),
       onChange: (passage) => setActive((current) => {
         if (current && !current.fromHover) return current
-        // The ink follows the pointer; the toast stays available long enough to
-        // reach its controls in the corner, including after scrolling away.
-        return passage ? { ...passage, fromSelection: false, fromHover: true } : current
+        return passage ? { ...passage, fromSelection: false, fromHover: true } : null
       }),
     })
     hoverRef.current = hover
@@ -247,6 +245,8 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
       if ((event.target as Element).closest('[data-sonner-toast]')) window.getSelection()?.removeAllRanges()
     }}>
       <div ref={rootRef} data-note-highlight-body tabIndex={-1} className="relative max-w-[760px] outline-none" onClick={(event) => {
+        // Mouse attribution follows hover; clicking must not pin it open.
+        if (!touchSelection) return
         if (!ready || !visibleHighlights.length || window.getSelection()?.toString() || (event.target as Element).closest('a, button')) return
         const root = rootRef.current
         if (!root) return
@@ -319,7 +319,7 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
       </Popover>
       <Toaster />
       <HighlightAttributionToast id={`note-highlight-attribution-${noteId}`} highlight={attribution}
-        panelRef={attributionRef} onRemove={removeHighlight} removing={saving} onDismiss={dismissAttribution} />
+        hovered={active?.fromHover === true} panelRef={attributionRef} onRemove={removeHighlight} removing={saving} onDismiss={dismissAttribution} />
       <span role="status" aria-live="polite" className="sr-only">{announcement}</span>
     </div>
   )

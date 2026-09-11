@@ -5,9 +5,10 @@ import { toast } from 'sonner'
 import { HighlightAttributionDetails } from '@/components/HighlightAttributionDetails'
 import type { PublicHighlight } from '@/lib/noteHighlightAnchors'
 
-export function HighlightAttributionToast({ id, highlight, panelRef, onRemove, removing, onDismiss }: {
+export function HighlightAttributionToast({ id, highlight, hovered, panelRef, onRemove, removing, onDismiss }: {
   id: string
   highlight: PublicHighlight | null
+  hovered: boolean
   panelRef: RefObject<HTMLDivElement | null>
   onRemove: () => void
   removing: boolean
@@ -23,7 +24,7 @@ export function HighlightAttributionToast({ id, highlight, panelRef, onRemove, r
     }
 
     toast(
-      <div ref={panelRef} role="group" aria-label="Highlight attribution" className="w-full pr-6 text-left text-sm font-normal leading-relaxed text-pretty"
+      <div ref={panelRef} role="group" aria-label="Highlight attribution" className="w-full text-left text-sm font-normal leading-relaxed text-pretty"
         onFocusCapture={() => setFocused(true)}
         onBlurCapture={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false)
@@ -32,17 +33,14 @@ export function HighlightAttributionToast({ id, highlight, panelRef, onRemove, r
       </div>,
       {
         id,
-        duration: removing || focused ? Infinity : 8000,
+        duration: hovered || removing || focused ? Infinity : 8000,
         dismissible: !removing,
-        closeButton: true,
+        closeButton: false,
         onDismiss,
         onAutoClose: onDismiss,
-        classNames: {
-          closeButton: '!left-auto !right-0 !top-0 !size-9 !transform-none !border-0 !bg-transparent !text-inverse',
-        },
       },
     )
-  }, [id, highlight, panelRef, onRemove, removing, focused, onDismiss])
+  }, [id, highlight, hovered, panelRef, onRemove, removing, focused, onDismiss])
 
   useEffect(() => () => { toast.dismiss(id) }, [id])
 
