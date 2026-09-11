@@ -935,3 +935,39 @@ img {
   height: auto;
   display: block;
 }
+
+/* Homepage variant: Slideshow First */
+.home-v-slideshow-first #hero {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.home-v-slideshow-first #hero > div:last-child {
+  margin-top: 0 !important;
+}
+
+.home-v-slideshow-first .hero-intro-snap-point {
+  padding-top: 32px;
+}
+
+@media (min-width: 810px) {
+  .home-v-slideshow-first .hero-intro-snap-point {
+    padding-top: 56px;
+  }
+
+  .home-v-slideshow-first .home-hero-heading {
+    font-size: 56px;
+    max-width: 22ch;
+  }
+
+  .home-v-slideshow-first .home-hero-heading span {
+    display: inline;
+    white-space: normal;
+  }
+}
+
+@media (min-width: 1280px) {
+  .home-v-slideshow-first .home-hero-heading {
+    font-size: 72px;
+  }
+}
