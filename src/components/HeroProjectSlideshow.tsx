@@ -828,7 +828,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
                   onClick={() => selectSlide(index)}
                   className="pointer-events-auto group inline-flex w-8 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
-                  <span aria-hidden="true" className={`block h-7 w-0.5 shadow-sm transition-opacity duration-150 group-hover:opacity-75 ${index === activeIndex ? 'bg-white' : 'bg-black/35'}`} />
+                  <span aria-hidden="true" className={`block h-7 w-0.5 shadow-sm transition-opacity duration-150 group-hover:opacity-75 ${index === activeIndex ? 'bg-white' : 'bg-white/35'}`} />
                 </button>
               ))}
             </div>
@@ -901,7 +901,7 @@ export function HeroProjectSlideshow({ projects }: Props) {
                 onClick={() => selectSlide(index)}
                 className="group inline-flex w-8 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white tablet:h-8 tablet:w-auto"
               >
-                <span className="relative block h-7 w-0.5 overflow-hidden bg-black/35 shadow-sm transition-opacity duration-150 group-hover:opacity-75 tablet:h-0.5 tablet:w-7">
+                <span className="relative block h-7 w-0.5 overflow-hidden bg-white/35 shadow-sm transition-opacity duration-150 group-hover:opacity-75 tablet:h-0.5 tablet:w-7">
                   <motion.span
                     aria-hidden="true"
                     className="absolute inset-0 origin-top bg-white tablet:origin-left"
