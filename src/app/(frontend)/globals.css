@@ -935,3 +935,44 @@ img {
   height: auto;
   display: block;
 }
+
+/* Homepage variant: Magazine Columns */
+.home-v-magazine-columns .home-approach-copy .rich-text > p:first-child::first-letter {
+  float: left;
+  font-size: 3.4em;
+  line-height: 0.82;
+  padding-right: 10px;
+  padding-top: 4px;
+  font-weight: 500;
+}
+
+.home-v-magazine-columns .home-hero-heading {
+  max-width: 18ch;
+  letter-spacing: -0.03em;
+}
+
+@media (min-width: 810px) {
+  .home-v-magazine-columns .home-approach-copy .rich-text {
+    column-count: 2;
+    column-gap: 40px;
+    text-align: justify;
+    hyphens: auto;
+  }
+
+  .home-v-magazine-columns .home-section-layout {
+    grid-template-columns: 20% minmax(0, 1fr);
+    column-gap: 40px;
+  }
+
+  .home-v-magazine-columns .home-section-layout h3 {
+    font-size: 18px;
+    line-height: 1.35;
+  }
+}
+
+@media (min-width: 1280px) {
+  .home-v-magazine-columns .home-approach-copy .rich-text {
+    column-count: 3;
+    column-gap: 48px;
+  }
+}
