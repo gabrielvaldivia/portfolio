@@ -935,3 +935,31 @@ img {
   height: auto;
   display: block;
 }
+
+/* Homepage variant: Sticky Titles */
+@media (min-width: 810px) {
+  .home-v-sticky-titles .home-section-layout > div:first-child {
+    position: sticky;
+    top: 104px;
+    align-self: start;
+  }
+
+  .home-v-sticky-titles .home-approach-row > *:first-child {
+    position: sticky;
+    top: 104px;
+    align-self: start;
+  }
+
+  .home-v-sticky-titles .home-section-layout h3 {
+    font-size: 20px;
+    color: var(--color-text-muted);
+  }
+}
+
+.home-v-sticky-titles .home-approach-row {
+  --approach-row-gap: 120px;
+}
+
+.home-v-sticky-titles .home-hero-heading {
+  letter-spacing: -0.03em;
+}
