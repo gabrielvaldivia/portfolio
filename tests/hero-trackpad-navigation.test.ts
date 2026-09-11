@@ -34,6 +34,15 @@ test('a trackpad swipe advances once and consumes its long momentum tail', () =>
   assert.deepEqual(changes, ['next'])
 })
 
+test('horizontal input is consumed from the first pixels before navigation starts', () => {
+  const { changes, wheel } = setup()
+  assert.equal(wheel(2), true)
+  assert.equal(wheel(3), true)
+  assert.deepEqual(changes, [])
+  wheel(50)
+  assert.deepEqual(changes, ['next'])
+})
+
 test('a new swipe can go back, or advance again in the same direction', () => {
   const { changes, wheel } = setup()
   wheel(80)
@@ -42,11 +51,47 @@ test('a new swipe can go back, or advance again in the same direction', () => {
   assert.deepEqual(changes, ['next', 'next', 'previous'])
 })
 
+test('a deliberate reverse swipe responds before the old momentum stops', () => {
+  const { changes, wheel } = setup()
+  wheel(80)
+  wheel(35)
+  wheel(-12)
+  wheel(-18)
+  wheel(-25)
+  assert.deepEqual(changes, ['next', 'previous'])
+  for (const delta of [-60, -40, -20, -5]) wheel(delta)
+  assert.deepEqual(changes, ['next', 'previous'], 'reverse momentum advances only once')
+})
+
+test('another same-direction swipe responds during a decaying momentum tail', () => {
+  const { changes, wheel } = setup()
+  for (const delta of [20, 35, 70, 40, 20, 4, 12, 22, 40, 60, 35, 10]) wheel(delta)
+  assert.deepEqual(changes, ['next', 'next'])
+})
+
+test('small momentum reversals do not rearm the same swipe', () => {
+  const { changes, wheel } = setup()
+  for (const delta of [80, 30, -2, -3, 20, 10, 2]) wheel(delta)
+  assert.deepEqual(changes, ['next'])
+})
+
+test('horizontal swipes work immediately after scrolling down to the slideshow', () => {
+  const { changes, wheel } = setup()
+  wheel(0, 90)
+  wheel(0, 40)
+  wheel(25, 2)
+  assert.equal(wheel(30, 1), true)
+  assert.deepEqual(changes, ['next'])
+  assert.equal(wheel(0, 90), false, 'vertical page scrolling responds immediately')
+  assert.equal(wheel(0, 50), false)
+  assert.deepEqual(changes, ['next'])
+})
+
 test('vertical and vertical-dominant gestures retain native page scrolling', () => {
   const { changes, wheel } = setup()
   assert.equal(wheel(0, 90), false)
   assert.equal(wheel(25, 70, { gap: 250 }), false)
-  assert.equal(wheel(150, 2), false, 'sideways momentum cannot take over a vertical gesture')
+  assert.equal(wheel(150, 2), true, 'sideways momentum is consumed without changing slides')
   assert.deepEqual(changes, [])
   assert.equal(wheel(70, 8, { gap: 250 }), true)
   assert.deepEqual(changes, ['next'])

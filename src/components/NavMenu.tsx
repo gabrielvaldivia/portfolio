@@ -173,7 +173,7 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
               transform: `scale(${collapsedMenuButtonVisible ? 1 : 0.82})`,
             }}
             className={cn(`flex size-10 items-center justify-center rounded-full backdrop-blur-[40px] transition-colors cursor-pointer ${
-              open ? 'bg-content' : 'bg-floating hover:bg-hover'
+              open ? 'bg-content dark:hover:bg-neutral-300' : 'bg-floating hover:bg-neutral-300/60 dark:hover:bg-neutral-800/60'
             }`, 'origin-center transition-[background-color,color,opacity,transform] duration-200 ease-out motion-reduce:duration-0', !collapsedMenuButtonVisible && 'pointer-events-none')}
           >
             <div className="w-4 h-3 relative flex flex-col justify-center items-center">
@@ -235,7 +235,7 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
             onClick={() => setOpen(!open)}
             aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
             className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-[40px] transition-colors cursor-pointer ${
-              open ? 'bg-content' : 'bg-floating hover:bg-hover'
+              open ? 'bg-content dark:hover:bg-neutral-300' : 'bg-floating hover:bg-neutral-300/60 dark:hover:bg-neutral-800/60'
             }`}
             style={open ? { color: 'var(--color-nav-active-text)' } : undefined}
           >
