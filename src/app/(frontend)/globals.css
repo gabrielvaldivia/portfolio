@@ -935,3 +935,47 @@ img {
   height: auto;
   display: block;
 }
+
+/* Homepage variant: Centered Symmetry */
+.home-v-centered-symmetry .home-hero-heading {
+  margin-inline: auto;
+  max-width: 22ch;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.home-v-centered-symmetry h2,
+.home-v-centered-symmetry .contact-prompt {
+  text-align: center;
+}
+
+.home-v-centered-symmetry .home-section-layout h3 {
+  text-align: center;
+  width: 100%;
+}
+
+@media (min-width: 810px) {
+  .home-v-centered-symmetry .home-section-layout {
+    display: block;
+  }
+
+  .home-v-centered-symmetry .home-section-layout > div:first-child {
+    justify-content: center;
+    margin-bottom: 32px;
+  }
+
+  .home-v-centered-symmetry .home-approach-row {
+    display: block;
+    text-align: center;
+  }
+
+  .home-v-centered-symmetry .home-approach-row:not(:last-child)::after {
+    left: 25%;
+    right: 25%;
+  }
+}
+
+.home-v-centered-symmetry .home-approach-copy {
+  margin-inline: auto;
+  text-align: center;
+}
