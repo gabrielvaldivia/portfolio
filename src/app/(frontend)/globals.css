@@ -456,6 +456,14 @@ h2 {
 }
 
 @media (max-width: 809px) {
+  .hero-mobile-carousel {
+    scrollbar-width: none;
+  }
+
+  .hero-mobile-carousel::-webkit-scrollbar {
+    display: none;
+  }
+
   html.hero-project-pagination-active {
     scroll-snap-type: y mandatory;
   }

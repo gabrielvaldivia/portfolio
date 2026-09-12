@@ -14,9 +14,10 @@ try {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true })
   const errors = []
   page.on('pageerror', error => errors.push(error.message))
-  await page.goto(process.env.HERO_TEST_URL || 'http://localhost:3000', { waitUntil: 'domcontentloaded' })
+  await page.goto(process.env.HERO_TEST_URL || 'http://localhost:3000', { waitUntil: 'domcontentloaded', timeout: 90000 })
   await page.waitForFunction(() => document.querySelector('.hero-project-scroll-region')?.style.getPropertyValue('--hero-mobile-height'))
   await page.evaluate(() => document.fonts.ready)
+  await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.addStyleTag({ content: '[data-agentation-root], nextjs-portal { display: none !important; }' })
 
   const snapshot = () => page.evaluate(() => ({
@@ -29,21 +30,17 @@ try {
   const near = (actual, expected, label) => assert.ok(Math.abs(actual - expected) < 1, `${label}: ${actual} != ${expected}`)
   const settle = () => page.waitForTimeout(700)
 
-  // In the slideshow, each page follows the browser's visible height. Native
-  // snapping must preserve the selected slide. Off-screen pages keep their
-  // heights so they cannot move the selected slide's snap position.
+  // All horizontal slides share the visible height without changing selection.
   const slideElements = page.locator('.hero-mobile-slide')
   for (let index = 0; index < await slideElements.count(); index++) {
-    await slideElements.nth(index).evaluate(el => el.scrollIntoView({ behavior: 'instant' }))
+    await slideElements.nth(index).evaluate(el => el.scrollIntoView({ behavior: 'instant', block: 'start', inline: 'start' }))
     await settle()
-    const beforeResize = await snapshot()
     for (const height of [784, 744, 844]) {
       await page.setViewportSize({ width: 390, height })
       await settle()
-      ;(await snapshot()).heights.forEach((value, slideIndex) => near(value,
-        slideIndex === index ? height : beforeResize.heights[slideIndex],
-        slideIndex === index ? 'active slideshow height' : 'off-screen slide remains frozen'))
+      ;(await snapshot()).heights.forEach(value => near(value, height, 'shared carousel height'))
       const bounds = await slideElements.nth(index).boundingBox()
+      near(bounds.x, 0, `slide ${index + 1} stays horizontally snapped`)
       near(bounds.y, 0, `slide ${index + 1} stays snapped after viewport resize`)
       near(bounds.height, height, `slide ${index + 1} fills viewport`)
     }
@@ -67,41 +64,8 @@ try {
     window.visualViewport.dispatchEvent(new Event('resize'))
   })
 
-  // Leave a shorter page frozen ahead of us, then paginate into it. Its height
-  // must already be correct while less than half of it is visible (in either
-  // direction), not just after scrollIntoView has finished.
-  const checkIncomingHeight = async (from, to) => {
-    await slideElements.nth(to).evaluate(el => el.scrollIntoView({ behavior: 'instant' }))
-    await settle()
-    await page.setViewportSize({ width: 390, height: 784 })
-    await settle()
-    await slideElements.nth(from).evaluate(el => el.scrollIntoView({ behavior: 'instant' }))
-    await settle()
-    await page.setViewportSize({ width: 390, height: 844 })
-    await settle()
-    near((await snapshot()).heights[to], 784, 'incoming page starts with frozen height')
-    const samples = await page.evaluate(async to => {
-      const target = document.querySelectorAll('.hero-mobile-slide')[to]
-      const samples = []
-      target.scrollIntoView({ behavior: 'smooth' })
-      const start = performance.now()
-      while (performance.now() - start < 900) {
-        await new Promise(requestAnimationFrame)
-        const { top, bottom, height } = target.getBoundingClientRect()
-        const visible = Math.min(innerHeight, bottom) - Math.max(0, top)
-        if (visible > 100 && visible < height * 0.45) samples.push({ height, visible })
-      }
-      return samples
-    }, to)
-    assert.ok(samples.length > 0, 'recorded incoming slide before halfway through pagination')
-    for (const sample of samples) near(sample.height, 844, `incoming slide ${to + 1} ready during pagination`)
-    near((await slideElements.nth(to).boundingBox()).y, 0, 'pagination lands without a height correction')
-  }
-  await checkIncomingHeight(2, 3)
-  await checkIncomingHeight(3, 2)
-
   // Enter free scroll using the actual Approach boundary before reaching Work.
-  await page.locator('.hero-approach-snap-point').evaluate(el => el.scrollIntoView({ behavior: 'instant' }))
+  await page.locator('.hero-approach-snap-point').evaluate(el => el.scrollIntoView({ behavior: 'instant', block: 'start', inline: 'start' }))
   await settle()
   await page.mouse.move(190, 400)
   await page.mouse.wheel(0, 650)
@@ -133,11 +97,11 @@ try {
 
   // Returning to the slideshow refreshes a height that was frozen at Work,
   // even when there is no new resize event during the return gesture.
-  await slideElements.last().evaluate(el => el.scrollIntoView({ behavior: 'instant' }))
+  await slideElements.last().evaluate(el => el.scrollIntoView({ behavior: 'instant', block: 'start', inline: 'start' }))
   await settle()
   near((await snapshot()).heights.at(-1), 784, 're-entry refreshes height')
   near((await slideElements.last().boundingBox()).y, 0, 're-entry keeps the final slide snapped')
-  await page.locator('.hero-approach-snap-point').evaluate(el => el.scrollIntoView({ behavior: 'instant' }))
+  await page.locator('.hero-approach-snap-point').evaluate(el => el.scrollIntoView({ behavior: 'instant', block: 'start', inline: 'start' }))
   await settle()
   await page.mouse.wheel(0, 650)
   await settle()
@@ -157,7 +121,7 @@ try {
   await settle()
   const desktop = await page.locator('.hero-project-scroll-region').evaluate(el => ({
     lock: el.style.getPropertyValue('--hero-mobile-height'),
-    mobileHidden: getComputedStyle(el.querySelector('.hero-mobile-slide').parentElement.parentElement).display === 'none',
+    mobileHidden: getComputedStyle(el.querySelector('.hero-mobile-carousel').parentElement.parentElement).display === 'none',
   }))
   assert.equal(desktop.lock, '')
   assert.equal(desktop.mobileHidden, true)
@@ -167,7 +131,7 @@ try {
 
   // Native pagination still settles at actual slide starts, then releases down
   // from Approach and re-enters when returning to the final slide.
-  await page.locator('.hero-project-snap-point').last().evaluate(el => el.scrollIntoView({ behavior: 'instant' }))
+  await page.locator('.hero-project-snap-point').last().evaluate(el => el.scrollIntoView({ behavior: 'instant', block: 'start', inline: 'start' }))
   await settle()
   assert.match((await snapshot()).snap, /mandatory/)
   if (engine === 'chromium') {
@@ -199,7 +163,7 @@ try {
   await settle()
   assert.match((await snapshot()).snap, /mandatory/, 'return to slideshow re-enables pagination')
   assert.deepEqual(errors, [], 'no browser runtime errors')
-  console.log(JSON.stringify({ engine, result: 'PASS', checks: ['active viewport resize', 'slide alignment', 'live viewport before dvh', 'early incoming resize both directions', 'stable off-screen resize', 're-entry refresh', 'visible captions', 'width change', 'rotation', 'Approach handoff'] }))
+  console.log(JSON.stringify({ engine, result: 'PASS', checks: ['active viewport resize', 'slide alignment', 'live viewport before dvh', 'stable off-screen resize', 're-entry refresh', 'visible captions', 'width change', 'rotation', 'Approach handoff'] }))
 } finally {
   await browser.close()
 }

@@ -26,15 +26,16 @@ try {
       body { margin: 0; }
       #intro { height: 320px; scroll-snap-align: start; }
       #probe { position: fixed; top: 0; width: 0; height: 100dvh; visibility: hidden; }
-      .hero-mobile-slide { position: relative; height: var(--hero-mobile-height, 100dvh); background: #59402e; }
+      .hero-mobile-carousel { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; height: var(--hero-mobile-height, 100dvh); }
+      .hero-mobile-slide { position: relative; height: 100%; flex: 0 0 100%; scroll-snap-align: start; background: #59402e; }
       .snap { position: absolute; top: 0; height: 1px; scroll-snap-align: start; scroll-snap-stop: always; }
       .caption { position: absolute; bottom: calc(20px + max(0px, var(--hero-mobile-height, 100dvh) - var(--hero-mobile-viewport-height, 100dvh))); }
       #approach { height: 1400px; scroll-snap-align: start; }
       #work { height: 1400px; }
     </style>
-    <div id="intro">Intro</div><div id="region"><div id="probe"></div>
-      ${Array.from({ length: 4 }, (_, i) => `<div class="hero-mobile-slide"><div class="snap"></div><p class="caption">Project ${i + 1}</p></div>`).join('')}
-    </div><div id="approach">Approach</div><div id="work">Work</div>`)
+    <div id="intro">Intro</div><div id="region" style="position:relative"><div id="probe"></div><div class="snap"></div><div class="hero-mobile-carousel">
+      ${Array.from({ length: 4 }, (_, i) => `<div class="hero-mobile-slide"><p class="caption">Project ${i + 1}</p></div>`).join('')}
+    </div></div><div id="approach">Approach</div><div id="work">Work</div>`)
   await page.evaluate(async source => {
     const url = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }))
     const { observeMobileHeroViewport } = await import(url)
@@ -50,41 +51,31 @@ try {
     window.visualViewport.dispatchEvent(new Event('resize'))
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
   }, height)
-  await slides.first().evaluate(el => el.scrollIntoView({ behavior: 'instant' }))
+  await slides.first().evaluate(el => el.scrollIntoView({ behavior: 'instant', block: 'start', inline: 'start' }))
   await settle()
   for (const height of [764, 794, 824, 844]) {
     await setVisualHeight(height)
     near((await slides.first().boundingBox()).height, height, 'live height without dvh/window resize')
     near(await slides.first().locator('.caption').evaluate(el => parseFloat(getComputedStyle(el).bottom)), 20, 'caption uses live height too')
-    near((await slides.nth(1).boundingBox()).height, 744, 'offscreen slide stays frozen')
+    near((await slides.nth(1).boundingBox()).height, height, 'all horizontal slides share the viewport height')
   }
 
-  const recordIncoming = async (to, expected) => {
-    const samples = await page.evaluate(async to => {
-      const target = document.querySelectorAll('.hero-mobile-slide')[to]
-      const samples = []
-      target.scrollIntoView({ behavior: 'smooth' })
-      const start = performance.now()
-      while (performance.now() - start < 1000) {
-        await new Promise(requestAnimationFrame)
-        const { top, bottom, height } = target.getBoundingClientRect()
-        const visible = Math.min(innerHeight, bottom) - Math.max(0, top)
-        if (visible > 100 && visible < height * .45) samples.push({ height, visible })
-      }
-      return samples
-    }, to)
-    assert.ok(samples.length, 'recorded incoming slide before it reaches halfway')
-    for (const sample of samples) near(sample.height, expected, `slide ${to + 1} resized before halfway`)
-    near((await slides.nth(to).boundingBox()).y, 0, 'native pagination reaches slide start')
+  const checkHorizontalSlide = async (index, height) => {
+    const beforeY = await page.evaluate(() => scrollY)
+    await slides.nth(index).evaluate(el => el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' }))
+    await settle()
+    near((await slides.nth(index).boundingBox()).x, 0, 'horizontal pagination reaches slide start')
+    near((await slides.nth(index).boundingBox()).height, height, 'incoming slide already has correct height')
+    near(await page.evaluate(() => scrollY), beforeY, 'horizontal pagination preserves vertical position')
   }
-  await recordIncoming(1, 844)
+  await checkHorizontalSlide(1, 844)
   await setVisualHeight(804)
-  await recordIncoming(0, 804)
+  await checkHorizontalSlide(0, 804)
 
   // Changes below the slideshow must not move the document or scroll position.
   await page.evaluate(() => {
     document.documentElement.style.scrollSnapType = 'none'
-    document.querySelector('#work').scrollIntoView({ behavior: 'instant' })
+    document.querySelector('#work').scrollIntoView({ behavior: 'instant', block: 'start', inline: 'start' })
   })
   await settle()
   const geometry = () => page.evaluate(() => ({
@@ -101,7 +92,7 @@ try {
   // Pinch zoom isn't browser chrome; don't shrink the slide to the zoomed view.
   await page.evaluate(() => {
     document.documentElement.style.removeProperty('scroll-snap-type')
-    document.querySelector('.hero-mobile-slide').scrollIntoView({ behavior: 'instant' })
+    document.querySelector('.hero-mobile-slide').scrollIntoView({ behavior: 'instant', block: 'start', inline: 'start' })
   })
   await settle()
   await page.evaluate(() => Object.defineProperty(window.visualViewport, 'scale', { configurable: true, value: 2 }))
@@ -121,7 +112,7 @@ try {
   assert.equal(await page.locator('#region').evaluate(el => el.style.getPropertyValue('--hero-mobile-height')), '')
   assert.equal(await page.locator('#region').evaluate(el => el.style.getPropertyValue('--hero-mobile-viewport-height')), '')
   assert.deepEqual(errors, [])
-  console.log(JSON.stringify({ engine, result: 'PASS', checks: ['live toolbar sizes before dvh', 'caption inset synchronization', 'early incoming resize both directions', 'native snap alignment', 'offscreen geometry', 'pinch zoom', 'dvh fallback', 'cleanup'] }))
+  console.log(JSON.stringify({ engine, result: 'PASS', checks: ['live toolbar sizes before dvh', 'caption inset synchronization', 'shared height both directions', 'native snap alignment', 'offscreen geometry', 'pinch zoom', 'dvh fallback', 'cleanup'] }))
 } finally {
   await browser.close()
 }

@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import {
-  type MotionStyle,
   AnimatePresence,
   animate,
   motion,
@@ -18,6 +17,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
 } from 'react'
@@ -28,6 +28,9 @@ import { PayloadImage } from '@/components/PayloadImage'
 import { observeHeroTrackpadNavigation } from '@/lib/observeHeroTrackpadNavigation'
 import type { ResponsiveImageMedia } from '@/lib/responsiveImage'
 import { observeMobileHeroViewport } from '@/lib/observeMobileHeroViewport'
+import { observeMobileHeroPagination } from '@/lib/observeMobileHeroPagination'
+import { observeLoopingHeroCarousel } from '@/lib/observeLoopingHeroCarousel'
+import { cn } from '@/lib/cn'
 
 type HeroTestimonial = {
   id: string
@@ -232,12 +235,14 @@ function MobileHeroSlide({
   project,
   active,
   priority,
-  visualStyle,
+  position,
+  clone = false,
 }: {
   project: HeroProjectSlide
   active: boolean
   priority: boolean
-  visualStyle?: MotionStyle
+  position: string
+  clone?: boolean
 }) {
   const mediaOverride = MOBILE_HERO_MEDIA_OVERRIDES[project.slug]
   const media = mediaOverride
@@ -259,15 +264,18 @@ function MobileHeroSlide({
   }, [project.gradientColor])
 
   return (
-    // Follow the visible viewport in the slideshow, then retain that measured
-    // height off-screen so browser chrome cannot move the content below it.
-    <div className="hero-mobile-slide relative w-full text-text-on-media-strong" style={{ height: MOBILE_SLIDE_HEIGHT }} data-project-id={project.id}>
-      {/* Snap to the actual slide's start. A one-pixel target cannot become an
-          oversized snap area with intermediate stops when browser chrome changes. */}
-      <div aria-hidden="true" className="hero-project-snap-point pointer-events-none absolute inset-x-0 top-0 h-px" />
-      <motion.div
+    <div
+      role="group"
+      aria-roledescription="slide"
+      aria-label={`${position}: ${project.title}`}
+      aria-hidden={!active || clone}
+      inert={!active || clone}
+      className={cn(clone ? 'hero-mobile-loop-slide' : 'hero-mobile-slide', 'relative h-full w-full shrink-0 snap-start snap-always text-text-on-media-strong')}
+      data-project-id={project.id}
+    >
+      <div
         className="hero-mobile-surface relative grid size-full grid-cols-1 grid-rows-[minmax(0,1fr)_auto_auto] overflow-hidden"
-        style={{ ...visualStyle, backgroundColor: `rgb(${gradientColor})` }}
+        style={{ backgroundColor: `rgb(${gradientColor})` }}
       >
         {/* The media shares the title's bottom grid line; text wrapping and
             editable pills determine the solid-color area without JS sizing. */}
@@ -334,7 +342,7 @@ function MobileHeroSlide({
             <path d="M6 16h20M18 8l8 8-8 8" />
           </svg>
         </Link>
-      </motion.div>
+      </div>
     </div>
   )
 }
@@ -342,11 +350,13 @@ function MobileHeroSlide({
 export function HeroProjectSlideshow({ projects }: Props) {
   const cursorTextPathId = `hero-cursor-${useId().replaceAll(':', '')}`
   const regionRef = useRef<HTMLDivElement>(null)
+  const mobileCarouselRef = useRef<HTMLDivElement>(null)
   const mobileViewportProbeRef = useRef<HTMLDivElement>(null)
   const isInView = useInView(regionRef, { amount: 0.25 })
   const prefersReducedMotion = useReducedMotion()
   const [isMobileViewport, setIsMobileViewport] = useState(false)
-  const [isMobilePaginationVisible, setIsMobilePaginationVisible] = useState(false)
+  const [isMobileHeroVisible, setIsMobileHeroVisible] = useState(false)
+  const [isMobileAutoplayPaused, setIsMobileAutoplayPaused] = useState(false)
   const progress = useMotionValue(0)
   const insetScale = useMotionValue(1)
   const insetRadius = useMotionValue(20)
@@ -405,23 +415,22 @@ export function HeroProjectSlideshow({ projects }: Props) {
   }, [projects.length])
 
   const scrollToMobileStep = useCallback((step: number) => {
-    const region = regionRef.current
-    if (!region) return
+    const carousel = mobileCarouselRef.current
+    if (!carousel) return
 
-    const clampedStep = Math.max(0, Math.min(projects.length - 1, step))
-    const slide = region.querySelectorAll<HTMLElement>('.hero-mobile-slide')[clampedStep]
-    slide?.scrollIntoView({
-      block: 'start',
+    // The extra page after the last slide is its looping copy of the first.
+    const clampedStep = Math.max(0, Math.min(projects.length, step))
+    carousel.scrollTo({
+      left: (clampedStep + (projects.length > 1 ? 1 : 0)) * carousel.clientWidth,
       behavior: prefersReducedMotion ? 'auto' : 'smooth',
     })
   }, [prefersReducedMotion, projects.length])
 
   const selectSlide = useCallback((index: number) => {
-    setActiveIndex(index)
-
     if (isMobileViewport) {
+      setIsMobileAutoplayPaused(true)
       scrollToMobileStep(index)
-    }
+    } else setActiveIndex(index)
   }, [isMobileViewport, scrollToMobileStep])
 
   const stopCaseStudyCursorSpin = useCallback(() => {
@@ -566,9 +575,9 @@ export function HeroProjectSlideshow({ projects }: Props) {
 
   const isAutoplayRunning =
     projects.length > 1
-    && !isMobileViewport
+    && (!isMobileViewport || !isMobileAutoplayPaused)
     && !isFocusPaused
-    && isInView
+    && (isMobileViewport ? isMobileHeroVisible : isInView)
     && !prefersReducedMotion
 
   useEffect(() => {
@@ -595,133 +604,24 @@ export function HeroProjectSlideshow({ projects }: Props) {
     const region = regionRef.current
     const probe = mobileViewportProbeRef.current
     if (!region || !probe) return
-    return observeMobileHeroViewport(region, probe, setIsMobilePaginationVisible)
+    return observeMobileHeroViewport(region, probe, setIsMobileHeroVisible)
+  }, [isMobileViewport, projects])
+
+  useLayoutEffect(() => {
+    if (!isMobileViewport) return
+    const carousel = mobileCarouselRef.current
+    if (!carousel || !projects.length) return
+
+    const selected = carousel.querySelector<HTMLElement>('.hero-mobile-slide[aria-hidden="false"]')
+    const initialIndex = Math.max(0, projects.findIndex(project => project.id === selected?.dataset.projectId))
+    return observeLoopingHeroCarousel(carousel, projects.length, initialIndex, setActiveIndex, () => setIsMobileAutoplayPaused(true))
   }, [isMobileViewport, projects])
 
   useEffect(() => {
-    if (!isMobileViewport) return
-    const region = regionRef.current
-    const media = region?.querySelectorAll<HTMLElement>('.hero-mobile-media')[activeIndex]
-    if (!region || !media) return
-
-    // Keep one sticky pagination control, centered on the active image rather
-    // than the full slide. Observe size only; don't measure while scrolling.
-    const observer = new ResizeObserver(([entry]) => {
-      if (entry.contentRect.height > 0) {
-        region.style.setProperty('--hero-mobile-image-height', `${entry.contentRect.height}px`)
-      }
-    })
-    observer.observe(media)
-    return () => observer.disconnect()
-  }, [activeIndex, isMobileViewport, projects])
-
-  useEffect(() => {
-    if (!isMobileViewport) return
-    const slides = regionRef.current?.querySelectorAll<HTMLElement>('.hero-mobile-slide')
-    if (!slides) return
-
-    // The browser moves the real slides. Observe only which slide is visible
-    // so video playback and pagination don't need a second scroll calculation.
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.intersectionRatio < 0.5) continue
-        const index = projects.findIndex((project) => project.id === (entry.target as HTMLElement).dataset.projectId)
-        if (index >= 0) setActiveIndex(index)
-      }
-    }, { threshold: 0.5 })
-    slides.forEach((slide) => observer.observe(slide))
-    return () => observer.disconnect()
-  }, [isMobileViewport, projects])
-
-  useEffect(() => {
-    if (!isMobileViewport || projects.length < 2) return
-
-    const root = document.documentElement
+    if (!isMobileViewport || !projects.length) return
     const region = regionRef.current
     if (!region) return
-
-    const approach = document.querySelector<HTMLElement>('.hero-approach-snap-point')
-    if (!approach) return
-
-    let approachSnapY = 0
-    let touchY: number | null = null
-    const measureBoundary = () => {
-      const margin = Number.parseFloat(getComputedStyle(approach).scrollMarginTop) || 0
-      approachSnapY = approach.getBoundingClientRect().top + window.scrollY - margin
-    }
-    const setFreeScroll = (free: boolean) => {
-      root.classList.toggle('hero-project-pagination-free', free)
-    }
-    const updateGestureMode = (deltaY: number) => {
-      if (!deltaY) return
-      const distancePastApproach = window.scrollY - approachSnapY
-      setFreeScroll(distancePastApproach > 1 || (distancePastApproach >= -1 && deltaY > 0))
-    }
-
-    const handleScrollEnd = () => {
-      measureBoundary()
-      // Keep pagination ready at the exact boundary for the next upward swipe.
-      // Downward input disables it before moving into Approach. Switching it
-      // on during an upward gesture can consume that first gesture in WebKit.
-      setFreeScroll(window.scrollY > approachSnapY + 1)
-    }
-    // Choose the mode from input direction before the browser handles the swipe.
-    // Proximity snapping still catches downward swipes, so Approach uses none.
-    // These listeners never move the page or cancel native scrolling.
-    const handleTouchStart = (event: TouchEvent) => {
-      measureBoundary()
-      touchY = event.touches.length === 1 ? event.touches[0].clientY : null
-    }
-    const handleTouchMove = (event: TouchEvent) => {
-      if (touchY === null || event.touches.length !== 1) return
-      const nextY = event.touches[0].clientY
-      updateGestureMode(touchY - nextY)
-      touchY = nextY
-    }
-    const handleTouchEnd = () => { touchY = null }
-    const handleWheel = (event: WheelEvent) => {
-      if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return
-      measureBoundary()
-      updateGestureMode(event.deltaY)
-    }
-
-    // Safari before 26.2 has no scrollend. This fallback only changes snap
-    // strictness at Approach; it never moves the page or resizes the slides.
-    let settleTimeout: ReturnType<typeof setTimeout> | undefined
-    const supportsScrollEnd = 'onscrollend' in window
-    const handleScroll = () => {
-      // Also catch re-entry during momentum or keyboard scrolling. Use the
-      // cached boundary so the scroll listener doesn't measure layout.
-      if (window.scrollY < approachSnapY - 1) setFreeScroll(false)
-      if (!supportsScrollEnd) {
-        clearTimeout(settleTimeout)
-        settleTimeout = setTimeout(handleScrollEnd, 180)
-      }
-    }
-    root.classList.add('hero-project-pagination-active')
-    handleScrollEnd()
-    if (supportsScrollEnd) window.addEventListener('scrollend', handleScrollEnd)
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    window.addEventListener('touchstart', handleTouchStart, { passive: true })
-    window.addEventListener('touchmove', handleTouchMove, { passive: true })
-    window.addEventListener('touchend', handleTouchEnd, { passive: true })
-    window.addEventListener('touchcancel', handleTouchEnd, { passive: true })
-    window.addEventListener('wheel', handleWheel, { passive: true })
-    window.addEventListener('resize', measureBoundary, { passive: true })
-
-    return () => {
-      window.removeEventListener('scrollend', handleScrollEnd)
-      window.removeEventListener('scroll', handleScroll)
-      window.removeEventListener('touchstart', handleTouchStart)
-      window.removeEventListener('touchmove', handleTouchMove)
-      window.removeEventListener('touchend', handleTouchEnd)
-      window.removeEventListener('touchcancel', handleTouchEnd)
-      window.removeEventListener('wheel', handleWheel)
-      window.removeEventListener('resize', measureBoundary)
-      clearTimeout(settleTimeout)
-      root.classList.remove('hero-project-pagination-active')
-      root.classList.remove('hero-project-pagination-free')
-    }
+    return observeMobileHeroPagination(region)
   }, [isMobileViewport, projects.length])
 
   useEffect(() => {
@@ -741,11 +641,14 @@ export function HeroProjectSlideshow({ projects }: Props) {
     const playback = animate(progress, 1, {
       duration: Math.max(0.05, (1 - currentProgress) * (AUTOPLAY_DELAY_MS / 1000)),
       ease: 'linear',
-      onComplete: showNext,
+      onComplete: () => {
+        if (isMobileViewport) scrollToMobileStep(activeIndex + 1)
+        else showNext()
+      },
     })
 
     return () => playback.stop()
-  }, [activeIndex, isAutoplayRunning, progress, showNext])
+  }, [activeIndex, isAutoplayRunning, isMobileViewport, progress, scrollToMobileStep, showNext])
 
   useEffect(() => {
     const region = regionRef.current
@@ -795,29 +698,66 @@ export function HeroProjectSlideshow({ projects }: Props) {
       className="hero-project-scroll-region relative w-full"
     >
       <div ref={mobileViewportProbeRef} aria-hidden="true" className="pointer-events-none invisible fixed top-0 left-0 h-dvh w-0 tablet:hidden" />
-      <div role="region" aria-label="Featured projects" aria-roledescription="carousel" className="grid tablet:hidden">
-        <div className="col-start-1 row-start-1 min-w-0">
-          {projects.map((project, index) => (
-            <MobileHeroSlide
-              key={project.id}
-              project={project}
-              active={isMobileViewport && index === activeIndex}
-              priority={index === 0}
-              visualStyle={index === 0 ? { scale: slideshowScale, borderRadius: slideshowRadius } : undefined}
-            />
-          ))}
-        </div>
-        {projects.length > 1 ? (
-          // Share one viewport-height overlay without adding scroll height.
-          // Sticky keeps the lines still between slides, but scoped to the hero.
-          <div className="pointer-events-none sticky top-0 z-20 col-start-1 row-start-1 self-start" style={{ height: MOBILE_VIEWPORT_HEIGHT }}>
+      <div
+        role="region"
+        aria-label="Featured projects"
+        aria-roledescription="carousel"
+        className="relative tablet:hidden"
+        onFocusCapture={() => setIsFocusPaused(true)}
+        onBlurCapture={event => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setIsFocusPaused(false)
+        }}
+      >
+        {/* One vertical stop for the whole carousel; slides snap horizontally. */}
+        <div aria-hidden="true" className="hero-project-snap-point pointer-events-none absolute inset-x-0 top-0 h-px" />
+        <motion.div
+          className="relative overflow-hidden"
+          style={{ scale: slideshowScale, borderRadius: slideshowRadius }}
+        >
+          <div
+            ref={mobileCarouselRef}
+            tabIndex={0}
+            aria-label="Scroll featured projects left or right"
+            className="hero-mobile-carousel flex w-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-white"
+            style={{ height: MOBILE_SLIDE_HEIGHT, touchAction: 'pan-y pinch-zoom' }}
+          >
+            {isMobileViewport && projects.length > 1 ? (
+              <MobileHeroSlide
+                project={projects[projects.length - 1]}
+                active={activeIndex === projects.length - 1}
+                priority={false}
+                position={`${projects.length} of ${projects.length}`}
+                clone
+              />
+            ) : null}
+            {projects.map((project, index) => (
+              <MobileHeroSlide
+                key={project.id}
+                project={project}
+                active={isMobileViewport && index === activeIndex}
+                priority={index === 0}
+                position={`${index + 1} of ${projects.length}`}
+              />
+            ))}
+            {isMobileViewport && projects.length > 1 ? (
+              <MobileHeroSlide
+                project={projects[0]}
+                active={activeIndex === 0}
+                priority={false}
+                position={`1 of ${projects.length}`}
+                clone
+              />
+            ) : null}
+          </div>
+          {projects.length > 1 ? (
             <div
               role="group"
               aria-label="Project pagination"
-              aria-hidden={!isMobilePaginationVisible}
-              inert={!isMobilePaginationVisible}
-              className={`hero-mobile-pagination absolute right-3 flex -translate-y-1/2 flex-col gap-1 ${isMobilePaginationVisible ? '' : 'invisible'}`}
-              style={{ top: 'calc(var(--hero-mobile-image-height, 75dvh) / 2)' }}
+              aria-hidden={!isMobileHeroVisible}
+              inert={!isMobileHeroVisible}
+              className={cn('hero-mobile-pagination absolute z-20 flex gap-1', !isMobileHeroVisible && 'invisible')}
+              // Inset the visible line by 20px, accounting for its 32px tap target.
+              style={{ top: 'calc(max(1.25rem, env(safe-area-inset-top)) - 0.9375rem)', left: 'max(1.25rem, env(safe-area-inset-left))' }}
             >
               {projects.map((project, index) => (
                 <button
@@ -826,14 +766,19 @@ export function HeroProjectSlideshow({ projects }: Props) {
                   aria-label={`Show ${project.title}, slide ${index + 1} of ${projects.length}`}
                   aria-current={index === activeIndex ? 'true' : undefined}
                   onClick={() => selectSlide(index)}
-                  className="pointer-events-auto group inline-flex w-8 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  className="group inline-flex h-8 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
-                  <span aria-hidden="true" className={`block h-7 w-0.5 shadow-sm transition-opacity duration-150 group-hover:opacity-75 ${index === activeIndex ? 'bg-white' : 'bg-white/35'}`} />
+                  <span aria-hidden="true" className="relative block h-0.5 w-7 overflow-hidden bg-white/35 shadow-sm transition-opacity duration-150 group-hover:opacity-75">
+                    <motion.span
+                      className="absolute inset-0 origin-left bg-white"
+                      style={{ scaleX: index === activeIndex ? (isAutoplayRunning ? progress : 1) : 0 }}
+                    />
+                  </span>
                 </button>
               ))}
             </div>
-          </div>
-        ) : null}
+          ) : null}
+        </motion.div>
       </div>
 
         <motion.section

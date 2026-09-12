@@ -14,10 +14,11 @@ try {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true })
   const errors = []
   page.on('pageerror', error => errors.push(error.message))
-  await page.goto(process.env.HERO_TEST_URL || 'http://localhost:3000', { waitUntil: 'domcontentloaded' })
+  await page.goto(process.env.HERO_TEST_URL || 'http://localhost:3000', { waitUntil: 'domcontentloaded', timeout: 90000 })
   await page.waitForSelector('.hero-mobile-media')
   await page.waitForFunction(() => document.querySelector('.hero-project-scroll-region')?.style.getPropertyValue('--hero-mobile-height'))
   await page.evaluate(() => document.fonts.ready)
+  await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.addStyleTag({ content: '[data-agentation-root], nextjs-portal { display: none !important; }' })
   const slides = page.locator('.hero-mobile-slide')
   const colors = new Map()
@@ -27,7 +28,7 @@ try {
     for (const width of [320, 390, 768]) {
       await page.setViewportSize({ width, height: 844 })
       for (let index = 0; index < await slides.count(); index++) {
-        await slides.nth(index).evaluate(el => el.scrollIntoView({ behavior: 'instant' }))
+        await slides.nth(index).evaluate(el => el.scrollIntoView({ behavior: 'instant', block: 'start', inline: 'start' }))
         await page.waitForTimeout(700)
         await page.waitForFunction(index => {
           const media = document.querySelectorAll('.hero-mobile-slide')[index].querySelector('img, video')
@@ -55,7 +56,10 @@ try {
             mediaHeight: getComputedStyle(media).height,
             surfaceTransform: getComputedStyle(slide.querySelector('.hero-mobile-surface')).transform,
             regionStyle: slide.closest('.hero-project-scroll-region').style.cssText,
-            paginationCenter: lines.top + lines.height / 2,
+            paginationTop: pagination.querySelector('span').getBoundingClientRect().top,
+            paginationLeft: lines.left,
+            lineWidth: pagination.querySelector('span').getBoundingClientRect().width,
+            lineHeight: pagination.querySelector('span').getBoundingClientRect().height,
             paginationCount: document.querySelectorAll('.hero-mobile-pagination').length,
             background: getComputedStyle(slide.querySelector('.hero-mobile-surface')).backgroundColor,
             titleColor: getComputedStyle(title).color,
@@ -75,8 +79,11 @@ try {
         near(result.imageBottom, result.titleBottom, 'image ends at the title bottom')
         assert.ok(result.detailsTop >= result.imageBottom - 1, 'description and pills are outside the image')
         assert.ok(result.captionBottom <= 845, `caption fits inside the viewport: ${JSON.stringify({theme, width, index, ...result})}`)
-        near(result.paginationCenter, result.imageCenter, `pagination is centered on the image (${JSON.stringify({theme, width, index, ...result})})`)
-        assert.equal(result.paginationCount, 1, 'pagination stays shared and sticky')
+        near(result.paginationTop, 20, 'visible lines have the same top and left inset')
+        near(result.paginationLeft, 20, 'pagination at the left gutter')
+        near(result.lineWidth, 28, 'horizontal pagination lines')
+        near(result.lineHeight, 2, 'thin pagination lines')
+        assert.equal(result.paginationCount, 1, 'pagination stays shared between slides')
         near(result.arrowWidth, result.menuWidth, 'project arrow matches the menu button size')
         assert.match(result.mask, /linear-gradient/)
         assert.equal((result.mask.match(/%/g) || []).length, 11, 'mask uses the eased alpha stops')
@@ -100,7 +107,7 @@ try {
   const desktop = await page.locator('.hero-project-slideshow').boundingBox()
   near(desktop.width / desktop.height, 16 / 9, 'desktop aspect ratio unchanged')
   assert.deepEqual(errors, [], 'no runtime errors')
-  console.log(JSON.stringify({ engine, result: 'PASS', checks: ['image/title boundary', 'solid text area', 'eased mask', 'image-centered pagination', 'per-slide colors', 'both themes', 'responsive wrapping', 'muted video', 'desktop unchanged'] }))
+  console.log(JSON.stringify({ engine, result: 'PASS', checks: ['image/title boundary', 'solid text area', 'eased mask', 'top-left pagination', 'per-slide colors', 'both themes', 'responsive wrapping', 'muted video', 'desktop unchanged'] }))
 } finally {
   await browser.close()
 }
