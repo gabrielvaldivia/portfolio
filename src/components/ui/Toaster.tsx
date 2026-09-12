@@ -7,17 +7,18 @@ export function Toaster() {
   return (
     <SonnerToaster
       position="bottom-right"
+      className="[--note-toast-bottom:calc(96px_+_env(safe-area-inset-bottom))] lg:[--note-toast-bottom:max(24px,env(safe-area-inset-bottom))]"
       duration={8000}
       visibleToasts={1}
       closeButton={false}
       swipeDirections={['left', 'right', 'top', 'bottom']}
       pauseWhenPageIsHidden
       offset={{
-        bottom: 'max(24px, env(safe-area-inset-bottom))',
+        bottom: 'var(--note-toast-bottom)',
         right: 'max(24px, env(safe-area-inset-right))',
       }}
       mobileOffset={{
-        bottom: 'calc(96px + env(safe-area-inset-bottom))',
+        bottom: 'var(--note-toast-bottom)',
         left: 'max(16px, env(safe-area-inset-left))',
         right: 'max(16px, env(safe-area-inset-right))',
       }}

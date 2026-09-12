@@ -9,7 +9,8 @@ its saved style; clicking does not pin it open. Attribution stays visible during
 hover and while using its reader controls, with no close icon. Touch users can
 tap to open attribution and swipe it away; it dismisses after eight seconds unless
 interacting with its controls or removing a highlight.
-On phones it sits above the note controls.
+Below 1024px it sits above the note controls
+so tablet and phone layouts leave both surfaces accessible.
 Jumping to another reader's quote uses underline emphasis. Your fill takes
 priority wherever saved passages overlap. Tapping either style shows the same
 attribution toast. Selecting text keeps the anchored **Highlight** button.
