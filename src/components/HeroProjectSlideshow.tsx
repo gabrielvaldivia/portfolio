@@ -347,7 +347,19 @@ function MobileHeroSlide({
   )
 }
 
-export function HeroProjectSlideshow({ projects }: Props) {
+export function HeroProjectSlideshow({ projects: initialProjects }: Props) {
+  const [projects, setProjects] = useState(initialProjects)
+
+  useEffect(() => {
+    // Shuffle after hydration so each visit gets its own stable slide order.
+    const shuffledProjects = [...initialProjects]
+    for (let index = shuffledProjects.length - 1; index > 0; index--) {
+      const randomIndex = Math.floor(Math.random() * (index + 1))
+      ;[shuffledProjects[index], shuffledProjects[randomIndex]] = [shuffledProjects[randomIndex], shuffledProjects[index]]
+    }
+    setProjects(shuffledProjects)
+  }, [initialProjects])
+
   const cursorTextPathId = `hero-cursor-${useId().replaceAll(':', '')}`
   const regionRef = useRef<HTMLDivElement>(null)
   const mobileCarouselRef = useRef<HTMLDivElement>(null)
