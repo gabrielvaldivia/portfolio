@@ -165,3 +165,12 @@ export function checkNoteSubscriptionRateLimit(headers: Headers) {
     windowMs: SUBSCRIPTION_WINDOW_MS,
   })
 }
+
+export function checkEngagementAccessRateLimit(headers: Headers) {
+  return checkPersistentRateLimit({
+    headers,
+    namespace: 'engagement-access',
+    limit: 5,
+    dailyLimit: 100,
+  })
+}

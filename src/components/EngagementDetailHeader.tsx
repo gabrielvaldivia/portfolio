@@ -104,7 +104,7 @@ export function EngagementDetailHeader({ name, number }: EngagementDetailHeaderP
         <span
           aria-hidden="true"
           className={cn(
-            'truncate pr-14 text-body transition-[opacity,translate] duration-150 ease-out motion-reduce:translate-y-0 motion-reduce:transition-none',
+            'truncate pr-14 text-body text-text-muted transition-[opacity,translate] duration-150 ease-out motion-reduce:translate-y-0 motion-reduce:transition-none',
             showCompactTitle
               ? 'translate-y-0 opacity-100'
               : 'translate-y-1 opacity-0',
@@ -133,8 +133,8 @@ export function EngagementDetailHeader({ name, number }: EngagementDetailHeaderP
           <p className="col-span-2 text-body-large tabular-nums text-text-muted">{number}</p>
           <h2
             className={cn(
-              'col-span-10 text-balance transition-[font-size,line-height] duration-200 ease-out motion-reduce:transition-none',
-              isDesktopHeaderSticky && 'text-body-large',
+              'col-span-10 text-balance transition-[font-size,line-height,color] duration-200 ease-out motion-reduce:transition-none',
+              isDesktopHeaderSticky ? 'text-body-large text-text-muted' : 'text-text-strong',
             )}
           >
             {name}

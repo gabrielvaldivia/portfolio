@@ -1,10 +1,14 @@
 import type { Metadata } from 'next'
+import { cookies } from 'next/headers'
+import { ArrowDown } from 'lucide-react'
 
 import { ContactForm } from '@/components/ContactForm'
+import { EngagementAccessForm } from '@/components/EngagementAccessForm'
 import { EngagementDetailHeader } from '@/components/EngagementDetailHeader'
 import { HScrollContainer } from '@/components/HScrollContainer'
 import { ProjectCard } from '@/components/ProjectCard'
 import { cn } from '@/lib/cn'
+import { ENGAGEMENT_ACCESS_COOKIE, hasEngagementAccess } from '@/lib/engagementAccess'
 import { getProjects } from '@/lib/queries'
 import type { ResponsiveImageMedia } from '@/lib/responsiveImage'
 
@@ -16,6 +20,8 @@ const engagements = [
     price: '$10,000',
     cadence: '/ week',
     availability: '1 available',
+    summary:
+      'Work directly with me as a creative partner to shape your product, brand, and user experience, with close collaboration from day one.',
     description:
       'I become a thought partner to the founders, bringing years of 0–1 product experience into shaping the product, its brand, and its user experience. Best for early-stage teams facing consequential decisions who want a close, ongoing creative partnership.',
     terms: 'Billed every two weeks. Cash/equity negotiable.',
@@ -37,6 +43,8 @@ const engagements = [
     price: '$4,000',
     cadence: '/ week',
     availability: '2 available',
+    summary:
+      'A designer from my team embeds with yours to own execution, with design direction and hands-on guidance from me.',
     description:
       'A designer from my team takes ownership of a well-defined problem and carries it through execution. Every designer has been trained by me in the intricacies of 0–1 work and consistently meets my quality bar. There’s less back-and-forth in this model and more focused, independent delivery.',
     terms: 'Billed every two weeks. Three-month minimum.',
@@ -95,11 +103,21 @@ export const metadata: Metadata = {
   description:
     'Two ways to work with Gabriel Valdivia on product design, from early product direction to ongoing design leadership.',
   alternates: { canonical: '/engagement-models' },
+  robots: { index: false, follow: true },
 }
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function EngagementModelsPage() {
+  const cookieStore = await cookies()
+  if (!hasEngagementAccess(cookieStore.get(ENGAGEMENT_ACCESS_COOKIE)?.value)) {
+    return (
+      <section aria-label="Engagement models access" className="engagement-access-gate flex flex-1 items-center justify-center bg-background px-5 py-10 text-text-strong">
+        <EngagementAccessForm />
+      </section>
+    )
+  }
+
   const exampleSlugs = new Set<string>(
     engagements.flatMap((engagement) => engagement.examples.map((example) => example.slug)),
   )
@@ -114,17 +132,52 @@ export default async function EngagementModelsPage() {
     <div className="engagement-models-page bg-background text-text-strong">
       <section
         id="engagements"
-        className="scroll-mt-6 px-5 py-20 tablet:px-10 tablet:py-28"
+        className="flex min-h-[calc(100vh-94px)] flex-col scroll-mt-6 px-5 py-20 tablet:min-h-[calc(100vh-114px)] tablet:px-10 tablet:py-28"
       >
-        <div className="mx-auto max-w-[1600px]">
-          <div className="grid gap-y-6 tablet:grid-cols-12 tablet:gap-x-14 tablet:gap-y-8 desktop:gap-x-6">
-            <h1 className="text-balance tablet:col-span-10 tablet:col-start-3">
+        <div className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-12 tablet:gap-14">
+          <div className="flex flex-col gap-6 tablet:gap-8">
+            <h1 className="text-balance">
               Ways of Working
             </h1>
-            <p className="max-w-xl text-pretty text-body-large tablet:col-span-8 tablet:col-start-3 desktop:col-span-5 desktop:col-start-3">
+            <p className="max-w-xl text-pretty text-body-large">
               Two engagement models, each shaped for a different kind of 0–1 challenge. The details
               below outline how each engagement is structured.
             </p>
+          </div>
+          <div className="mt-auto">
+            <div className="grid gap-6 tablet:grid-cols-2 tablet:gap-8 desktop:gap-10">
+              {engagements.map((engagement) => (
+                <a
+                  key={engagement.slug}
+                  href={`#${engagement.slug}`}
+                  aria-labelledby={`${engagement.slug}-summary`}
+                  className="group flex flex-col gap-6 rounded-[20px] bg-background-alt p-6 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-text-strong tablet:p-8"
+                >
+                  <div className="flex items-center justify-between gap-4 text-caption text-text-muted">
+                    <span className="tabular-nums">{engagement.number}</span>
+                    <span className="inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-border-strong px-3 py-1.5 tabular-nums">
+                      <span aria-hidden="true" className="size-2 rounded-full bg-green-500" />
+                      {engagement.availability}
+                    </span>
+                  </div>
+                  <div className="flex flex-1 flex-col gap-3">
+                    <h2 id={`${engagement.slug}-summary`} className="text-balance text-h4 desktop:text-h3">
+                      {engagement.name}
+                    </h2>
+                    <p className="min-h-[3lh] text-balance text-body text-text-muted">{engagement.summary}</p>
+                  </div>
+                  <div className="flex flex-wrap items-end justify-between gap-4 border-t border-border pt-6">
+                    <p className="flex items-baseline gap-1 tabular-nums">
+                      <span className="text-h4">{engagement.price}</span>
+                      <span className="text-body text-text-muted">{engagement.cadence}</span>
+                    </p>
+                    <span className="inline-flex items-center gap-2 text-body group-hover:underline group-focus-visible:underline">
+                      View details <ArrowDown className="size-4" aria-hidden="true" />
+                    </span>
+                  </div>
+                </a>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -143,7 +196,7 @@ export default async function EngagementModelsPage() {
 
             <div className="px-5 pb-20 pt-8 tablet:px-10 tablet:pb-28 tablet:pt-12">
               <div className="mx-auto grid max-w-[1600px] gap-14 tablet:grid-cols-12 desktop:gap-x-6 desktop:gap-y-16">
-                <p className="text-pretty text-body-large tablet:col-span-8 tablet:col-start-3 desktop:col-span-4 desktop:col-start-3">
+                <p className="text-body-large tablet:col-span-8 tablet:col-start-3 desktop:col-span-4 desktop:col-start-3">
                   {engagement.description}
                 </p>
 
