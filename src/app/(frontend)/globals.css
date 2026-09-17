@@ -729,13 +729,18 @@ p {
 
 body:has(.engagement-access-gate) {
   display: flex;
-  min-height: 100vh;
+  min-height: 100dvh;
   flex-direction: column;
+}
+
+body:has(.engagement-access-gate) > :is(header, footer) {
+  flex-shrink: 0;
 }
 
 .page-transition:has(.engagement-access-gate) {
   display: flex;
-  flex: 1;
+  flex: 1 0 auto;
+  flex-direction: column;
   animation: none;
 }
 
