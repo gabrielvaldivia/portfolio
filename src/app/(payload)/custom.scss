@@ -5044,12 +5044,14 @@ body:has(.collection-edit--notes) .app-header__step-nav > a:not(.step-nav__home)
   white-space: pre-wrap;
 }
 
+.collection-edit--notes .field-type.textarea.notes-editor-title textarea,
 .collection-edit--notes textarea#field-title,
 .collection-edit--notes textarea#field-title:hover,
 .collection-edit--notes textarea#field-title:focus,
 .collection-edit--notes textarea#field-title:focus-visible,
 .collection-edit--notes textarea#field-title:active {
-  padding: 0 !important;
+  /* Keep descenders inside the textarea's hidden overflow at the tight title leading. */
+  padding: 0 0 0.1em !important;
   border: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
