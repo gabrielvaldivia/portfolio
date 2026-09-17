@@ -5124,7 +5124,8 @@ body:has(.collection-edit--notes) .toolbar-popup__dropdown-items .toolbar-popup_
 
 body:has(.collection-edit--notes) .toolbar-popup__dropdown-items .toolbar-popup__dropdown-item .btn__content {
   width: 100%;
-  justify-content: flex-start;
+  // Payload uses row-reverse to place the icon before the label.
+  justify-content: flex-end;
   text-align: left;
 }
 
