@@ -110,6 +110,10 @@ html[data-theme='dark'] .collection-edit--notes {
     text-wrap: balance;
   }
 
+  :is(h2, h3, h4) {
+    font-weight: 500;
+  }
+
   h1 {
     padding-block: calc(var(--note-h3-space-before) * 1.5) calc(var(--note-h3-space-after) * 1.5);
     font-size: var(--note-h1-size);

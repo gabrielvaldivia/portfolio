@@ -69,7 +69,7 @@
       check(heading, 'fontSize', `${size}px`, `h${index + 1} size`);
       const lineHeight = size * (index === 0 ? 1.1 : index === 5 ? 1.2 : 1.3);
       check(heading, 'lineHeight', `${Number(lineHeight.toFixed(3))}px`, `h${index + 1} line height`);
-      check(heading, 'fontWeight', index === 4 ? '500' : '400', `h${index + 1} weight`);
+      check(heading, 'fontWeight', index >= 1 && index <= 4 ? '500' : '400', `h${index + 1} weight`);
       check(heading, 'color', contentColor, `h${index + 1} color`);
       check(heading, 'marginBottom', '0px', `h${index + 1} margin`);
       check(heading, 'paddingTop', `${headingPadding[index][0]}px`, `h${index + 1} top spacing`);
