@@ -71,7 +71,7 @@ html[data-theme='dark'] .collection-edit--notes {
   letter-spacing: -0.04em;
   color: var(--note-content) !important;
   text-align: center;
-  text-wrap: balance;
+  text-wrap: wrap;
 }
 
 :is(.note-page .rich-text, .collection-edit--notes .notes-editor-body .ContentEditable__root),

@@ -28,6 +28,7 @@ import { NoteLinkedImagesFeatureClient as NoteLinkedImagesFeatureClient_5452c6b9
 import { NoteHighlightModeration as NoteHighlightModeration_3b21a2595408a31658e0c31e4c884502 } from '../../../components/admin/NoteHighlightModeration'
 import { NotesListSortControl as NotesListSortControl_ad92151a2d9dda96388918ea9eee457f } from '../../../components/admin/NotesListSortControl'
 import { NotesEditMenu as NotesEditMenu_700407adcaec769c26df3a5ea9f889d5 } from '../../../components/admin/NotesEditMenu'
+import { NotesPreviewButton as NotesPreviewButton_b022fd236acda21bba3b8bf7dd74efb2 } from '../../../components/admin/NotesPreviewButton'
 import { NotesPublishButton as NotesPublishButton_700407adcaec769c26df3a5ea9f889d5 } from '../../../components/admin/NotesEditMenu'
 import { PhotosListUploadStatus as PhotosListUploadStatus_96d485995b7b3edb90cf326c4478039d } from '../../../components/admin/PhotosListActions'
 import { MediaSaveButton as MediaSaveButton_85a09aeff9bc9d675c907495712c757d } from '../../../components/admin/MediaSaveButton'
@@ -76,6 +77,7 @@ export const importMap = {
   "./components/admin/NoteHighlightModeration#NoteHighlightModeration": NoteHighlightModeration_3b21a2595408a31658e0c31e4c884502,
   "./components/admin/NotesListSortControl#NotesListSortControl": NotesListSortControl_ad92151a2d9dda96388918ea9eee457f,
   "./components/admin/NotesEditMenu#NotesEditMenu": NotesEditMenu_700407adcaec769c26df3a5ea9f889d5,
+  "./components/admin/NotesPreviewButton#NotesPreviewButton": NotesPreviewButton_b022fd236acda21bba3b8bf7dd74efb2,
   "./components/admin/NotesEditMenu#NotesPublishButton": NotesPublishButton_700407adcaec769c26df3a5ea9f889d5,
   "./components/admin/PhotosListActions#PhotosListUploadStatus": PhotosListUploadStatus_96d485995b7b3edb90cf326c4478039d,
   "./components/admin/MediaSaveButton#MediaSaveButton": MediaSaveButton_85a09aeff9bc9d675c907495712c757d,

@@ -2,6 +2,7 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import type { CollectionConfig } from 'payload'
 import { NoteLinkedImagesFeature } from '../components/admin/noteLinkedImages/feature.server'
 import { sendPublishedNoteNewsletter } from '../lib/noteNewsletter'
+import { generateNotePreviewURL } from '../lib/notePreview'
 
 function slugify(value: string) {
   return value
@@ -24,11 +25,13 @@ export const Notes: CollectionConfig = {
     group: 'Collections',
     useAsTitle: 'title',
     defaultColumns: ['title', '_status', 'publishedAt', 'updatedAt'],
+    preview: generateNotePreviewURL,
     components: {
       beforeListTable: ['./components/admin/NotesListSortControl#NotesListSortControl'],
       edit: {
         editMenuItems: ['./components/admin/NotesEditMenu#NotesEditMenu'],
         PublishButton: './components/admin/NotesEditMenu#NotesPublishButton',
+        PreviewButton: './components/admin/NotesPreviewButton#NotesPreviewButton',
       },
     },
   },

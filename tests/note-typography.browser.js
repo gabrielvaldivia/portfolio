@@ -54,6 +54,7 @@
     check(title, 'fontSize', `${titleSize}px`, 'title size');
     check(title, 'fontWeight', '400', 'title weight');
     check(title, 'textAlign', 'center', 'title centered');
+    check(title, 'textWrap', 'wrap', 'natural title wrapping');
     check(title, 'color', contentColor, 'title color');
     for (const selector of ['p', 'li', 'blockquote']) {
       const element = root.querySelector(selector);
