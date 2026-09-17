@@ -5,6 +5,7 @@ import {
   DashboardSidebarNavClient,
   type DashboardSidebarIconKey,
   type DashboardSidebarNavItem,
+  type DashboardSidebarNavSection,
 } from './DashboardSidebarNavClient'
 
 type CollectionNavItem = {
@@ -13,16 +14,19 @@ type CollectionNavItem = {
   slug: string
 }
 
-const contentCollections: CollectionNavItem[] = [
+const siteCollections: CollectionNavItem[] = [
   { icon: 'projects', label: 'Projects', slug: 'projects' },
   { icon: 'sideProjects', label: 'Playground', slug: 'side-projects' },
   { icon: 'notes', label: 'Notes', slug: 'notes' },
-  { icon: 'subscribers', label: 'Subscribers', slug: 'note-subscribers' },
-  { icon: 'clients', label: 'Clients', slug: 'clients' },
-  { icon: 'people', label: 'People', slug: 'people' },
-  { icon: 'services', label: 'Services', slug: 'services' },
-  { icon: 'conversations', label: 'Conversations', slug: 'conversations' },
   { icon: 'photos', label: 'Photos', slug: 'photos' },
+]
+
+const operationsCollections: CollectionNavItem[] = [
+  { icon: 'clients', label: 'Clients', slug: 'clients' },
+  { icon: 'services', label: 'Services', slug: 'services' },
+  { icon: 'people', label: 'People', slug: 'people' },
+  { icon: 'subscribers', label: 'Subscribers', slug: 'note-subscribers' },
+  { icon: 'conversations', label: 'Conversations', slug: 'conversations' },
   { icon: 'media', label: 'Media', slug: 'media' },
 ]
 
@@ -49,7 +53,7 @@ function collectionItem(adminRoute: string, item: CollectionNavItem): DashboardS
 export function DashboardSidebarNav({ payload, permissions }: ServerProps) {
   const adminRoute = payload.config.routes.admin
 
-  const items: DashboardSidebarNavItem[] = [
+  const recentItems: DashboardSidebarNavItem[] = [
     {
       href: formatAdminURL({
         adminRoute,
@@ -62,20 +66,22 @@ export function DashboardSidebarNav({ payload, permissions }: ServerProps) {
     },
   ]
 
+  const siteItems: DashboardSidebarNavItem[] = []
+
   if (canReadCollection(permissions, 'pages')) {
-    items.push({
+    siteItems.push({
       href: formatAdminURL({
         adminRoute,
         path: '/collections/pages',
       }),
       icon: 'pages',
       id: 'nav',
-      label: 'Nav',
+      label: 'Navigation',
     })
   }
 
   if (canReadGlobal(permissions, 'timeline')) {
-    items.push({
+    siteItems.push({
       href: formatAdminURL({
         adminRoute,
         path: '/globals/timeline',
@@ -86,11 +92,18 @@ export function DashboardSidebarNav({ payload, permissions }: ServerProps) {
     })
   }
 
-  const collectionChildren = contentCollections
-    .filter((item) => canReadCollection(permissions, item.slug))
-    .map((item) => collectionItem(adminRoute, item))
+  const readableItems = (collections: CollectionNavItem[]) =>
+    collections
+      .filter((item) => canReadCollection(permissions, item.slug))
+      .map((item) => collectionItem(adminRoute, item))
 
-  items.push(...collectionChildren)
+  siteItems.push(...readableItems(siteCollections))
 
-  return <DashboardSidebarNavClient items={items} />
+  const sections: DashboardSidebarNavSection[] = [
+    { id: 'recent', items: recentItems },
+    { id: 'site', label: 'Site', items: siteItems },
+    { id: 'operations', label: 'Operations', items: readableItems(operationsCollections) },
+  ]
+
+  return <DashboardSidebarNavClient sections={sections.filter((section) => section.items.length > 0)} />
 }

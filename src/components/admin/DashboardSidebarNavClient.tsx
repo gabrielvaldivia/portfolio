@@ -56,8 +56,14 @@ export type DashboardSidebarNavItem = {
   match?: 'exact' | 'section'
 }
 
-type DashboardSidebarNavClientProps = {
+export type DashboardSidebarNavSection = {
+  id: string
+  label?: string
   items: DashboardSidebarNavItem[]
+}
+
+type DashboardSidebarNavClientProps = {
+  sections: DashboardSidebarNavSection[]
 }
 
 const icons: Record<DashboardSidebarIconKey, IconSvgElement> = {
@@ -155,7 +161,7 @@ function SidebarRow({
   )
 }
 
-export function DashboardSidebarNavClient({ items }: DashboardSidebarNavClientProps) {
+export function DashboardSidebarNavClient({ sections }: DashboardSidebarNavClientProps) {
   const pathname = usePathname()
   const { navOpen, navRef, setNavOpen } = useNav()
   const [overlayRoot, setOverlayRoot] = useState<HTMLElement | null>(null)
@@ -258,58 +264,71 @@ export function DashboardSidebarNavClient({ items }: DashboardSidebarNavClientPr
         : null}
       <nav className="custom-sidebar-nav" aria-label="CMS navigation">
         <h2 className="custom-sidebar-nav__title">Admin</h2>
-        {items.map((item) => {
-          const children = item.children ?? []
-          const hasChildren = children.length > 0
-          const parentCurrent = isHrefActive(pathname, item.href, item.match)
-          const parentActive = isItemActive(pathname, item) && !hasChildren
-          const groupContent = (
-            <>
-              <SidebarRow
-                active={parentActive}
-                current={parentCurrent}
-                hasChildren={hasChildren}
-                item={item}
-                level="parent"
-              />
-              {hasChildren ? (
-                <div className="custom-sidebar-nav__children" id={`custom-sidebar-nav-children-${item.id}`}>
-                  {children.map((child) => {
-                    const childCurrent = isHrefActive(pathname, child.href, child.match)
+        {sections.map((section) => (
+          <section
+            aria-labelledby={section.label ? `custom-sidebar-nav-section-${section.id}` : undefined}
+            className="custom-sidebar-nav__section"
+            key={section.id}
+          >
+            {section.label ? (
+              <h3 className="custom-sidebar-nav__section-title" id={`custom-sidebar-nav-section-${section.id}`}>
+                {section.label}
+              </h3>
+            ) : null}
+            {section.items.map((item) => {
+              const children = item.children ?? []
+              const hasChildren = children.length > 0
+              const parentCurrent = isHrefActive(pathname, item.href, item.match)
+              const parentActive = isItemActive(pathname, item) && !hasChildren
+              const groupContent = (
+                <>
+                  <SidebarRow
+                    active={parentActive}
+                    current={parentCurrent}
+                    hasChildren={hasChildren}
+                    item={item}
+                    level="parent"
+                  />
+                  {hasChildren ? (
+                    <div className="custom-sidebar-nav__children" id={`custom-sidebar-nav-children-${item.id}`}>
+                      {children.map((child) => {
+                        const childCurrent = isHrefActive(pathname, child.href, child.match)
 
-                    return (
-                      <SidebarRow
-                        active={isItemActive(pathname, child)}
-                        current={childCurrent}
-                        item={child}
-                        key={child.id}
-                        level="child"
-                      />
-                    )
-                  })}
-                </div>
-              ) : null}
-            </>
-          )
+                        return (
+                          <SidebarRow
+                            active={isItemActive(pathname, child)}
+                            current={childCurrent}
+                            item={child}
+                            key={child.id}
+                            level="child"
+                          />
+                        )
+                      })}
+                    </div>
+                  ) : null}
+                </>
+              )
 
-          if (hasChildren) {
-            return (
-              <details
-                className="custom-sidebar-nav__group custom-sidebar-nav__group--collapsible"
-                key={item.id}
-                open
-              >
-                {groupContent}
-              </details>
-            )
-          }
+              if (hasChildren) {
+                return (
+                  <details
+                    className="custom-sidebar-nav__group custom-sidebar-nav__group--collapsible"
+                    key={item.id}
+                    open
+                  >
+                    {groupContent}
+                  </details>
+                )
+              }
 
-          return (
-            <section className="custom-sidebar-nav__group" key={item.id}>
-              {groupContent}
-            </section>
-          )
-        })}
+              return (
+                <section className="custom-sidebar-nav__group" key={item.id}>
+                  {groupContent}
+                </section>
+              )
+            })}
+          </section>
+        ))}
       </nav>
     </>
   )

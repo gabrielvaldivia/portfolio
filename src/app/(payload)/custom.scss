@@ -4078,6 +4078,25 @@ body:has(.drawer--is-open) :is(.template-default__nav-toggler-container, .app-he
   display: none;
 }
 
+.nav .custom-sidebar-nav__section {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.nav .custom-sidebar-nav__section + .custom-sidebar-nav__section {
+  margin-top: 16px;
+}
+
+.nav .custom-sidebar-nav__section-title {
+  margin: 0 8px 6px;
+  color: var(--cms-text-tertiary);
+  font-size: var(--cms-control-small-font-size) !important;
+  font-weight: 500;
+  line-height: var(--cms-control-small-line-height) !important;
+  text-wrap: balance;
+}
+
 .nav .custom-sidebar-nav__group {
   display: grid;
   width: 100%;
