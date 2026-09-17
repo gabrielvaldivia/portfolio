@@ -1,0 +1,99 @@
+'use client'
+
+import { useId, useState, type FormEvent } from 'react'
+
+export function NotesSubscribeForm() {
+  const id = useId()
+  const [status, setStatus] = useState<'idle' | 'submitting' | 'sent'>('idle')
+  const [error, setError] = useState('')
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (status === 'submitting') return
+
+    const form = event.currentTarget
+    const fields = new FormData(form)
+    setStatus('submitting')
+    setError('')
+
+    try {
+      const response = await fetch('/api/notes/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: String(fields.get('email') || '').trim(),
+          website: fields.get('website'),
+        }),
+      })
+      const result = await response.json() as { ok?: boolean; error?: string }
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error || 'Could not subscribe. Please try again.')
+      }
+
+      form.reset()
+      setStatus('sent')
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : 'Could not subscribe. Please try again.')
+      setStatus('idle')
+    }
+  }
+
+  return (
+    <section
+      id="email-updates"
+      aria-labelledby={`${id}-heading`}
+      className="mx-auto mt-16 grid max-w-[760px] gap-6 rounded-lg border border-border bg-elevated p-6 tablet:grid-cols-2 tablet:gap-8 tablet:p-8"
+    >
+      <h2 id={`${id}-heading`} className="text-balance text-body font-normal text-text-strong">
+        Get new notes by email
+      </h2>
+
+      <div className="min-w-0">
+        <p id={`${id}-description`} className="text-pretty text-caption text-text-muted">
+          I write about design, technology, and the things I’m figuring out along the way.
+        </p>
+
+        <form
+          aria-label="Sign up for email updates"
+          aria-describedby={`${id}-description`}
+          aria-busy={status === 'submitting'}
+          className="mt-5"
+          onSubmit={handleSubmit}
+        >
+          <div className="flex items-start gap-3">
+            <label className="min-w-0 flex-1">
+              <span className="sr-only">Email address</span>
+              <input
+                name="email"
+                type="email"
+                required
+                maxLength={254}
+                autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
+                placeholder="Enter your email"
+                aria-describedby={error ? `${id}-error` : undefined}
+                disabled={status === 'submitting'}
+                onChange={() => {
+                  setError('')
+                  if (status === 'sent') setStatus('idle')
+                }}
+                className="min-h-11 w-full rounded-lg border border-border bg-background-alt px-3 py-2.5 text-base text-text-strong placeholder:text-text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content disabled:opacity-50 tablet:text-caption"
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={status === 'submitting'}
+              className="min-h-11 shrink-0 cursor-pointer rounded-full bg-content px-5 py-2.5 text-caption font-medium text-background hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content disabled:cursor-default disabled:opacity-50"
+            >
+              {status === 'submitting' ? 'Signing up…' : 'Sign up'}
+            </button>
+          </div>
+          <input name="website" type="text" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
+          {error ? <p id={`${id}-error`} role="alert" className="mt-3 text-pretty text-caption text-text-error">{error}</p> : null}
+          {status === 'sent' ? <p role="status" className="mt-3 text-pretty text-caption text-text-muted">Check your inbox to confirm your subscription.</p> : null}
+        </form>
+      </div>
+    </section>
+  )
+}

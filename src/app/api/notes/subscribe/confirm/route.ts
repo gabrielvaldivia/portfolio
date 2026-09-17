@@ -1,5 +1,6 @@
 import { getPayload, isPayloadUnavailable } from '@/lib/payload'
 import { getSiteURL, verifySubscriptionToken } from '@/lib/noteSubscriptions'
+import { confirmNoteSubscription } from '@/lib/noteSubscriptionConfirmation'
 import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
@@ -17,30 +18,7 @@ export async function GET(request: Request) {
     const payload = await getPayload()
     if (isPayloadUnavailable(payload)) throw new Error('Payload is unavailable')
 
-    const result = await payload.find({
-      collection: 'note-subscribers',
-      depth: 0,
-      limit: 1,
-      overrideAccess: true,
-      where: { email: { equals: verified.email } },
-    })
-    const now = new Date().toISOString()
-    const subscriber = result.docs[0]
-
-    if (subscriber) {
-      await payload.update({
-        collection: 'note-subscribers',
-        id: subscriber.id,
-        data: { confirmedAt: subscriber.confirmedAt || now, status: 'subscribed', unsubscribedAt: null },
-        overrideAccess: true,
-      })
-    } else {
-      await payload.create({
-        collection: 'note-subscribers',
-        data: { confirmedAt: now, email: verified.email, source: 'confirmation-link', status: 'subscribed' },
-        overrideAccess: true,
-      })
-    }
+    await confirmNoteSubscription(payload, verified.email)
 
     return redirect('confirmed')
   } catch (error) {

@@ -38,32 +38,19 @@
     assert(getComputedStyle(body).color, expected.body, 'note body uses body token');
     const title = document.querySelector('.note-page-title');
     assert(getComputedStyle(title).color, expected.strong, 'note title uses strong token');
-    const recommendationsHeading = document.querySelector('#continue-reading-heading');
-    assert(getComputedStyle(recommendationsHeading).color, expected.strong, 'continue reading uses strong token');
-    assert(getComputedStyle(recommendationsHeading).textWrapStyle, 'auto', 'continue reading wraps naturally');
-    const recommendations = recommendationsHeading.parentElement;
-    const recommendationList = recommendations.querySelector('ul');
-    if (innerWidth >= 1280) {
-      assert(getComputedStyle(recommendations).display, 'grid', 'desktop recommendations use columns');
-      assert(recommendationList.getBoundingClientRect().left > recommendationsHeading.getBoundingClientRect().left, true, 'desktop links in right column');
-      assert(Math.abs(recommendationList.getBoundingClientRect().top - recommendationsHeading.getBoundingClientRect().top) < 1, true, 'desktop columns top-aligned');
-    } else {
-      assert(recommendationList.getBoundingClientRect().top >= recommendationsHeading.getBoundingClientRect().bottom, true, 'recommendations stack below title');
-    }
-    for (const link of document.querySelectorAll('.note-recommendation-title a')) {
-      assert(getComputedStyle(link).color, expected.strong, 'recommended titles stay strong');
-      assert(Boolean(link.querySelector('svg')), true, 'recommendation has a hover chevron');
-      if (innerWidth >= 810) {
-        const titleRange = document.createRange();
-        titleRange.selectNodeContents(link.querySelector('span'));
-        const lastLine = Array.from(titleRange.getClientRects()).at(-1);
-        const chevron = link.querySelector('svg').getBoundingClientRect();
-        assert(chevron.left >= lastLine.right && chevron.top < lastLine.bottom && chevron.bottom > lastLine.top, true, 'chevron follows the last title line');
-      }
-      for (const element of [link.parentElement, link, link.querySelector('span')]) {
-        assert(getComputedStyle(element).textWrapStyle, 'auto', 'recommendation title has no balanced or pretty wrapping');
-        assert(getComputedStyle(element).whiteSpace, 'normal', 'recommendation title uses normal whitespace');
-      }
+    const navigation = document.querySelector('nav[aria-label="Note navigation"]');
+    if (!navigation) throw new Error('Note navigation not rendered');
+    const navigationBox = navigation.getBoundingClientRect();
+    const back = navigation.querySelector('a[href="/notes"]');
+    assert(back.getBoundingClientRect().left, navigationBox.left, 'back link sits on the left');
+    const next = navigation.querySelector('a[rel="next"]');
+    if (next) assert(next.getBoundingClientRect().right, navigationBox.right, 'next note sits on the right');
+    for (const link of navigation.querySelectorAll('a')) {
+      assert(getComputedStyle(link).color, expected.muted, 'note navigation uses muted token');
+      const box = link.getBoundingClientRect();
+      const arrow = link.querySelector('svg').getBoundingClientRect();
+      assert(Math.abs(arrow.top + arrow.height / 2 - box.top - box.height / 2) < 1, true, 'navigation arrow is vertically centered');
+      assert(arrow.width > 0, true, 'navigation arrow is visible on every screen size');
     }
     const counts = document.querySelectorAll('[data-note-actions] button .font-mono');
     assert(counts.length, 3, 'all three pill counts rendered');
