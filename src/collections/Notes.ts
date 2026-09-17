@@ -45,7 +45,9 @@ export const Notes: CollectionConfig = {
         if (!data) return data
 
         if (!data.slug) {
-          data.slug = slugify(data.title || originalDoc?.title || '')
+          // Autosave creates untitled drafts before the editor opens. Unlike an
+          // empty string, null can repeat safely in the unique slug index.
+          data.slug = slugify(data.title || originalDoc?.title || '') || null
         }
 
         return data
