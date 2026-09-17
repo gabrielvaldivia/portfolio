@@ -16,7 +16,7 @@ export function NotePreviewToolbar({ expiresAt }: { expiresAt: string }) {
   }
 
   return (
-    <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-4 px-5 py-5 text-caption tablet:px-10">
+    <header className="flex w-full flex-wrap items-center justify-between gap-4 border-b border-border px-5 py-5 text-caption tablet:px-10">
       <div>
         <p className="font-medium">Preview</p>
         <p className="mt-1 text-text-muted">Anyone with this link can view the latest saved version. Expires {expiresAt}.</p>
@@ -34,6 +34,6 @@ export function NotePreviewToolbar({ expiresAt }: { expiresAt: string }) {
           {copyState === 'failed' ? 'Copy the link from your address bar.' : copyState === 'copied' ? <span className="sr-only">Preview link copied.</span> : null}
         </p>
       </div>
-    </div>
+    </header>
   )
 }
