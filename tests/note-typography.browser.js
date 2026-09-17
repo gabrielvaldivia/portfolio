@@ -78,7 +78,7 @@
     }
     check(root.querySelector('strong'), 'fontWeight', '600', 'bold weight');
     check(root.querySelector('a'), 'color', contentColor, 'link color');
-    check(root.querySelector('a'), 'textDecorationLine', 'none', 'link decoration');
+    check(root.querySelector('a'), 'textDecorationLine', admin ? 'underline' : 'none', 'link decoration');
     check(root.querySelector('a'), 'borderBottomWidth', '0px', 'no dotted link border');
     check(root.querySelector('blockquote'), 'borderLeftWidth', '2px', 'quote rule');
     check(root.querySelector('blockquote'), 'paddingLeft', '24px', 'quote indent');
