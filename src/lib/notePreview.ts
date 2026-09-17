@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import type { Payload, PayloadRequest } from 'payload'
+import type { NoteArticleData } from '../components/NoteArticle'
 import { getPayloadSecret } from './payloadSecret'
 
 const PREVIEW_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000
@@ -68,5 +69,7 @@ export async function getNotePreview(
     select: { title: true, body: true, coverImage: true, createdAt: true, publishedAt: true },
   })
 
-  return note ? { note, expiresAt: access.expiresAt } : null
+  // Generated Payload types are local-only; declare the selected CMS fields at
+  // this boundary so clean deployments use the same article contract.
+  return note ? { note: note as unknown as NoteArticleData, expiresAt: access.expiresAt } : null
 }

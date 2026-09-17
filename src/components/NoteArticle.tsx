@@ -3,7 +3,7 @@ import { Container } from './Container'
 import { PayloadImage } from './PayloadImage'
 import { RichText } from './RichText'
 
-type NoteArticleData = {
+export type NoteArticleData = {
   title?: string | null
   body?: unknown
   createdAt?: string | null
