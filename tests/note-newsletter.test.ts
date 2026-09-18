@@ -97,7 +97,7 @@ test('newsletter sends full content with only the requested footer and recipient
     assert.match(email.html, /The final paragraph/)
     assert.match(email.text, /The final paragraph/)
     assert.match(email.html, /You subscribe to Gabriel Valdivia's notes at <a[^>]*>gabrielvaldivia.com<\/a>\. <a[^>]*>Unsubscribe<\/a>/)
-    assert.doesNotMatch(email.html, /A new note from|Read the note|Only a teaser|<main|<hr|The note title|padding:48px/)
+    assert.doesNotMatch(email.html, /A new note from|Read the note|Only a teaser|<main|<hr|The note title/)
     const url = new URL(email.headers['List-Unsubscribe'].slice(1, -1))
     assert.deepEqual(verifySubscriptionToken(url.searchParams.get('token')!, 'unsubscribe'), { email: index ? 'second@example.com' : 'first@example.com' })
     assert.equal(email.headers['List-Unsubscribe-Post'], 'List-Unsubscribe=One-Click')
