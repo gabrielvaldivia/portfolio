@@ -818,17 +818,19 @@ body:has(.engagement-access-gate) > :is(header, footer) {
 
 .rich-text a {
   color: var(--color-text-strong);
-  font-weight: 600;
-  text-decoration: none;
 }
 
+.rich-text a,
 p a {
-  font-weight: 600;
+  font-weight: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--color-text-subtle);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
 
 .rich-text a:is(:hover, :focus-visible) {
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  text-decoration-color: currentColor;
 }
 
 .rich-text strong, .rich-text b {

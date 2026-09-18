@@ -22,18 +22,21 @@
   --note-content: var(--color-text-strong);
   --note-body-color: var(--color-text-body);
   --note-border: var(--color-border-strong);
+  --note-link-underline: var(--color-text-subtle);
 }
 
 .collection-edit--notes {
   --note-content: #000;
   --note-body-color: rgb(0 0 0 / 0.9);
   --note-border: rgb(0 0 0 / 0.2);
+  --note-link-underline: rgb(0 0 0 / 0.4);
 }
 
 html[data-theme='dark'] .collection-edit--notes {
   --note-content: #fff;
   --note-body-color: rgb(255 255 255 / 0.8);
   --note-border: rgb(255 255 255 / 0.2);
+  --note-link-underline: rgb(255 255 255 / 0.4);
 }
 
 @media (min-width: 810px) {
@@ -159,13 +162,16 @@ html[data-theme='dark'] .collection-edit--notes {
 
   a:not(.notes-editor-linked-image) {
     color: var(--note-content);
+    font-weight: inherit;
     border-bottom: 0;
-    text-decoration: none;
+    text-decoration: underline;
+    text-decoration-color: var(--note-link-underline);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
   }
 
   a:not(.notes-editor-linked-image):is(:hover, :focus-visible) {
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    text-decoration-color: currentColor;
   }
 
   blockquote {
