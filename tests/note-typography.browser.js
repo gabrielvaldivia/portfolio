@@ -79,8 +79,9 @@
     check(root.querySelector('strong'), 'fontWeight', '600', 'bold weight');
     check(root.querySelector('a'), 'color', contentColor, 'link color');
     check(root.querySelector('a'), 'fontWeight', '400', 'link inherits text weight');
-    check(root.querySelector('a'), 'textDecorationLine', 'underline', 'link decoration');
-    check(root.querySelector('a'), 'textDecorationColor', dark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)', 'subtle link underline');
+    check(root.querySelector('a'), 'textDecorationLine', 'none', 'no duplicate native underline');
+    const underlineColor = dark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.25)';
+    check(root.querySelector('a'), 'backgroundImage', `linear-gradient(${underlineColor}, ${underlineColor})`, 'subtle link underline');
     check(root.querySelector('a'), 'borderBottomWidth', '0px', 'no dotted link border');
     check(root.querySelector('blockquote'), 'borderLeftWidth', '2px', 'quote rule');
     check(root.querySelector('blockquote'), 'paddingLeft', '24px', 'quote indent');
