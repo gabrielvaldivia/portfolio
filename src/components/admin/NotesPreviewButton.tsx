@@ -15,13 +15,14 @@ import { useRef, useState } from 'react'
 
 export function NotesPreviewButton() {
   const { config: { routes: { api } } } = useConfig()
-  const { id, setUnpublishedVersionCount, uploadStatus } = useDocumentInfo()
+  const { id, data, hasPublishPermission, setUnpublishedVersionCount, uploadStatus } = useDocumentInfo()
   const { submit } = useForm()
   const modified = useFormModified()
   const { code: locale } = useLocale()
   const { previewURL } = useLivePreviewContext()
   const [opening, setOpening] = useState(false)
   const inFlight = useRef(false)
+  const schedule = typeof data?.scheduledFor === 'string' ? data.scheduledFor : null
 
   async function openPreview() {
     if (!id || !previewURL || inFlight.current || uploadStatus === 'uploading') return
@@ -66,15 +67,22 @@ export function NotesPreviewButton() {
   }
 
   return (
-    <FormSubmit
-      buttonId="action-preview"
-      buttonStyle="secondary"
-      disabled={!id || !previewURL || opening || uploadStatus === 'uploading'}
-      onClick={() => { void openPreview() }}
-      size="medium"
-      type="button"
-    >
-      {opening ? 'Opening…' : 'Preview'}
-    </FormSubmit>
+    <div className="notes-preview-controls">
+      {hasPublishPermission && schedule && <span className="notes-schedule-status" role="status">
+        Scheduled for {new Date(schedule).toLocaleString(undefined, {
+          month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+        })}
+      </span>}
+      <FormSubmit
+        buttonId="action-preview"
+        buttonStyle="secondary"
+        disabled={!id || !previewURL || opening || uploadStatus === 'uploading'}
+        onClick={() => { void openPreview() }}
+        size="medium"
+        type="button"
+      >
+        {opening ? 'Opening…' : 'Preview'}
+      </FormSubmit>
+    </div>
   )
 }

@@ -34,17 +34,12 @@ export function NotesPublishButton() {
     toast.success(published ? 'Note published' : 'Note scheduled')
   }
 
-  return <div className="notes-publish-controls">
-    {schedule && <span className="notes-schedule-status" role="status">
-      Scheduled for {new Date(schedule).toLocaleString(undefined, {
-        month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
-      })}
-    </span>}
+  return (
     <FormSubmit buttonId="action-save" type="button" size="medium"
       disabled={uploadStatus === 'uploading'} onClick={publish}>
       {future ? (schedule ? 'Update schedule' : 'Schedule') : 'Publish'}
     </FormSubmit>
-  </div>
+  )
 }
 
 function getActiveView(): NoteEditorView {

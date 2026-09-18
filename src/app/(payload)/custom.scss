@@ -5263,7 +5263,7 @@ body:has(.collection-edit--notes) .popup__content:has(#notes-edit-menu-writing) 
   }
 }
 
-.notes-publish-controls {
+.notes-preview-controls {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -5274,6 +5274,6 @@ body:has(.collection-edit--notes) .popup__content:has(#notes-edit-menu-writing) 
   line-height: 1.4;
 }
 @media (max-width: 809px) {
-  .notes-publish-controls { gap: 8px; }
+  .notes-preview-controls { gap: 8px; }
   .notes-schedule-status { max-width: 150px; font-size: 11px; }
 }
