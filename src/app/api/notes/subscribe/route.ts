@@ -22,13 +22,40 @@ function clean(value: unknown) {
 
 function confirmationEmail(email: string, confirmationURL: string) {
   const from = process.env.NOTES_EMAIL_FROM || 'Gabriel Valdivia <notes@gabrielvaldivia.com>'
+  const subject = "Confirm your subscription to Gabriel Valdivia's notes"
+  const description = 'Click below to receive an email whenever Gabe publishes a new note.'
 
   return {
     from,
-    html: `<!doctype html><html><body style="margin:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif"><main style="max-width:600px;margin:0 auto;padding:48px 24px"><h1 style="margin:0 0 20px;font-size:32px;line-height:1.15;font-weight:500">Confirm your Notes subscription</h1><p style="margin:0 0 28px;color:#555;font-size:18px;line-height:1.55">Click below to receive an email whenever Gabriel publishes a new note.</p><a href="${confirmationURL}" style="display:inline-block;color:#fff;background:#111;border-radius:8px;padding:12px 18px;font-size:16px;font-weight:600;text-decoration:none">Confirm subscription</a><p style="margin:36px 0 0;color:#888;font-size:13px;line-height:1.5">If you didn’t request this, you can ignore this email.</p></main></body></html>`,
+    html: `<!doctype html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="supported-color-schemes" content="light dark">
+    <style>
+      :root { color-scheme: light dark; supported-color-schemes: light dark; }
+      @media (prefers-color-scheme: dark) {
+        .email-body { background-color: #1f1f1f !important; color: #f5f5f5 !important; }
+        .email-description { color: #ddd !important; }
+        .email-footer { color: #aaa !important; }
+        .confirmation-button { background-color: #f5f5f5 !important; color: #111 !important; }
+        .confirmation-button span { color: #111 !important; -webkit-text-fill-color: #111 !important; }
+      }
+    </style>
+  </head>
+  <body class="email-body" style="margin:0;background-color:#fff;color:#111;font-family:Arial,Helvetica,sans-serif">
+    <main style="max-width:600px;margin:0 auto;padding:48px 24px">
+      <h1 style="margin:0 0 20px;font-size:32px;line-height:1.15;font-weight:500">${subject}</h1>
+      <p class="email-description" style="margin:0 0 28px;color:#555;font-size:18px;line-height:1.55">${description}</p>
+      <a class="confirmation-button" href="${confirmationURL}" style="display:inline-block;color:#f5f5f5;background-color:#111;border-radius:8px;padding:12px 18px;font-size:16px;font-weight:600;text-decoration:none"><span style="color:#f5f5f5;-webkit-text-fill-color:#f5f5f5">Confirm subscription</span></a>
+      <p class="email-footer" style="margin:36px 0 0;color:#666;font-size:13px;line-height:1.5">If you didn’t request this, you can ignore this email.</p>
+    </main>
+  </body>
+</html>`,
     replyTo: process.env.NOTES_EMAIL_REPLY_TO || undefined,
-    subject: 'Confirm your Notes subscription',
-    text: `Confirm your Notes subscription\n\nUse this link to confirm that you want an email whenever Gabriel publishes a new note:\n${confirmationURL}\n\nIf you didn't request this, you can ignore this email.`,
+    subject,
+    text: `${subject}\n\n${description}\n${confirmationURL}\n\nIf you didn't request this, you can ignore this email.`,
     to: email,
   }
 }

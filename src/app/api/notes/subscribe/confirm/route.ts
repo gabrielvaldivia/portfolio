@@ -5,8 +5,11 @@ import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 
-function redirect(status: 'confirmed' | 'invalid') {
-  return NextResponse.redirect(`${getSiteURL()}/notes?subscription=${status}#email-updates`, 303)
+function redirect(status: 'confirmed' | 'invalid' | 'error') {
+  return NextResponse.redirect(`${getSiteURL()}/notes/subscription?status=${status}`, {
+    status: 303,
+    headers: { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' },
+  })
 }
 
 export async function GET(request: Request) {
@@ -23,6 +26,6 @@ export async function GET(request: Request) {
     return redirect('confirmed')
   } catch (error) {
     console.error('Notes confirmation failed:', error)
-    return redirect('invalid')
+    return redirect('error')
   }
 }

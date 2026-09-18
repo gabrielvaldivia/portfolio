@@ -57,7 +57,7 @@ export function NotesSubscribeForm() {
           aria-label="Sign up for email updates"
           aria-describedby={`${id}-description`}
           aria-busy={status === 'submitting'}
-          className="mt-5"
+          className="mt-5 grid gap-4"
           onSubmit={handleSubmit}
         >
           <div className="flex items-start gap-3">
@@ -90,8 +90,8 @@ export function NotesSubscribeForm() {
             </button>
           </div>
           <input name="website" type="text" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
-          {error ? <p id={`${id}-error`} role="alert" className="mt-3 text-pretty text-caption text-text-error">{error}</p> : null}
-          {status === 'sent' ? <p role="status" className="mt-3 text-pretty text-caption text-text-muted">Check your inbox to confirm your subscription.</p> : null}
+          {error ? <p id={`${id}-error`} role="alert" className="text-pretty text-caption text-text-error">{error}</p> : null}
+          {status === 'sent' ? <p role="status" className="text-pretty text-caption text-text-muted">Check your inbox to confirm your subscription.</p> : null}
         </form>
       </div>
     </section>
