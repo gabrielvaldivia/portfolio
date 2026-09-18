@@ -5156,8 +5156,12 @@ body:has(.collection-edit--notes) .popup__content:has(#notes-edit-menu-writing) 
   overflow: visible;
 }
 
+body:has(.collection-edit--notes) .popup__content:has(#notes-edit-menu-writing) .popup__caret {
+  display: none;
+}
+
 body:has(.collection-edit--notes) .popup-button-list:has(#notes-edit-menu-writing) > * {
-  order: 5;
+  order: 6;
 }
 
 body:has(.collection-edit--notes) .popup-button-list:has(#notes-edit-menu-writing) > .notes-edit-menu-editor-label {
