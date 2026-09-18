@@ -1,6 +1,7 @@
 import type { Payload, PayloadRequest } from 'payload'
 import { Resend } from 'resend'
-import { escapeHTML, getNoteExcerpt } from './noteContent'
+import { escapeHTML } from './noteContent'
+import { renderNoteEmailContent } from './noteEmailContent'
 import { createSubscriptionToken, getSiteURL } from './noteSubscriptions'
 
 const UNSUBSCRIBE_TTL_SECONDS = 60 * 60 * 24 * 365 * 10
@@ -35,12 +36,8 @@ function subscriptionLinks(email: string) {
   return { siteURL, unsubscribeURL }
 }
 
-function buildEmail(note: NewsletterNote, subscriber: NewsletterSubscriber) {
+function buildEmail(note: NewsletterNote, subscriber: NewsletterSubscriber, content: ReturnType<typeof renderNoteEmailContent>) {
   const { siteURL, unsubscribeURL } = subscriptionLinks(subscriber.email)
-  const noteURL = `${siteURL}/notes/${note.slug}`
-  const excerpt = getNoteExcerpt(note)
-  const title = escapeHTML(note.title)
-  const safeExcerpt = escapeHTML(excerpt)
 
   return {
     from: getSender(),
@@ -48,10 +45,10 @@ function buildEmail(note: NewsletterNote, subscriber: NewsletterSubscriber) {
       'List-Unsubscribe': `<${unsubscribeURL}>`,
       'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
     },
-    html: `<!doctype html><html><body style="margin:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif"><main style="max-width:640px;margin:0 auto;padding:48px 24px"><p style="margin:0 0 28px;color:#777;font-size:15px">A new note from Gabriel Valdivia</p><h1 style="margin:0 0 20px;font-size:36px;line-height:1.1;font-weight:500">${title}</h1>${safeExcerpt ? `<p style="margin:0 0 28px;color:#555;font-size:18px;line-height:1.55">${safeExcerpt}</p>` : ''}<a href="${noteURL}" style="color:#111;font-size:16px;font-weight:600;text-decoration:underline">Read the note →</a><hr style="margin:48px 0 20px;border:0;border-top:1px solid #e7e7e7"><p style="margin:0;color:#888;font-size:13px;line-height:1.5">You subscribed to Notes at gabrielvaldivia.com. <a href="${unsubscribeURL}" style="color:#666">Unsubscribe</a></p></main></body></html>`,
+    html: `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light dark"></head><body style="margin:0;padding:0;font-family:Inter,-apple-system,BlinkMacSystemFont,Arial,Helvetica,sans-serif;font-size:18px;line-height:1.65">${content.html}<p style="margin:24px 0 0;font-size:13px;line-height:1.5">You subscribe to Gabriel Valdivia's notes at <a href="${escapeHTML(siteURL)}" style="color:inherit">gabrielvaldivia.com</a>. <a href="${escapeHTML(unsubscribeURL)}" style="color:inherit">Unsubscribe</a></p></body></html>`,
     replyTo: getReplyTo(),
     subject: note.title,
-    text: `A new note from Gabriel Valdivia\n\n${note.title}\n\n${excerpt}${excerpt ? '\n\n' : ''}Read the note: ${noteURL}\n\nUnsubscribe: ${unsubscribeURL}`,
+    text: `${content.text}\n\nYou subscribe to Gabriel Valdivia's notes at gabrielvaldivia.com. Unsubscribe: ${unsubscribeURL}`,
     to: subscriber.email,
   }
 }
@@ -84,9 +81,14 @@ export async function sendPublishedNoteNewsletter(note: NewsletterNote, payload:
   if (subscribers.length === 0) return { recipientCount: 0 }
   if (!process.env.RESEND_API_KEY) throw new Error('RESEND_API_KEY is required to send Notes email')
 
+  // Populate inline uploads and internal links once, within the publication transaction.
+  const publishedNote = await payload.findByID({
+    collection: 'notes', id: note.id, depth: 2, draft: false, overrideAccess: true, req,
+  })
+  const content = renderNoteEmailContent(publishedNote.body, getSiteURL())
   const resend = new Resend(process.env.RESEND_API_KEY)
   for (let index = 0; index < subscribers.length; index += EMAIL_BATCH_SIZE) {
-    const batch = subscribers.slice(index, index + EMAIL_BATCH_SIZE).map((subscriber) => buildEmail(note, subscriber))
+    const batch = subscribers.slice(index, index + EMAIL_BATCH_SIZE).map((subscriber) => buildEmail(note, subscriber, content))
     const result = await resend.batch.send(batch, {
       headers: { 'Idempotency-Key': `note-${note.id}-${note.publishedAt || note.updatedAt}-${index / EMAIL_BATCH_SIZE}` },
     })
