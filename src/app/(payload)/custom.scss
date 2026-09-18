@@ -307,11 +307,17 @@ body:has(.template-default .app-header):not(:has(.collection-edit--notes))::befo
   position: fixed;
   top: calc(var(--cms-header-height) - 0.5px);
   right: 0;
-  left: var(--nav-width, var(--cms-nav-width));
+  left: 0;
   z-index: calc(var(--z-modal, 1000) + 20);
   height: 0.5px;
   background: var(--cms-border-secondary);
   pointer-events: none;
+}
+
+@media (min-width: 769px) {
+  body:has(.template-default--nav-open .app-header):not(:has(.collection-edit--notes))::before {
+    left: var(--nav-width, var(--cms-nav-width));
+  }
 }
 
 .app-header__bg {
@@ -883,7 +889,6 @@ body:has(.collections) .collections:not(.page-dashboard) .collections__group:has
   margin: 0;
   padding: 0;
   list-style: none;
-  border-top: 0.5px solid var(--cms-border-secondary);
 }
 
 .recent-dashboard__item {
