@@ -1,7 +1,7 @@
 import type { Payload, PayloadRequest } from 'payload'
 import { Resend } from 'resend'
 import { escapeHTML } from './noteContent'
-import { renderNoteEmailContent } from './noteEmailContent'
+import type { renderNoteEmailContent } from './noteEmailContent'
 import { createSubscriptionToken, getSiteURL } from './noteSubscriptions'
 
 const UNSUBSCRIBE_TTL_SECONDS = 60 * 60 * 24 * 365 * 10
@@ -81,6 +81,8 @@ export async function sendPublishedNoteNewsletter(note: NewsletterNote, payload:
   if (subscribers.length === 0) return { recipientCount: 0 }
   if (!process.env.RESEND_API_KEY) throw new Error('RESEND_API_KEY is required to send Notes email')
 
+  // Load converters after Payload has initialized its rich-text collection config.
+  const { renderNoteEmailContent } = await import('./noteEmailContent')
   // Populate inline uploads and internal links once, within the publication transaction.
   const publishedNote = await payload.findByID({
     collection: 'notes', id: note.id, depth: 2, draft: false, overrideAccess: true, req,
