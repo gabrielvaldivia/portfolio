@@ -3,6 +3,7 @@ import type { CollectionConfig } from 'payload'
 import { NoteLinkedImagesFeature } from '../components/admin/noteLinkedImages/feature.server'
 import { sendPublishedNoteNewsletter } from '../lib/noteNewsletter'
 import { generateNotePreviewURL } from '../lib/notePreview'
+import { prepareNotePublication } from '../lib/notePublishing'
 
 function slugify(value: string) {
   return value
@@ -42,6 +43,18 @@ export const Notes: CollectionConfig = {
         : { _status: { equals: 'published' } }
     ),
   },
+  endpoints: [{
+    path: '/:id/cancel-schedule',
+    method: 'post',
+    handler: async (req) => {
+      if (!req.user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+      const id = Number(req.routeParams?.id)
+      if (!Number.isSafeInteger(id) || id < 1) return Response.json({ error: 'Invalid note' }, { status: 400 })
+      const doc = await req.payload.update({ collection: 'notes', id, data: { _status: 'draft' },
+        draft: false, unpublishAllLocales: true, overrideAccess: false, req, context: { cancelNoteSchedule: true } })
+      return Response.json({ doc }, { headers: { 'Cache-Control': 'no-store' } })
+    },
+  }],
   hooks: {
     beforeValidate: [
       ({ data, originalDoc }) => {
@@ -56,26 +69,17 @@ export const Notes: CollectionConfig = {
         return data
       },
     ],
-    beforeChange: [
-      ({ data }) => {
-        if (data._status === 'published' && !data.publishedAt) {
-          data.publishedAt = new Date().toISOString()
-        }
-
-        return data
-      },
-    ],
+    beforeChange: [prepareNotePublication],
     afterChange: [
-      async ({ context, doc, operation, previousDoc, req }) => {
-        const wasPublished = previousDoc?._status === 'published' || Boolean(previousDoc?.publishedAt)
-        const isFirstPublish = doc._status === 'published' && !doc.newsletterSentAt && !wasPublished
+      async ({ context, doc, operation, req }) => {
+        const isFirstPublish = doc._status === 'published' && !doc.newsletterSentAt && context.firstNotePublication
 
         if (context.skipNoteNewsletter || !isFirstPublish || (operation !== 'create' && operation !== 'update')) {
           return doc
         }
 
         try {
-          const { recipientCount } = await sendPublishedNoteNewsletter(doc, req.payload)
+          const { recipientCount } = await sendPublishedNoteNewsletter(doc, req.payload, req)
           await req.payload.update({
             collection: 'notes',
             id: doc.id,
@@ -156,12 +160,14 @@ export const Notes: CollectionConfig = {
             },
             {
               name: 'publishedAt',
+              label: 'Publish date',
               type: 'date',
               index: true,
               admin: {
-                description: 'Set automatically the first time this note is published.',
+                description: 'Choose a future date and time, then click Schedule. Leave blank to publish now. Times use your device’s time zone.',
                 date: {
                   pickerAppearance: 'dayAndTime',
+                  timeIntervals: 5,
                 },
               },
             },
@@ -220,6 +226,8 @@ export const Notes: CollectionConfig = {
         },
       ],
     },
+    { name: 'scheduledFor', type: 'date', index: true, admin: { hidden: true } },
+    { name: 'firstPublishedAt', type: 'date', admin: { hidden: true } },
     {
       name: 'newsletterSentAt',
       type: 'date',

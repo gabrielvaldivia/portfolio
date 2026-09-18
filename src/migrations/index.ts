@@ -1,3 +1,4 @@
+import * as migration_20260918_020000_schedule_notes from './20260918_020000_schedule_notes';
 import * as migration_20260616_053500_add_client_details_active from './20260616_053500_add_client_details_active';
 import * as migration_20260707_000000_add_module_likes from './20260707_000000_add_module_likes';
 import * as migration_20260708_000000_add_module_like_events from './20260708_000000_add_module_like_events';
@@ -137,5 +138,10 @@ export const migrations = [
     up: migration_20260907_200000_add_hero_slide_pills.up,
     down: migration_20260907_200000_add_hero_slide_pills.down,
     name: '20260907_200000_add_hero_slide_pills',
+  },
+  {
+    up: migration_20260918_020000_schedule_notes.up,
+    down: migration_20260918_020000_schedule_notes.down,
+    name: '20260918_020000_schedule_notes',
   },
 ];

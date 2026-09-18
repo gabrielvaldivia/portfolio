@@ -1,7 +1,8 @@
 'use client'
 
-import { PopupList, PublishButton, useDocumentInfo } from '@payloadcms/ui'
+import { FormSubmit, PopupList, useConfig, useDocumentInfo, useField, useForm } from '@payloadcms/ui'
 import { useCallback, useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 type NoteEditorView = 'writing' | 'metadata' | 'highlights'
 const views: NoteEditorView[] = ['writing', 'metadata', 'highlights']
@@ -9,7 +10,41 @@ const views: NoteEditorView[] = ['writing', 'metadata', 'highlights']
 const TAB_SELECTOR = '.notes-editor-tabs .tabs-field__tab-button'
 
 export function NotesPublishButton() {
-  return <PublishButton label="Publish" />
+  const { value: publishDate } = useField<string>({ path: 'publishedAt' })
+  const { id, data, hasPublishPermission, uploadStatus, setHasPublishedDoc,
+    setMostRecentVersionIsAutosaved, setUnpublishedVersionCount } = useDocumentInfo()
+  const { config: { routes: { api } } } = useConfig()
+  const { submit } = useForm()
+  const future = Boolean(publishDate && new Date(publishDate).getTime() > Date.now())
+  const schedule = typeof data?.scheduledFor === 'string' ? data.scheduledFor : null
+  if (!hasPublishPermission) return null
+
+  const publish = async () => {
+    const result = await submit({
+      action: `${api}/notes${id ? `/${id}` : ''}?depth=0`,
+      method: id ? 'PATCH' : 'POST',
+      overrides: { _status: 'published' },
+      disableSuccessStatus: true,
+    })
+    if (!result?.res.ok) return
+    const published = result.formState?._status?.value === 'published'
+    setHasPublishedDoc(published)
+    setMostRecentVersionIsAutosaved(false)
+    setUnpublishedVersionCount(0)
+    toast.success(published ? 'Note published' : 'Note scheduled')
+  }
+
+  return <div className="notes-publish-controls">
+    {schedule && <span className="notes-schedule-status" role="status">
+      Scheduled for {new Date(schedule).toLocaleString(undefined, {
+        month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+      })}
+    </span>}
+    <FormSubmit buttonId="action-save" type="button" size="medium"
+      disabled={uploadStatus === 'uploading'} onClick={publish}>
+      {future ? (schedule ? 'Update schedule' : 'Schedule') : 'Publish'}
+    </FormSubmit>
+  </div>
 }
 
 function getActiveView(): NoteEditorView {
@@ -20,7 +55,18 @@ function getActiveView(): NoteEditorView {
 }
 
 export function NotesEditMenu() {
-  const { collectionSlug } = useDocumentInfo()
+  const { collectionSlug, id, data } = useDocumentInfo()
+  const { config: { routes: { api } } } = useConfig()
+  const { submit } = useForm()
+  const cancelSchedule = async () => {
+    // Save any current edits before removing the schedule.
+    const saved = await submit({ overrides: { _status: 'draft' }, action: `${api}/notes/${id}?draft=true`,
+      method: 'PATCH', skipValidation: true, disableSuccessStatus: true })
+    if (!saved?.res.ok) return
+    const response = await fetch(`${api}/notes/${id}/cancel-schedule`, { method: 'POST', credentials: 'same-origin' })
+    if (!response.ok) { toast.error('Could not cancel the schedule'); return }
+    window.location.reload()
+  }
   const [activeView, setActiveView] = useState<NoteEditorView>('writing')
 
   useEffect(() => {
@@ -103,6 +149,9 @@ export function NotesEditMenu() {
       </PopupList.Button>
       <hr className="popup-divider notes-edit-menu-divider" />
       <p className="popup-list-group-label notes-edit-menu-actions-label">Actions</p>
+      {data?.scheduledFor && <PopupList.Button id="notes-cancel-schedule" onClick={cancelSchedule}>
+        Cancel schedule
+      </PopupList.Button>}
     </>
   )
 }

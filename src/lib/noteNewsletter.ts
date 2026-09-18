@@ -1,4 +1,4 @@
-import type { Payload } from 'payload'
+import type { Payload, PayloadRequest } from 'payload'
 import { Resend } from 'resend'
 import { escapeHTML, getNoteExcerpt } from './noteContent'
 import { createSubscriptionToken, getSiteURL } from './noteSubscriptions'
@@ -56,13 +56,14 @@ function buildEmail(note: NewsletterNote, subscriber: NewsletterSubscriber) {
   }
 }
 
-async function getSubscribers(payload: Payload) {
+async function getSubscribers(payload: Payload, req?: PayloadRequest) {
   const subscribers: NewsletterSubscriber[] = []
   let page = 1
 
   while (true) {
     const result = await payload.find({
       collection: 'note-subscribers',
+      req,
       depth: 0,
       limit: 100,
       overrideAccess: true,
@@ -78,8 +79,8 @@ async function getSubscribers(payload: Payload) {
   return subscribers
 }
 
-export async function sendPublishedNoteNewsletter(note: NewsletterNote, payload: Payload) {
-  const subscribers = await getSubscribers(payload)
+export async function sendPublishedNoteNewsletter(note: NewsletterNote, payload: Payload, req?: PayloadRequest) {
+  const subscribers = await getSubscribers(payload, req)
   if (subscribers.length === 0) return { recipientCount: 0 }
   if (!process.env.RESEND_API_KEY) throw new Error('RESEND_API_KEY is required to send Notes email')
 

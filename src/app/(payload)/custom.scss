@@ -5262,3 +5262,18 @@ body:has(.collection-edit--notes) .popup__content:has(#notes-edit-menu-writing) 
     flex: 0 0 auto;
   }
 }
+
+.notes-publish-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.notes-schedule-status {
+  color: var(--cms-text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+}
+@media (max-width: 809px) {
+  .notes-publish-controls { gap: 8px; }
+  .notes-schedule-status { max-width: 150px; font-size: 11px; }
+}
