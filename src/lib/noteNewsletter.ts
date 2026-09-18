@@ -45,10 +45,10 @@ function buildEmail(note: NewsletterNote, subscriber: NewsletterSubscriber, cont
       'List-Unsubscribe': `<${unsubscribeURL}>`,
       'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
     },
-    html: `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light dark"><style>@media (min-width:810px){.note-email-content{padding:48px 40px!important}}</style></head><body style="margin:0;padding:0;font-family:Inter,-apple-system,BlinkMacSystemFont,Arial,Helvetica,sans-serif;font-size:18px;line-height:1.65"><div class="note-email-content" style="max-width:760px;margin:0 auto;padding:32px 20px">${content.html}<p style="margin:24px 0 0;font-size:13px;line-height:1.5">You subscribe to Gabriel Valdivia's notes at <a href="${escapeHTML(siteURL)}" style="color:inherit">gabrielvaldivia.com</a>. <a href="${escapeHTML(unsubscribeURL)}" style="color:inherit">Unsubscribe</a></p></div></body></html>`,
+    html: `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light dark"><style>@media (min-width:810px){.note-email-content{padding:48px 40px!important}}</style></head><body style="margin:0;padding:0;font-family:Inter,-apple-system,BlinkMacSystemFont,Arial,Helvetica,sans-serif;font-size:18px;line-height:1.65"><div class="note-email-content" style="max-width:760px;margin:0 auto;padding:32px 20px"><h1 style="margin:0 0 24px;font-size:34px;line-height:1.15;font-weight:500;letter-spacing:-0.03em">${escapeHTML(note.title)}</h1>${content.html}<p style="margin:24px 0 0;font-size:13px;line-height:1.5">You subscribe to Gabriel Valdivia's notes at <a href="${escapeHTML(siteURL)}" style="color:inherit">gabrielvaldivia.com</a>. <a href="${escapeHTML(unsubscribeURL)}" style="color:inherit">Unsubscribe</a></p></div></body></html>`,
     replyTo: getReplyTo(),
     subject: note.title,
-    text: `${content.text}\n\nYou subscribe to Gabriel Valdivia's notes at gabrielvaldivia.com. Unsubscribe: ${unsubscribeURL}`,
+    text: `${note.title}\n\n${content.text}\n\nYou subscribe to Gabriel Valdivia's notes at gabrielvaldivia.com. Unsubscribe: ${unsubscribeURL}`,
     to: subscriber.email,
   }
 }

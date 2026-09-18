@@ -70,7 +70,7 @@ afterEach(() => {
 })
 
 test('newsletter sends full content with only the requested footer and recipient-specific unsubscribe links', async () => {
-  const note = { id: 123, title: 'The note title', slug: 'the-note', excerpt: 'Only a teaser', updatedAt: '2026-09-18T18:00:00Z', body }
+  const note = { id: 123, title: 'The note title <&>', slug: 'the-note', excerpt: 'Only a teaser', updatedAt: '2026-09-18T18:00:00Z', body }
   const req = {} as PayloadRequest
   const find = mock.fn(async () => ({ docs: [{ email: 'first@example.com' }, { email: 'second@example.com' }], hasNextPage: false }))
   const findByID = mock.fn(async () => note)
@@ -94,10 +94,12 @@ test('newsletter sends full content with only the requested footer and recipient
   for (const [index, email] of sent.entries()) {
     assert.equal(email.subject, note.title)
     assert.match(email.html, /<body style="margin:0;padding:0;/)
+    assert.match(email.html, /<h1[^>]*>The note title &lt;&amp;&gt;<\/h1>/)
+    assert.ok(email.text.startsWith(`${note.title}\n\n`))
     assert.match(email.html, /The final paragraph/)
     assert.match(email.text, /The final paragraph/)
     assert.match(email.html, /You subscribe to Gabriel Valdivia's notes at <a[^>]*>gabrielvaldivia.com<\/a>\. <a[^>]*>Unsubscribe<\/a>/)
-    assert.doesNotMatch(email.html, /A new note from|Read the note|Only a teaser|<main|<hr|The note title/)
+    assert.doesNotMatch(email.html, /A new note from|Read the note|Only a teaser|<main|<hr/)
     const url = new URL(email.headers['List-Unsubscribe'].slice(1, -1))
     assert.deepEqual(verifySubscriptionToken(url.searchParams.get('token')!, 'unsubscribe'), { email: index ? 'second@example.com' : 'first@example.com' })
     assert.equal(email.headers['List-Unsubscribe-Post'], 'List-Unsubscribe=One-Click')
