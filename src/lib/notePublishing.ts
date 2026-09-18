@@ -63,7 +63,7 @@ export async function publishScheduledNotes(payload: Payload, now = new Date()) 
         data: { _status: 'published', publishedAt: new Date(due.scheduled_for).toISOString() },
         draft: false, overrideAccess: true, depth: 0, req })
       await payload.db.commitTransaction(transactionID)
-      published.push({ id: note.id, slug: note.slug })
+      published.push({ id: due.id, slug: note.slug })
     } catch (error) {
       await payload.db.rollbackTransaction(transactionID)
       throw error
