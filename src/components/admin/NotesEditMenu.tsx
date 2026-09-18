@@ -168,7 +168,6 @@ export function NotesEditMenu() {
         Highlights
       </PopupList.Button>
       <hr className="popup-divider notes-edit-menu-divider" />
-      <p className="popup-list-group-label notes-edit-menu-actions-label">Actions</p>
       {data?.scheduledFor && <PopupList.Button id="notes-cancel-schedule" onClick={cancelSchedule}>
         Cancel schedule
       </PopupList.Button>}
