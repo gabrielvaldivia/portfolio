@@ -60,9 +60,9 @@ const socialIcons: Record<string, React.FC<{ className?: string }>> = {
   mail: EmailIcon,
 }
 
-export function HoverChevron() {
+export function HoverChevron({ className = 'translate-y-[4px]' }: { className?: string }) {
   return (
-    <svg className="hidden tablet:inline-block shrink-0 text-text-body opacity-0 group-hover:opacity-100 transition-opacity translate-y-[4px]" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg>
+    <svg className={`hidden tablet:inline-block shrink-0 text-text-body opacity-0 group-hover:opacity-100 transition-opacity ${className}`} width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg>
   )
 }
 

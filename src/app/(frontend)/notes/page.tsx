@@ -98,7 +98,7 @@ export default async function NotesPage() {
                         href={`/notes/${note.slug}`}
                       >
                         <h4 className="text-balance">{note.title}</h4>
-                        <HoverChevron />
+                        <HoverChevron className="translate-y-0" />
                       </Link>
                     </div>
                   ))}
