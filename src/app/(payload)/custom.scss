@@ -3960,7 +3960,7 @@ body:has(.drawer--is-open) :is(.template-default__nav-toggler-container, .app-he
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: calc(var(--cms-button-height) + 16px) 0 calc(var(--cms-control-height) + (var(--cms-screen-gutter) * 2)) var(--cms-nav-gutter);
+  padding: calc((var(--cms-header-height) - var(--cms-button-height)) / 2) 0 calc(var(--cms-control-height) + (var(--cms-screen-gutter) * 2)) var(--cms-nav-gutter);
 }
 
 .nav__wrap {
@@ -4070,7 +4070,9 @@ body:has(.drawer--is-open) :is(.template-default__nav-toggler-container, .app-he
 }
 
 .nav .custom-sidebar-nav__title {
-  min-height: var(--cms-nav-row-height);
+  display: flex;
+  min-height: var(--cms-button-height);
+  align-items: center;
   margin: 0 8px 12px;
   color: var(--cms-text-primary);
   font-size: var(--cms-control-font-size) !important;
@@ -4691,14 +4693,7 @@ body:has(.drawer--is-open) :is(.template-default__nav-toggler-container, .app-he
     height: 100dvh;
     max-height: 100dvh;
     overscroll-behavior-y: contain;
-    padding-top: calc((var(--cms-header-height) - var(--cms-button-height)) / 2);
     -webkit-overflow-scrolling: touch;
-  }
-
-  .nav .custom-sidebar-nav__title {
-    display: flex;
-    min-height: var(--cms-button-height);
-    align-items: center;
   }
 
   .admin-sidebar-scrim {
