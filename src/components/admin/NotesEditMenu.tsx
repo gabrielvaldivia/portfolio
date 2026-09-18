@@ -1,8 +1,7 @@
 'use client'
 
-import { FormSubmit, PopupList, useConfig, useDocumentInfo, useField, useForm } from '@payloadcms/ui'
+import { FormSubmit, PopupList, toast, useConfig, useDocumentInfo, useForm, useFormFields } from '@payloadcms/ui'
 import { useCallback, useEffect, useState } from 'react'
-import { toast } from 'sonner'
 
 type NoteEditorView = 'writing' | 'metadata' | 'highlights'
 const views: NoteEditorView[] = ['writing', 'metadata', 'highlights']
@@ -10,13 +9,38 @@ const views: NoteEditorView[] = ['writing', 'metadata', 'highlights']
 const TAB_SELECTOR = '.notes-editor-tabs .tabs-field__tab-button'
 
 export function NotesPublishButton() {
-  const { value: publishDate } = useField<string>({ path: 'publishedAt' })
+  const publishDate = useFormFields(([fields]) => fields.publishedAt?.value) as string | undefined
   const { id, data, hasPublishPermission, uploadStatus, setHasPublishedDoc,
     setMostRecentVersionIsAutosaved, setUnpublishedVersionCount } = useDocumentInfo()
   const { config: { routes: { api } } } = useConfig()
   const { submit } = useForm()
+  const [pickerRequest, setPickerRequest] = useState(0)
   const future = Boolean(publishDate && new Date(publishDate).getTime() > Date.now())
   const schedule = typeof data?.scheduledFor === 'string' ? data.scheduledFor : null
+  const scheduleChanged = Boolean(schedule && new Date(publishDate || '').getTime() !== new Date(schedule).getTime())
+
+  useEffect(() => {
+    if (!pickerRequest) return
+
+    // Metadata mounts on demand, and its date picker loads asynchronously.
+    const observer = new MutationObserver(focusDate)
+    function focusDate() {
+      const input = document.querySelector<HTMLInputElement>('#field-publishedAt input')
+      if (!input || !input.getClientRects().length) return
+      observer.disconnect()
+      input.scrollIntoView({ block: 'center' })
+      input.focus({ preventScroll: true })
+      input.click()
+    }
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden'] })
+    document.querySelectorAll<HTMLButtonElement>(TAB_SELECTOR)[views.indexOf('metadata')]?.click()
+    const frame = requestAnimationFrame(focusDate)
+    return () => {
+      observer.disconnect()
+      cancelAnimationFrame(frame)
+    }
+  }, [pickerRequest])
+
   if (!hasPublishPermission) return null
 
   const publish = async () => {
@@ -31,13 +55,14 @@ export function NotesPublishButton() {
     setHasPublishedDoc(published)
     setMostRecentVersionIsAutosaved(false)
     setUnpublishedVersionCount(0)
-    toast.success(published ? 'Note published' : 'Note scheduled')
+    toast.success(published ? 'Note published' : schedule ? 'Schedule updated' : 'Note scheduled')
   }
 
   return (
     <FormSubmit buttonId="action-save" type="button" size="medium"
-      disabled={uploadStatus === 'uploading'} onClick={publish}>
-      {future ? (schedule ? 'Update schedule' : 'Schedule') : 'Publish'}
+      disabled={uploadStatus === 'uploading'}
+      onClick={schedule && future && !scheduleChanged ? () => setPickerRequest((request) => request + 1) : publish}>
+      {future ? (schedule ? (scheduleChanged ? 'Save schedule' : 'Update schedule') : 'Schedule') : 'Publish'}
     </FormSubmit>
   )
 }

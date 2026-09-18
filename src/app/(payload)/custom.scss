@@ -5263,17 +5263,34 @@ body:has(.collection-edit--notes) .popup__content:has(#notes-edit-menu-writing) 
   }
 }
 
+.collection-edit--notes .doc-controls.gutter {
+  width: max-content;
+  max-width: calc(100vw - 96px);
+}
+.collection-edit--notes :is(.doc-controls__controls-wrapper, .doc-controls__controls) {
+  min-width: 0;
+}
 .notes-preview-controls {
   display: flex;
   align-items: center;
+  min-width: 0;
   gap: 16px;
 }
+.notes-preview-controls .form-submit {
+  flex-shrink: 0;
+}
 .notes-schedule-status {
+  width: max-content;
   color: var(--cms-text-secondary);
   font-size: 13px;
   line-height: 1.4;
 }
 @media (max-width: 809px) {
   .notes-preview-controls { gap: 8px; }
-  .notes-schedule-status { max-width: 150px; font-size: 11px; }
+  .notes-schedule-status { font-size: 11px; }
+}
+@media (min-width: 810px) {
+  .collection-edit--notes .doc-controls.gutter {
+    max-width: calc(100vw - var(--cms-header-left, 0px) - 96px);
+  }
 }
