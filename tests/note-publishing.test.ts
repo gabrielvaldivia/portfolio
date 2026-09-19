@@ -45,6 +45,8 @@ before(async () => {
   await migrate(notesMigration)
   await migrate(subscriptionMigration)
   await db.query('INSERT INTO notes (title, slug, _status, published_at) VALUES ($1, $2, $3, $4)', ['Old note', 'old-note', 'published', past])
+  const { rows: drafts } = await db.query<{ id: number }>('INSERT INTO notes (title, slug, _status, published_at) VALUES ($1, $2, $3, $4) RETURNING id', ['Old edited note', 'old-edited-note', 'draft', past])
+  await db.query('INSERT INTO _notes_v (parent_id, version__status, version_published_at) VALUES ($1, $2, $3)', [drafts[0].id, 'published', past])
   await migrate(schedulingMigration)
   const sessions: Record<string, { db: { execute: typeof execute } }> = {}
   payload = {
@@ -120,6 +122,21 @@ test('migration preserves publication history and old posts do not email subscri
   const context: Doc = {}
   await prepare({ _status: 'published' }, { ...old, _status: 'draft', firstPublishedAt: null }, context)
   assert.equal(context.firstNotePublication, false)
+})
+
+test('migration remembers a legacy draft’s published version and publishing its changes sends no email', async () => {
+  const { rows } = await db.query<{ id: number }>('SELECT id FROM notes WHERE slug=$1', ['old-edited-note'])
+  const original = await findByID({ id: rows[0].id })
+  assert.equal(original._status, 'draft')
+  assert.equal(original.firstPublishedAt, past)
+  assert.equal(original.newsletterSentAt, null)
+  const sentBefore = sent
+  await payload.update({ collection: 'notes', id: original.id, data: { _status: 'published' } })
+  const published = await findByID({ id: original.id })
+  assert.equal(published._status, 'published')
+  assert.equal(published.firstPublishedAt, past)
+  assert.equal(published.newsletterSentAt, null)
+  assert.equal(sent, sentBefore)
 })
 
 test('autosave cannot change a schedule; explicitly publishing can reschedule it or publish now', async () => {

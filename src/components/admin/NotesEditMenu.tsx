@@ -10,11 +10,12 @@ const TAB_SELECTOR = '.notes-editor-tabs .tabs-field__tab-button'
 
 export function NotesPublishButton() {
   const publishDate = useFormFields(([fields]) => fields.publishedAt?.value) as string | undefined
-  const { id, data, hasPublishPermission, uploadStatus, setHasPublishedDoc,
+  const { id, data, hasPublishedDoc, hasPublishPermission, uploadStatus, setHasPublishedDoc,
     setMostRecentVersionIsAutosaved, setUnpublishedVersionCount } = useDocumentInfo()
   const { config: { routes: { api } } } = useConfig()
   const { submit } = useForm()
   const [pickerRequest, setPickerRequest] = useState(0)
+  const hasBeenPublished = Boolean(hasPublishedDoc || data?.firstPublishedAt)
   const future = Boolean(publishDate && new Date(publishDate).getTime() > Date.now())
   const schedule = typeof data?.scheduledFor === 'string' ? data.scheduledFor : null
   const scheduleChanged = Boolean(schedule && new Date(publishDate || '').getTime() !== new Date(schedule).getTime())
@@ -55,14 +56,14 @@ export function NotesPublishButton() {
     setHasPublishedDoc(published)
     setMostRecentVersionIsAutosaved(false)
     setUnpublishedVersionCount(0)
-    toast.success(published ? 'Note published' : schedule ? 'Schedule updated' : 'Note scheduled')
+    toast.success(published ? (hasBeenPublished ? 'Changes published' : 'Note published') : schedule ? 'Schedule updated' : 'Note scheduled')
   }
 
   return (
     <FormSubmit buttonId="action-save" type="button" size="medium"
       disabled={uploadStatus === 'uploading'}
       onClick={schedule && future && !scheduleChanged ? () => setPickerRequest((request) => request + 1) : publish}>
-      {future ? (schedule ? (scheduleChanged ? 'Save schedule' : 'Update schedule') : 'Schedule') : 'Publish'}
+      {future ? (schedule ? (scheduleChanged ? 'Save schedule' : 'Update schedule') : 'Schedule') : hasBeenPublished ? 'Publish changes' : 'Publish'}
     </FormSubmit>
   )
 }

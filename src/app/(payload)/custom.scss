@@ -213,6 +213,38 @@ body,
   color: var(--cms-text-primary);
 }
 
+/* Keep the block picker title and close action in the shared header row. */
+.drawer:has(.blocks-drawer__blocks-wrapper) .drawer__header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  width: auto;
+  min-height: var(--cms-header-height);
+  margin: 0 calc(-1 * var(--gutter-h)) var(--base);
+  padding-right: max(var(--cms-screen-gutter), env(safe-area-inset-right));
+  padding-left: max(var(--cms-screen-gutter), env(safe-area-inset-left));
+  gap: var(--cms-control-gap);
+  border-bottom: 0.5px solid var(--cms-border-secondary);
+  background: var(--cms-bg-primary);
+}
+
+.drawer:has(.blocks-drawer__blocks-wrapper) .drawer__header__title {
+  min-width: 0;
+  font-size: var(--cms-control-font-size);
+  line-height: var(--cms-control-line-height);
+  text-wrap: balance;
+}
+
+.drawer:has(.blocks-drawer__blocks-wrapper) .drawer__header__close {
+  flex-shrink: 0;
+  width: var(--cms-header-button-height);
+  height: var(--cms-header-button-height);
+}
+
+.drawer:has(.blocks-drawer__blocks-wrapper) .block-search {
+  top: var(--cms-header-height);
+}
+
 .popup__content {
   border: 0.5px solid var(--cms-border-primary);
   border-radius: var(--cms-control-radius);
