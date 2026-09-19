@@ -27,39 +27,43 @@ export default function ChangelogPage() {
 
       <div>
         {changelogEntries.map((entry) => (
-          <article key={entry.date} aria-labelledby={`update-${entry.date}`} className="grid gap-4 border-t border-border py-8 tablet:grid-cols-4 tablet:gap-8 tablet:py-10">
-            <div>
-              <time dateTime={entry.date} className="text-caption tabular-nums text-text-muted">
-                {formatDate(entry.date, { month: 'short', day: 'numeric', year: 'numeric' })}
-              </time>
-            </div>
-            <div className="min-w-0 tablet:col-span-3">
-              <h2 id={`update-${entry.date}`} className="!text-h4 !font-medium text-balance">
+          <article key={entry.date} aria-labelledby={`update-${entry.date}`} className="border-t border-border py-8 tablet:pb-10 tablet:pt-0">
+            <header className="grid gap-4 tablet:sticky tablet:top-0 tablet:z-10 tablet:grid-cols-4 tablet:gap-8 tablet:bg-background tablet:pb-4 tablet:pt-10">
+              <div>
+                <time dateTime={entry.date} className="text-caption tabular-nums text-text-muted">
+                  {formatDate(entry.date, { month: 'short', day: 'numeric', year: 'numeric' })}
+                </time>
+              </div>
+              <h2 id={`update-${entry.date}`} className="min-w-0 !text-h4 !font-medium text-balance tablet:col-span-3 tablet:pr-16 desktop:pr-0">
                 {entry.title}
               </h2>
-              <ul className="mt-4 space-y-3 text-body text-text-body">
-                {entry.changes.map((change) => (
-                  <li key={change} className="relative pl-5 text-pretty before:absolute before:left-0 before:top-0 before:text-text-subtle before:content-['–']">
-                    {change}
-                  </li>
-                ))}
-              </ul>
-              {entry.commits.length > 0 && (
-                <details className="mt-5 text-caption text-text-muted">
-                  <summary className="w-fit cursor-pointer hover:text-text-strong focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content">
-                    {entry.commits.length} {entry.commits.length === 1 ? 'commit' : 'commits'}
-                    <span className="sr-only"> from {formatDate(entry.date, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
-                  </summary>
-                  <ul className="mt-4 space-y-3 border-l border-border pl-4">
-                    {entry.commits.map((commit) => (
-                      <li key={commit.hash} className="text-pretty">
-                        <span>{commit.subject}</span>
-                        <span className="ml-2 whitespace-nowrap font-mono text-xs tabular-nums text-text-subtle">{commit.hash.slice(0, 7)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-              )}
+            </header>
+            <div className="tablet:grid tablet:grid-cols-4 tablet:gap-x-8">
+              <div className="min-w-0 tablet:col-span-3 tablet:col-start-2">
+                <ul className="mt-4 space-y-3 text-body text-text-body tablet:mt-0">
+                  {entry.changes.map((change) => (
+                    <li key={change} className="relative pl-5 text-pretty before:absolute before:left-0 before:top-0 before:text-text-subtle before:content-['–']">
+                      {change}
+                    </li>
+                  ))}
+                </ul>
+                {entry.commits.length > 0 && (
+                  <details className="mt-5 text-caption text-text-muted">
+                    <summary className="w-fit cursor-pointer hover:text-text-strong focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content">
+                      {entry.commits.length} {entry.commits.length === 1 ? 'commit' : 'commits'}
+                      <span className="sr-only"> from {formatDate(entry.date, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                    </summary>
+                    <ul className="mt-4 space-y-3 border-l border-border pl-4">
+                      {entry.commits.map((commit) => (
+                        <li key={commit.hash} className="text-pretty">
+                          <span>{commit.subject}</span>
+                          <span className="ml-2 whitespace-nowrap font-mono text-xs tabular-nums text-text-subtle">{commit.hash.slice(0, 7)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+              </div>
             </div>
           </article>
         ))}
