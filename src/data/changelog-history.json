@@ -1,6 +1,11 @@
 {
-  "throughCommit": "b83281bdf55e40c46d246a46f4f27a7454722e3c",
+  "throughCommit": "96f00050dc3ceb6a643bf5ed8bec092aede17f26",
   "commits": [
+    {
+      "hash": "96f00050dc3ceb6a643bf5ed8bec092aede17f26",
+      "date": "2026-09-19",
+      "subject": "Add unlisted changelog and maintenance checks"
+    },
     {
       "hash": "b83281bdf55e40c46d246a46f4f27a7454722e3c",
       "date": "2026-09-18",

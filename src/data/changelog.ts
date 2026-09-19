@@ -7,5 +7,3 @@ export const changelogEntries = summaries.map((entry) => ({
   ...entry,
   commits: history.commits.filter((commit) => commit.date === entry.date),
 }))
-
-export const changelogMonths = [...new Set(changelogEntries.map((entry) => entry.date.slice(0, 7)))]

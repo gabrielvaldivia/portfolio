@@ -3,7 +3,7 @@
     "date": "2026-09-19",
     "title": "A running history of the site",
     "changes": [
-      "Added an unlisted changelog with dated summaries, month navigation, and expandable commit details stretching back to the first version of the site.",
+      "Added an unlisted changelog with dated summaries and expandable commit details stretching back to the first version of the site.",
       "Made changelog updates part of the development workflow, with a history importer and an automated check for missing entries."
     ]
   },
