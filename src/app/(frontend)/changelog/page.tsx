@@ -26,9 +26,14 @@ export default function ChangelogPage() {
       </header>
 
       <div>
-        {changelogEntries.map((entry) => (
-          <article key={entry.date} aria-labelledby={`update-${entry.date}`} className="border-t border-border py-8 tablet:pb-10 tablet:pt-0">
-            <header className="grid gap-4 tablet:sticky tablet:top-0 tablet:z-10 tablet:grid-cols-4 tablet:gap-8 tablet:bg-background tablet:pb-4 tablet:pt-10">
+        {changelogEntries.map((entry, index) => (
+          <article key={entry.date} aria-labelledby={`update-${entry.date}`} className="pb-8 tablet:pb-10">
+            {index > 0 && (
+              <div aria-hidden="true" className="tablet:grid tablet:grid-cols-4 tablet:gap-x-8">
+                <div className="border-t border-border tablet:col-span-3 tablet:col-start-2" />
+              </div>
+            )}
+            <header className="grid gap-4 pt-8 tablet:sticky tablet:top-0 tablet:z-10 tablet:grid-cols-4 tablet:gap-8 tablet:bg-background tablet:pb-4 tablet:pt-10">
               <div>
                 <time dateTime={entry.date} className="text-caption tabular-nums text-text-muted">
                   {formatDate(entry.date, { month: 'short', day: 'numeric', year: 'numeric' })}
