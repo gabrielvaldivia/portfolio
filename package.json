@@ -9,7 +9,7 @@
   "scripts": {
     "test": "node --conditions=development --import tsx --test tests/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm test && npm run build",
+    "check": "npm run check:changelog && npm run typecheck && npm test && npm run build",
     "test:highlights": "tsx --test tests/note-highlights.test.ts",
     "test:highlight-activity": "tsx --test tests/note-highlight-activity.test.ts",
     "test:highlight-attribution": "tsx --test tests/note-highlight-attribution.test.ts",
@@ -25,7 +25,9 @@
     "migrate:status": "payload migrate:status",
     "postinstall": "node scripts/patch-payload-bulk-upload.mjs",
     "generate:types": "payload generate:types",
-    "generate:importmap": "payload generate:importmap"
+    "generate:importmap": "payload generate:importmap",
+    "changelog:update": "node scripts/changelog.mjs update",
+    "check:changelog": "node scripts/changelog.mjs check"
   },
   "dependencies": {
     "@highlighters/core": "^2.0.0",

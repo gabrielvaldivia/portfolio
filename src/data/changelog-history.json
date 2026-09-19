@@ -1,0 +1,2700 @@
+{
+  "throughCommit": "b83281bdf55e40c46d246a46f4f27a7454722e3c",
+  "commits": [
+    {
+      "hash": "b83281bdf55e40c46d246a46f4f27a7454722e3c",
+      "date": "2026-09-18",
+      "subject": "Fix note publish label and block picker header"
+    },
+    {
+      "hash": "6716c1ceca0fba333c4e6f08c41bac9914735aa3",
+      "date": "2026-09-18",
+      "subject": "Add an Edit link to note previews"
+    },
+    {
+      "hash": "98b6f56b427057fe87461e9abe3fe6fac6c9648e",
+      "date": "2026-09-18",
+      "subject": "Soften the note email subscription footer"
+    },
+    {
+      "hash": "7cf07a36b4f40ec0ba569f3f4920f786edc85c8d",
+      "date": "2026-09-18",
+      "subject": "Simplify note actions and add the closed-eye unpublish icon"
+    },
+    {
+      "hash": "be0b654be17ea089ae99a75e22e769823b7afed8",
+      "date": "2026-09-18",
+      "subject": "Fix notes menu section order and remove caret"
+    },
+    {
+      "hash": "da7730b7e035e0029797707b1d4b2861e59543e0",
+      "date": "2026-09-18",
+      "subject": "Align Admin title with the sidebar toggle"
+    },
+    {
+      "hash": "10724aab42e0c9021983bcedf1898d24ab85c2ee",
+      "date": "2026-09-18",
+      "subject": "Fix Recent dashboard header dividers"
+    },
+    {
+      "hash": "ec208c7c9e3873db9045d58bdb835155ea46ad14",
+      "date": "2026-09-18",
+      "subject": "Lower note list chevrons by two pixels"
+    },
+    {
+      "hash": "f5c1302f5d268846960cadbaab58104d6e05b806",
+      "date": "2026-09-18",
+      "subject": "Lighten note underlines and clear descenders"
+    },
+    {
+      "hash": "ca24e63061297735cc1f048e612ca709dd8d78fc",
+      "date": "2026-09-18",
+      "subject": "Use subtle underlines for prose links"
+    },
+    {
+      "hash": "5bb83e1e7400c77ec02b17b01f841c3a58cc6da0",
+      "date": "2026-09-18",
+      "subject": "Raise note list chevrons to align with titles"
+    },
+    {
+      "hash": "998da809cefe935d876412438d3523ecb169d303",
+      "date": "2026-09-18",
+      "subject": "Include note titles as headings in newsletter bodies"
+    },
+    {
+      "hash": "00f419ef14a0d6099c62db456ef8948e9ed5ef27",
+      "date": "2026-09-18",
+      "subject": "Add responsive reading gutters to note emails"
+    },
+    {
+      "hash": "8d4d438c9fc6c5b91492e18d41d8a55bc651da72",
+      "date": "2026-09-18",
+      "subject": "Initialize newsletter converters lazily and stabilize Lexical tests"
+    },
+    {
+      "hash": "13c05702255a9413dacc6a887cb7409a38430cdc",
+      "date": "2026-09-18",
+      "subject": "Send full note content in minimal newsletter emails"
+    },
+    {
+      "hash": "38627fb1bfdcf724d0b2b665a3de7c67d24538f1",
+      "date": "2026-09-18",
+      "subject": "Open the schedule picker and improve note header spacing"
+    },
+    {
+      "hash": "be00baef76e89a93c6a4c9b350a8d7c6786dd09d",
+      "date": "2026-09-18",
+      "subject": "Move scheduled note status before preview"
+    },
+    {
+      "hash": "8a5cc3c5c410e293cd6ca4c5bcc99c6917581a16",
+      "date": "2026-09-18",
+      "subject": "Use database note ID in scheduler results"
+    },
+    {
+      "hash": "375707b4de4eef6ee24f1ca5a6c6ee855b3f5f59",
+      "date": "2026-09-18",
+      "subject": "Schedule notes using their publish date"
+    },
+    {
+      "hash": "07e85e6c7951d4719a221becd1aa5fe6bb278e6f",
+      "date": "2026-09-17",
+      "subject": "Polish note subscription email and confirmation flow"
+    },
+    {
+      "hash": "ab857c2bc99fa411d3b4e146631883d3fd80db66",
+      "date": "2026-09-17",
+      "subject": "Group admin sidebar into Site and Operations"
+    },
+    {
+      "hash": "a7a34cbe50ac1813e990a49bcbb94a9114eede12",
+      "date": "2026-09-17",
+      "subject": "Use article titles in shared note previews"
+    },
+    {
+      "hash": "d1017ecc60e534ffc1eef07f74a4b002ec8e811f",
+      "date": "2026-09-17",
+      "subject": "Fix clipped descenders in note editor titles"
+    },
+    {
+      "hash": "263d83316c48ed02522468df39ddcb38a02a6819",
+      "date": "2026-09-17",
+      "subject": "Keep note editor text links underlined"
+    },
+    {
+      "hash": "3b3551592641f683b3908affad66e7db7e3b4639",
+      "date": "2026-09-17",
+      "subject": "Restore balanced wrapping for note titles"
+    },
+    {
+      "hash": "2c556a2d6660703f76b97fbde017a18200ff5bd7",
+      "date": "2026-09-17",
+      "subject": "Make note preview header full width with bottom divider"
+    },
+    {
+      "hash": "f6b6abe69d282a600f2ede66bc743cdb1670a9f4",
+      "date": "2026-09-17",
+      "subject": "Type note preview content independently of generated CMS types"
+    },
+    {
+      "hash": "f920d8a534aacbc81522a97908bf8fe28fd61ee0",
+      "date": "2026-09-17",
+      "subject": "Add private share previews for notes and natural title wrapping"
+    },
+    {
+      "hash": "7223c5e60f89fb5b5fb27e1c0222a55b285bac91",
+      "date": "2026-09-17",
+      "subject": "Use medium weight for note section headings"
+    },
+    {
+      "hash": "ef55d99b9439f078c0cad5265886d71ba4b7cab7",
+      "date": "2026-09-17",
+      "subject": "Show Notes editor back button on desktop"
+    },
+    {
+      "hash": "1528b31c00d9ad292a71cb6b7ffb321391271921",
+      "date": "2026-09-17",
+      "subject": "Allow multiple untitled note drafts"
+    },
+    {
+      "hash": "df3cd08966ee6c5f9d05ac05af297b929ca3b819",
+      "date": "2026-09-17",
+      "subject": "Fix note formatting dropdown option alignment"
+    },
+    {
+      "hash": "1693d6f41410e4249333b364abf7350dc7e434e1",
+      "date": "2026-09-17",
+      "subject": "Restore note email signup and notify on confirmed subscriptions"
+    },
+    {
+      "hash": "4269bf3eb4c7df8108b65215c64f3ecc70df1476",
+      "date": "2026-09-17",
+      "subject": "Fill engagement email gate viewport and center content"
+    },
+    {
+      "hash": "a946b5a79928554a61707bafed385e24ce5de55f",
+      "date": "2026-09-16",
+      "subject": "Gate engagement models by email and refresh page layout"
+    },
+    {
+      "hash": "719ea300bca5562d36a8cd63866331bd51938fb6",
+      "date": "2026-09-15",
+      "subject": "Randomize homepage slideshow order on each visit"
+    },
+    {
+      "hash": "a30de04403d97257f8611a22a7b5de70687fa03d",
+      "date": "2026-09-12",
+      "subject": "Restore horizontal mobile slideshow and pagination"
+    },
+    {
+      "hash": "b58745087e26bfa45383d86ac28cdfc4748af1ed",
+      "date": "2026-09-11",
+      "subject": "Keep highlight toasts above floating controls on narrow screens"
+    },
+    {
+      "hash": "f50d6afbe5f631fec5970a634d68f6c746774d41",
+      "date": "2026-09-11",
+      "subject": "Dismiss note highlight attribution when hover ends"
+    },
+    {
+      "hash": "df6965e6b6c05160fb048fd534d3a02573f94bfc",
+      "date": "2026-09-11",
+      "subject": "Improve slideshow trackpad gestures and button hover states"
+    },
+    {
+      "hash": "cf07b7f6d5f2c08bb7cb45c9b6e66281bce6c5fe",
+      "date": "2026-09-11",
+      "subject": "Use translucent white slideshow pagination tracks"
+    },
+    {
+      "hash": "bb49e05e7db315a9e85a8c2ab39b468cc651b91d",
+      "date": "2026-09-11",
+      "subject": "Polish desktop slideshow image and title transitions"
+    },
+    {
+      "hash": "b49dd7426813858259d91b910259a2d5638d61df",
+      "date": "2026-09-10",
+      "subject": "Support desktop trackpad swipes in the home slideshow"
+    },
+    {
+      "hash": "05f7a9cb4a2a5db199c7d5b82871a2a78a2bb076",
+      "date": "2026-09-10",
+      "subject": "Show highlight attribution in corner toasts and replace hovered underlines"
+    },
+    {
+      "hash": "b36a5c2e78ef59b005411f0458724580e2751fe0",
+      "date": "2026-09-10",
+      "subject": "Keep recommendation chevrons with the final title word"
+    },
+    {
+      "hash": "bf3bd341ab7dc499cce71318a3e79a6862ac1597",
+      "date": "2026-09-10",
+      "subject": "Center the highlight popover shadow with a broad blur"
+    },
+    {
+      "hash": "a74d0867b20928e26536f7625c09ba02164224e3",
+      "date": "2026-09-10",
+      "subject": "Soften highlight popover shadow and extend it upward"
+    },
+    {
+      "hash": "4f1c090ee81edc5c6e780fc156ddcbc0fa2592fc",
+      "date": "2026-09-10",
+      "subject": "Keep highlight popover height steady while toggling visibility"
+    },
+    {
+      "hash": "12cfc35de19a26e7864a2e3500c887850b31e574",
+      "date": "2026-09-10",
+      "subject": "Add separate personal and community highlight visibility controls"
+    },
+    {
+      "hash": "c37d41ac89c8d6e0888631421a2e2f700b1fdac3",
+      "date": "2026-09-10",
+      "subject": "Show highlight fill and attribution on hover"
+    },
+    {
+      "hash": "4ed3f948b11799734c431c5cdb941e924fa8ef01",
+      "date": "2026-09-10",
+      "subject": "Distinguish personal and community note highlights"
+    },
+    {
+      "hash": "4a0f7c245516f2fc151f1bba175ee4983524c850",
+      "date": "2026-09-10",
+      "subject": "Fix audited website copy typos"
+    },
+    {
+      "hash": "f730f31b076f004e837e58ac39a11c8f8b38b43a",
+      "date": "2026-09-09",
+      "subject": "Ship agent-readable metadata and activity updates"
+    },
+    {
+      "hash": "49658ac8ac4946841da06a0de663574ba5e5e564",
+      "date": "2026-09-09",
+      "subject": "Publish engagement models page"
+    },
+    {
+      "hash": "d26f16bb830fe256dc6e98d3ce2243a18f3b8099",
+      "date": "2026-09-09",
+      "subject": "Polish project card interactions"
+    },
+    {
+      "hash": "8352889f4d22e435dec79b1c19d10fe2626e1ebe",
+      "date": "2026-09-09",
+      "subject": "Fix Payload project form serialization"
+    },
+    {
+      "hash": "3769e8f858f11c5e3cf45c394f2de28b9d003e3e",
+      "date": "2026-09-08",
+      "subject": "Fix wrapped device frame sizing"
+    },
+    {
+      "hash": "d1dc21d6c54e06d87fbaeb34b84a42ba898ae7d1",
+      "date": "2026-09-08",
+      "subject": "Remove mobile slideshow edge fades"
+    },
+    {
+      "hash": "da7f18fdeaaa490939cfdad4b531384801635335",
+      "date": "2026-09-08",
+      "subject": "Sharpen mobile hero images and mask Safari pagination"
+    },
+    {
+      "hash": "c7f246a7a852a4a5888e49fe7cd5d087399722c5",
+      "date": "2026-09-08",
+      "subject": "Return Home navigation to page top"
+    },
+    {
+      "hash": "876a08a1f73b539d5d63851ae978c32e687fa5f0",
+      "date": "2026-09-08",
+      "subject": "Dock credits playback above footer"
+    },
+    {
+      "hash": "02389d53a2b2fd73e29728ad86a874a5b6e9605f",
+      "date": "2026-09-08",
+      "subject": "Add cinematic credits playback"
+    },
+    {
+      "hash": "34cef39f35ea67f2cb68ec3dbc10309c883d1423",
+      "date": "2026-09-08",
+      "subject": "Update navigation and empty like spacing"
+    },
+    {
+      "hash": "65411faaff888e8b66d054183f0ee71a73dfe1ef",
+      "date": "2026-09-08",
+      "subject": "Move Photos into navigation"
+    },
+    {
+      "hash": "000c285404f02491560a329b7762c61d8d48a7a8",
+      "date": "2026-09-08",
+      "subject": "Add Credits page to footer"
+    },
+    {
+      "hash": "75b2ba185bf877d5cf1c3bba3e473e29fb9c7b8a",
+      "date": "2026-09-08",
+      "subject": "Remove Timeline from footer links"
+    },
+    {
+      "hash": "c784a5677ee1cc1412732d7598c3e1b42bf55114",
+      "date": "2026-09-08",
+      "subject": "Make all navigation items reorderable"
+    },
+    {
+      "hash": "0ccafd75382d41a087bfa785991a386604be1a0e",
+      "date": "2026-09-07",
+      "subject": "Fix mobile admin sidebar content shift"
+    },
+    {
+      "hash": "eb394da728a47da4d32a2e008b67076c1e3c1272",
+      "date": "2026-09-07",
+      "subject": "Compact recent edit timestamps"
+    },
+    {
+      "hash": "aaee07869a75a402866b11cefc4418144b07947c",
+      "date": "2026-09-07",
+      "subject": "Match admin navigation to public menu"
+    },
+    {
+      "hash": "585d16a8bda8dc8d02be23cb611d6a2e88230c8d",
+      "date": "2026-09-07",
+      "subject": "Use semibold links in prose"
+    },
+    {
+      "hash": "c9aecb044253d24eac166054ffc10240531bf42b",
+      "date": "2026-09-07",
+      "subject": "Patch transitive dependency advisories"
+    },
+    {
+      "hash": "2463b51901a1067b911b47e903484997c900af68",
+      "date": "2026-09-07",
+      "subject": "Mute continue reading heading"
+    },
+    {
+      "hash": "3ddd2e469a5d8d257ae85842919af7a779902ffe",
+      "date": "2026-09-07",
+      "subject": "Refine notes typography and link interactions"
+    },
+    {
+      "hash": "775fb77ca117041185fab0c7ef4fd4dcc0a91949",
+      "date": "2026-09-07",
+      "subject": "Match CI install to the lockfile"
+    },
+    {
+      "hash": "716c3d021a5b8765c0b06fb827a198de61d80f47",
+      "date": "2026-09-07",
+      "subject": "Shrink and prune static image assets"
+    },
+    {
+      "hash": "a2175e78755f3df307e9cf483c4c07f897e53bbd",
+      "date": "2026-09-07",
+      "subject": "Persist newsletter signup limits"
+    },
+    {
+      "hash": "5c9111f3fe4710b6f7c436c3544fa981fffd0453",
+      "date": "2026-09-07",
+      "subject": "Bound and validate public JSON requests"
+    },
+    {
+      "hash": "2e6ed8975bc4fad305a6562666f337fc355ad41c",
+      "date": "2026-09-07",
+      "subject": "Add crawl metadata and route fallbacks"
+    },
+    {
+      "hash": "b77507882fea8fc61417411d88af0f7b3da52c65",
+      "date": "2026-09-07",
+      "subject": "Add repeatable quality checks"
+    },
+    {
+      "hash": "a62e6ee2c5816b25098fa392db5f44cabf906b55",
+      "date": "2026-09-07",
+      "subject": "Remove dead code and declare direct imports"
+    },
+    {
+      "hash": "434fb9af088e190f4847c4808f831364d4228a92",
+      "date": "2026-09-07",
+      "subject": "Harden contact requests and response headers"
+    },
+    {
+      "hash": "74ebd78b17c2ab3ca7a7f1e0d5b6e1cd009687c1",
+      "date": "2026-09-07",
+      "subject": "Improve keyboard and motion accessibility"
+    },
+    {
+      "hash": "0e7df4d66be8feb4caf405593f5c7b7825b80aaa",
+      "date": "2026-09-07",
+      "subject": "Remove redundant local CMS media copies"
+    },
+    {
+      "hash": "6205257ae78cf08596e73fa6f521e18572ebb719",
+      "date": "2026-09-07",
+      "subject": "Build activity targets alongside feed queries"
+    },
+    {
+      "hash": "ec8ffb47fcb15e99498eedd727aaac4b7c1833fb",
+      "date": "2026-09-07",
+      "subject": "Synchronize mobile hero resizing and scope pagination visibility"
+    },
+    {
+      "hash": "d8ee55ad8365e79db89898c7725607dfe75adac8",
+      "date": "2026-09-07",
+      "subject": "Cache lean global shell queries"
+    },
+    {
+      "hash": "802bee2b4acdeb4256f2caa50f611940826050ee",
+      "date": "2026-09-07",
+      "subject": "Upgrade Payload and preserve R2 upload patches"
+    },
+    {
+      "hash": "ff300b19ec463a6038d1974e6bb3f6180d963d53",
+      "date": "2026-09-07",
+      "subject": "Align mobile admin sidebar content"
+    },
+    {
+      "hash": "c05fd6afa5395c69ab8b5231e4d9ea344da5c729",
+      "date": "2026-09-07",
+      "subject": "Add recent admin feed and mobile sidebar overlay"
+    },
+    {
+      "hash": "21499a6de9cdeba8c447ff10f9f3108a22894468",
+      "date": "2026-09-07",
+      "subject": "Patch Next React and image runtime dependencies"
+    },
+    {
+      "hash": "b2f2d09e4f51f5215d2f450c109413a7d1011c1e",
+      "date": "2026-09-07",
+      "subject": "Keep initial navigation labels consistent during hydration"
+    },
+    {
+      "hash": "b67708945b71f08b07983b891e271ca4c78d80a7",
+      "date": "2026-09-07",
+      "subject": "Remove Motion from the global site shell"
+    },
+    {
+      "hash": "ca344ef11edc02189783be26eba84824bd951d80",
+      "date": "2026-09-07",
+      "subject": "Window the homepage work marquee"
+    },
+    {
+      "hash": "65f372a394909821760ac2345c8b7cb35b80b800",
+      "date": "2026-09-07",
+      "subject": "Restore marquee position helper import"
+    },
+    {
+      "hash": "d29964a607fe541da2b042628f7752d85507a456",
+      "date": "2026-09-07",
+      "subject": "Refine mobile hero layout and remove refresh flash"
+    },
+    {
+      "hash": "7901462b967f3fe883643f4c725d68425f628132",
+      "date": "2026-09-07",
+      "subject": "Optimize CMS images with responsive R2 sources"
+    },
+    {
+      "hash": "af3c30ef03ea744897dbe1d18577f20a3376d65f",
+      "date": "2026-09-07",
+      "subject": "Fix mobile admin sidebar behavior"
+    },
+    {
+      "hash": "12d0b5ca4e5438b1e537c64d873cae19af2fc5e2",
+      "date": "2026-09-07",
+      "subject": "Separate timeline from admin navigation"
+    },
+    {
+      "hash": "61940f6a0898153d2c6e03fcc7ca98be67b59342",
+      "date": "2026-09-07",
+      "subject": "Improve mobile admin navigation and lists"
+    },
+    {
+      "hash": "dabc92f5343d0ea2f0b4a94b2a99ad8cffff72d0",
+      "date": "2026-09-07",
+      "subject": "Keep hero pill integration checks compatible with clean builds"
+    },
+    {
+      "hash": "64fddc59d2a644744df085b2c15059206e4abaae",
+      "date": "2026-09-07",
+      "subject": "Add editable per-slide hero pills to the Home CMS module"
+    },
+    {
+      "hash": "fe550c6252ff50205290866724cb723512f872b3",
+      "date": "2026-09-07",
+      "subject": "Normalize note heading hierarchy and spacing"
+    },
+    {
+      "hash": "0585af495ba2aa261ca806082b3f687643132919",
+      "date": "2026-09-07",
+      "subject": "Add CMS-backed capability and industry pills to hero slides"
+    },
+    {
+      "hash": "123a8df4ff515aa65a1ab96e62de897679c65460",
+      "date": "2026-09-07",
+      "subject": "Protect note highlights and improve mobile editor navigation"
+    },
+    {
+      "hash": "9c01d8c8bef3e667f28db9a93a616fe4515e111a",
+      "date": "2026-09-07",
+      "subject": "Use standard site logo on mobile Activity page"
+    },
+    {
+      "hash": "d5b609ac57f89963d6b0d199ed890798daaac834",
+      "date": "2026-09-07",
+      "subject": "Keep mobile hero heights stable during browser toolbar resizing"
+    },
+    {
+      "hash": "424f0dcb32a5c9ec593890d568bfcbb264fcfede",
+      "date": "2026-09-07",
+      "subject": "Increase note pill bounce and reduce entrance travel"
+    },
+    {
+      "hash": "ffe7a2b99bb931fee930b65b3b31e0a53694e99d",
+      "date": "2026-09-07",
+      "subject": "Verify stable pill width during visible entrance"
+    },
+    {
+      "hash": "02d58bba5da44c04a00dcf87e63c139114cb2821",
+      "date": "2026-09-07",
+      "subject": "Reveal note activity after loading and center social card titles"
+    },
+    {
+      "hash": "f9775dba0d5c0fb766d692eb0146764a7b80f66f",
+      "date": "2026-09-07",
+      "subject": "Keep reduced-motion marquee scrollable before hydration"
+    },
+    {
+      "hash": "da0f9eb14e9a409d443c80b337db3b921090433f",
+      "date": "2026-09-07",
+      "subject": "Add momentum dragging to the work marquee and square DC-1 cards"
+    },
+    {
+      "hash": "974a8a5867028391182779df11569064e99da847",
+      "date": "2026-09-06",
+      "subject": "Validate note image titles without generated CMS types"
+    },
+    {
+      "hash": "40e2a0efaa360b902f57552ca8a3b85e13f4bced",
+      "date": "2026-09-06",
+      "subject": "Generate custom social images for every published note"
+    },
+    {
+      "hash": "d2e8378579a6e06e380a15ae7724b71f66d0345f",
+      "date": "2026-09-06",
+      "subject": "Keep admin header anchored during overscroll"
+    },
+    {
+      "hash": "a1c6bc0a6654c8c7e9253b668c006c81ce6e491f",
+      "date": "2026-09-06",
+      "subject": "Fix editor headings, startup flashes, and module backgrounds"
+    },
+    {
+      "hash": "2dd011dda44d4c83706882429107566b90af8624",
+      "date": "2026-09-06",
+      "subject": "Refine site typography, note highlights, and activity"
+    },
+    {
+      "hash": "eef511c926dc36cbf9851a24cce83a412d876c2b",
+      "date": "2026-09-06",
+      "subject": "Use smaller heading styles for note recommendations"
+    },
+    {
+      "hash": "9ab76ae48da749b7730b09240a2127c66e01cb0c",
+      "date": "2026-09-06",
+      "subject": "Match notes editor typography to published notes"
+    },
+    {
+      "hash": "7827b7e2ac07fdc5b2f708ba45258a1ee880b1c2",
+      "date": "2026-09-06",
+      "subject": "Fix desktop note titles and use SF Mono for activity counts"
+    },
+    {
+      "hash": "750e4d7d3cae1faad5da0f6ae34a5e8db9ccd862",
+      "date": "2026-09-06",
+      "subject": "Reduce desktop note title size"
+    },
+    {
+      "hash": "8eb8e843092135256616111bf0203da957dd858c",
+      "date": "2026-09-06",
+      "subject": "Align note headings and refine note activity pill spacing"
+    },
+    {
+      "hash": "a4cfd567fbf851f2efa2bb6ace134d09ba5a6b92",
+      "date": "2026-09-06",
+      "subject": "Fix desktop notes layout, pill blur, and slideshow pagination"
+    },
+    {
+      "hash": "030ddfca934c92d9aec5da2f575c57ed938f0bf2",
+      "date": "2026-09-06",
+      "subject": "Match note pill heart color and outline zero-like state"
+    },
+    {
+      "hash": "ef0442befe23a4b467bbbcdc7d931ac6250d348d",
+      "date": "2026-09-06",
+      "subject": "Increase note activity pill outer horizontal padding"
+    },
+    {
+      "hash": "fade463e8421b711c6277ca93e9e84a2315a5d92",
+      "date": "2026-09-06",
+      "subject": "Show an auto-fading Views tooltip from the note pill"
+    },
+    {
+      "hash": "650355d1ebac2b52520cf335f9614730b987ea3c",
+      "date": "2026-09-06",
+      "subject": "Center highlights empty state with selection instructions"
+    },
+    {
+      "hash": "56f214b833cda09959e5165a0716fbd85ffa0cc5",
+      "date": "2026-09-06",
+      "subject": "Remove excess counter space inside note activity pill"
+    },
+    {
+      "hash": "c4365d0ccfdab686ae9f2556f1dc549e93195e1b",
+      "date": "2026-09-06",
+      "subject": "Tighten note activity pill spacing"
+    },
+    {
+      "hash": "847e7086d994e822b7eb661219fb488cb0a1ac4f",
+      "date": "2026-09-06",
+      "subject": "Preserve note highlights while the mobile sheet is open"
+    },
+    {
+      "hash": "6b19a52673ae7a9f0d5d19381607d32ff9ae481a",
+      "date": "2026-09-06",
+      "subject": "Hang punctuation in highlight excerpts"
+    },
+    {
+      "hash": "0f219bfd000d1285e627ea2f191269bb74321610",
+      "date": "2026-09-06",
+      "subject": "Match activity note titles to project links"
+    },
+    {
+      "hash": "6a672d898266c1ad3ac97d3168cd36c66d00b654",
+      "date": "2026-09-06",
+      "subject": "Add swipeable mobile highlights bottom sheet"
+    },
+    {
+      "hash": "4bd7506c23f52eb5b09a57e3676f4b5b1078046a",
+      "date": "2026-09-06",
+      "subject": "Show highlight locations and quote styling in activity"
+    },
+    {
+      "hash": "eae72a984109a26c8831229af4369c1d66f91499",
+      "date": "2026-09-06",
+      "subject": "Cycle through highlight readers in centered tooltip"
+    },
+    {
+      "hash": "4c8b437f54cd70812c588b4c6a364110721503ac",
+      "date": "2026-09-06",
+      "subject": "Simplify highlight tooltips and hide zero activity counts"
+    },
+    {
+      "hash": "936ebfe7992e9b0e3a501294d5062f6d807bfc67",
+      "date": "2026-09-06",
+      "subject": "Show location and time attribution for note highlights"
+    },
+    {
+      "hash": "9ef54d80e146e0ed5bf6fd503d19f074d14c9ae4",
+      "date": "2026-09-06",
+      "subject": "Include note highlights in the activity page"
+    },
+    {
+      "hash": "fdb0d513df4c46af208227fb36175eeca9f8fe5d",
+      "date": "2026-09-06",
+      "subject": "Dock the note activity pill at the end of the essay"
+    },
+    {
+      "hash": "27ff0b129933ee2bd9055440f147c7c3eb4ef098",
+      "date": "2026-09-06",
+      "subject": "Add minimal highlight visibility switch and clean popover focus"
+    },
+    {
+      "hash": "fc3f462c992f7574d3bea3a3bbd714d611ad47a0",
+      "date": "2026-09-06",
+      "subject": "Match note activity pill to the floating menu button"
+    },
+    {
+      "hash": "b156169a33d4243e9a99acafaacf692755d3899a",
+      "date": "2026-09-06",
+      "subject": "Add bottom-centered note activity pill with highlights and views"
+    },
+    {
+      "hash": "3ad0af25848d62463fd48e488f8ea48ec66a3acb",
+      "date": "2026-09-06",
+      "subject": "Keep highlight button directly above mobile selection"
+    },
+    {
+      "hash": "33eb436bcbdecd8486707c56274769a33b1238f7",
+      "date": "2026-09-06",
+      "subject": "Remove the note highlights visibility menu"
+    },
+    {
+      "hash": "e23aaaa2e278bdc13d5ea6eb39d394cbfc73f76e",
+      "date": "2026-09-06",
+      "subject": "Fix note highlight actions for touch selection"
+    },
+    {
+      "hash": "75635b1b6ea0c1c3e2d31685b3d4266fce531078",
+      "date": "2026-09-06",
+      "subject": "Simplify note selection to a highlight button"
+    },
+    {
+      "hash": "35856742c62a8d65c871576d9d5da53b92f22ec0",
+      "date": "2026-09-06",
+      "subject": "Add public highlights to notes"
+    },
+    {
+      "hash": "64ab4aebb716580e26e5a426c05cc0d07a11461d",
+      "date": "2026-09-06",
+      "subject": "Hide Notes email signup"
+    },
+    {
+      "hash": "36c18efeb65b05e17df4f6650e3d998cc2a7ea66",
+      "date": "2026-09-06",
+      "subject": "Tighten note title date spacing"
+    },
+    {
+      "hash": "f75c99ece6163098f48d99a34b2f46a609909b69",
+      "date": "2026-09-06",
+      "subject": "Restore exposed Notes subscribe button"
+    },
+    {
+      "hash": "6574579781f569430b5268890128df64aa2199bb",
+      "date": "2026-09-06",
+      "subject": "Guarantee note title date spacing"
+    },
+    {
+      "hash": "08cf5d4e6527831608a819e9c88dd8f01f69c187",
+      "date": "2026-09-06",
+      "subject": "Refine note footer hierarchy"
+    },
+    {
+      "hash": "fc2d9295b5795c73f04fe62a381e1b9de509a69b",
+      "date": "2026-09-06",
+      "subject": "Show dates on note pages"
+    },
+    {
+      "hash": "3357040e731de25cee419f8325079ba3c5313a21",
+      "date": "2026-09-06",
+      "subject": "Show three note recommendations"
+    },
+    {
+      "hash": "d7bba4ffaeabbccdf3ee34593aa7f7612196f23c",
+      "date": "2026-09-06",
+      "subject": "Darken light mode body text"
+    },
+    {
+      "hash": "1315bf2ba33b886b0b684a1ce18508c5d267e1eb",
+      "date": "2026-09-06",
+      "subject": "Stabilize mobile hero snap targets across browser chrome changes"
+    },
+    {
+      "hash": "8bfb1923c7b4f6641874842104988a1d31d1d138",
+      "date": "2026-09-06",
+      "subject": "Unify rich text link styling"
+    },
+    {
+      "hash": "702c35cc8391feb806df6fd0d7fd4a6bb5ea9f6a",
+      "date": "2026-09-06",
+      "subject": "Share Notes and Timeline body styles"
+    },
+    {
+      "hash": "6144ca4844db58f5645e6aebf12332c6ec42050d",
+      "date": "2026-09-06",
+      "subject": "Match Timeline body text color"
+    },
+    {
+      "hash": "3f6c9dabae7d828c7d4071e08a0ee6921609e690",
+      "date": "2026-09-06",
+      "subject": "Keep mobile hero pagination stationary across slides"
+    },
+    {
+      "hash": "c74a5c846b3fe34e7181bf4baf14cf37c95ac8c5",
+      "date": "2026-09-06",
+      "subject": "Lighten dark mode body text"
+    },
+    {
+      "hash": "a3117aa4308c1822457606e298044f0136bae56f",
+      "date": "2026-09-06",
+      "subject": "Refine Notes headings and links"
+    },
+    {
+      "hash": "6471f0299e0502f8a21a093cd666b5573396818b",
+      "date": "2026-09-06",
+      "subject": "Match Notes body text color"
+    },
+    {
+      "hash": "13ff62355ad41c849a669a1e3c0d5202a9f603b0",
+      "date": "2026-09-06",
+      "subject": "Fix republishing edited Notes"
+    },
+    {
+      "hash": "ea3c638edee4f3607fdb6a045d5047ff349f7cea",
+      "date": "2026-09-06",
+      "subject": "Hide image link labels in Notes editor"
+    },
+    {
+      "hash": "927bdbfd7a4c0c78cb650e33ad309a53744356af",
+      "date": "2026-09-06",
+      "subject": "Truncate related note title"
+    },
+    {
+      "hash": "8939f42f724de1106e19af816eea12dacc8723e4",
+      "date": "2026-09-06",
+      "subject": "Move related Note into like row"
+    },
+    {
+      "hash": "65dd2ca7175920ba5e65de6c6bfa7ad3c9ea10ef",
+      "date": "2026-09-06",
+      "subject": "Move Notes subscribe action into input"
+    },
+    {
+      "hash": "207c4b66c99d738d5712252b14333ceba9ff3149",
+      "date": "2026-09-06",
+      "subject": "Align Notes signup with site forms"
+    },
+    {
+      "hash": "015cefff537d5ca79da21f39042dea4aa8702424",
+      "date": "2026-09-06",
+      "subject": "Refine Notes email signup"
+    },
+    {
+      "hash": "7dc4bf1198b7e98991977489b2df7a9276cd274f",
+      "date": "2026-09-05",
+      "subject": "Make Notes feed types build-safe"
+    },
+    {
+      "hash": "eb439cd27bb9816f3555b0dfcc4468745e853d06",
+      "date": "2026-09-05",
+      "subject": "Add RSS and email subscriptions for Notes"
+    },
+    {
+      "hash": "753f72c38cd488a3ce8bb20aedade22e56116790",
+      "date": "2026-09-05",
+      "subject": "Move Notes below Playground in CMS navigation"
+    },
+    {
+      "hash": "1c076f44527de498db9638ed1e6d618eff3cd418",
+      "date": "2026-09-05",
+      "subject": "Add spacing below note H2 headings"
+    },
+    {
+      "hash": "01aafffa9f3f12451791581c5fb3d5813a711feb",
+      "date": "2026-09-05",
+      "subject": "Add Notes to site navigation"
+    },
+    {
+      "hash": "8b7b6cae39dfa8363ead91d77b11231a1e73d295",
+      "date": "2026-09-05",
+      "subject": "Render note images after editor mount"
+    },
+    {
+      "hash": "77e1739375e4065fe85ad19dd8086fcb441dbc20",
+      "date": "2026-09-05",
+      "subject": "Show linked images in notes editor"
+    },
+    {
+      "hash": "b9c513b811c62a1c3cfd99e0a04aba3653653bd2",
+      "date": "2026-09-05",
+      "subject": "Support dark mode in notes editor"
+    },
+    {
+      "hash": "9eefccc92b3fd1676f49be51aad3b8fc7068fc22",
+      "date": "2026-09-05",
+      "subject": "Use normal wrapping for Approach headings"
+    },
+    {
+      "hash": "8e76d131d13f7297155352874e5a6d7f81d9167a",
+      "date": "2026-09-05",
+      "subject": "Refine continue reading typography"
+    },
+    {
+      "hash": "124751868d7e8ba8dbed49b817ba32047ac46218",
+      "date": "2026-09-05",
+      "subject": "Release mobile pagination when scrolling into Approach"
+    },
+    {
+      "hash": "99f5e115b98e522c1acfe68f905a22733e340ca1",
+      "date": "2026-09-05",
+      "subject": "Add likes to notes"
+    },
+    {
+      "hash": "504760a4f0f51fd61e611683bd65de51e514bbcc",
+      "date": "2026-09-05",
+      "subject": "Use neutral note summaries"
+    },
+    {
+      "hash": "2e58d82aabf21dba46e552c80ade1c469432df44",
+      "date": "2026-09-05",
+      "subject": "Render note images inline"
+    },
+    {
+      "hash": "cd82e006c48460916703be3bc9a99b4145dbf14e",
+      "date": "2026-09-05",
+      "subject": "Soften continue reading summary"
+    },
+    {
+      "hash": "102cc1fd9f350b89f044eeab1ae0eff3468265d0",
+      "date": "2026-09-05",
+      "subject": "Reduce continue reading gap"
+    },
+    {
+      "hash": "087a4e928d26ebd757f6cda5d0c23a969c611471",
+      "date": "2026-09-05",
+      "subject": "Fix continue reading gap"
+    },
+    {
+      "hash": "f39d33d52c7f339d897a0a450eeec9b0e6e66e86",
+      "date": "2026-09-05",
+      "subject": "Fix continue reading spacing"
+    },
+    {
+      "hash": "fd52e747970a856caddc263fab1783fca2a01171",
+      "date": "2026-09-05",
+      "subject": "Refine continue reading section"
+    },
+    {
+      "hash": "41274dd20a63bd4825af51ce9922d098c9289705",
+      "date": "2026-09-05",
+      "subject": "Add note H3 spacing"
+    },
+    {
+      "hash": "ff8f6605b42e1cfe5efd4e5c417984d6df2d1382",
+      "date": "2026-09-05",
+      "subject": "Add mobile hero project arrow links"
+    },
+    {
+      "hash": "7d349dde3f51a0bab87bf8241568ae28d6ea0ed7",
+      "date": "2026-09-05",
+      "subject": "Underline note links"
+    },
+    {
+      "hash": "6039ca8b17e13b45b323a41be4d8ee9467f15a19",
+      "date": "2026-09-05",
+      "subject": "Increase note heading spacing"
+    },
+    {
+      "hash": "9ee85930a19c53a9e4c6c64926a36dda78023e4e",
+      "date": "2026-09-05",
+      "subject": "Refine read next cards"
+    },
+    {
+      "hash": "f88a6223e88ef65a754d9cdc2b6554599a0e1e58",
+      "date": "2026-09-05",
+      "subject": "Use real mobile slides for native page snapping"
+    },
+    {
+      "hash": "e5d2dae922d4de7114fde094ec9d83f014b153a3",
+      "date": "2026-09-05",
+      "subject": "Fix mobile bulk action bar"
+    },
+    {
+      "hash": "5086aec6a001319a3e7db291dfc48de2e225cbb3",
+      "date": "2026-09-05",
+      "subject": "Polish mobile Notes controls"
+    },
+    {
+      "hash": "85cec8770546ce7b68ee8b73eeca9383f4107484",
+      "date": "2026-09-05",
+      "subject": "Correct mobile hero snap height"
+    },
+    {
+      "hash": "0ce819e6a41618be759282133ef9d8484fd7e03b",
+      "date": "2026-09-05",
+      "subject": "Type related Note previews"
+    },
+    {
+      "hash": "7c30d0eac1dbd6c0da1d1ff0643dd3617d79521c",
+      "date": "2026-09-05",
+      "subject": "Support deployed Note ID types"
+    },
+    {
+      "hash": "32ae6a0e83349c51e55c06a04fae8654c95e26dc",
+      "date": "2026-09-05",
+      "subject": "Add read next to Note articles"
+    },
+    {
+      "hash": "62e6c5eba3e953da5cb2040ab9e75fcf77afff6d",
+      "date": "2026-09-05",
+      "subject": "Add spacing above Note headings"
+    },
+    {
+      "hash": "dc1df756284a62405f361d55c9edf0fe230bc5f6",
+      "date": "2026-09-05",
+      "subject": "Use full opacity on Note articles"
+    },
+    {
+      "hash": "ae60201859d79fc4596c9a3136bbd0cfd9bde799",
+      "date": "2026-09-05",
+      "subject": "Simplify Note article headers"
+    },
+    {
+      "hash": "c98c032d00dbc45884e5d6da2f9c1157380b77d5",
+      "date": "2026-09-05",
+      "subject": "Group Notes index by year"
+    },
+    {
+      "hash": "f56978d22e57232b5bcbd793c3b31e1b31315626",
+      "date": "2026-09-05",
+      "subject": "Simplify mobile hero pagination"
+    },
+    {
+      "hash": "b8a274dbbc23c370663d8ee8dd1cef416efba37f",
+      "date": "2026-09-05",
+      "subject": "Add date-safe Notes publishing"
+    },
+    {
+      "hash": "7b8fb15f635b1379b13171dae3e1136e63675809",
+      "date": "2026-09-05",
+      "subject": "Fix Notes import status summary"
+    },
+    {
+      "hash": "5a90b789b969ad99a723000dd107812a68334c1c",
+      "date": "2026-09-05",
+      "subject": "Import Patina essays into Notes"
+    },
+    {
+      "hash": "fce4a619484a199faa6bdf2455c1b2b25ed9714c",
+      "date": "2026-09-05",
+      "subject": "Fix mobile collection controls"
+    },
+    {
+      "hash": "4d4282202aca0e6912a2507f36041062aa4f8b5a",
+      "date": "2026-09-05",
+      "subject": "Smooth mobile hero approach transition"
+    },
+    {
+      "hash": "30d5a110ad01f5ea4f24f4b601e89bead22cc6e0",
+      "date": "2026-09-05",
+      "subject": "Snap mobile hero into approach"
+    },
+    {
+      "hash": "154de07ff0a4121637d4e36841a75f25fc7c7efe",
+      "date": "2026-09-05",
+      "subject": "Fix dashboard timeline duplication"
+    },
+    {
+      "hash": "b9779b33244bbd3453c4bf333dd2afa92711edd2",
+      "date": "2026-09-05",
+      "subject": "Simplify mobile hero pagination"
+    },
+    {
+      "hash": "85dfef99133214f3663c64c37c873cb5257a33e5",
+      "date": "2026-09-05",
+      "subject": "Scope hero pagination to fullscreen"
+    },
+    {
+      "hash": "f2651ec1f354b28f26cf4889f9249bdf4b13d33a",
+      "date": "2026-09-05",
+      "subject": "Update page and note icons"
+    },
+    {
+      "hash": "ea35ebd729d63a2e9608683032ab97fd8e4535b2",
+      "date": "2026-09-05",
+      "subject": "Use native snap pagination for mobile hero"
+    },
+    {
+      "hash": "0751629b3d049b09eb0022ef2afb86c0bda2f242",
+      "date": "2026-09-05",
+      "subject": "Polish dashboard recents"
+    },
+    {
+      "hash": "b592e5323949e11f01b6038340199d6385a71d4b",
+      "date": "2026-09-05",
+      "subject": "Refine dashboard cards"
+    },
+    {
+      "hash": "415ef4f7771e9993ae663d092df1538cddfb7458",
+      "date": "2026-09-05",
+      "subject": "Tighten mobile hero pagination"
+    },
+    {
+      "hash": "bc15fb15dda2d936dde4e62a16a2cfad62ad40d8",
+      "date": "2026-09-05",
+      "subject": "Expand dashboard recent content"
+    },
+    {
+      "hash": "ed6c65c4f0e1733dc4c0a7a7f1afaabbbc64d220",
+      "date": "2026-09-05",
+      "subject": "Make mobile hero track native scrolling"
+    },
+    {
+      "hash": "22a3cc19aeb3e8f526aeec6f52620b9d7089827a",
+      "date": "2026-09-05",
+      "subject": "Add recently edited pages to dashboard"
+    },
+    {
+      "hash": "40320da22469fed944060e7d5d918415fcaec5c8",
+      "date": "2026-09-05",
+      "subject": "Add mobile swipe pagination"
+    },
+    {
+      "hash": "354f501763ee63c1cad94ba7ba5406dc1ac3e163",
+      "date": "2026-09-05",
+      "subject": "Align Notes body text"
+    },
+    {
+      "hash": "9b2c52b89c466f2fef29b7ca2cede064243e5c5a",
+      "date": "2026-09-05",
+      "subject": "Improve Notes title and menu"
+    },
+    {
+      "hash": "17db9dc59831e8175967ce8599cd16c6acd7e1d6",
+      "date": "2026-09-05",
+      "subject": "Fix Notes title and block control"
+    },
+    {
+      "hash": "7cd7786a61ea9766faa90e440f7a3161a8c3acb7",
+      "date": "2026-09-05",
+      "subject": "Polish Notes title field"
+    },
+    {
+      "hash": "437ae42b4902fcbde010dc6164a56c781e3c97bc",
+      "date": "2026-09-05",
+      "subject": "Release mobile hero scroll boundaries"
+    },
+    {
+      "hash": "ec1d8534e357cef46fc04b6158188467bdc0a442",
+      "date": "2026-09-05",
+      "subject": "Refine mobile hero interactions"
+    },
+    {
+      "hash": "d72708495e7cf9aebfbcd8ef8195c6476bd0d141",
+      "date": "2026-09-05",
+      "subject": "Refine Notes writing canvas"
+    },
+    {
+      "hash": "684ddfe22ecb1fe7eab03c073a1dd0f2d88ece61",
+      "date": "2026-09-05",
+      "subject": "Simplify Notes editor"
+    },
+    {
+      "hash": "9fb5cdb1b1b9ae5567b298aa52630fea69258e95",
+      "date": "2026-09-05",
+      "subject": "Improve mobile hero slideshow"
+    },
+    {
+      "hash": "32935601bf98cc3a8b9aca23c72a57e29cbab859",
+      "date": "2026-09-05",
+      "subject": "Add Notes publishing CMS"
+    },
+    {
+      "hash": "4f1f244257d399bc03411a552df11cfb43d69433",
+      "date": "2026-09-05",
+      "subject": "Fix clean deploy and light hero controls"
+    },
+    {
+      "hash": "19bf93b0b18312fdd88ed8831eb1aad6b9678c61",
+      "date": "2026-09-05",
+      "subject": "Normalize hero migration IDs"
+    },
+    {
+      "hash": "f8fd21af2666128ef9018b9b72ce65e33d14426d",
+      "date": "2026-09-05",
+      "subject": "Move hero editor into Payload CMS"
+    },
+    {
+      "hash": "374364b141e53a5d4dd339bbf22ade21cc5ffbb5",
+      "date": "2026-09-05",
+      "subject": "Make hero slideshow content editable"
+    },
+    {
+      "hash": "9896ae01553961fb613535bd4330c7c335b51ac1",
+      "date": "2026-09-05",
+      "subject": "Align mobile approach content"
+    },
+    {
+      "hash": "2d5206cebd4d820861a963bee00a6323a8d15e74",
+      "date": "2026-09-05",
+      "subject": "Fix mobile home interactions"
+    },
+    {
+      "hash": "cb2d5ec4802fce946e4bd7403c41213ee076b784",
+      "date": "2026-09-05",
+      "subject": "Merge remote-tracking branch 'origin/master'"
+    },
+    {
+      "hash": "d7e99871ed3960f0920d3c74a6a81fcd01335cb3",
+      "date": "2026-09-05",
+      "subject": "Refresh portfolio experience and content"
+    },
+    {
+      "hash": "f7621fdf1ffc915fd81218e65777ff71bb4b2e69",
+      "date": "2026-08-30",
+      "subject": "Add padding to phone feed modules"
+    },
+    {
+      "hash": "859f0bd6409c0c9458811b43a1137caf378d5fd8",
+      "date": "2026-08-30",
+      "subject": "Revert mobile back size increase"
+    },
+    {
+      "hash": "19bdbcaca7137b98deea6ce332b005d766f41d99",
+      "date": "2026-08-30",
+      "subject": "Match mobile back header typography"
+    },
+    {
+      "hash": "aa1b2ee37dc9009bae2a3e48c9dff1a252c710a0",
+      "date": "2026-08-30",
+      "subject": "Add mobile activity back action"
+    },
+    {
+      "hash": "26a132f0bb0a3e8093dc0dc53d61f86eca4e3387",
+      "date": "2026-08-30",
+      "subject": "Align activity controls with site header"
+    },
+    {
+      "hash": "ef48a98d5b52b000b8fa501d0a8b21e91f235c96",
+      "date": "2026-08-30",
+      "subject": "Use Figma flags and shared activity toggle"
+    },
+    {
+      "hash": "03a6701afe6bd81f9b4200016b68aa684b58f2e6",
+      "date": "2026-08-30",
+      "subject": "Overlay activity flag strokes"
+    },
+    {
+      "hash": "cbc6793caa13e0ef66e9119e384736fb44fadcea",
+      "date": "2026-08-30",
+      "subject": "Refine activity flag styling"
+    },
+    {
+      "hash": "53b145ec596b9de675b169c82a385ed80314ce26",
+      "date": "2026-08-30",
+      "subject": "Use sourced flag images in activity"
+    },
+    {
+      "hash": "5c843a60d3040526c48d3ee760ba252dd5f21d93",
+      "date": "2026-08-30",
+      "subject": "Refine activity locations and chat sessions"
+    },
+    {
+      "hash": "6c28f94eef69ba49915b770da065efb3185286df",
+      "date": "2026-08-30",
+      "subject": "Show chat locations in activity"
+    },
+    {
+      "hash": "d6d4ae3ffef50c08d58f5cd16e8af6ce82c0f9d8",
+      "date": "2026-08-30",
+      "subject": "Include chats in activity feed"
+    },
+    {
+      "hash": "6aa44ea5a19564662deee49e85ad6e257ea5616c",
+      "date": "2026-08-26",
+      "subject": "Keep timeline current through today"
+    },
+    {
+      "hash": "a9cfd53c31e76490c18cbb305142b3810760c9e8",
+      "date": "2026-08-23",
+      "subject": "Link About bio to timeline"
+    },
+    {
+      "hash": "4df3711f85c08e3f8e0ef4aadf7affb39be303ca",
+      "date": "2026-08-23",
+      "subject": "Keep portfolio chat in character"
+    },
+    {
+      "hash": "9e6c33888d3e207fd358a527f0695e4783adc4ba",
+      "date": "2026-08-23",
+      "subject": "Render chat bullet lists"
+    },
+    {
+      "hash": "738719f7e5669286c3f2224386f0ed340ab100a0",
+      "date": "2026-08-22",
+      "subject": "Fix portfolio chat follow-ups"
+    },
+    {
+      "hash": "32e40cc574aee3cc1c52063a93c45af18ea5b47a",
+      "date": "2026-08-22",
+      "subject": "Hide news beyond timeline present"
+    },
+    {
+      "hash": "7b2de21db6807b6ece9fbeec772ac6dfd3e37052",
+      "date": "2026-08-22",
+      "subject": "Allow timeline age scrub beyond present"
+    },
+    {
+      "hash": "419f0727ff092dce101106e5f5534b60dcde2ac6",
+      "date": "2026-08-22",
+      "subject": "Hide future timeline metadata"
+    },
+    {
+      "hash": "641ad692acf4886dcb48f5e7eb496c242ba5f055",
+      "date": "2026-08-22",
+      "subject": "Optimize timeline skeleton asset"
+    },
+    {
+      "hash": "5ef03b4cccb6faeceed2c49b720f24f21e9444eb",
+      "date": "2026-08-22",
+      "subject": "Add timeline future age easter egg"
+    },
+    {
+      "hash": "fe0bd088fa55b7fb3865e2e1d5eb0afa327ec7d6",
+      "date": "2026-08-22",
+      "subject": "Shorten timeline age scrub distance"
+    },
+    {
+      "hash": "90c9018ab6d99845d7c4b08f877992d8bb3a7fd2",
+      "date": "2026-08-22",
+      "subject": "Anchor age portrait above value"
+    },
+    {
+      "hash": "d74067c64cce63d3c6ade4ea570246edbeaae11b",
+      "date": "2026-08-22",
+      "subject": "Expand timeline age hover target"
+    },
+    {
+      "hash": "56b4306c6ebfcd5974fe8faef68fb25d1c64f2a1",
+      "date": "2026-08-22",
+      "subject": "Merge early Cuba timeline locations"
+    },
+    {
+      "hash": "82252b98521adafc8f57edb275c44a68dae742a5",
+      "date": "2026-08-22",
+      "subject": "Invert timeline horizontal scrubbing"
+    },
+    {
+      "hash": "1096774cea9a2bf5aa44e9159864a55b6d6ee1ae",
+      "date": "2026-08-22",
+      "subject": "Improve timeline scrubbing and date picker"
+    },
+    {
+      "hash": "025b7b778ffe752f76422d5d0285dee9848771f1",
+      "date": "2026-08-22",
+      "subject": "Add timeline age portraits"
+    },
+    {
+      "hash": "2ec4d2f453f2cd3be2e374091528758e489f73ca",
+      "date": "2026-08-21",
+      "subject": "Increase timeline globe rotation"
+    },
+    {
+      "hash": "61ab8e9418e9cabf7bba0d720a2b33f1e9ed32fa",
+      "date": "2026-08-21",
+      "subject": "Increase timeline globe rotation"
+    },
+    {
+      "hash": "966819367bdf8cbfe4bf3f7db46472f03ceef041",
+      "date": "2026-08-21",
+      "subject": "Add subtle globe hover parallax"
+    },
+    {
+      "hash": "f7625c9f9af632a9b4cfb1a9714039dbd7ac2651",
+      "date": "2026-08-21",
+      "subject": "Add subtle globe hover parallax"
+    },
+    {
+      "hash": "ec8f582ddf447efb2398175f41cf5cc69c5cacb0",
+      "date": "2026-08-21",
+      "subject": "Use solid land shapes for timeline globe"
+    },
+    {
+      "hash": "4ee431acc54c03ae498d88bd2b22efbd3d3f3597",
+      "date": "2026-08-21",
+      "subject": "Use solid land shapes for timeline globe"
+    },
+    {
+      "hash": "92ec218226080dc4f82e03b59b7fd8239aa1ba21",
+      "date": "2026-08-20",
+      "subject": "Add location globe to timeline"
+    },
+    {
+      "hash": "12dc10091b9edc38e8b441f623e063ec345b36b9",
+      "date": "2026-08-20",
+      "subject": "Add location globe to timeline"
+    },
+    {
+      "hash": "431aff33fbc2947f0b7d978256021e2e4a634fc5",
+      "date": "2026-08-20",
+      "subject": "Reduce desktop timeline scroll sensitivity"
+    },
+    {
+      "hash": "d282892f567a1f1c99c478ab63873e02ffa21a31",
+      "date": "2026-08-20",
+      "subject": "Add Tampa news for 2012"
+    },
+    {
+      "hash": "b047ff55599ce2e472f1cf42a5d3ee12df32eaf8",
+      "date": "2026-08-20",
+      "subject": "Add Tampa news for 2012"
+    },
+    {
+      "hash": "c1c81baea4b7e7040b571585d6dfcf44908361f1",
+      "date": "2026-08-20",
+      "subject": "Restore Website module presentation"
+    },
+    {
+      "hash": "6eaed4a2bd9d23ae81fa295b6483aa60a88fd838",
+      "date": "2026-08-20",
+      "subject": "Add Brooklyn timeline location"
+    },
+    {
+      "hash": "66264f83e432ce405d42c7b5d6c7a0ffd7e09ac0",
+      "date": "2026-08-20",
+      "subject": "Add city-level timeline locations"
+    },
+    {
+      "hash": "b7eca8b8685c2b79d42dc75436e539be327f2d09",
+      "date": "2026-08-20",
+      "subject": "Link timeline news to direct articles"
+    },
+    {
+      "hash": "b772ed5ca88228a89f48453363f883bdda2f54a1",
+      "date": "2026-08-20",
+      "subject": "Fix footer timeline transition"
+    },
+    {
+      "hash": "d709e6dba6e3fa3ff3a00072ae59cfb5f0345f6b",
+      "date": "2026-08-20",
+      "subject": "Keep timeline viewport anchored"
+    },
+    {
+      "hash": "d22b861a53d49e5940dd35a7d66ed67e97094902",
+      "date": "2026-08-20",
+      "subject": "Add timeline to footer"
+    },
+    {
+      "hash": "91a1210070446edecb169aa19f4ffdcf63e4d872",
+      "date": "2026-08-20",
+      "subject": "Start timeline at prologue"
+    },
+    {
+      "hash": "a604c2264ccda5c1dc01c37516ec198122352406",
+      "date": "2026-08-20",
+      "subject": "Store timeline links in CMS"
+    },
+    {
+      "hash": "dc56693a5043679f5d2495c3ee8a0897385386f4",
+      "date": "2026-08-20",
+      "subject": "Position mobile timeline popover"
+    },
+    {
+      "hash": "e4c8803fbe1a5f5c800870b466f8011df5780785",
+      "date": "2026-08-20",
+      "subject": "Emphasize timeline links"
+    },
+    {
+      "hash": "13e8da6d63e99bad5a903db417c54945fc9299f3",
+      "date": "2026-08-20",
+      "subject": "Link timeline people and projects"
+    },
+    {
+      "hash": "9abf3ae4cd49763319d1bbd6e7f88d870fa77fef",
+      "date": "2026-08-20",
+      "subject": "Match mobile timeline gradient to theme"
+    },
+    {
+      "hash": "2a46ffd693256729d491917a4c4c0e981d0c76d5",
+      "date": "2026-08-20",
+      "subject": "Add mobile timeline chapter taps"
+    },
+    {
+      "hash": "5d168ffba5e14c20526556145ce9ed7d0e3cb4a9",
+      "date": "2026-08-20",
+      "subject": "Keep mobile timeline above browser chrome"
+    },
+    {
+      "hash": "fefe890945f057f1ef994a1201b3a409799018c9",
+      "date": "2026-08-20",
+      "subject": "Improve timeline scrubbing and navigation"
+    },
+    {
+      "hash": "82decac32109a5776e4a7da8267ac665f46e934d",
+      "date": "2026-08-19",
+      "subject": "Use rich text for timeline chapters"
+    },
+    {
+      "hash": "357c8967ae22ca46e793029c2188fe7673fc43ed",
+      "date": "2026-08-19",
+      "subject": "Add editable timeline CMS"
+    },
+    {
+      "hash": "fb08ebee7718c6ff1238bc8756c44680cb43b18f",
+      "date": "2026-08-19",
+      "subject": "Rewrite timeline chapters"
+    },
+    {
+      "hash": "07e4fedd06fb6deb1b1c9d9cd5afb15fc34017e5",
+      "date": "2026-08-19",
+      "subject": "Anchor mobile timeline to visible viewport"
+    },
+    {
+      "hash": "403e18ccd65e0898e4c01f6872765c5efbb0acaa",
+      "date": "2026-08-19",
+      "subject": "Keep mobile timeline above Safari chrome"
+    },
+    {
+      "hash": "c66ab70bba038f0039dedef1db833dd86726757a",
+      "date": "2026-08-19",
+      "subject": "Refine mobile timeline pull cues"
+    },
+    {
+      "hash": "0d093bfb63aad946d647c12a62a82e8d89647452",
+      "date": "2026-08-19",
+      "subject": "Tune mobile chapter cue motion"
+    },
+    {
+      "hash": "8d85e1052ee7aa9ee9b9ac3130a3141b0b145ac9",
+      "date": "2026-08-19",
+      "subject": "Reposition mobile chapter cues"
+    },
+    {
+      "hash": "81ca46d9198fb42fe291934fbe119fbf07cdf1d7",
+      "date": "2026-08-19",
+      "subject": "Refine mobile chapter pull interaction"
+    },
+    {
+      "hash": "c1bb0cf05f0fc233065c8d2a63093ad469a63be8",
+      "date": "2026-08-19",
+      "subject": "Fix mobile timeline chrome offset"
+    },
+    {
+      "hash": "6304d1a4df4945f4bc8070e96bbd8a8123e0166a",
+      "date": "2026-08-19",
+      "subject": "Correct mobile timeline boundaries"
+    },
+    {
+      "hash": "cadd304e568f8632b6d86ad1b43e93868b5e86d1",
+      "date": "2026-08-19",
+      "subject": "Split mobile chapter prompt anchors"
+    },
+    {
+      "hash": "2a91a0a5cd9a2b9c63481f213b37efc162072894",
+      "date": "2026-08-19",
+      "subject": "Anchor mobile chapter prompts"
+    },
+    {
+      "hash": "d5110c27716dd2c89746ffc1a04f873b709fb8ab",
+      "date": "2026-08-19",
+      "subject": "Reset mobile chapters when scrubbing"
+    },
+    {
+      "hash": "2a7fe5d86e5a0c4bbb10280e5f24e55ac0618bf9",
+      "date": "2026-08-19",
+      "subject": "Remove mobile timeline top inset"
+    },
+    {
+      "hash": "3b6f90f00eb46a7f444c4fe7764c1c7d39bb839e",
+      "date": "2026-08-19",
+      "subject": "Keep mobile timeline above browser chrome"
+    },
+    {
+      "hash": "7ec13e653e5725d002af26f16b889ba2def9c2f1",
+      "date": "2026-08-19",
+      "subject": "Align timeline gutters and scroll masks"
+    },
+    {
+      "hash": "af1bf031f7acf0d17e632738db8cf16971a5f7f4",
+      "date": "2026-08-19",
+      "subject": "Unify timeline chapter navigation"
+    },
+    {
+      "hash": "f85a7689284bb541ed6a62496a2007b617909272",
+      "date": "2026-08-19",
+      "subject": "Lock compact timeline popover position"
+    },
+    {
+      "hash": "45a85c05d0c7dae05a6058038b90450c0974147b",
+      "date": "2026-08-19",
+      "subject": "Refine compact timeline hover details"
+    },
+    {
+      "hash": "531d9270eaabff594e09e3435da22827fe8824c7",
+      "date": "2026-08-19",
+      "subject": "Refine timeline metadata and scroll edge"
+    },
+    {
+      "hash": "683a4f4de0ffdc101c4d880f49e19c726d9c0a51",
+      "date": "2026-08-19",
+      "subject": "Align timeline news arrow with text"
+    },
+    {
+      "hash": "0ef66330cfdea6f0f44d2f6a1f168567c161b6f8",
+      "date": "2026-08-19",
+      "subject": "Reuse site hover arrow in timeline"
+    },
+    {
+      "hash": "052d5f4c310c9f11822c34a18c1b9b1398f76179",
+      "date": "2026-08-19",
+      "subject": "Add external-link cue to timeline news"
+    },
+    {
+      "hash": "4b6c65567c3e5f300b78af5c01c6bed93653bd46",
+      "date": "2026-08-19",
+      "subject": "Link timeline news to Wikipedia"
+    },
+    {
+      "hash": "1f16969dd25e202cfb058cdf27f62ca070c7724f",
+      "date": "2026-08-19",
+      "subject": "Label birth age as newborn"
+    },
+    {
+      "hash": "b60f8167f52d4a68957f6ff1a5c473baf5d613d8",
+      "date": "2026-08-19",
+      "subject": "Add interactive life timeline"
+    },
+    {
+      "hash": "0ce251b9deeb56c87016a0ee7f9da2492fa37f53",
+      "date": "2026-08-11",
+      "subject": "Scale photo columns with viewport"
+    },
+    {
+      "hash": "5b781e18cbbd5d01220bc950675a16bff202637c",
+      "date": "2026-08-11",
+      "subject": "Make Payload postinstall patch idempotent"
+    },
+    {
+      "hash": "232a165d9ed4898f91dad28ae233f47d8fbc1d00",
+      "date": "2026-08-11",
+      "subject": "Make photo gallery full width"
+    },
+    {
+      "hash": "9bae6ca972d79eedbd0ce6514d0b48af8e250391",
+      "date": "2026-07-27",
+      "subject": "Use upload handler for inline image uploads"
+    },
+    {
+      "hash": "786c35ee1107cd6ccb464e2965ae6bd780e1739a",
+      "date": "2026-07-27",
+      "subject": "Add inline upload progress state"
+    },
+    {
+      "hash": "6f7260ab0c22af530444f78f7406ae2e08323bf5",
+      "date": "2026-07-27",
+      "subject": "Upload media inline from fields"
+    },
+    {
+      "hash": "58af87d1c4356d501a044334eae1850e93c446a7",
+      "date": "2026-07-27",
+      "subject": "Fix Payload drag upload autosave"
+    },
+    {
+      "hash": "a9379ab8b5fcb694b46edd410d6280534f8a6b45",
+      "date": "2026-07-27",
+      "subject": "Update media upload and photo flows"
+    },
+    {
+      "hash": "7680e04a72ce6dd801638aa7fbfad812950530ff",
+      "date": "2026-07-20",
+      "subject": "Add masonry media admin view"
+    },
+    {
+      "hash": "dc1b790ba6611b220148af164ea9d31db420c068",
+      "date": "2026-07-19",
+      "subject": "Support trackpad pinch in photo lightbox"
+    },
+    {
+      "hash": "cdf2c8d5ee36bd366073d598c454094b6541ede8",
+      "date": "2026-07-19",
+      "subject": "Add photo lightbox zoom interactions"
+    },
+    {
+      "hash": "5470fdc1e066066cee69b1a0576db6eabe481d36",
+      "date": "2026-07-18",
+      "subject": "Fix mobile photo detail preview clipping"
+    },
+    {
+      "hash": "520e548de0d9c5eb7ba33b339eb5652accf8ee5c",
+      "date": "2026-07-18",
+      "subject": "Update admin sidebar account menu"
+    },
+    {
+      "hash": "17942cb4217275cbb1005d126c66d29240eb8ef8",
+      "date": "2026-07-18",
+      "subject": "Update admin sidebar chevrons"
+    },
+    {
+      "hash": "562ded39a04935427a232bc0648df346c054aeb0",
+      "date": "2026-07-18",
+      "subject": "Fix photo detail header controls"
+    },
+    {
+      "hash": "5cf7b31ee8f7eeb0bd8546ee3955fd0ef183b2cd",
+      "date": "2026-07-18",
+      "subject": "Fix admin sidebar toggle position"
+    },
+    {
+      "hash": "3a32bfe4b19129289438565dd40298ea692bb6b4",
+      "date": "2026-07-18",
+      "subject": "Use page order for admin navigation"
+    },
+    {
+      "hash": "35b64dbbe7ca20d0bcb373865b41e3caabd8d6d5",
+      "date": "2026-07-18",
+      "subject": "Move chat link to footer"
+    },
+    {
+      "hash": "b982dca5ba9d35afbd5f3f25bb63c01a9294fa8c",
+      "date": "2026-07-18",
+      "subject": "Simplify dashboard admin header"
+    },
+    {
+      "hash": "2ebe884a560de3105642817552704b6698a7a4a1",
+      "date": "2026-07-18",
+      "subject": "Fix photo admin upload creation"
+    },
+    {
+      "hash": "c187c475d5d375ff53cb7cb54f1c9a242e3b342a",
+      "date": "2026-07-18",
+      "subject": "Fix photo admin upload feedback"
+    },
+    {
+      "hash": "2831f645ac99b48062942842e9bd9e884acf23b2",
+      "date": "2026-07-18",
+      "subject": "Fix mobile admin scaling"
+    },
+    {
+      "hash": "8fcccefa742f1fab7707c420c887aaecf71fe7a4",
+      "date": "2026-07-18",
+      "subject": "Avoid generated page type in deploy build"
+    },
+    {
+      "hash": "a712889aaeca391cab715e7c75fc22e4a2803a8b",
+      "date": "2026-07-18",
+      "subject": "Fix page query metadata types"
+    },
+    {
+      "hash": "21d7a09c3cea6a8f968f14d2be20552b14611bd5",
+      "date": "2026-07-18",
+      "subject": "Merge codex/cms-admin-polish into master"
+    },
+    {
+      "hash": "a63d5ea718807b675cba6b46285a62aca96a0c8b",
+      "date": "2026-07-18",
+      "subject": "Polish activity feed and photo lightbox"
+    },
+    {
+      "hash": "d813c0a56315dac8d53f8e0a5bba06c235d16fbc",
+      "date": "2026-07-18",
+      "subject": "Adjust admin login layout"
+    },
+    {
+      "hash": "c60b7b97c233ed0a30295d8bcb1ab468de1cc376",
+      "date": "2026-07-18",
+      "subject": "Fix photo lightbox EXIF typing"
+    },
+    {
+      "hash": "633f6a4c6e0c4efa431c64ca88e45b7d31dff768",
+      "date": "2026-07-18",
+      "subject": "Update footer navigation links"
+    },
+    {
+      "hash": "044156045394d27d85fe3e0db24055049cc9e945",
+      "date": "2026-07-18",
+      "subject": "Polish CMS admin and media workflows"
+    },
+    {
+      "hash": "5f4ecd7100f8665bbb7a83d2a60cff6c4aa4daa7",
+      "date": "2026-07-18",
+      "subject": "Update footer navigation links"
+    },
+    {
+      "hash": "9e626d3378ed15c8ca92d4151961ac498cbc09a7",
+      "date": "2026-07-18",
+      "subject": "Polish CMS admin and media workflows"
+    },
+    {
+      "hash": "9a2f2cf81d7559c7dcf00a0a7d6aa0383520429e",
+      "date": "2026-07-17",
+      "subject": "Allow Payload config during production builds"
+    },
+    {
+      "hash": "f5908a0a1fc6e64b30179f438ee3a80648cd8f71",
+      "date": "2026-07-17",
+      "subject": "Fix production photo collection build"
+    },
+    {
+      "hash": "7bad0bcd8fb9e184b6fa796b5a89b7b6563bffc9",
+      "date": "2026-07-17",
+      "subject": "Add CMS-backed photo collection and permalink"
+    },
+    {
+      "hash": "397cf0afd1ff3f373d20cd963504b3ffc76d7119",
+      "date": "2026-07-17",
+      "subject": "Correct EXIF capture date on DSCF0017"
+    },
+    {
+      "hash": "d2df80a687ba5e68499bbfa329392d89616f9630",
+      "date": "2026-07-17",
+      "subject": "Keep camera filename for desk photo"
+    },
+    {
+      "hash": "0e248d3e167b2e720d26442b2c77eb971ee91fa5",
+      "date": "2026-07-17",
+      "subject": "Add camera original for desk photo EXIF"
+    },
+    {
+      "hash": "f8db09667c050f562332435c38621ba2a452dfe9",
+      "date": "2026-07-17",
+      "subject": "Read photo EXIF from originals folder at build time"
+    },
+    {
+      "hash": "4127fb21585b01315382acdd3f6acfe17365694b",
+      "date": "2026-07-17",
+      "subject": "Open photos in the site lightbox from the photo grid"
+    },
+    {
+      "hash": "8b5d06cf0cc8eeb50505e685553ecb31d0ae6692",
+      "date": "2026-07-17",
+      "subject": "Restore three-column footer with email and social links"
+    },
+    {
+      "hash": "43ab6af30067703dcd1e6a78c35193a02d9b29e7",
+      "date": "2026-07-17",
+      "subject": "Remove Photos title from photo index"
+    },
+    {
+      "hash": "3a10bfc3297ab7c9f88a73e58615924388aaee55",
+      "date": "2026-07-17",
+      "subject": "Remove one-off CMS seeding scripts and local asset sources"
+    },
+    {
+      "hash": "91cdff6583991b1457f23977d8129161a6e12ac9",
+      "date": "2026-07-17",
+      "subject": "Add photo page with photoring JSON feed"
+    },
+    {
+      "hash": "623b9c2b03867773c9af538f9e573e5eb94fb42a",
+      "date": "2026-07-14",
+      "subject": "Add contact form and refine chat experience"
+    },
+    {
+      "hash": "d5f253c9794befc4c8c1955baca0f96aa62dfa9b",
+      "date": "2026-07-13",
+      "subject": "Unify avatar rendering across site"
+    },
+    {
+      "hash": "00875a2a777ffe2519075cdda962e60ef58cb829",
+      "date": "2026-07-13",
+      "subject": "Add lightbox to activity feed"
+    },
+    {
+      "hash": "b9a3b12b39ed7df5cd9f44bde5018d931310499a",
+      "date": "2026-07-13",
+      "subject": "Scale phone lightbox from source layout"
+    },
+    {
+      "hash": "cd4208526229565f34aa128ba1bfec42799ae023",
+      "date": "2026-07-13",
+      "subject": "Use source width during phone lightbox swipe"
+    },
+    {
+      "hash": "6e92251080d0290e1f0dfb0d905f8a7681cd2659",
+      "date": "2026-07-13",
+      "subject": "Fade phone lightbox surface on swipe"
+    },
+    {
+      "hash": "e53cf795ca1bb203907184a997c05e63a818a95e",
+      "date": "2026-07-13",
+      "subject": "Unify mobile phone lightbox sizing"
+    },
+    {
+      "hash": "ef0645da8996101e5ddfb09636378583ee5f382b",
+      "date": "2026-07-13",
+      "subject": "Keep mobile lightbox surface consistent"
+    },
+    {
+      "hash": "4f8c16f4fbe24396ceef0c7d1903179a6d9b1bc3",
+      "date": "2026-07-13",
+      "subject": "Match mobile lightbox return geometry"
+    },
+    {
+      "hash": "c96251669f751d10eaa84780b30ed5f1e99ced0b",
+      "date": "2026-07-13",
+      "subject": "Smooth mobile phone lightbox return"
+    },
+    {
+      "hash": "d22a59da9693873d46c713f93d3b93ea9f5e5fd8",
+      "date": "2026-07-13",
+      "subject": "Refine mobile phone lightbox"
+    },
+    {
+      "hash": "a3b83bc0d16b8a63986d7bec0f015ac6598fa35b",
+      "date": "2026-07-13",
+      "subject": "Refine portfolio experience"
+    },
+    {
+      "hash": "c1cae602ee5c766d99ad332b4bda89f1680e8daf",
+      "date": "2026-07-12",
+      "subject": "Blur chat view control"
+    },
+    {
+      "hash": "5c7b51f10f269a0c73232eac564081dc00662035",
+      "date": "2026-07-12",
+      "subject": "Stabilize chat sidebar portals"
+    },
+    {
+      "hash": "ee7a377fc3cf10d5048b53fdb33b6a9ac8af1d1c",
+      "date": "2026-07-12",
+      "subject": "Refine chat sidebar behavior"
+    },
+    {
+      "hash": "924cda3ee9097cc322e5c933e2e7d9938389f75e",
+      "date": "2026-07-12",
+      "subject": "Remove dead code and redundant scripts"
+    },
+    {
+      "hash": "e6050353564a1df34557407334ab7a94b13a3e92",
+      "date": "2026-07-12",
+      "subject": "Refine full-width chat layout"
+    },
+    {
+      "hash": "4253acc17e0d07c10d07be49fa0c50fac5dfdc73",
+      "date": "2026-07-12",
+      "subject": "Refresh and simplify dependencies"
+    },
+    {
+      "hash": "df07c8f91cdb796297e5c19d7adc2ef3a8e19ca1",
+      "date": "2026-07-12",
+      "subject": "Trim production deployment assets"
+    },
+    {
+      "hash": "b4d0fa42cd50f6ca5e06c416d06b38a614fb273b",
+      "date": "2026-07-12",
+      "subject": "Reduce scroll and transition overhead"
+    },
+    {
+      "hash": "1b8382e770d3d02a5b45d5fa7de0562d65aaf2ab",
+      "date": "2026-07-12",
+      "subject": "Defer offscreen like controls"
+    },
+    {
+      "hash": "660434fe8e2efeb40e30d0ca400cc59f9336a01e",
+      "date": "2026-07-12",
+      "subject": "Optimize Payload query paths"
+    },
+    {
+      "hash": "752bb96100d47ef135058be3b65aab6cd77d4d9a",
+      "date": "2026-07-12",
+      "subject": "Slim activity page payloads"
+    },
+    {
+      "hash": "0bbafd99c17774f1b338ee5438ff00c6a344f88e",
+      "date": "2026-07-12",
+      "subject": "Remove request-time likes migrations"
+    },
+    {
+      "hash": "4b16c2b26b440a7ff1a40f87d7fd3157c0487f01",
+      "date": "2026-07-12",
+      "subject": "Restore responsive image optimization"
+    },
+    {
+      "hash": "5a4e35263b83181e3c221e298476c1fb867cc98e",
+      "date": "2026-07-12",
+      "subject": "Harden Payload secret handling"
+    },
+    {
+      "hash": "a4d38ba5b99a12de0fb911d96ac139bb2b5a0e90",
+      "date": "2026-07-12",
+      "subject": "Fix mobile phone module width"
+    },
+    {
+      "hash": "b1dcee2b2bf8b3bdbdaab2a1618ad4e759816104",
+      "date": "2026-07-12",
+      "subject": "Fix mobile iPhone module loading"
+    },
+    {
+      "hash": "58172e1c67b9081fa44f0b647c8b5762beab792a",
+      "date": "2026-07-11",
+      "subject": "Lock lightbox gestures to swipe axis"
+    },
+    {
+      "hash": "23e9f5062fc1abe207f86dfe6c7189d40abdbfa2",
+      "date": "2026-07-11",
+      "subject": "Sequence lightbox opening transition"
+    },
+    {
+      "hash": "57cfe3b074ac29c12f77852a3ec57f7c547d915b",
+      "date": "2026-07-11",
+      "subject": "Refine module lightbox transitions"
+    },
+    {
+      "hash": "e8f5fc327a667dcca50848c41e36c85181f9a71e",
+      "date": "2026-07-11",
+      "subject": "Optimize portfolio performance and lightbox transitions"
+    },
+    {
+      "hash": "5a4cc4024defb178cf33681ba218934f751e71c6",
+      "date": "2026-07-11",
+      "subject": "Use measured lightbox zoom transition"
+    },
+    {
+      "hash": "1feba7540fdfa6d5c1ba75f5d5540cd9c113ecd8",
+      "date": "2026-07-10",
+      "subject": "Preserve zoom while disabling crossfade"
+    },
+    {
+      "hash": "abe69ccf70669f55e0ede0b30f2d073d60939f13",
+      "date": "2026-07-10",
+      "subject": "Delay zoom reveal until projection settles"
+    },
+    {
+      "hash": "99045326e4b90c87764d0cdca4804ccb7a67ddf1",
+      "date": "2026-07-10",
+      "subject": "Reveal zoom projection without rerender"
+    },
+    {
+      "hash": "9f3f7e1d273c097f85329340a09104cf19ee479c",
+      "date": "2026-07-10",
+      "subject": "Hide lightbox until zoom projection starts"
+    },
+    {
+      "hash": "f110caf6b3e06dbb377a9a70bab004b63a6e4b6b",
+      "date": "2026-07-10",
+      "subject": "Open lightbox from measured source"
+    },
+    {
+      "hash": "cb3aedcca279fed4d7965cf372728e94493fa5aa",
+      "date": "2026-07-10",
+      "subject": "Stabilize lightbox open frame"
+    },
+    {
+      "hash": "4dca402234e52326a40a536c4577564247ab5591",
+      "date": "2026-07-10",
+      "subject": "Disable lightbox layout crossfade"
+    },
+    {
+      "hash": "2b051474c68089fa1eb82d7df672782a965689d8",
+      "date": "2026-07-10",
+      "subject": "Restore Vercel Next build command"
+    },
+    {
+      "hash": "d6d049840d7bcb0a78b9e7fe107391a0d8bf2291",
+      "date": "2026-07-10",
+      "subject": "Run Payload migrations during Vercel builds"
+    },
+    {
+      "hash": "46ef02125f140816871f54bf4698820f5746944f",
+      "date": "2026-07-10",
+      "subject": "Add project module lightbox"
+    },
+    {
+      "hash": "3418edafcc75f220d7dbf925e0959283d3d99920",
+      "date": "2026-07-10",
+      "subject": "Fix avatar image fill"
+    },
+    {
+      "hash": "bc27742658d6e9145a45c4446d1ab83f6da804e9",
+      "date": "2026-07-09",
+      "subject": "Update activity grouping and content sync"
+    },
+    {
+      "hash": "d48b3869ffa2e9cae8288671c978ef546c1d4b83",
+      "date": "2026-07-08",
+      "subject": "Run superlike activity backfill at runtime"
+    },
+    {
+      "hash": "4aa303bb45f0030e96cd48baebe03f90ce1fb022",
+      "date": "2026-07-08",
+      "subject": "Backfill historical superlike activity"
+    },
+    {
+      "hash": "8ea0c39361504949448b622157d93b53703fbac9",
+      "date": "2026-07-08",
+      "subject": "Show superlikes in activity feed"
+    },
+    {
+      "hash": "fe8d8ce81fdb4763f5faa99b254028f0ef7d5ab3",
+      "date": "2026-07-08",
+      "subject": "Add module likes and super like interactions"
+    },
+    {
+      "hash": "e6b42c7f03a45c8a37e6ad82f8821c84a89e34ec",
+      "date": "2026-07-03",
+      "subject": "Reduce CMS egress for Neon migration"
+    },
+    {
+      "hash": "93be5475a34264678529c4811f013d808f931f82",
+      "date": "2026-07-02",
+      "subject": "Add CMS sync assets and project updates"
+    },
+    {
+      "hash": "cfe907a076d04988f9c019f84d95c1a8d4f91503",
+      "date": "2026-06-15",
+      "subject": "Add Payload migrations workflow and fix clients schema drift (#6)"
+    },
+    {
+      "hash": "4728286dd2ad15743c2b65bf4b8eb6cee0db9083",
+      "date": "2026-04-16",
+      "subject": "Polish chat tabs: skip page transition between /chat sub-routes, fix pill text color and cursor"
+    },
+    {
+      "hash": "1e729f8add0db9f331cf96d46f95ce228ebbddf4",
+      "date": "2026-04-16",
+      "subject": "Give the chat map its own URL at /chat/map"
+    },
+    {
+      "hash": "dfe15624ea90010b5c062ef4bf354c8c13253a46",
+      "date": "2026-04-16",
+      "subject": "Swap chat map to Mapbox and polish chat page UI"
+    },
+    {
+      "hash": "2ecfe3e232d9eaa39f000168b2069faaa3457b64",
+      "date": "2026-04-16",
+      "subject": "Add dedicated /chat page with sidebar toggle and map view"
+    },
+    {
+      "hash": "8d5448fc6b099a73a0e327f7997b965a376d60e3",
+      "date": "2026-04-12",
+      "subject": "Fix media upload: auto-fill alt text and add digest summary"
+    },
+    {
+      "hash": "cd0d1b88cbc0f1c12c6ce6f64c589ab8481354d1",
+      "date": "2026-04-10",
+      "subject": "Replace per-chat email alerts with weekly digest cron"
+    },
+    {
+      "hash": "54f3e80f84089391216498354cdc239476754740",
+      "date": "2026-04-07",
+      "subject": "Speed up logo marquee from 60s/80s to 30s"
+    },
+    {
+      "hash": "1ed58a92692a3af446c51a562c7d070b8ba3320b",
+      "date": "2026-03-31",
+      "subject": "Make testimonial logos match text color in light and dark modes"
+    },
+    {
+      "hash": "f3d9823b40117cacd1bd34acbfcf3b22a97a8040",
+      "date": "2026-03-31",
+      "subject": "Add testimonials relationship to hScroll block for drag-to-reorder"
+    },
+    {
+      "hash": "44fcb0ab1ec9af20ac763aa7b6d28a9797304a61",
+      "date": "2026-03-31",
+      "subject": "Fix build: remove role prop from design system Testimonial example"
+    },
+    {
+      "hash": "1e23a983874ff93da952501dce22f6734901fd35",
+      "date": "2026-03-31",
+      "subject": "Fix build: move defaultSort to top-level collection config"
+    },
+    {
+      "hash": "2f5f18ad879e202ae66c622b67deca77a23feb52",
+      "date": "2026-03-31",
+      "subject": "Testimonial cards: show client logo instead of name, add avatar tooltip"
+    },
+    {
+      "hash": "5ec155ccb4817ebedf780ece480dc41ac6e88251",
+      "date": "2026-03-30",
+      "subject": "Nav menu, page transitions, admin reorganization, and UI polish"
+    },
+    {
+      "hash": "d2303ec41e5211c4a1df9205c6038a5657d7207b",
+      "date": "2026-03-30",
+      "subject": "People page with photo grid, role filters, column flow layout"
+    },
+    {
+      "hash": "725f38f0373e27a202204f24c812ea925b805886",
+      "date": "2026-03-30",
+      "subject": "Auto-retry on failed/timed-out chat responses (up to 2 retries)"
+    },
+    {
+      "hash": "609e9d1601988266d5abe258a4481b7409cd60c9",
+      "date": "2026-03-30",
+      "subject": "30s timeout on chat requests, company as client relationship, error handling"
+    },
+    {
+      "hash": "734ae3ae566129e71ff08f18a968f7ac6a365a5b",
+      "date": "2026-03-30",
+      "subject": "Rename LinkedIn to Link in People admin"
+    },
+    {
+      "hash": "60fa697284c84a8398e173c8fb32a4de23bf2228",
+      "date": "2026-03-29",
+      "subject": "Optimize DB usage: cache buildContext, debounce saves, increase ISR"
+    },
+    {
+      "hash": "d1bf8f8b1883798be7f3183d4b13883bc4695b57",
+      "date": "2026-03-28",
+      "subject": "30 curated suggested questions with rich text answers, random 4 on load"
+    },
+    {
+      "hash": "ce998d866974f453bfe72d1c21a88c887fe94d4d",
+      "date": "2026-03-28",
+      "subject": "Dynamic suggestions, reliable notifications, overlay polish"
+    },
+    {
+      "hash": "f4437e905176b743726e5b5ccf97bd31ceaea95d",
+      "date": "2026-03-28",
+      "subject": "Overlay scheduling, aurora/stars effects, fix Resend env var on Vercel"
+    },
+    {
+      "hash": "e40691e8f3a3ee029a95cc0494e8031db6f86c1e",
+      "date": "2026-03-28",
+      "subject": "Add gradient mask to chat sidebar conversation list"
+    },
+    {
+      "hash": "01132fc7e462566a7f5464e6d77b89f731497518",
+      "date": "2026-03-28",
+      "subject": "Merge pull request #5 from gabrielvaldivia/claude/fix-mobile-sidebar-corners-084mF"
+    },
+    {
+      "hash": "c4d2670251e4fc7cf2ee7a53d4516abc0d5e977b",
+      "date": "2026-03-28",
+      "subject": "Fix mobile sidebar to use concentric corner radius with chat container"
+    },
+    {
+      "hash": "94a0eb194b940a0e46ae1be69357180aa5c0f84b",
+      "date": "2026-03-28",
+      "subject": "Merge pull request #4 from gabrielvaldivia/claude/fix-email-notifications-t9nme"
+    },
+    {
+      "hash": "14cc30ec09267b958889c51fe2291fbf385df711",
+      "date": "2026-03-28",
+      "subject": "Fix email notifications not sending when visitors message"
+    },
+    {
+      "hash": "a8b3f2f27537ca80c01da458f379ada4548a68dc",
+      "date": "2026-03-28",
+      "subject": "Vertical stacked suggestions, limit to 4, tighter mobile pill spacing"
+    },
+    {
+      "hash": "2c71b21e056647e3c906b1abae650d01f3963e2d",
+      "date": "2026-03-28",
+      "subject": "Mobile chat polish: gradient mask, button backgrounds, scroll offsets"
+    },
+    {
+      "hash": "f264b4405523bd3d54e8fc9bf72a7f8447afc7aa",
+      "date": "2026-03-28",
+      "subject": "Increase scroll margin for contact and about sections"
+    },
+    {
+      "hash": "53793767d05545eda186d9cb73f009b81f3143d5",
+      "date": "2026-03-28",
+      "subject": "Add hyperlinks for talks and interviews in chat messages"
+    },
+    {
+      "hash": "d12ea3d5d0e5fcf28b33fa04d5396d9b0707b803",
+      "date": "2026-03-27",
+      "subject": "Share chat links, retry failed responses, CORS fix, responsive scroll mask"
+    },
+    {
+      "hash": "5c71488d21a066e6b7ecfefb47e4bb35d40cec5c",
+      "date": "2026-03-27",
+      "subject": "Merge pull request #3 from gabrielvaldivia/claude/add-hyperlinks-talks-Hmsir"
+    },
+    {
+      "hash": "2446a757529a690ef2d0f455060ef22111923631",
+      "date": "2026-03-27",
+      "subject": "Handle vague questions gracefully, randomize suggested pills order"
+    },
+    {
+      "hash": "a9f7674dbd9721bf5df5b1b6a0156b63d52f04d0",
+      "date": "2026-03-27",
+      "subject": "Never use bullet points or lists in chat responses"
+    },
+    {
+      "hash": "07b0210a748b113066d7fa27364a6ab19c6ecde8",
+      "date": "2026-03-27",
+      "subject": "Link talks/interviews in chat, fix Config talk year to 2025"
+    },
+    {
+      "hash": "6ade4d35d9e0386c1937b2b1de6b5d70647659e2",
+      "date": "2026-03-27",
+      "subject": "Improve follow-up question phrasing to be natural direct questions"
+    },
+    {
+      "hash": "c9a378daf45b0e3e3465de3ecdf58286aedcd62e",
+      "date": "2026-03-27",
+      "subject": "Strip follow-up questions from email notifications"
+    },
+    {
+      "hash": "fdbcd6abcaf9183b3c522910851e6857d6d54988",
+      "date": "2026-03-27",
+      "subject": "Auto-link side projects and people in chat, fix fallback, collaborators"
+    },
+    {
+      "hash": "ef2a17a34908a642612086b0fadde160fc69f312",
+      "date": "2026-03-27",
+      "subject": "Smaller mobile avatar, 80px bottom spacing, footer top padding"
+    },
+    {
+      "hash": "4213c7cdef4b11c7ef1ac1b6fb7d6ad1c61a1b03",
+      "date": "2026-03-27",
+      "subject": "Increase mobile section spacing on homepage"
+    },
+    {
+      "hash": "7c4f1d942713308f1c473d15d2eda21b687377e3",
+      "date": "2026-03-27",
+      "subject": "Limit responses to max 3 paragraphs"
+    },
+    {
+      "hash": "4e3c4746d0759a5400e75d777d100259078b6ac1",
+      "date": "2026-03-27",
+      "subject": "Chat height 80dvh, no em dashes in responses"
+    },
+    {
+      "hash": "975e64ad6528b09ef3ccc5a5d9f6032d1ef6d51e",
+      "date": "2026-03-27",
+      "subject": "Mobile chat height to 85dvh"
+    },
+    {
+      "hash": "1518bc68c51a8c77cd08d7fb5ae5d0a9a3410f50",
+      "date": "2026-03-27",
+      "subject": "Follow-up question pills, blog URL correction, recency sorting, gap fixes"
+    },
+    {
+      "hash": "3ac4b9484334e0b7de1000a586531f04d780b790",
+      "date": "2026-03-27",
+      "subject": "Mobile chat refinements, dark mode avatar, auto-scroll, Resend fix"
+    },
+    {
+      "hash": "1bd37b24f4acfdff764315f384e489b74e36e573",
+      "date": "2026-03-26",
+      "subject": "Fix Resend initialization at build time"
+    },
+    {
+      "hash": "718655cdb52cfdc253c30397481a9bf85e8684b6",
+      "date": "2026-03-26",
+      "subject": "Add client active toggle and details, Resend notifications, Projector data sync"
+    },
+    {
+      "hash": "1b19464828cf82c28db1ec0516c26deb13bf5eaa",
+      "date": "2026-03-26",
+      "subject": "Email notifications via Resend, conversation notes, context accuracy fixes"
+    },
+    {
+      "hash": "766823a88e0e08ba283305d094e496b622479244",
+      "date": "2026-03-26",
+      "subject": "Add conversation history with sidebar, auto-save, and session persistence"
+    },
+    {
+      "hash": "643493cb993adbfc0334ad7bc97f81a129a8684c",
+      "date": "2026-03-26",
+      "subject": "Fix mobile input height, icon collapse with text/popover open"
+    },
+    {
+      "hash": "f130496e66a275b9b4d61ca29bd49c465ab0b08a",
+      "date": "2026-03-26",
+      "subject": "Mobile chat height to 80dvh"
+    },
+    {
+      "hash": "0d6a417dbbc701e83c20b62ecc9cec8f65c00267",
+      "date": "2026-03-26",
+      "subject": "Smooth icon-to-plus animation, fix overlap, 85dvh mobile chat height"
+    },
+    {
+      "hash": "2097f5bdfee9b4f55e393e7124428314a298173f",
+      "date": "2026-03-26",
+      "subject": "Mobile chat refinements: 70dvh container, smaller pills, dashed border fix"
+    },
+    {
+      "hash": "af42352e5146b955f03a86b4dd2af1e719489be1",
+      "date": "2026-03-26",
+      "subject": "Fix mobile spacing between chat title and container"
+    },
+    {
+      "hash": "40b5d476155693d174e00b2e63ee10f242da58b5",
+      "date": "2026-03-26",
+      "subject": "Add contact scroll target to chat block, support id prop on Container"
+    },
+    {
+      "hash": "b98efa95264326f25b249ea4905449ba5a87aba7",
+      "date": "2026-03-26",
+      "subject": "Add AI chat block replacing FAQ section"
+    },
+    {
+      "hash": "cc6e2ef3f2defb51ce6da71461aa1f2f779f9d7e",
+      "date": "2026-03-25",
+      "subject": "Fix broken image URLs and add slugs to side projects"
+    },
+    {
+      "hash": "35dc92fd0f7fa40fd7d0f383966f2d671bac7f54",
+      "date": "2026-03-24",
+      "subject": "Fix missing side project images on about page"
+    },
+    {
+      "hash": "211d91f32f80181383aa79dd1a36c401ab9d9767",
+      "date": "2026-03-24",
+      "subject": "Use custom image loader to serve R2 images directly, bypassing Vercel optimization quota"
+    },
+    {
+      "hash": "cc5277774b71b28dfe73b542f76c201b9960c2df",
+      "date": "2026-03-24",
+      "subject": "Remove sticky positioning from about section photo"
+    },
+    {
+      "hash": "dda17a6ac48e4b232c4cf797266342086884cbb3",
+      "date": "2026-03-24",
+      "subject": "Fix avatar borders, video 1px bounce, image block border, title alignment"
+    },
+    {
+      "hash": "e6fc0d9babd27e046d88d297fad97d7ebe2fdad3",
+      "date": "2026-03-24",
+      "subject": "Inset avatar borders, mobile gyroscope for balloons, cleanup"
+    },
+    {
+      "hash": "33fa927c5d53842f0833750c211b2b94bcb67a80",
+      "date": "2026-03-23",
+      "subject": "Balloons and confetti collide with donation pill on mobile"
+    },
+    {
+      "hash": "771b376250ea4a70dee9fa4fc0e39396ed66f0b2",
+      "date": "2026-03-23",
+      "subject": "Add birthday donation pill for KIND with mobile layout"
+    },
+    {
+      "hash": "292264b6bbf72219142b87cee31f9ce5a507d54a",
+      "date": "2026-03-23",
+      "subject": "Tune confetti physics for more realistic pop and fall"
+    },
+    {
+      "hash": "20830a5f9cb3d36919b8d23a7701533c00997e9e",
+      "date": "2026-03-23",
+      "subject": "Add birthday balloon overlay with physics and glass effect"
+    },
+    {
+      "hash": "0786ff02239b9af97c9a9a0f16007b6e9968e224",
+      "date": "2026-03-23",
+      "subject": "Fix alignment and add mailto link to availability badge"
+    },
+    {
+      "hash": "666600e9a53ddb620f4b7826adcac8ac3b82feab",
+      "date": "2026-03-23",
+      "subject": "Remove unused components: IndexCard, SideProject, BioTimeline, ClientLogo"
+    },
+    {
+      "hash": "7af0b69a6423d1b4d6ad804cc0ac4c393803a30e",
+      "date": "2026-03-22",
+      "subject": "Add iPhone X/6 blocks, restructure Settings and Navigation"
+    },
+    {
+      "hash": "6c8e663d3b94f8b59fa90c520fb783ed837e3fe2",
+      "date": "2026-03-21",
+      "subject": "Fix about photo border to render above image"
+    },
+    {
+      "hash": "a48c32bba7e942e75e4425e6166fb0c44053971b",
+      "date": "2026-03-21",
+      "subject": "Smaller about heading on mobile (22px)"
+    },
+    {
+      "hash": "090f0a7d9499aecec53b0b2526cbfb0e67e32467",
+      "date": "2026-03-21",
+      "subject": "Add dark mode image variant to about section, border on photo"
+    },
+    {
+      "hash": "0f9bc743fcb5279710ce377e158f5812e5bc24d1",
+      "date": "2026-03-21",
+      "subject": "Increase marquee logo size on mobile, fix Neon SSL warning"
+    },
+    {
+      "hash": "ec6f368bc427e75c869a5f1ae3bdf17526ac393e",
+      "date": "2026-03-21",
+      "subject": "Revert next/font Inter - causing blank page in dev"
+    },
+    {
+      "hash": "5db1c3fc371b909fb02ca861a0cf19bd6cc59d00",
+      "date": "2026-03-21",
+      "subject": "Optimize images, fonts, and bundle size"
+    },
+    {
+      "hash": "041e9b169bfe63e40b7057bd1b48deaec290b062",
+      "date": "2026-03-21",
+      "subject": "Lazy load all videos and device frames"
+    },
+    {
+      "hash": "3a388f509bd2040d15d76c3feadec5228454b7c0",
+      "date": "2026-03-21",
+      "subject": "Switch from force-dynamic to ISR with 60s revalidation"
+    },
+    {
+      "hash": "1e5fab504c0b1bd217510f7541088b9e3690b2d2",
+      "date": "2026-03-21",
+      "subject": "Polish meta layout, h6 sizing, design system, and photos"
+    },
+    {
+      "hash": "15fedb90f570a9119ffe964ecd772d13bdc1c7c8",
+      "date": "2026-03-21",
+      "subject": "Polish typography and hover states"
+    },
+    {
+      "hash": "bb7d49e76880492861108faf388c6ff247b9155c",
+      "date": "2026-03-21",
+      "subject": "Restore easing gradient mask on fullWidth hScroll, snap testimonials to center"
+    },
+    {
+      "hash": "ef167a2e54b0b729dc3422e30c86fe3705105407",
+      "date": "2026-03-21",
+      "subject": "Scroll Work nav to top, add scroll margin to About section"
+    },
+    {
+      "hash": "22bb730b4cc214309de1d37dc7cdd4e9d5a2e9ad",
+      "date": "2026-03-21",
+      "subject": "Fix featured project clicks, hide mobile chevrons, adjust spacing"
+    },
+    {
+      "hash": "87cc888781b15878783a7b6e2f643cbbfef64e20",
+      "date": "2026-03-21",
+      "subject": "Disable smooth scroll on close button navigation"
+    },
+    {
+      "hash": "8ddec342bfd0c327a792093cd7c73615d27320f0",
+      "date": "2026-03-21",
+      "subject": "Add iPhone 5 device block, momentum scroll, admin icons, nav fixes"
+    },
+    {
+      "hash": "ab8054bcf2e984cef2ccdf770aa4f1cccae9d960",
+      "date": "2026-03-20",
+      "subject": "Fix Index card sizing, subtitle styling, and mobile masks"
+    },
+    {
+      "hash": "b7e90e1f215291e1c7c4aa6877f1d0c3aeed801b",
+      "date": "2026-03-20",
+      "subject": "Sync featured projects between checkbox and hScroll block"
+    },
+    {
+      "hash": "9d315fd8977bb54430c5e8964fd03ad4d5889d3c",
+      "date": "2026-03-20",
+      "subject": "Add device frame blocks, video/image block improvements, layout polish"
+    },
+    {
+      "hash": "8558f59d08a68de2bc5cdb9cd11d2e56643dbd20",
+      "date": "2026-03-20",
+      "subject": "Add DC-1 and iPhone 15 device frame blocks, video block improvements"
+    },
+    {
+      "hash": "890c24930d2c4872302f4f10b1f9801ee90cdc4b",
+      "date": "2026-03-20",
+      "subject": "Add Learn more link, Index title, and polish hover states"
+    },
+    {
+      "hash": "85733aed57603f7cb60d70050f45f11d82997d9c",
+      "date": "2026-03-20",
+      "subject": "Rework image block layout with 200px row grid system"
+    },
+    {
+      "hash": "3c3a2c498e939f8e40b6cc724ea5d27e49e6ad24",
+      "date": "2026-03-19",
+      "subject": "Add client logo SVGs, social icons, and fix media URLs"
+    },
+    {
+      "hash": "0759e1e8e46da6f7542f6df00e2670db0ed16248",
+      "date": "2026-03-19",
+      "subject": "Configure R2 public URL for media serving in production"
+    },
+    {
+      "hash": "6381297601fa2b47c1caced0133c1d86c30945ad",
+      "date": "2026-03-19",
+      "subject": "Remove media rewrite rule that bypassed S3 storage handler"
+    },
+    {
+      "hash": "14bbd58bf58e873ffa641098554bdc8c4cf0be12",
+      "date": "2026-03-19",
+      "subject": "Switch media storage from Vercel Blob to Cloudflare R2"
+    },
+    {
+      "hash": "2f41861ab84c8a52766246de6ca6791d1e9c2dab",
+      "date": "2026-03-19",
+      "subject": "Use natural aspect ratio on mobile, fill height only on desktop"
+    },
+    {
+      "hash": "dd636591e99aae723a6d40c2b3bd1c5e5339aae0",
+      "date": "2026-03-19",
+      "subject": "Only apply fixed grid row sizing on desktop, wrap content on mobile"
+    },
+    {
+      "hash": "b088362de002b01620f0e1689433814f0584df62",
+      "date": "2026-03-19",
+      "subject": "Fix rows setting not affecting height on partial-row blocks"
+    },
+    {
+      "hash": "c9e12cb8364ac5d35251237939cb19acf7744f6c",
+      "date": "2026-03-19",
+      "subject": "Stack playground title and description on mobile"
+    },
+    {
+      "hash": "41bacb70203a2b866ba2445ab4a32ebb9285c0bb",
+      "date": "2026-03-19",
+      "subject": "Stack playground title and description on mobile, horizontal on tablet+"
+    },
+    {
+      "hash": "64171da4cc6b8b60c3805c2dc0d3ccd2ac5dc2ab",
+      "date": "2026-03-19",
+      "subject": "Fix patent title text not wrapping"
+    },
+    {
+      "hash": "ad8b13f76ba0f134d54dee7db1bf34223cc0ae3a",
+      "date": "2026-03-19",
+      "subject": "Make interviews layout vertical on mobile, horizontal on tablet+"
+    },
+    {
+      "hash": "0b82212fe828a3a64650132fde780b2a520f3c17",
+      "date": "2026-03-19",
+      "subject": "Make talks layout vertical on mobile, horizontal on tablet+"
+    },
+    {
+      "hash": "4eb1fad68672ee3233b28490db5f36003765fd18",
+      "date": "2026-03-19",
+      "subject": "Stack talks thumbnail vertically with title and description"
+    },
+    {
+      "hash": "e0628778ab30b392c413dc5b8e3874c55f291683",
+      "date": "2026-03-19",
+      "subject": "Make about page playground items link to detail pages"
+    },
+    {
+      "hash": "f4c6b8e88e26af3db2bec19c65b96d4bd19287cf",
+      "date": "2026-03-19",
+      "subject": "Side project detail pages, video hover-to-play, layout fixes"
+    },
+    {
+      "hash": "d4314be6b5577a3e82d9e5fb51a00e0763b05bd2",
+      "date": "2026-03-19",
+      "subject": "Move Talk Turkey and Makeshift to side projects with detail pages"
+    },
+    {
+      "hash": "b9f0dd5b80c03287c56eaab5494724dbffe11b86",
+      "date": "2026-03-19",
+      "subject": "Rewrite /api/media/file/ to /media/ for static serving"
+    },
+    {
+      "hash": "b6ec4e1acbdc78d54ade738a22a9a7bcae0263f0",
+      "date": "2026-03-19",
+      "subject": "Fix validate type for upload field"
+    },
+    {
+      "hash": "1102f14448011520a75911ef74ccb5d7ed11eae7",
+      "date": "2026-03-19",
+      "subject": "Serve media as static files from public/media"
+    },
+    {
+      "hash": "ff9ce2d2875f2eb7ec00122139ccc24b4fff6bb3",
+      "date": "2026-03-19",
+      "subject": "Add typography classes, consistent mobile spacing, smaller marquee"
+    },
+    {
+      "hash": "c887aaa1758f9334e0b6e228257d6c666fa7f412",
+      "date": "2026-03-19",
+      "subject": "Media re-uploaded to Vercel Blob with original filenames"
+    },
+    {
+      "hash": "01682c983f7bbba5f89e1d09f69da17085c06d52",
+      "date": "2026-03-19",
+      "subject": "Redeploy with Blob storage and updated media URLs"
+    },
+    {
+      "hash": "c08cf627157fbf9dd18375968987e31ded22765e",
+      "date": "2026-03-19",
+      "subject": "Redeploy with env vars for all environments"
+    },
+    {
+      "hash": "c339c134a926fc8fa12236d98bbf035ef299c87e",
+      "date": "2026-03-19",
+      "subject": "Trigger Vercel redeploy"
+    },
+    {
+      "hash": "0ad8b052c7541163fb7fe8399601727721764930",
+      "date": "2026-03-19",
+      "subject": "Fix Vercel output directory config"
+    },
+    {
+      "hash": "9b28a5b2101fd6bf594e8cefba35862b6ef482f0",
+      "date": "2026-03-19",
+      "subject": "Include importMap.js for Vercel build"
+    },
+    {
+      "hash": "fe193e5fbfa51e3ab14ffbb773deb4fce2aaffa6",
+      "date": "2026-03-19",
+      "subject": "Add vercel.json with Next.js framework config"
+    },
+    {
+      "hash": "76aebd2c842a8b37fefc1e0ec4c1769703c264ec",
+      "date": "2026-03-19",
+      "subject": "Initial commit: portfolio site with Payload CMS"
+    }
+  ]
+}

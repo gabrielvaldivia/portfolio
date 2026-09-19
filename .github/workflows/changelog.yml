@@ -1,0 +1,32 @@
+name: Changelog
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: changelog-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      CHANGELOG_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+      CHANGELOG_HEAD_REF: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Check changelog coverage
+        run: node scripts/changelog.mjs check --base "$CHANGELOG_BASE_REF" --head "$CHANGELOG_HEAD_REF"
