@@ -37,7 +37,7 @@ export default async function NotePreviewPage({ params }: NotePreviewPageProps) 
 
   return (
     <>
-      <NotePreviewToolbar expiresAt={expiresAt} />
+      <NotePreviewToolbar editURL={preview.editURL} expiresAt={expiresAt} />
       <main className="pt-12 tablet:pt-20">
         <NoteArticle note={preview.note} />
       </main>

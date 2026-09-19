@@ -71,5 +71,9 @@ export async function getNotePreview(
 
   // Generated Payload types are local-only; declare the selected CMS fields at
   // this boundary so clean deployments use the same article contract.
-  return note ? { note: note as unknown as NoteArticleData, expiresAt: access.expiresAt } : null
+  return note ? {
+    note: note as unknown as NoteArticleData,
+    expiresAt: access.expiresAt,
+    editURL: `/admin/collections/notes/${access.noteID}`,
+  } : null
 }

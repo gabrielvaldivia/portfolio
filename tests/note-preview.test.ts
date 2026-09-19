@@ -68,7 +68,9 @@ test('valid links read the latest draft for their note without publishing or exp
     },
   } as unknown as Pick<Payload, 'findByID'>
   const token = createNotePreviewToken(42)
-  assert.equal((await getNotePreview(token, async () => payload))?.note.title, 'First draft')
+  const preview = await getNotePreview(token, async () => payload)
+  assert.equal(preview?.note.title, 'First draft')
+  assert.equal(preview?.editURL, '/admin/collections/notes/42')
   currentTitle = 'Updated draft'
   assert.equal((await getNotePreview(token, async () => payload))?.note.title, 'Updated draft')
   assert.equal(queries, 2)
