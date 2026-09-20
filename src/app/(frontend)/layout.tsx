@@ -67,6 +67,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
         <link rel="describedby" href="/llms.txt" />
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="Gabriel Valdivia — Notes"
+          href={new URL('/notes/rss.xml', s?.canonicalUrl || SITE_ORIGIN).toString()}
+        />
         {s?.googleAnalyticsId && (
           <>
             <script async src={`https://www.googletagmanager.com/gtag/js?id=${s.googleAnalyticsId}`} />

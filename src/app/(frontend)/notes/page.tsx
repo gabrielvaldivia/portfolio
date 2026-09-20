@@ -18,23 +18,12 @@ function getNoteYear(value?: string | null) {
 }
 
 export function generateMetadata(): Metadata {
-  const metadata = buildPageMetadata(null, {
+  return buildPageMetadata(null, {
     fallbackTitle: 'Notes',
     fallbackDescription: 'Essays and notes by Gabriel Valdivia.',
     canonicalPath: '/notes',
     markdownPath: '/notes/index.md',
   })
-
-  return {
-    ...metadata,
-    alternates: {
-      ...metadata.alternates,
-      types: {
-        ...metadata.alternates?.types,
-        'application/rss+xml': '/notes/rss.xml',
-      },
-    },
-  }
 }
 
 export default async function NotesPage() {

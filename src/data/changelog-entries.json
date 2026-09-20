@@ -1,5 +1,12 @@
 [
   {
+    "date": "2026-09-20",
+    "title": "Easier subscriptions to Notes",
+    "changes": [
+      "RSS readers can now discover the Notes feed from the homepage and individual posts, as well as the Notes index."
+    ]
+  },
+  {
     "date": "2026-09-19",
     "title": "A running history of the site",
     "changes": [
