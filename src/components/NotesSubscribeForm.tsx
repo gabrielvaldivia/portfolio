@@ -85,7 +85,7 @@ export function NotesSubscribeForm({ layout = 'wide' }: { layout?: 'wide' | 'sid
                     setError('')
                     if (status === 'sent') setStatus('idle')
                   }}
-                  className="min-h-11 w-full rounded-lg border border-border bg-background-alt px-3 py-2.5 text-base text-text-strong placeholder:text-text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content disabled:opacity-50 tablet:text-caption"
+                  className="min-h-11 w-full rounded-lg border border-border bg-background-alt px-3 py-2.5 text-base text-text-strong placeholder:text-text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content disabled:opacity-50 tablet:text-caption dark:border-transparent"
                 />
               </label>
               <button

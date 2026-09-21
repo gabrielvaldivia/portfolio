@@ -6,7 +6,7 @@
       "Added email signup and an RSS subscription link beside the Notes list, with a narrower sticky sidebar that clears the menu button on larger screens and a frosted Subscribe pill that expands into a signup modal on smaller screens.",
       "The shared email signup layout now adapts to its own width on the Notes index and individual notes.",
       "The mobile Subscribe modal opens without automatically focusing a button or input and closes without focusing the Subscribe pill. Keyboard navigation and Escape dismissal remain available.",
-      "Polished Notes with matching mobile header and page margins, visually balanced year labels in a subtler color on mobile, matching title and signup heading typography, generous mobile year spacing that becomes compact when sticky, year-to-note gaps that match the title spacing, clearer signup and RSS link spacing, softer card corners, a transparent desktop signup card in dark mode, natural wrapping for list titles and mobile article titles, and chevrons that stay beside the final word with improved vertical alignment."
+      "Polished Notes with matching mobile header and page margins, visually balanced year labels in a subtler color on mobile, matching title and signup heading typography, generous mobile year spacing that becomes compact when sticky, year-to-note gaps that match the title spacing, clearer signup and RSS link spacing, softer card corners, a transparent desktop signup card and an email field without a visible border in dark mode, natural wrapping for list titles and mobile article titles, and chevrons that stay beside the final word with improved vertical alignment."
     ]
   },
   {

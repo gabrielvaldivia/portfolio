@@ -1,6 +1,11 @@
 {
-  "throughCommit": "f298d0a719415c1f41f6bcb0652a8246d59f4f87",
+  "throughCommit": "3fe3eb3fc55bb307a73f0f7223183d45e18ac74d",
   "commits": [
+    {
+      "hash": "3fe3eb3fc55bb307a73f0f7223183d45e18ac74d",
+      "date": "2026-09-21",
+      "subject": "Align mobile site name with page content"
+    },
     {
       "hash": "f298d0a719415c1f41f6bcb0652a8246d59f4f87",
       "date": "2026-09-21",
