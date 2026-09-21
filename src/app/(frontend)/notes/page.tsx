@@ -1,7 +1,7 @@
 import { Container } from '@/components/Container'
 import { FitText } from '@/components/FitText'
 import { HoverChevron } from '@/components/Icons'
-import { NotesSubscribeForm } from '@/components/NotesSubscribeForm'
+import { NotesSubscribePanel } from '@/components/NotesSubscribePanel'
 import { buildPageMetadata } from '@/lib/pageMetadata'
 import { getPublishedNotes } from '@/lib/queries'
 import type { Metadata } from 'next'
@@ -74,25 +74,14 @@ export default async function NotesPage() {
           </div>
 
           <div className="grid gap-12 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] desktop:gap-20">
-            <aside className="top-24 min-w-0 self-start lg:order-2 lg:sticky desktopXL:top-9">
-              <NotesSubscribeForm layout="sidebar" />
-              <div className="mt-6 text-center text-caption text-text-muted">
-                <a
-                  href="/notes/rss.xml"
-                  type="application/rss+xml"
-                  className="rounded-sm underline decoration-border-strong underline-offset-4 hover:text-text-strong focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
-                >
-                  Subscribe via RSS
-                </a>
-              </div>
-            </aside>
+            <NotesSubscribePanel />
 
             {notes.length > 0 ? (
               <div className="min-w-0">
                 {sortedYears.map((year) => (
                   <div className="tablet:flex tablet:gap-4" key={year}>
                     <div className="sticky top-0 z-10 shrink-0 bg-background py-7 tablet:relative tablet:top-auto tablet:z-auto tablet:w-[100px] tablet:py-0">
-                      <h2 className="notes-list-heading text-balance tabular-nums text-text-body tablet:sticky tablet:top-5 tablet:py-4">{year}</h2>
+                      <h2 className="notes-list-heading notes-list-year tabular-nums text-text-body tablet:sticky tablet:top-5 tablet:py-4">{year}</h2>
                     </div>
                     <div className="min-w-0 flex-1">
                       {grouped[year].map((note) => {
@@ -104,7 +93,7 @@ export default async function NotesPage() {
                               className="group inline-block min-w-0 transition-colors tablet:hover:opacity-60"
                               href={`/notes/${note.slug}`}
                             >
-                              <h3 className="notes-list-heading text-balance">
+                              <h3 className="notes-list-heading">
                                 {note.title.slice(0, lastSpace + 1)}
                                 <span className="whitespace-nowrap">
                                   {note.title.slice(lastSpace + 1)}

@@ -3,7 +3,7 @@
 import { useId, useState, type FormEvent } from 'react'
 import { cn } from '@/lib/cn'
 
-export function NotesSubscribeForm({ layout = 'wide' }: { layout?: 'wide' | 'sidebar' }) {
+export function NotesSubscribeForm({ layout = 'wide' }: { layout?: 'wide' | 'sidebar' | 'modal' }) {
   const id = useId()
   const [status, setStatus] = useState<'idle' | 'submitting' | 'sent'>('idle')
   const [error, setError] = useState('')
@@ -44,14 +44,14 @@ export function NotesSubscribeForm({ layout = 'wide' }: { layout?: 'wide' | 'sid
       id="email-updates"
       aria-labelledby={`${id}-heading`}
       className={cn(
-        '@container rounded-2xl border border-border bg-elevated p-6',
-        layout === 'wide'
-          ? 'mx-auto mt-16 max-w-[760px] tablet:p-8'
-          : 'desktop:p-8',
+        '@container',
+        layout !== 'modal' && 'rounded-2xl border border-border bg-elevated p-6',
+        layout === 'wide' && 'mx-auto mt-16 max-w-[760px] tablet:p-8',
+        layout === 'sidebar' && 'desktop:p-8',
       )}
     >
       <div className="grid gap-2 @lg:grid-cols-2 @lg:gap-8">
-        <h2 id={`${id}-heading`} className="notes-list-heading text-balance text-text-strong">
+        <h2 id={`${id}-heading`} className={cn('notes-list-heading text-balance text-text-strong', layout === 'modal' && 'pr-8')}>
           Get new notes by email
         </h2>
 
