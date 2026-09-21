@@ -47,7 +47,7 @@ export function NotesSubscribeForm({ layout = 'wide' }: { layout?: 'wide' | 'sid
         '@container',
         layout !== 'modal' && 'rounded-2xl border border-border bg-elevated p-6',
         layout === 'wide' && 'mx-auto mt-16 max-w-[760px] tablet:p-8',
-        layout === 'sidebar' && 'desktop:p-8',
+        layout === 'sidebar' && 'desktop:p-8 dark:bg-transparent',
       )}
     >
       <div className="grid gap-2 @lg:grid-cols-2 @lg:gap-8">

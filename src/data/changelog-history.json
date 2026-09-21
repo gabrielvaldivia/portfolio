@@ -1,6 +1,11 @@
 {
-  "throughCommit": "4299cedfe77ad24df486169e2b6d3d75302383a8",
+  "throughCommit": "bf4c6f1ed7a6ff44b3d84ec6a7b0ad224a9d43b1",
   "commits": [
+    {
+      "hash": "bf4c6f1ed7a6ff44b3d84ec6a7b0ad224a9d43b1",
+      "date": "2026-09-21",
+      "subject": "Keep Subscribe unfocused after closing the mobile modal"
+    },
     {
       "hash": "4299cedfe77ad24df486169e2b6d3d75302383a8",
       "date": "2026-09-21",
