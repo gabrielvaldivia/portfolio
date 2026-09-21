@@ -1,6 +1,11 @@
 {
-  "throughCommit": "bf4c6f1ed7a6ff44b3d84ec6a7b0ad224a9d43b1",
+  "throughCommit": "f298d0a719415c1f41f6bcb0652a8246d59f4f87",
   "commits": [
+    {
+      "hash": "f298d0a719415c1f41f6bcb0652a8246d59f4f87",
+      "date": "2026-09-21",
+      "subject": "Remove dark background from desktop Notes subscribe card"
+    },
     {
       "hash": "bf4c6f1ed7a6ff44b3d84ec6a7b0ad224a9d43b1",
       "date": "2026-09-21",

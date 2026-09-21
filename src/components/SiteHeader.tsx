@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 
 function SiteHeaderFrame() {
   return (
-    <header className="relative h-[94px] px-4 tablet:h-[114px] tablet:px-10">
+    <header className="relative h-[94px] px-5 tablet:h-[114px] tablet:px-10">
       <h3 className="text-text-strong pt-6 tablet:pt-10">
         <Link
           href="/"
