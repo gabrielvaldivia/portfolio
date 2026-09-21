@@ -66,7 +66,7 @@ export default async function NotesPage() {
       <JsonLd data={structuredData} />
       <section className="pb-20">
         <Container>
-          <div className="pb-20">
+          <div className="pb-4 tablet:pb-20">
             <h1 className="text-[34px] tablet:hidden">Notes</h1>
             <div className="hidden tablet:block">
               <FitText className="font-heading" maxSize={120}>Notes</FitText>
@@ -80,8 +80,8 @@ export default async function NotesPage() {
               <div className="min-w-0">
                 {sortedYears.map((year) => (
                   <div className="tablet:flex tablet:gap-4" key={year}>
-                    <div className="sticky top-0 z-10 shrink-0 bg-background py-7 tablet:relative tablet:top-auto tablet:z-auto tablet:w-[100px] tablet:py-0">
-                      <h2 className="notes-list-heading notes-list-year tabular-nums text-text-body tablet:sticky tablet:top-5 tablet:py-4">{year}</h2>
+                    <div className="sticky -top-6 z-10 shrink-0 bg-background pt-12 pb-4 tablet:relative tablet:top-auto tablet:z-auto tablet:w-[100px] tablet:py-0">
+                      <h2 className="notes-list-heading notes-list-year tabular-nums text-text-subtle tablet:sticky tablet:top-5 tablet:py-4 tablet:text-text-body">{year}</h2>
                     </div>
                     <div className="min-w-0 flex-1">
                       {grouped[year].map((note) => {
