@@ -1,6 +1,7 @@
 import { Container } from '@/components/Container'
 import { FitText } from '@/components/FitText'
 import { HoverChevron } from '@/components/Icons'
+import { NotesSubscribeForm } from '@/components/NotesSubscribeForm'
 import { buildPageMetadata } from '@/lib/pageMetadata'
 import { getPublishedNotes } from '@/lib/queries'
 import type { Metadata } from 'next'
@@ -65,41 +66,65 @@ export default async function NotesPage() {
       <JsonLd data={structuredData} />
       <section className="pb-20">
         <Container>
-        <div className="pb-20">
-          <h1 className="text-[34px] tablet:hidden">Notes</h1>
-          <div className="hidden tablet:block">
-            <FitText className="font-heading" maxSize={120}>Notes</FitText>
+          <div className="pb-20">
+            <h1 className="text-[34px] tablet:hidden">Notes</h1>
+            <div className="hidden tablet:block">
+              <FitText className="font-heading" maxSize={120}>Notes</FitText>
+            </div>
           </div>
-        </div>
 
-        {notes.length > 0 ? (
-          <div className="space-y-0">
-            {sortedYears.map((year) => (
-              <div className="tablet:flex tablet:gap-4" key={year}>
-                <div className="sticky top-0 z-10 shrink-0 bg-background py-7 tablet:relative tablet:top-auto tablet:z-auto tablet:w-[100px] tablet:py-0">
-                  <h4 className="text-text-body tablet:sticky tablet:top-5 tablet:py-4">{year}</h4>
-                </div>
-                <div className="flex-1">
-                  {grouped[year].map((note) => (
-                    <div className="py-4" key={note.id}>
-                      <Link
-                        className="group inline-flex min-w-0 items-baseline gap-2 transition-colors tablet:hover:opacity-60"
-                        href={`/notes/${note.slug}`}
-                      >
-                        <h4 className="text-balance">{note.title}</h4>
-                        <HoverChevron className="translate-y-[2px]" />
-                      </Link>
-                    </div>
-                  ))}
-                </div>
+          <div className="grid gap-12 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] desktop:gap-20">
+            <aside className="top-24 min-w-0 self-start lg:order-2 lg:sticky desktopXL:top-9">
+              <NotesSubscribeForm layout="sidebar" />
+              <div className="mt-6 text-center text-caption text-text-muted">
+                <a
+                  href="/notes/rss.xml"
+                  type="application/rss+xml"
+                  className="rounded-sm underline decoration-border-strong underline-offset-4 hover:text-text-strong focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
+                >
+                  Subscribe via RSS
+                </a>
               </div>
-            ))}
+            </aside>
+
+            {notes.length > 0 ? (
+              <div className="min-w-0">
+                {sortedYears.map((year) => (
+                  <div className="tablet:flex tablet:gap-4" key={year}>
+                    <div className="sticky top-0 z-10 shrink-0 bg-background py-7 tablet:relative tablet:top-auto tablet:z-auto tablet:w-[100px] tablet:py-0">
+                      <h2 className="notes-list-heading text-balance tabular-nums text-text-body tablet:sticky tablet:top-5 tablet:py-4">{year}</h2>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      {grouped[year].map((note) => {
+                        const lastSpace = note.title.lastIndexOf(' ')
+
+                        return (
+                          <div className="py-4" key={note.id}>
+                            <Link
+                              className="group inline-block min-w-0 transition-colors tablet:hover:opacity-60"
+                              href={`/notes/${note.slug}`}
+                            >
+                              <h3 className="notes-list-heading text-balance">
+                                {note.title.slice(0, lastSpace + 1)}
+                                <span className="whitespace-nowrap">
+                                  {note.title.slice(lastSpace + 1)}
+                                  <HoverChevron className="ml-2 align-baseline" />
+                                </span>
+                              </h3>
+                            </Link>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="border-t border-border py-8">
+                <p className="text-body text-text-body">No notes published yet.</p>
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="border-t border-border py-8">
-            <p className="text-body text-text-body">No notes published yet.</p>
-          </div>
-        )}
         </Container>
       </section>
     </>

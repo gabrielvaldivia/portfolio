@@ -1,5 +1,14 @@
 [
   {
+    "date": "2026-09-21",
+    "title": "Email signup from the Notes index",
+    "changes": [
+      "Added email signup and an RSS subscription link beside the Notes list, with a narrower sticky sidebar that clears the menu button on larger screens and signup above the list on smaller screens.",
+      "The shared email signup layout now adapts to its own width on the Notes index and individual notes.",
+      "Polished Notes with matching year, title, and signup heading typography, clearer signup and RSS link spacing, softer card corners, and chevrons that stay beside the final word of wrapped titles."
+    ]
+  },
+  {
     "date": "2026-09-20",
     "title": "Easier subscriptions to Notes",
     "changes": [

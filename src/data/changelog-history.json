@@ -1,6 +1,11 @@
 {
-  "throughCommit": "96f00050dc3ceb6a643bf5ed8bec092aede17f26",
+  "throughCommit": "eb7ed92009dd5b82274de728be4875127aec059a",
   "commits": [
+    {
+      "hash": "eb7ed92009dd5b82274de728be4875127aec059a",
+      "date": "2026-09-20",
+      "subject": "Make Notes RSS discoverable across public pages"
+    },
     {
       "hash": "96f00050dc3ceb6a643bf5ed8bec092aede17f26",
       "date": "2026-09-19",
