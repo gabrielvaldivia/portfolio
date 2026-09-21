@@ -1,6 +1,11 @@
 {
-  "throughCommit": "eb7ed92009dd5b82274de728be4875127aec059a",
+  "throughCommit": "2aa6e971fb2003b7c610bab2b8ddb47091cfcbb0",
   "commits": [
+    {
+      "hash": "2aa6e971fb2003b7c610bab2b8ddb47091cfcbb0",
+      "date": "2026-09-21",
+      "subject": "Add responsive Notes signup sidebar and RSS link"
+    },
     {
       "hash": "eb7ed92009dd5b82274de728be4875127aec059a",
       "date": "2026-09-20",

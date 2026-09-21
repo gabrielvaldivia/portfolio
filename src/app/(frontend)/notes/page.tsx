@@ -108,7 +108,7 @@ export default async function NotesPage() {
                                 {note.title.slice(0, lastSpace + 1)}
                                 <span className="whitespace-nowrap">
                                   {note.title.slice(lastSpace + 1)}
-                                  <HoverChevron className="ml-2 align-baseline" />
+                                  <HoverChevron className="ml-2 translate-y-0.5 align-baseline" />
                                 </span>
                               </h3>
                             </Link>
