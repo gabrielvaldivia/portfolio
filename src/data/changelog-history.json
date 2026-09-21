@@ -1,6 +1,11 @@
 {
-  "throughCommit": "580ba551f2f68d1112485bf639e6684839ca2fb5",
+  "throughCommit": "4ff75977f937851324f8471c56e19f0860a4bcbb",
   "commits": [
+    {
+      "hash": "4ff75977f937851324f8471c56e19f0860a4bcbb",
+      "date": "2026-09-21",
+      "subject": "Use natural wrapping for mobile note article titles"
+    },
     {
       "hash": "580ba551f2f68d1112485bf639e6684839ca2fb5",
       "date": "2026-09-21",

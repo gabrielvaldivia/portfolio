@@ -3,7 +3,7 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from 'motion/react'
-import { useId, useState, useSyncExternalStore } from 'react'
+import { useId, useRef, useState, useSyncExternalStore } from 'react'
 import { NotesSubscribeForm } from '@/components/NotesSubscribeForm'
 
 const compactQuery = '(max-width: 1023px)'
@@ -33,6 +33,7 @@ function RssLink() {
 
 function MobileNotesSubscribe() {
   const [open, setOpen] = useState(false)
+  const contentRef = useRef<HTMLDivElement>(null)
   const layoutId = useId()
   const reduceMotion = useReducedMotion()
   const transition = { duration: reduceMotion ? 0 : 0.2, ease: 'easeOut' as const }
@@ -75,8 +76,17 @@ function MobileNotesSubscribe() {
                     className="pointer-events-auto absolute inset-0 bg-black/25"
                   />
                 </Dialog.Overlay>
-                <Dialog.Content forceMount asChild>
+                <Dialog.Content
+                  forceMount
+                  asChild
+                  onOpenAutoFocus={(event) => {
+                    event.preventDefault()
+                    // Keep controls unfocused while preserving the dialog's focus trap.
+                    contentRef.current?.focus({ preventScroll: true })
+                  }}
+                >
                   <motion.div
+                    ref={contentRef}
                     layoutId={reduceMotion ? undefined : 'subscribe-surface'}
                     style={{ borderRadius: 16 }}
                     transition={surfaceTransition}
