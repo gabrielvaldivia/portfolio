@@ -84,6 +84,7 @@ function MobileNotesSubscribe() {
                     // Keep controls unfocused while preserving the dialog's focus trap.
                     contentRef.current?.focus({ preventScroll: true })
                   }}
+                  onCloseAutoFocus={(event) => event.preventDefault()}
                 >
                   <motion.div
                     ref={contentRef}

@@ -1,6 +1,11 @@
 {
-  "throughCommit": "4ff75977f937851324f8471c56e19f0860a4bcbb",
+  "throughCommit": "4299cedfe77ad24df486169e2b6d3d75302383a8",
   "commits": [
+    {
+      "hash": "4299cedfe77ad24df486169e2b6d3d75302383a8",
+      "date": "2026-09-21",
+      "subject": "Avoid autofocusing mobile Notes subscribe controls"
+    },
     {
       "hash": "4ff75977f937851324f8471c56e19f0860a4bcbb",
       "date": "2026-09-21",
