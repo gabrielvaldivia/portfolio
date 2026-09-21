@@ -79,6 +79,12 @@ html[data-theme='dark'] .collection-edit--notes {
   text-wrap: balance;
 }
 
+@media (max-width: 809px) {
+  .note-page .note-page-title {
+    text-wrap: wrap;
+  }
+}
+
 :is(.note-page .rich-text, .collection-edit--notes .notes-editor-body .ContentEditable__root),
 .collection-edit--notes .notes-editor-body .LexicalEditorTheme__placeholder {
   font-family: var(--note-font-body);
