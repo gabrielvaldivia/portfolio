@@ -1,6 +1,11 @@
 {
-  "throughCommit": "3fe3eb3fc55bb307a73f0f7223183d45e18ac74d",
+  "throughCommit": "b825b0a7078980b9da460e0c85d9366f29898b79",
   "commits": [
+    {
+      "hash": "b825b0a7078980b9da460e0c85d9366f29898b79",
+      "date": "2026-09-21",
+      "subject": "Hide Notes email field border in dark mode"
+    },
     {
       "hash": "3fe3eb3fc55bb307a73f0f7223183d45e18ac74d",
       "date": "2026-09-21",

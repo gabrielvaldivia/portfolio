@@ -57,7 +57,7 @@ export function renderNoteEmailContent(body: unknown, siteURL: string) {
         `<p style="margin:0 0 1em;${providedCSSString}">${nodesToHTML({ nodes: node.children }).join('') || '<br />'}</p>`,
       heading: ({ node, nodesToHTML, childIndex, providedCSSString }) => {
         const tag = /^h[1-6]$/.test(node.tag) ? node.tag : 'h3'
-        return `<${tag} style="margin:${childIndex ? '1em' : '0'} 0 0.5em;font-size:22px;line-height:1.3;font-weight:400;letter-spacing:-0.03em;${providedCSSString}">${nodesToHTML({ nodes: node.children }).join('')}</${tag}>`
+        return `<${tag} style="margin:${childIndex ? '1em' : '0'} 0 0.5em;font-size:22px;line-height:1.3;font-weight:500;letter-spacing:-0.03em;${providedCSSString}">${nodesToHTML({ nodes: node.children }).join('')}</${tag}>`
       },
       list: ({ node, nodesToHTML }) => {
         const tag = node.tag === 'ol' ? 'ol' : 'ul'
