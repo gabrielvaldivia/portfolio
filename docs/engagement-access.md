@@ -1,12 +1,12 @@
-# Engagement models access
+# Working together access
 
-`/engagement-models` requires an email before the server renders the engagement details. `/pricing` redirects to the same gated page. Successful submissions send a Resend notification to `ENGAGEMENT_EMAIL_TO`, falling back to `CONTACT_EMAIL_TO` and then `gabe@valdivia.works`. Replying to the notification addresses the visitor.
+`/working-together` requires an email before the server renders the engagement details. `/engagement-models` permanently redirects to `/working-together`, and `/pricing` redirects to the same gated page. Successful submissions send a Resend notification to `ENGAGEMENT_EMAIL_TO`, falling back to `CONTACT_EMAIL_TO` and then `gabe@valdivia.works`. Replying to the notification addresses the visitor.
 
 The gate displays a single email field with an inline arrow to continue. It does not subscribe visitors to Notes or any mailing list. Email syntax is validated, but ownership is not verified.
 
 ## Local use
 
-Run `npm run dev` and open `http://localhost:3000/engagement-models`. The existing `RESEND_API_KEY`, `PAYLOAD_SECRET`, and database connection are used. Local notifications are marked `[Local preview]`. No migration or new service is required.
+Run `npm run dev` and open `http://localhost:3000/working-together`. The existing `RESEND_API_KEY`, `PAYLOAD_SECRET`, and database connection are used. Local notifications are marked `[Local preview]`. No migration or new service is required.
 
 After submitting, access lasts 24 hours in that browser. Use a private window or clear the `gv_engagement_access` cookie to try the gate again. Resend deduplicates notifications for the same normalized address and UTC date, including retries. Requests from browsers with a valid cookie do not send another email.
 

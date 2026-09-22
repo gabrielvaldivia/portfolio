@@ -13,7 +13,7 @@ export function GET() {
       markdownListItem('About Gabriel', absoluteSiteUrl('/about.md'), 'Biography, experience, talks, interviews, patents, and selected experiments.'),
       markdownListItem('Selected work', absoluteSiteUrl('/work/index.md'), 'Case studies with project context, collaborators, services, dates, and visual descriptions.'),
       markdownListItem('Notes', absoluteSiteUrl('/notes/index.md'), 'Essays by Gabriel, including publication dates and full-text Markdown versions.'),
-      markdownListItem('Engagement models', absoluteSiteUrl('/engagement-models'), 'Current ways to work with Gabriel.'),
+      markdownListItem('Working together', absoluteSiteUrl('/working-together'), 'Current ways to work with Gabriel.'),
     ].join('\n'),
     [
       '## Feeds',

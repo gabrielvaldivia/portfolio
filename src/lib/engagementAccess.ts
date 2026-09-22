@@ -53,7 +53,7 @@ export function engagementNotification(email: string, now = new Date()) {
       text: [
         `${email} entered their email to view your engagement models.`,
         '',
-        `Page: ${origin}/engagement-models`,
+        `Page: ${origin}/working-together`,
         `Date: ${day} (UTC)`,
         '',
         'You can reply directly to this email to follow up.',

@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: '/engagement-models',
+        destination: '/working-together',
+        permanent: true,
+      },
+      {
         source: '/photo',
         destination: '/photos',
         permanent: true,

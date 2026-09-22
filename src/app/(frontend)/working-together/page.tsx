@@ -99,20 +99,20 @@ function EngagementExamples({ examples }: { examples: EngagementExample[] }) {
 }
 
 export const metadata: Metadata = {
-  title: 'Engagement Models | Gabriel Valdivia',
+  title: 'Working together | Gabriel Valdivia',
   description:
     'Two ways to work with Gabriel Valdivia on product design, from early product direction to ongoing design leadership.',
-  alternates: { canonical: '/engagement-models' },
+  alternates: { canonical: '/working-together' },
   robots: { index: false, follow: true },
 }
 
 export const dynamic = 'force-dynamic'
 
-export default async function EngagementModelsPage() {
+export default async function WorkingTogetherPage() {
   const cookieStore = await cookies()
   if (!hasEngagementAccess(cookieStore.get(ENGAGEMENT_ACCESS_COOKIE)?.value)) {
     return (
-      <section aria-label="Engagement models access" className="engagement-access-gate flex flex-1 items-center justify-center bg-background px-5 py-10 text-text-strong">
+      <section aria-label="Working together access" className="engagement-access-gate flex flex-1 items-center justify-center bg-background px-5 py-10 text-text-strong">
         <EngagementAccessForm />
       </section>
     )
@@ -137,7 +137,7 @@ export default async function EngagementModelsPage() {
         <div className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-12 tablet:gap-14">
           <div className="flex flex-col gap-6 tablet:gap-8">
             <h1 className="text-balance">
-              Ways of Working
+              Working together
             </h1>
             <p className="max-w-xl text-pretty text-body-large">
               Two engagement models, each shaped for a different kind of 0–1 challenge. The details
