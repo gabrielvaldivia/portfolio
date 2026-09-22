@@ -59,11 +59,15 @@ export function NotesPublishButton() {
     toast.success(published ? (hasBeenPublished ? 'Changes published' : 'Note published') : schedule ? 'Schedule updated' : 'Note scheduled')
   }
 
+  const publishLabel = future ? (schedule ? (scheduleChanged ? 'Save schedule' : 'Update schedule') : 'Schedule') : hasBeenPublished ? 'Publish changes' : 'Publish'
+  const compactPublishLabel = future ? (schedule ? (scheduleChanged ? 'Save' : 'Update') : 'Schedule') : 'Publish'
+
   return (
-    <FormSubmit buttonId="action-save" type="button" size="medium"
+    <FormSubmit buttonId="action-save" type="button" size="medium" aria-label={publishLabel}
       disabled={uploadStatus === 'uploading'}
       onClick={schedule && future && !scheduleChanged ? () => setPickerRequest((request) => request + 1) : publish}>
-      {future ? (schedule ? (scheduleChanged ? 'Save schedule' : 'Update schedule') : 'Schedule') : hasBeenPublished ? 'Publish changes' : 'Publish'}
+      <span className="notes-publish-label-full">{publishLabel}</span>
+      <span className="notes-publish-label-compact" aria-hidden="true">{compactPublishLabel}</span>
     </FormSubmit>
   )
 }

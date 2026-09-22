@@ -4941,12 +4941,21 @@ body:has(.collection-edit--notes) .app-header__step-nav .step-nav__last {
 
 @media (max-width: 768px) {
   /* Notes have a focused mobile editor: return to the list instead of opening the sidebar. */
-  body:has(.collection-edit--notes) .template-default__nav-toggler-container {
+  body:has(.collection-edit--notes) .template-default__nav-toggler-container,
+  body:has(.collection-edit--notes) .app-header__mobile-nav-toggler {
     display: none !important;
   }
 
   body:has(.collection-edit--notes) .template-default--nav-hydrated:not(.template-default--nav-open) .app-header__content {
     padding-left: max(var(--cms-screen-gutter), env(safe-area-inset-left));
+  }
+
+  body:has(.collection-edit--notes) .app-header__controls-wrapper {
+    padding-right: 0;
+  }
+
+  body:has(.collection-edit--notes) .app-header__step-nav-wrapper {
+    flex: 0 0 auto;
   }
 }
 
@@ -5303,6 +5312,10 @@ body:has(.collection-edit--notes) .popup__content:has(#notes-edit-menu-writing) 
 }
 .collection-edit--notes :is(.doc-controls__controls-wrapper, .doc-controls__controls) {
   min-width: 0;
+  gap: var(--cms-control-gap);
+}
+.collection-edit--notes .doc-controls__controls > * {
+  flex-shrink: 0;
 }
 .notes-preview-controls {
   display: flex;
@@ -5318,6 +5331,22 @@ body:has(.collection-edit--notes) .popup__content:has(#notes-edit-menu-writing) 
   color: var(--cms-text-secondary);
   font-size: 13px;
   line-height: 1.4;
+}
+.notes-publish-label-compact {
+  display: none;
+}
+@media (max-width: 768px) {
+  .collection-edit--notes .doc-controls.gutter {
+    /* Keep the fixed action group outside the back button's hit area. */
+    left: calc(max(var(--cms-screen-gutter), env(safe-area-inset-left)) + var(--cms-header-button-height) + var(--cms-control-gap));
+    width: auto;
+    max-width: none;
+    padding-right: max(var(--cms-screen-gutter), env(safe-area-inset-right));
+  }
+}
+@media (max-width: 389px) {
+  .notes-publish-label-full { display: none; }
+  .notes-publish-label-compact { display: inline; }
 }
 @media (max-width: 809px) {
   .notes-preview-controls { gap: 8px; }

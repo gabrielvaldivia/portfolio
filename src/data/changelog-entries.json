@@ -1,5 +1,12 @@
 [
   {
+    "date": "2026-09-22",
+    "title": "A clearer mobile Notes editor header",
+    "changes": [
+      "Removed the duplicate sidebar button from the mobile Notes editor and separated the back, Preview, Publish, and more controls so they stay readable and easy to tap on narrow screens."
+    ]
+  },
+  {
     "date": "2026-09-21",
     "title": "Email signup from the Notes index",
     "changes": [

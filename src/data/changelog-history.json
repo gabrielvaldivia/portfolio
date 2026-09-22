@@ -1,6 +1,11 @@
 {
-  "throughCommit": "b825b0a7078980b9da460e0c85d9366f29898b79",
+  "throughCommit": "a6d46d302a6f21f2d4634b3a7c59e120f4c6669f",
   "commits": [
+    {
+      "hash": "a6d46d302a6f21f2d4634b3a7c59e120f4c6669f",
+      "date": "2026-09-21",
+      "subject": "Increase Notes email heading weight"
+    },
     {
       "hash": "b825b0a7078980b9da460e0c85d9366f29898b79",
       "date": "2026-09-21",
