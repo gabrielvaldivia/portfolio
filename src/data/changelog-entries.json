@@ -6,7 +6,7 @@
       "Removed the duplicate sidebar button from the mobile Notes editor and separated the back, Preview, Publish, and more controls so they stay readable and easy to tap on narrow screens.",
       "Left-aligned note titles and dates on mobile, including shared previews.",
       "Moved engagement models to /working-together, renamed the page Working together, and permanently redirected /engagement-models to the new address.",
-      "Improved server diagnostics for failures when opening Working together after entering an email address."
+      "Working together now opens after securely saving an email address, with queued notifications and automatic retries so email quotas or delivery outages do not block access."
     ]
   },
   {

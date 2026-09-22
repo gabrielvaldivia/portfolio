@@ -1,6 +1,11 @@
 {
-  "throughCommit": "28fbcc5d2336ed70b81ef542b869b9ec118ab15d",
+  "throughCommit": "9576d3363933d0eaff817892658780f40e78387c",
   "commits": [
+    {
+      "hash": "9576d3363933d0eaff817892658780f40e78387c",
+      "date": "2026-09-22",
+      "subject": "Expose the failing stage in engagement access diagnostics"
+    },
     {
       "hash": "28fbcc5d2336ed70b81ef542b869b9ec118ab15d",
       "date": "2026-09-22",

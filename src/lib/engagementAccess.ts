@@ -44,7 +44,7 @@ export function engagementNotification(email: string, now = new Date()) {
 
   return {
     // Keep the payload stable so retries within a UTC day can be deduplicated by Resend.
-    idempotencyKey: `engagement-view:${local ? 'local' : 'production'}:${day}:${viewerHash}`,
+    idempotencyKey: `engagement-view:v2:${local ? 'local' : 'production'}:${day}:${viewerHash}`,
     message: {
       from: process.env.ENGAGEMENT_EMAIL_FROM || 'Portfolio <onboarding@resend.dev>',
       to: process.env.ENGAGEMENT_EMAIL_TO || process.env.CONTACT_EMAIL_TO || 'gabe@valdivia.works',

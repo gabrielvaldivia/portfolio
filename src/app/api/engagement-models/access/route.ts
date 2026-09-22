@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Resend } from 'resend'
 import { checkEngagementAccessRateLimit } from '@/lib/chatRateLimit'
+import { queueEngagementNotification } from '@/lib/engagementNotificationQueue'
+import { getPayload } from '@/lib/payload'
 import {
   createEngagementAccessToken,
   ENGAGEMENT_ACCESS_COOKIE,
@@ -32,10 +33,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true }, { headers: { 'Cache-Control': 'private, no-store' } })
   }
 
-  if (!process.env.RESEND_API_KEY) {
-    return Response.json({ error: 'Access is temporarily unavailable. Please try again shortly.' }, { status: 503 })
-  }
-
   let stage = 'rate-limit'
   try {
     const rateLimit = await checkEngagementAccessRateLimit(request.headers)
@@ -46,22 +43,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    stage = 'notification'
-    const notification = engagementNotification(email)
-    const resend = new Resend(process.env.RESEND_API_KEY)
-    stage = 'email'
-    const result = await resend.emails.send(notification.message, {
-      idempotencyKey: notification.idempotencyKey,
-    })
-    if (result.error || !result.data?.id) {
-      console.error('Engagement notification rejected:', {
-        name: result.error?.name || 'missing_email_id',
-        statusCode: result.error?.statusCode,
-      })
-      throw new Error('Notification was not accepted')
-    }
+    stage = 'save-email'
+    const payload = await getPayload()
+    await queueEngagementNotification(payload.db.drizzle, engagementNotification(email))
 
-    // Grant access only after the notification is accepted; failed sends can be retried.
+    // The email is safely stored; provider quotas must not prevent opening the page.
     stage = 'access-cookie'
     const response = NextResponse.json({ ok: true }, { headers: { 'Cache-Control': 'private, no-store' } })
     response.cookies.set(ENGAGEMENT_ACCESS_COOKIE, createEngagementAccessToken(), {
@@ -82,7 +68,7 @@ export async function POST(request: NextRequest) {
       cause: cause?.message,
     })
     return Response.json(
-      { error: 'Could not open the engagement models. Please try again.' },
+      { error: 'Could not open Working together. Please try again.' },
       { status: 503 },
     )
   }

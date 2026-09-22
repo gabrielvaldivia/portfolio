@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { afterEach, mock, test } from 'node:test'
 import { NextRequest } from 'next/server'
+import { PgDialect } from 'drizzle-orm/pg-core'
 import {
   createEngagementAccessToken,
   ENGAGEMENT_ACCESS_COOKIE,
@@ -18,6 +19,7 @@ process.env.PAYLOAD_SECRET = 'engagement-access-test-secret'
 process.env.RESEND_API_KEY = 're_test_only'
 const { getPayload } = await import('../src/lib/payload')
 const { POST } = await import('../src/app/api/engagement-models/access/route')
+const { GET: retryNotifications } = await import('../src/app/api/engagement-models/notifications/route')
 const payload = await getPayload()
 
 afterEach(() => mock.restoreAll())
@@ -32,7 +34,12 @@ function request(body: unknown = { email: 'reader@example.com' }, headers: Recor
 }
 
 function allowRequests() {
-  return mock.method(payload.db.drizzle, 'execute', async () => ({ rows: [{ window_count: 1, daily_count: 1 }] }))
+  return mock.method(payload.db.drizzle, 'execute', async (query: any) => {
+    const compiled = new PgDialect().sqlToQuery(query)
+    return compiled.sql.includes('INSERT INTO engagement_notifications')
+      ? { rows: [{ idempotency_key: compiled.params[0] }] }
+      : { rows: [{ window_count: 1, daily_count: 1 }] }
+  })
 }
 
 test('access tokens expire after a day and reject forged, malformed, or altered cookies', () => {
@@ -90,20 +97,17 @@ test('invalid envelopes, invalid emails, and honeypot submissions never send ema
   assert.equal(send.mock.callCount(), 0)
 })
 
-test('successful notification grants a private, HTTP-only signed cookie', async () => {
-  allowRequests()
-  let sentBody: any
-  let idempotencyKey: string | null = null
-  mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => {
-    sentBody = JSON.parse(options.body as string)
-    idempotencyKey = new Headers(options.headers).get('idempotency-key')
-    return Response.json({ id: 'test-email-id' })
-  })
+test('saving the email grants a private signed cookie without waiting for the email provider', async () => {
+  const storage = allowRequests()
+  const send = mock.method(globalThis, 'fetch', async () => { throw new Error('Unexpected email request') })
   const response = await POST(request({ email: ' Reader@Example.com ' }))
   assert.equal(response.status, 200)
   assert.deepEqual(await response.json(), { ok: true })
-  assert.equal(sentBody.reply_to, 'reader@example.com')
-  assert.match(idempotencyKey!, /^engagement-view:local:/)
+  assert.equal(storage.mock.callCount(), 2)
+  const saved = new PgDialect().sqlToQuery(storage.mock.calls[1].arguments[0] as any)
+  assert.equal(JSON.parse(saved.params[2] as string).replyTo, 'reader@example.com')
+  assert.match(saved.params[0] as string, /^engagement-view:v2:local:/)
+  assert.equal(send.mock.callCount(), 0)
   const cookie = response.headers.get('set-cookie')!
   assert.match(cookie, /HttpOnly/i)
   assert.match(cookie, /SameSite=lax/i)
@@ -133,17 +137,42 @@ test('rate limiting blocks email and access with a retry time', async () => {
   assert.equal(send.mock.callCount(), 0)
 })
 
-test('provider rejection and network failures leave the gate locked and allow retry', async () => {
+test('email quotas and missing email configuration do not block access after saving the address', async (t) => {
   allowRequests()
-  mock.method(console, 'error', () => {})
-  const send = mock.method(globalThis, 'fetch', async () => Response.json({ name: 'validation_error', message: 'Rejected' }, { status: 403 }))
-  const rejected = await POST(request())
-  assert.equal(rejected.status, 503)
-  assert.equal(rejected.headers.has('set-cookie'), false)
-  send.mock.mockImplementation(async () => { throw new Error('Offline') })
-  const offline = await POST(request())
-  assert.equal(offline.status, 503)
-  assert.equal(offline.headers.has('set-cookie'), false)
-  send.mock.mockImplementation(async () => Response.json({ id: 'retry-email-id' }))
+  const key = process.env.RESEND_API_KEY
+  t.after(() => { process.env.RESEND_API_KEY = key })
+  const send = mock.method(globalThis, 'fetch', async () => Response.json({ name: 'daily_quota_exceeded' }, { status: 429 }))
   assert.equal((await POST(request())).status, 200)
+  delete process.env.RESEND_API_KEY
+  assert.equal((await POST(request())).status, 200)
+  assert.equal(send.mock.callCount(), 0)
+})
+
+test('failed email storage keeps the page locked and permits a later retry', async () => {
+  const storage = allowRequests()
+  mock.method(console, 'error', () => {})
+  storage.mock.mockImplementation(async (query: any) => {
+    if (new PgDialect().sqlToQuery(query).sql.includes('INSERT INTO engagement_notifications')) throw new Error('Storage unavailable')
+    return { rows: [{ window_count: 1, daily_count: 1 }] }
+  })
+  const failed = await POST(request())
+  assert.equal(failed.status, 503)
+  assert.equal(failed.headers.has('set-cookie'), false)
+  storage.mock.mockImplementation(async () => ({ rows: [] }))
+  // Empty results from the unavailable-database fallback cannot grant access.
+  const unavailable = await POST(request())
+  assert.notEqual(unavailable.status, 200)
+  storage.mock.restore()
+  allowRequests()
+  assert.equal((await POST(request())).status, 200)
+})
+
+test('notification retries require the scheduler secret', async (t) => {
+  const secret = process.env.CRON_SECRET
+  t.after(() => { if (secret === undefined) delete process.env.CRON_SECRET; else process.env.CRON_SECRET = secret })
+  delete process.env.CRON_SECRET
+  assert.equal((await retryNotifications(new Request(url))).status, 503)
+  process.env.CRON_SECRET = 'scheduler-test-secret'
+  assert.equal((await retryNotifications(new Request(url))).status, 401)
+  assert.equal((await retryNotifications(new Request(url, { headers: { authorization: 'Bearer wrong' } }))).status, 401)
 })

@@ -10,6 +10,10 @@
     {
       "path": "/api/notes/publish-scheduled",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/engagement-models/notifications",
+      "schedule": "* * * * *"
     }
   ]
 }
