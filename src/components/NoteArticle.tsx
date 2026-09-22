@@ -33,7 +33,7 @@ export function NoteArticle({ note, bodyContent, children }: {
     <article className="note-page pb-20 text-text-strong">
       <Container>
         <div className="mx-auto max-w-[760px]">
-          <header className="flex flex-col gap-4 pb-12 text-center tablet:pb-16">
+          <header className="flex flex-col gap-4 pb-12 text-left tablet:pb-16 tablet:text-center">
             <h1 className="note-page-title">{note.title || 'Untitled note'}</h1>
             {noteDate ? <p className="text-[16px] text-text-muted tablet:text-[18px]">{noteDate}</p> : null}
           </header>

@@ -81,6 +81,7 @@ html[data-theme='dark'] .collection-edit--notes {
 
 @media (max-width: 809px) {
   .note-page .note-page-title {
+    text-align: left;
     text-wrap: wrap;
   }
 }

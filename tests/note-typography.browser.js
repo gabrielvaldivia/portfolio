@@ -53,8 +53,8 @@
   try {
     check(title, 'fontSize', `${titleSize}px`, 'title size');
     check(title, 'fontWeight', '400', 'title weight');
-    check(title, 'textAlign', 'center', 'title centered');
-    check(title, 'textWrap', 'balance', 'balanced title wrapping');
+    check(title, 'textAlign', !admin && !tablet ? 'left' : 'center', 'title alignment');
+    check(title, 'textWrap', !admin && !tablet ? 'wrap' : 'balance', 'title wrapping');
     check(title, 'color', contentColor, 'title color');
     for (const selector of ['p', 'li', 'blockquote']) {
       const element = root.querySelector(selector);
