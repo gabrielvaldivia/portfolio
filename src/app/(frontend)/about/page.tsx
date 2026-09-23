@@ -113,11 +113,7 @@ export default async function AboutPage() {
     (section: any) => section.blockType === 'aboutPlaygroundSection',
   )
   const portraitImage = {
-    url: '/images/about-portrait-light.jpg',
-    alt: 'Portrait of Gabriel Valdivia',
-  }
-  const portraitImageDark = {
-    url: '/images/about-portrait-dark.jpg',
+    url: '/images/about-portrait.jpg',
     alt: 'Portrait of Gabriel Valdivia',
   }
   const structuredData = buildSiteStructuredData([{
@@ -220,7 +216,6 @@ export default async function AboutPage() {
               <div className="w-full tablet:sticky tablet:top-5 tablet:max-w-[360px]">
                 <SprayPaintPortrait
                   image={portraitImage}
-                  imageDark={portraitImageDark}
                   eager
                 />
               </div>

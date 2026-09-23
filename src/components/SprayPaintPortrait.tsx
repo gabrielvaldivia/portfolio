@@ -65,11 +65,9 @@ function rgba(color: PaintColor, opacity: number) {
 
 export function SprayPaintPortrait({
   image,
-  imageDark,
   eager = false,
 }: {
   image: PortraitImage
-  imageDark?: PortraitImage | null
   eager?: boolean
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -512,20 +510,10 @@ export function SprayPaintPortrait({
         media={image}
         alt={image.alt || 'Portrait of Gabriel Valdivia'}
         fill
-        className={cn('object-cover object-top', imageDark?.url && 'light-only')}
+        className="object-cover object-top dark:grayscale"
         sizes="(max-width: 1280px) 100vw, 33vw"
         loading={eager ? 'eager' : undefined}
       />
-      {imageDark?.url && (
-        <PayloadImage
-          media={imageDark}
-          alt={imageDark.alt || image.alt || 'Portrait of Gabriel Valdivia'}
-          fill
-          className="dark-only object-cover object-top"
-          sizes="(max-width: 1280px) 100vw, 33vw"
-          loading={eager ? 'eager' : undefined}
-        />
-      )}
 
       <canvas
         ref={canvasRef}
