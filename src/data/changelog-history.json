@@ -1,6 +1,11 @@
 {
-  "throughCommit": "9576d3363933d0eaff817892658780f40e78387c",
+  "throughCommit": "6bc892565b48ecd12abbd4f21917c632ed8dd2d2",
   "commits": [
+    {
+      "hash": "6bc892565b48ecd12abbd4f21917c632ed8dd2d2",
+      "date": "2026-09-22",
+      "subject": "Keep Working together access available during email outages"
+    },
     {
       "hash": "9576d3363933d0eaff817892658780f40e78387c",
       "date": "2026-09-22",

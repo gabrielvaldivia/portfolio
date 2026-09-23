@@ -21,15 +21,13 @@ async function getPublicAboutPreview() {
     return response.json()
   }
 
-  const [aboutResult, homeResult, sideProjectsResult] = await Promise.all([
+  const [aboutResult, sideProjectsResult] = await Promise.all([
     request('/pages?where%5Bslug%5D%5Bequals%5D=about&depth=2&limit=1'),
-    request('/pages?where%5Bslug%5D%5Bequals%5D=home&depth=2&limit=1'),
     request('/side-projects?sort=order&depth=2&limit=100'),
   ])
 
   return {
     aboutPage: aboutResult.docs?.[0] || null,
-    homePage: homeResult.docs?.[0] || null,
     sideProjects: sideProjectsResult.docs || [],
   }
 }
@@ -96,19 +94,17 @@ export async function generateMetadata(): Promise<Metadata> {
 export const revalidate = 60
 
 export default async function AboutPage() {
-  const [localPage, localHomePage, sideProjectsResult] = await Promise.all([
+  const [localPage, sideProjectsResult] = await Promise.all([
     getPageBySlug('about'),
-    getPageBySlug('home'),
     getSideProjects(),
   ])
-  const publicPreview = process.env.NODE_ENV === 'development' && (!localPage || !localHomePage)
+  const publicPreview = process.env.NODE_ENV === 'development' && !localPage
     ? await getPublicAboutPreview().catch((error) => {
         console.error('Public about preview unavailable.', error)
         return null
       })
     : null
   const page = localPage || publicPreview?.aboutPage
-  const homePage = localHomePage || publicPreview?.homePage
   const sideProjects = (sideProjectsResult.docs.length
     ? sideProjectsResult.docs
     : publicPreview?.sideProjects || []) as any[]
@@ -116,17 +112,14 @@ export default async function AboutPage() {
   const hasPlaygroundSection = aboutSections.some(
     (section: any) => section.blockType === 'aboutPlaygroundSection',
   )
-  const homeAboutSection = ((homePage?.sections as any[]) || []).find(
-    (section: any) => section.blockType === 'aboutSection',
-  )
-  const portraitImage = typeof homeAboutSection?.image === 'object'
-    ? homeAboutSection.image
-    : typeof page?.bioImage === 'object'
-      ? page.bioImage
-      : { url: '/media/about-photo.png', alt: 'Portrait of Gabriel Valdivia' }
-  const portraitImageDark = typeof homeAboutSection?.imageDark === 'object'
-    ? homeAboutSection.imageDark
-    : null
+  const portraitImage = {
+    url: '/media/about-portrait-light.jpg',
+    alt: 'Portrait of Gabriel Valdivia',
+  }
+  const portraitImageDark = {
+    url: '/media/about-portrait-dark.jpg',
+    alt: 'Portrait of Gabriel Valdivia',
+  }
   const structuredData = buildSiteStructuredData([{
     '@type': 'ProfilePage',
     '@id': absoluteSiteUrl('/about#profile-page'),
