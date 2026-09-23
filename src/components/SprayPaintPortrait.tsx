@@ -73,6 +73,7 @@ export function SprayPaintPortrait({
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const surfaceRef = useRef<HTMLDivElement>(null)
   const cursorRef = useRef<HTMLDivElement>(null)
+  const controlsTriggerRef = useRef<HTMLButtonElement>(null)
   const colorRef = useRef(DEFAULT_COLOR)
   const brushSizeRef = useRef(DEFAULT_BRUSH_SIZE)
   const pointerRef = useRef<Point | null>(null)
@@ -93,8 +94,7 @@ export function SprayPaintPortrait({
   const [brushSize, setBrushSize] = useState(DEFAULT_BRUSH_SIZE)
   const [hasPainted, setHasPainted] = useState(false)
   const [isDrawing, setIsDrawing] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
-  const [mobileControlsOpen, setMobileControlsOpen] = useState(false)
+  const [controlsOpen, setControlsOpen] = useState(false)
   const [brushSizePopoverColor, setBrushSizePopoverColor] = useState<string | null>(null)
   const controlsId = useId()
 
@@ -385,17 +385,11 @@ export function SprayPaintPortrait({
     }
 
     const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const mobileQuery = window.matchMedia('(max-width: 1279px)')
     const updateMotionPreference = () => {
       reducedMotionRef.current = motionQuery.matches
     }
-    const updateMobilePreference = () => {
-      setIsMobile(mobileQuery.matches)
-    }
     updateMotionPreference()
-    updateMobilePreference()
     motionQuery.addEventListener('change', updateMotionPreference)
-    mobileQuery.addEventListener('change', updateMobilePreference)
 
     const resizeObserver = new ResizeObserver(resizeCanvas)
     resizeObserver.observe(surface)
@@ -413,7 +407,6 @@ export function SprayPaintPortrait({
       resizeObserver.disconnect()
       visibilityObserver.disconnect()
       motionQuery.removeEventListener('change', updateMotionPreference)
-      mobileQuery.removeEventListener('change', updateMobilePreference)
       if (animationFrameRef.current !== null) cancelAnimationFrame(animationFrameRef.current)
     }
   }, [])
@@ -504,7 +497,7 @@ export function SprayPaintPortrait({
   return (
     <div
       ref={surfaceRef}
-      className="group/portrait relative aspect-square overflow-hidden rounded-xl tablet:aspect-[3/4] tablet:rounded-2xl after:pointer-events-none after:absolute after:inset-0 after:z-20 after:rounded-xl after:border after:border-border tablet:after:rounded-2xl"
+      className="group/portrait relative aspect-[4/3] overflow-hidden rounded-xl tablet:aspect-[3/4] tablet:rounded-2xl after:pointer-events-none after:absolute after:inset-0 after:z-20 after:rounded-xl after:border after:border-border tablet:after:rounded-2xl"
     >
       <PayloadImage
         media={image}
@@ -518,22 +511,27 @@ export function SprayPaintPortrait({
       <canvas
         ref={canvasRef}
         role="button"
-        tabIndex={0}
+        tabIndex={controlsOpen ? 0 : -1}
+        aria-hidden={!controlsOpen}
         aria-label="Spray paint the portrait. Press Enter or Space to spray in the center."
-        className="absolute inset-0 z-10 size-full touch-none cursor-none outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-inset"
-        onPointerEnter={(event) => positionCursor(getPointerPosition(event.clientX, event.clientY))}
+        className={cn(
+          'absolute inset-0 z-10 size-full outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-inset',
+          controlsOpen ? 'touch-none cursor-none' : 'pointer-events-none',
+        )}
+        onPointerEnter={(event) => {
+          if (controlsOpen) positionCursor(getPointerPosition(event.clientX, event.clientY))
+        }}
         onPointerLeave={() => {
           if (!isPaintingRef.current) positionCursor(pointerRef.current || { x: 0, y: 0 }, false)
         }}
         onPointerDown={(event) => {
-          if (event.button !== 0) return
+          if (!controlsOpen || event.button !== 0) return
           event.preventDefault()
           const point = getPointerPosition(event.clientX, event.clientY)
           event.currentTarget.setPointerCapture(event.pointerId)
           activePointerRef.current = event.pointerId
           isPaintingRef.current = true
           setIsDrawing(true)
-          setMobileControlsOpen(false)
           setBrushSizePopoverColor(null)
           pointerRef.current = point
           sprayGrowthRef.current = { anchor: point, amount: 0 }
@@ -545,6 +543,7 @@ export function SprayPaintPortrait({
           startAnimation()
         }}
         onPointerMove={(event) => {
+          if (!controlsOpen) return
           const point = getPointerPosition(event.clientX, event.clientY)
           positionCursor(point)
           if (!isPaintingRef.current || activePointerRef.current !== event.pointerId) {
@@ -569,6 +568,7 @@ export function SprayPaintPortrait({
         }}
         onPointerCancel={() => finishStroke(pointerRef.current)}
         onKeyDown={(event) => {
+          if (!controlsOpen) return
           if (event.key !== 'Enter' && event.key !== ' ') return
           event.preventDefault()
           sprayFromKeyboard()
@@ -587,15 +587,21 @@ export function SprayPaintPortrait({
       />
 
       <button
+        ref={controlsTriggerRef}
         type="button"
         aria-controls={controlsId}
-        aria-expanded={mobileControlsOpen}
+        aria-expanded={controlsOpen}
+        aria-hidden={controlsOpen}
+        tabIndex={controlsOpen ? -1 : 0}
         aria-label="Open spray paint controls"
         title="Vandalize"
-        onClick={() => setMobileControlsOpen(true)}
+        onClick={() => {
+          setControlsOpen(true)
+          canvasRef.current?.focus()
+        }}
         className={cn(
-          'absolute bottom-4 left-1/2 z-30 flex size-8 -translate-x-1/2 items-center justify-center rounded-full bg-black/45 text-text-on-media-muted shadow-sm backdrop-blur-sm transition-[opacity,transform,background-color] duration-150 ease-out hover:bg-black/55 hover:text-text-on-media-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white desktop:hidden',
-          mobileControlsOpen || isDrawing
+          'absolute bottom-4 left-1/2 z-30 flex size-8 -translate-x-1/2 items-center justify-center rounded-full bg-black/45 text-text-on-media-muted shadow-sm backdrop-blur-sm transition-[opacity,transform,background-color] duration-150 ease-out hover:bg-black/55 hover:text-text-on-media-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
+          controlsOpen || isDrawing
             ? 'pointer-events-none translate-y-2 opacity-0'
             : 'translate-y-0 opacity-100',
         )}
@@ -605,17 +611,13 @@ export function SprayPaintPortrait({
 
       <div
         id={controlsId}
-        aria-hidden={isDrawing || (isMobile && !mobileControlsOpen)}
-        inert={isDrawing || (isMobile && !mobileControlsOpen)}
+        aria-hidden={isDrawing || !controlsOpen}
+        inert={isDrawing || !controlsOpen}
         className={cn(
           'absolute bottom-3 left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/20 bg-black/75 p-1.5 text-text-on-media-strong shadow-sm transition-[opacity,transform] duration-150 ease-out',
-          mobileControlsOpen
+          controlsOpen
             ? 'translate-y-0 opacity-100'
             : 'pointer-events-none translate-y-2 opacity-0',
-          'desktop:pointer-events-auto',
-          brushSizePopoverColor
-            ? 'desktop:translate-y-0 desktop:opacity-100'
-            : 'desktop:translate-y-2 desktop:opacity-0 desktop:group-hover/portrait:translate-y-0 desktop:group-hover/portrait:opacity-100 desktop:group-focus-within/portrait:translate-y-0 desktop:group-focus-within/portrait:opacity-100',
         )}
         style={{
           opacity: isDrawing ? 0 : undefined,
@@ -722,6 +724,22 @@ export function SprayPaintPortrait({
             <path d="M3 5.5H21M16.0557 5.5L15.3731 4.09173C14.9196 3.15626 14.6928 2.68852 14.3017 2.39681C14.215 2.3321 14.1231 2.27454 14.027 2.2247C13.5939 2 13.0741 2 12.0345 2C10.9688 2 10.436 2 9.99568 2.23412C9.8981 2.28601 9.80498 2.3459 9.71729 2.41317C9.32164 2.7167 9.10063 3.20155 8.65861 4.17126L8.05292 5.5" />
             <path d="M9.5 16.5L9.5 10.5" />
             <path d="M14.5 16.5L14.5 10.5" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setControlsOpen(false)
+            setBrushSizePopoverColor(null)
+            positionCursor(pointerRef.current || { x: 0, y: 0 }, false)
+            controlsTriggerRef.current?.focus()
+          }}
+          className="flex size-8 shrink-0 items-center justify-center rounded-full text-text-on-media-control transition-colors duration-150 hover:bg-white/15 hover:text-text-on-media-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          aria-label="Close spray paint controls"
+          title="Close draw tools"
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+            <path d="m6 6 12 12M6 18 18 6" />
           </svg>
         </button>
       </div>

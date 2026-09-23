@@ -221,7 +221,10 @@ export default async function AboutPage() {
               </div>
             )}
           >
-            <AboutBio />
+            <div className="flex flex-col gap-6">
+              <h2 className="text-balance tablet:hidden">About</h2>
+              <AboutBio />
+            </div>
             <Link
               href="/timeline"
               className="mt-8 inline-flex items-center gap-2 text-body-large text-text-body transition-opacity duration-150 hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
@@ -292,11 +295,8 @@ export default async function AboutPage() {
       <JsonLd data={structuredData} />
       <section className="pb-20 tablet:pb-40">
         <Container>
-          <div className="pb-20">
-            <h1 className="text-[34px] tablet:hidden">About</h1>
-            <div className="hidden tablet:block">
-              <FitText className="font-heading" maxSize={120}>About</FitText>
-            </div>
+          <div className="hidden pb-20 tablet:block">
+            <FitText className="font-heading" maxSize={120}>About</FitText>
           </div>
           <div className="flex flex-col gap-20">
             {aboutSections.map((section: any, i: number) => (
