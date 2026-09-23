@@ -298,7 +298,7 @@ export default async function AboutPage() {
           <div className="hidden pb-20 tablet:block">
             <FitText className="font-heading" maxSize={120}>About</FitText>
           </div>
-          <div className="flex flex-col gap-20">
+          <div className="flex flex-col gap-20 desktop:gap-40">
             {aboutSections.map((section: any, i: number) => (
               <div key={section.id || `${section.blockType}-${i}`}>
                 {renderSection(section)}

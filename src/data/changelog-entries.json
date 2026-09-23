@@ -5,7 +5,7 @@
     "changes": [
       "Replaced the About portrait with the wider photo, using one image that desaturates in dark mode, frames the head about 30px below the top on mobile, and stays centered on larger screens.",
       "Redirected retired portrait URLs to the current photo so older About pages can still display it.",
-      "On mobile, made the portrait 4:3 and moved the About heading below it and above the bio, matching the Talks section heading.",
+      "Polished About with a 4:3 mobile portrait, an About heading above the bio matching Talks, and doubled section spacing on desktop.",
       "Drawing on the portrait now starts only after opening the draw tools; closing them returns the photo to normal scrolling."
     ]
   },
