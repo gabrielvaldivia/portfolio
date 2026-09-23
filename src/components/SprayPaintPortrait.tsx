@@ -510,7 +510,7 @@ export function SprayPaintPortrait({
         media={image}
         alt={image.alt || 'Portrait of Gabriel Valdivia'}
         fill
-        className="object-cover object-top dark:grayscale"
+        className="object-cover object-center dark:grayscale"
         sizes="(max-width: 1280px) 100vw, 33vw"
         loading={eager ? 'eager' : undefined}
       />

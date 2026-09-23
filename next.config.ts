@@ -9,6 +9,17 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // Keep older About pages working after portrait filenames change.
+      ...[
+        '/images/about-portrait-light.jpg',
+        '/images/about-portrait-dark.jpg',
+        '/media/about-portrait-light.jpg',
+        '/media/about-portrait-dark.jpg',
+      ].map((source) => ({
+        source,
+        destination: '/images/about-portrait.jpg',
+        permanent: true,
+      })),
       {
         source: '/engagement-models',
         destination: '/working-together',
