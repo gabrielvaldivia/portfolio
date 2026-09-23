@@ -113,11 +113,11 @@ export default async function AboutPage() {
     (section: any) => section.blockType === 'aboutPlaygroundSection',
   )
   const portraitImage = {
-    url: '/media/about-portrait-light.jpg',
+    url: '/images/about-portrait-light.jpg',
     alt: 'Portrait of Gabriel Valdivia',
   }
   const portraitImageDark = {
-    url: '/media/about-portrait-dark.jpg',
+    url: '/images/about-portrait-dark.jpg',
     alt: 'Portrait of Gabriel Valdivia',
   }
   const structuredData = buildSiteStructuredData([{

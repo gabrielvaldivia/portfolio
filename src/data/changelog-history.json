@@ -1,6 +1,11 @@
 {
-  "throughCommit": "6bc892565b48ecd12abbd4f21917c632ed8dd2d2",
+  "throughCommit": "1eb625b1ce10b2cd6d2f9392642d3d9cf06508be",
   "commits": [
+    {
+      "hash": "1eb625b1ce10b2cd6d2f9392642d3d9cf06508be",
+      "date": "2026-09-22",
+      "subject": "Update About portraits for light and dark mode"
+    },
     {
       "hash": "6bc892565b48ecd12abbd4f21917c632ed8dd2d2",
       "date": "2026-09-22",

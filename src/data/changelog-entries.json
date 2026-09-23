@@ -7,7 +7,8 @@
       "Left-aligned note titles and dates on mobile, including shared previews.",
       "Moved engagement models to /working-together, renamed the page Working together, and permanently redirected /engagement-models to the new address.",
       "Working together now opens after securely saving an email address, with queued notifications and automatic retries so email quotas or delivery outages do not block access.",
-      "Updated the About portrait with a color photo in light mode and a black-and-white photo in dark mode, with both crops aligned to the top."
+      "Updated the About portrait with a color photo in light mode and a black-and-white photo in dark mode, with both crops aligned to the top.",
+      "Fixed missing About portraits on the live site by including both images in deployments."
     ]
   },
   {
