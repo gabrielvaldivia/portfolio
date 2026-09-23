@@ -4,7 +4,8 @@ import { getPublishedNotes } from '@/lib/queries'
 import { convertLexicalToHTML } from '@payloadcms/richtext-lexical/html'
 import type { SerializedEditorState } from 'lexical'
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-static'
+export const revalidate = 3600
 
 function escapeXML(value: string) {
   return value
@@ -64,7 +65,6 @@ export async function GET() {
 
   return new Response(xml, {
     headers: {
-      'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
       'Content-Type': 'application/rss+xml; charset=utf-8',
     },
   })

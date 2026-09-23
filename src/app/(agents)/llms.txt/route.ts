@@ -2,7 +2,7 @@ import { markdownDocument, markdownListItem, markdownResponse } from '@/lib/agen
 import { SITE_TAGLINE } from '@/lib/siteMetadata'
 import { absoluteSiteUrl } from '@/lib/structuredData'
 
-export const revalidate = 300
+export const revalidate = 3600
 
 export function GET() {
   const markdown = markdownDocument('Gabriel Valdivia', [

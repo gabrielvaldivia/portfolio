@@ -22,6 +22,7 @@ import { NoteSubscribers } from './collections/NoteSubscribers'
 import { SiteSettings } from './globals/SiteSettings'
 import { Timeline } from './globals/Timeline'
 import { getPayloadSecret } from './lib/payloadSecret'
+import { withContentRevalidation, withGlobalRevalidation } from './lib/contentRevalidation'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -117,8 +118,8 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Pages, Notes, NoteSubscribers, Projects, SideProjects, Clients, People, Services, Conversations, Photos, Users, Media],
-  globals: [SiteSettings, Timeline],
+  collections: [Pages, Notes, NoteSubscribers, Projects, SideProjects, Clients, People, Services, Conversations, Photos, Users, Media].map((collection) => withContentRevalidation(collection)),
+  globals: [SiteSettings, Timeline].map((global) => withGlobalRevalidation(global)),
   editor: lexicalEditor(),
   secret: getPayloadSecret(),
   cors: {

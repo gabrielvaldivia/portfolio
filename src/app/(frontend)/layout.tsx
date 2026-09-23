@@ -11,7 +11,7 @@ import { getFooterSocialLinks, getNavigationPages, getSiteSettings } from '@/lib
 import { normalizeSocialLink } from '@/lib/socialLinks'
 import { SITE_ORIGIN, SITE_TAGLINE } from '@/lib/siteMetadata'
 
-export const revalidate = 60
+export const revalidate = 3600
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings() as any

@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
   })
 }
 
-export const revalidate = 300
+export const revalidate = 3600
 
 export default async function PeoplePage() {
   const payload = await getPayload()

@@ -292,12 +292,12 @@ export const getNavigationPages = unstable_cache(async function getNavigationPag
   })
 
   return pages.length > 0 ? orderSiteNavigationItems(pages) : pages
-}, ['navigation-pages'], { revalidate: 60, tags: ['navigation-pages'] })
+}, ['navigation-pages'], { revalidate: 3600, tags: ['navigation-pages'] })
 
 export const getSiteSettings = unstable_cache(async function getSiteSettings() {
   const payload = await getPayload()
   return payload.findGlobal({ slug: 'site-settings' })
-}, ['site-settings'], { revalidate: 60, tags: ['site-settings'] })
+}, ['site-settings'], { revalidate: 3600, tags: ['site-settings'] })
 
 export const getFooterSocialLinks = unstable_cache(async function getFooterSocialLinks() {
   const payload = await getPayload()
@@ -326,4 +326,4 @@ export const getFooterSocialLinks = unstable_cache(async function getFooterSocia
       url: typeof value.url === 'string' ? value.url : null,
     } satisfies FooterSocialLink
   })
-}, ['footer-social-links'], { revalidate: 60, tags: ['footer-social-links'] })
+}, ['footer-social-links'], { revalidate: 3600, tags: ['footer-social-links'] })

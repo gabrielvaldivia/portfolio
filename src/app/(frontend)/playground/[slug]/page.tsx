@@ -6,7 +6,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { FitText } from '@/components/FitText'
 
-export const revalidate = 60
+export const revalidate = 3600
 
 export async function generateStaticParams() {
   try {

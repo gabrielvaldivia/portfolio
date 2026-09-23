@@ -8,7 +8,8 @@
       "Moved engagement models to /working-together, renamed the page Working together, and permanently redirected /engagement-models to the new address.",
       "Working together now opens after securely saving an email address, with queued notifications and automatic retries so email quotas or delivery outages do not block access.",
       "Updated the About portrait with the latest high-resolution headshots: color in light mode and black and white in dark mode, with both crops aligned to the top.",
-      "Fixed missing About portraits on the live site by including both images in deployments."
+      "Fixed missing About portraits on the live site by including both images in deployments.",
+      "Reduced recurring hosting work by caching public pages and feeds for an hour, refreshing content after CMS changes, checking scheduled notes and queued notifications every five minutes, and limiting automatic deployments to the production branch."
     ]
   },
   {

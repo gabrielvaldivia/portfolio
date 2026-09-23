@@ -10,7 +10,7 @@ import {
   websiteReference,
 } from '@/lib/structuredData'
 
-export const revalidate = 60
+export const revalidate = 3600
 
 export async function generateStaticParams() {
   const photos = await getPhotos()

@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 import { getSiteSettings } from '@/lib/queries'
 import { SITE_ORIGIN } from '@/lib/siteMetadata'
 
-export const revalidate = 60
+export const revalidate = 3600
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
   const settings = await getSiteSettings() as { canonicalUrl?: string | null; noIndex?: boolean | null }

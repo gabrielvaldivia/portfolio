@@ -9,11 +9,18 @@
     },
     {
       "path": "/api/notes/publish-scheduled",
-      "schedule": "* * * * *"
+      "schedule": "*/5 * * * *"
     },
     {
       "path": "/api/engagement-models/notifications",
-      "schedule": "* * * * *"
+      "schedule": "*/5 * * * *"
     }
-  ]
+  ],
+  "fluid": true,
+  "git": {
+    "deploymentEnabled": {
+      "master": true,
+      "**": false
+    }
+  }
 }

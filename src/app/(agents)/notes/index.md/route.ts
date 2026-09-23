@@ -2,7 +2,7 @@ import { markdownDocument, markdownListItem, markdownResponse } from '@/lib/agen
 import { getPublishedNotes } from '@/lib/queries'
 import { absoluteSiteUrl } from '@/lib/structuredData'
 
-export const revalidate = 300
+export const revalidate = 3600
 
 export async function GET() {
   const { docs: notes } = await getPublishedNotes()

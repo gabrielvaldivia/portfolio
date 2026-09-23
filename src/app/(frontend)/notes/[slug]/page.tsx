@@ -19,7 +19,7 @@ import {
   websiteReference,
 } from '@/lib/structuredData'
 
-export const revalidate = 60
+export const revalidate = 3600
 // Notes published after deployment must render without another build.
 export const dynamicParams = true
 

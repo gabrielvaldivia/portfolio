@@ -1,6 +1,6 @@
 import { getPhotos, SITE_URL, PHOTO_FEED_URL } from '@/lib/photos'
 
-export const revalidate = 60
+export const revalidate = 3600
 
 export async function GET() {
   const photos = await getPhotos()

@@ -4,7 +4,7 @@ import { getPhotos, PHOTO_FEED_URL } from '@/lib/photos'
 import { JsonLd } from '@/components/JsonLd'
 import { absoluteSiteUrl, buildSiteStructuredData, websiteReference } from '@/lib/structuredData'
 
-export const revalidate = 60
+export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: 'Photos — Gabriel Valdivia',

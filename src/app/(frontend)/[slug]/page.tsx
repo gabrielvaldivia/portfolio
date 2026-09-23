@@ -5,7 +5,7 @@ import { getPublishedPageBySlug } from '@/lib/queries'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 
-export const revalidate = 60
+export const revalidate = 3600
 
 // Reserved slugs handled by other routes
 const RESERVED = ['work', 'about', 'clients', 'playground', 'notes', 'pricing', 'engagement-models', 'working-together', 'design-system', 'admin']

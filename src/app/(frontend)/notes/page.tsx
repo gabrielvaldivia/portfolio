@@ -9,7 +9,7 @@ import Link from 'next/link'
 import { JsonLd } from '@/components/JsonLd'
 import { absoluteSiteUrl, buildSiteStructuredData, websiteReference } from '@/lib/structuredData'
 
-export const revalidate = 60
+export const revalidate = 3600
 
 function getNoteYear(value?: string | null) {
   if (!value) return null

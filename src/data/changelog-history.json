@@ -1,6 +1,11 @@
 {
-  "throughCommit": "2f8b0f9e8f85926a7e291e0d267c19927c782ffd",
+  "throughCommit": "d1d8825e39036a346b59fcc6bafa711b1858cece",
   "commits": [
+    {
+      "hash": "d1d8825e39036a346b59fcc6bafa711b1858cece",
+      "date": "2026-09-22",
+      "subject": "Refresh About portraits with updated headshots"
+    },
     {
       "hash": "2f8b0f9e8f85926a7e291e0d267c19927c782ffd",
       "date": "2026-09-22",

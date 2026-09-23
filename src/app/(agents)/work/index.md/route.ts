@@ -2,7 +2,7 @@ import { getProjects } from '@/lib/queries'
 import { markdownDocument, markdownListItem, markdownResponse } from '@/lib/agentMarkdown'
 import { absoluteSiteUrl } from '@/lib/structuredData'
 
-export const revalidate = 300
+export const revalidate = 3600
 
 export async function GET() {
   const { docs: projects } = await getProjects()

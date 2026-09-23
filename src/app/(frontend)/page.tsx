@@ -23,7 +23,7 @@ import { cn } from '@/lib/cn'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 
-export const revalidate = 300
+export const revalidate = 3600
 
 const PUBLIC_CMS_API = 'https://www.gabrielvaldivia.com/api'
 const HOME_HERO_TAGLINE = SITE_TAGLINE

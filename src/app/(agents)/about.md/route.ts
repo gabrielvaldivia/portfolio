@@ -6,7 +6,7 @@ import {
   markdownResponse,
 } from '@/lib/agentMarkdown'
 
-export const revalidate = 300
+export const revalidate = 3600
 
 const BIOGRAPHY = [
   'I’ve spent 15 years designing for some of the world’s top tech companies while building products of my own. From Automatic to Meta, Google, CNN, and Patreon, I’ve worked across product, brand, and emerging technology, helping teams turn ambitious ideas into products people use.',

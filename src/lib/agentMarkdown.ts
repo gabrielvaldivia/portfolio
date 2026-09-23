@@ -166,7 +166,7 @@ export function markdownResponse(
 
   return new Response(markdown, {
     headers: {
-      'Cache-Control': `public, s-maxage=${options.maxAge ?? 300}, stale-while-revalidate=3600`,
+      'Cache-Control': `public, s-maxage=${options.maxAge ?? 3600}, stale-while-revalidate=3600`,
       'Content-Type': `${options.contentType || 'text/markdown'}; charset=utf-8`,
       Link: links,
     },

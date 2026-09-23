@@ -3,7 +3,7 @@ import { getPublishedNoteTitleBySlug } from '@/lib/queries'
 
 // Payload and the bundled font use Node.js, not the Edge runtime.
 export const runtime = 'nodejs'
-export const revalidate = 60
+export const revalidate = 3600
 
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params

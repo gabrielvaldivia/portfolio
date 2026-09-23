@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-export const revalidate = 300
+export const revalidate = 3600
 
 export default async function ChatByIdPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
