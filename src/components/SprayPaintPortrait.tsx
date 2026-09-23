@@ -1,9 +1,8 @@
 'use client'
 
-import { SwatchIcon } from '@hugeicons/core-free-icons'
-import { HugeiconsIcon } from '@hugeicons/react'
+import * as Dialog from '@radix-ui/react-dialog'
 import * as Popover from '@radix-ui/react-popover'
-import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { PayloadImage } from '@/components/PayloadImage'
 import { cn } from '@/lib/cn'
 import type { ResponsiveImageMedia } from '@/lib/responsiveImage'
@@ -70,10 +69,63 @@ export function SprayPaintPortrait({
   image: PortraitImage
   eager?: boolean
 }) {
+  return (
+    <>
+      <Dialog.Root>
+        <Dialog.Trigger asChild>
+          <button
+            type="button"
+            aria-label="Open portrait fullscreen"
+            className="relative block aspect-[4/3] w-full cursor-zoom-in overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content tablet:hidden after:pointer-events-none after:absolute after:inset-0 after:rounded-xl after:border after:border-border"
+          >
+            <PayloadImage
+              media={image}
+              alt={image.alt || 'Portrait of Gabriel Valdivia'}
+              fill
+              className="object-cover object-[50%_calc(50%+30px)] dark:grayscale"
+              sizes="100vw"
+              loading={eager ? 'eager' : undefined}
+            />
+          </button>
+        </Dialog.Trigger>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-80 bg-black" />
+          <Dialog.Content className="fixed inset-0 z-80 flex items-center justify-center bg-black pt-[max(64px,env(safe-area-inset-top))] pb-[max(96px,env(safe-area-inset-bottom))] outline-none">
+            <Dialog.Title className="sr-only">Draw on the portrait</Dialog.Title>
+            <Dialog.Description className="sr-only">
+              Draw on the photo with your finger. Choose a paint color, adjust the brush size, or clear your drawing.
+            </Dialog.Description>
+            <Dialog.Close
+              aria-label="Close fullscreen portrait"
+              className="absolute right-[max(16px,env(safe-area-inset-right))] top-[max(16px,env(safe-area-inset-top))] z-40 flex size-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                <path d="m6 6 12 12M6 18 18 6" />
+              </svg>
+            </Dialog.Close>
+            <SprayPaintSurface image={image} eager fullscreen />
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+      <div className="hidden tablet:block">
+        <SprayPaintSurface image={image} eager={eager} />
+      </div>
+    </>
+  )
+}
+
+function SprayPaintSurface({
+  image,
+  eager = false,
+  fullscreen = false,
+}: {
+  image: PortraitImage
+  eager?: boolean
+  fullscreen?: boolean
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const surfaceRef = useRef<HTMLDivElement>(null)
   const cursorRef = useRef<HTMLDivElement>(null)
-  const controlsTriggerRef = useRef<HTMLButtonElement>(null)
   const colorRef = useRef(DEFAULT_COLOR)
   const brushSizeRef = useRef(DEFAULT_BRUSH_SIZE)
   const pointerRef = useRef<Point | null>(null)
@@ -94,9 +146,8 @@ export function SprayPaintPortrait({
   const [brushSize, setBrushSize] = useState(DEFAULT_BRUSH_SIZE)
   const [hasPainted, setHasPainted] = useState(false)
   const [isDrawing, setIsDrawing] = useState(false)
-  const [controlsOpen, setControlsOpen] = useState(false)
   const [brushSizePopoverColor, setBrushSizePopoverColor] = useState<string | null>(null)
-  const controlsId = useId()
+  const imageAspectRatio = image.width && image.height ? image.width / image.height : 5 / 6
 
   colorRef.current = color
   brushSizeRef.current = brushSize
@@ -497,35 +548,38 @@ export function SprayPaintPortrait({
   return (
     <div
       ref={surfaceRef}
-      className="group/portrait relative aspect-[4/3] overflow-hidden rounded-xl tablet:aspect-[3/4] tablet:rounded-2xl after:pointer-events-none after:absolute after:inset-0 after:z-20 after:rounded-xl after:border after:border-border tablet:after:rounded-2xl"
+      className={cn(
+        'group/portrait relative',
+        fullscreen
+          ? 'w-full shrink-0'
+          : 'aspect-[3/4] overflow-hidden rounded-2xl after:pointer-events-none after:absolute after:inset-0 after:z-20 after:rounded-2xl after:border after:border-border',
+      )}
+      style={fullscreen ? {
+        aspectRatio: imageAspectRatio,
+        maxWidth: `calc((100dvh - max(64px, env(safe-area-inset-top)) - max(96px, env(safe-area-inset-bottom))) * ${imageAspectRatio})`,
+      } : undefined}
     >
       <PayloadImage
         media={image}
         alt={image.alt || 'Portrait of Gabriel Valdivia'}
         fill
-        className="object-cover object-[50%_calc(50%+30px)] tablet:object-center dark:grayscale"
-        sizes="(max-width: 1280px) 100vw, 33vw"
+        className="object-cover object-center dark:grayscale"
+        sizes={fullscreen ? '100vw' : '(max-width: 1280px) 100vw, 33vw'}
         loading={eager ? 'eager' : undefined}
       />
 
       <canvas
         ref={canvasRef}
         role="button"
-        tabIndex={controlsOpen ? 0 : -1}
-        aria-hidden={!controlsOpen}
+        tabIndex={0}
         aria-label="Spray paint the portrait. Press Enter or Space to spray in the center."
-        className={cn(
-          'absolute inset-0 z-10 size-full outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-inset',
-          controlsOpen ? 'touch-none cursor-none' : 'pointer-events-none',
-        )}
-        onPointerEnter={(event) => {
-          if (controlsOpen) positionCursor(getPointerPosition(event.clientX, event.clientY))
-        }}
+        className="absolute inset-0 z-10 size-full touch-none cursor-none outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-inset"
+        onPointerEnter={(event) => positionCursor(getPointerPosition(event.clientX, event.clientY))}
         onPointerLeave={() => {
           if (!isPaintingRef.current) positionCursor(pointerRef.current || { x: 0, y: 0 }, false)
         }}
         onPointerDown={(event) => {
-          if (!controlsOpen || event.button !== 0) return
+          if (event.button !== 0) return
           event.preventDefault()
           const point = getPointerPosition(event.clientX, event.clientY)
           event.currentTarget.setPointerCapture(event.pointerId)
@@ -543,7 +597,6 @@ export function SprayPaintPortrait({
           startAnimation()
         }}
         onPointerMove={(event) => {
-          if (!controlsOpen) return
           const point = getPointerPosition(event.clientX, event.clientY)
           positionCursor(point)
           if (!isPaintingRef.current || activePointerRef.current !== event.pointerId) {
@@ -568,7 +621,6 @@ export function SprayPaintPortrait({
         }}
         onPointerCancel={() => finishStroke(pointerRef.current)}
         onKeyDown={(event) => {
-          if (!controlsOpen) return
           if (event.key !== 'Enter' && event.key !== ' ') return
           event.preventDefault()
           sprayFromKeyboard()
@@ -586,38 +638,15 @@ export function SprayPaintPortrait({
         }}
       />
 
-      <button
-        ref={controlsTriggerRef}
-        type="button"
-        aria-controls={controlsId}
-        aria-expanded={controlsOpen}
-        aria-hidden={controlsOpen}
-        tabIndex={controlsOpen ? -1 : 0}
-        aria-label="Open spray paint controls"
-        title="Vandalize"
-        onClick={() => {
-          setControlsOpen(true)
-          canvasRef.current?.focus()
-        }}
-        className={cn(
-          'absolute bottom-4 left-1/2 z-30 flex size-8 -translate-x-1/2 items-center justify-center rounded-full bg-black/45 text-text-on-media-muted shadow-sm backdrop-blur-sm transition-[opacity,transform,background-color] duration-150 ease-out hover:bg-black/55 hover:text-text-on-media-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
-          controlsOpen || isDrawing
-            ? 'pointer-events-none translate-y-2 opacity-0'
-            : 'translate-y-0 opacity-100',
-        )}
-      >
-        <HugeiconsIcon aria-hidden="true" icon={SwatchIcon} size={16} strokeWidth={1.5} />
-      </button>
-
       <div
-        id={controlsId}
-        aria-hidden={isDrawing || !controlsOpen}
-        inert={isDrawing || !controlsOpen}
+        aria-hidden={isDrawing}
+        inert={isDrawing}
         className={cn(
-          'absolute bottom-3 left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/20 bg-black/75 p-1.5 text-text-on-media-strong shadow-sm transition-[opacity,transform] duration-150 ease-out',
-          controlsOpen
+          'left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/20 bg-black/75 p-1.5 text-text-on-media-strong shadow-sm transition-[opacity,transform] duration-150 ease-out',
+          fullscreen ? 'fixed bottom-[max(16px,env(safe-area-inset-bottom))]' : 'absolute bottom-3',
+          fullscreen || brushSizePopoverColor
             ? 'translate-y-0 opacity-100'
-            : 'pointer-events-none translate-y-2 opacity-0',
+            : 'pointer-events-none translate-y-2 opacity-0 group-hover/portrait:pointer-events-auto group-hover/portrait:translate-y-0 group-hover/portrait:opacity-100 group-focus-within/portrait:pointer-events-auto group-focus-within/portrait:translate-y-0 group-focus-within/portrait:opacity-100',
         )}
         style={{
           opacity: isDrawing ? 0 : undefined,
@@ -635,7 +664,7 @@ export function SprayPaintPortrait({
               <Popover.Trigger asChild>
                 <button
                   type="button"
-                  className="flex size-7 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                  className={cn('flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white', fullscreen ? 'size-11' : 'size-7')}
                   aria-label={`${paintColor.name} paint and brush size`}
                   aria-pressed={color === paintColor.value}
                   onPointerDown={(event) => pressColorControl(event.currentTarget)}
@@ -646,7 +675,7 @@ export function SprayPaintPortrait({
                   }}
                 >
                   <span
-                    className="size-5 rounded-full"
+                    className={cn('rounded-full', fullscreen ? 'size-6' : 'size-5')}
                     style={{
                       backgroundColor: paintColor.value,
                       outline: color === paintColor.value ? '1px solid white' : undefined,
@@ -662,7 +691,7 @@ export function SprayPaintPortrait({
                   sideOffset={8}
                   collisionPadding={8}
                   onOpenAutoFocus={(event) => event.preventDefault()}
-                  className="z-50 flex h-10 items-center rounded-full border border-white/20 bg-black/75 px-3 text-text-on-media-strong shadow-sm"
+                  className={cn('flex h-10 items-center rounded-full border border-white/20 bg-black/75 px-3 text-text-on-media-strong shadow-sm', fullscreen ? 'z-90' : 'z-50')}
                 >
                   <label className="flex items-center" title="Brush size">
                     <input
@@ -682,12 +711,12 @@ export function SprayPaintPortrait({
             </Popover.Root>
           ))}
           <label
-            className="relative flex size-7 cursor-pointer items-center justify-center rounded-full focus-within:ring-2 focus-within:ring-white"
+            className={cn('relative flex cursor-pointer items-center justify-center rounded-full focus-within:ring-2 focus-within:ring-white', fullscreen ? 'size-11' : 'size-7')}
             title="Custom paint color"
           >
             <span
               aria-hidden="true"
-              className="relative size-5 overflow-hidden rounded-full"
+              className={cn('relative overflow-hidden rounded-full', fullscreen ? 'size-6' : 'size-5')}
               style={{
                 outline: !QUICK_PAINT_COLORS.some((paintColor) => paintColor.value === color) ? '1px solid white' : undefined,
                 outlineOffset: !QUICK_PAINT_COLORS.some((paintColor) => paintColor.value === color) ? '1px' : undefined,
@@ -715,7 +744,7 @@ export function SprayPaintPortrait({
           type="button"
           onClick={clearPaint}
           disabled={!hasPainted}
-          className="flex size-8 shrink-0 items-center justify-center rounded-full text-text-on-media-control transition-colors duration-150 hover:bg-white/15 hover:text-text-on-media-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-default disabled:opacity-35"
+          className={cn('flex shrink-0 items-center justify-center rounded-full text-text-on-media-control transition-colors duration-150 hover:bg-white/15 hover:text-text-on-media-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-default disabled:opacity-35', fullscreen ? 'size-11' : 'size-8')}
           aria-label="Clear spray paint"
           title="Clear paint"
         >
@@ -724,22 +753,6 @@ export function SprayPaintPortrait({
             <path d="M3 5.5H21M16.0557 5.5L15.3731 4.09173C14.9196 3.15626 14.6928 2.68852 14.3017 2.39681C14.215 2.3321 14.1231 2.27454 14.027 2.2247C13.5939 2 13.0741 2 12.0345 2C10.9688 2 10.436 2 9.99568 2.23412C9.8981 2.28601 9.80498 2.3459 9.71729 2.41317C9.32164 2.7167 9.10063 3.20155 8.65861 4.17126L8.05292 5.5" />
             <path d="M9.5 16.5L9.5 10.5" />
             <path d="M14.5 16.5L14.5 10.5" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setControlsOpen(false)
-            setBrushSizePopoverColor(null)
-            positionCursor(pointerRef.current || { x: 0, y: 0 }, false)
-            controlsTriggerRef.current?.focus()
-          }}
-          className="flex size-8 shrink-0 items-center justify-center rounded-full text-text-on-media-control transition-colors duration-150 hover:bg-white/15 hover:text-text-on-media-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-          aria-label="Close spray paint controls"
-          title="Close draw tools"
-        >
-          <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-            <path d="m6 6 12 12M6 18 18 6" />
           </svg>
         </button>
       </div>

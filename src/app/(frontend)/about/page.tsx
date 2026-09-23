@@ -115,6 +115,8 @@ export default async function AboutPage() {
   const portraitImage = {
     url: '/images/about-portrait.jpg',
     alt: 'Portrait of Gabriel Valdivia',
+    width: 1118,
+    height: 1342,
   }
   const structuredData = buildSiteStructuredData([{
     '@type': 'ProfilePage',
