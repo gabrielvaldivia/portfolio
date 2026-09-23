@@ -1,6 +1,11 @@
 {
-  "throughCommit": "1eb625b1ce10b2cd6d2f9392642d3d9cf06508be",
+  "throughCommit": "2f8b0f9e8f85926a7e291e0d267c19927c782ffd",
   "commits": [
+    {
+      "hash": "2f8b0f9e8f85926a7e291e0d267c19927c782ffd",
+      "date": "2026-09-22",
+      "subject": "Include About portraits in production deployments"
+    },
     {
       "hash": "1eb625b1ce10b2cd6d2f9392642d3d9cf06508be",
       "date": "2026-09-22",
