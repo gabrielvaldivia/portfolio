@@ -69,6 +69,8 @@ export function SprayPaintPortrait({
   image: PortraitImage
   eager?: boolean
 }) {
+  const fullscreenContentRef = useRef<HTMLDivElement>(null)
+
   return (
     <>
       <Dialog.Root>
@@ -90,7 +92,14 @@ export function SprayPaintPortrait({
         </Dialog.Trigger>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-80 bg-black" />
-          <Dialog.Content className="fixed inset-0 z-80 flex items-center justify-center bg-black pt-[max(64px,env(safe-area-inset-top))] pb-[max(96px,env(safe-area-inset-bottom))] outline-none">
+          <Dialog.Content
+            ref={fullscreenContentRef}
+            onOpenAutoFocus={(event) => {
+              event.preventDefault()
+              fullscreenContentRef.current?.focus({ preventScroll: true })
+            }}
+            className="fixed inset-0 z-80 flex items-center justify-center bg-black pt-[max(64px,env(safe-area-inset-top))] pb-[max(96px,env(safe-area-inset-bottom))] outline-none"
+          >
             <Dialog.Title className="sr-only">Draw on the portrait</Dialog.Title>
             <Dialog.Description className="sr-only">
               Draw on the photo with your finger. Choose a paint color, adjust the brush size, or clear your drawing.
