@@ -6,7 +6,7 @@
       "Replaced the About portrait with the wider photo, using one image that desaturates in dark mode, frames the head about 30px below the top on mobile, and stays centered on larger screens.",
       "Redirected retired portrait URLs to the current photo so older About pages can still display it.",
       "Polished About with a 4:3 mobile portrait, an About heading above the bio matching Talks, and doubled section spacing on desktop.",
-      "On mobile, tapping the portrait opens the full photo and drawing tools without focusing the close button; the page photo stays free of drawing tools and scrolls normally. Desktop drawing is ready immediately, with tools appearing on hover or keyboard focus."
+      "On mobile, tapping the portrait opens the full photo and drawing tools without focusing the close button; the page photo stays free of drawing tools and scrolls normally. The brush-size slider is wider, easier to grab, supports touch dragging, and stays open when switching colors. Desktop drawing is ready immediately, with tools appearing on hover or keyboard focus."
     ]
   },
   {

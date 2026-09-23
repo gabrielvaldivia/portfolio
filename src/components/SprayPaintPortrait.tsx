@@ -668,7 +668,9 @@ function SprayPaintSurface({
             <Popover.Root
               key={paintColor.value}
               open={brushSizePopoverColor === paintColor.value}
-              onOpenChange={(open) => setBrushSizePopoverColor(open ? paintColor.value : null)}
+              onOpenChange={(open) => setBrushSizePopoverColor((current) => (
+                open ? paintColor.value : current === paintColor.value ? null : current
+              ))}
             >
               <Popover.Trigger asChild>
                 <button
@@ -693,16 +695,25 @@ function SprayPaintSurface({
                   />
                 </button>
               </Popover.Trigger>
-              <Popover.Portal>
+              {/* Keep touch drags within the fullscreen dialog's scroll-lock boundary. */}
+              <Popover.Portal container={fullscreen ? surfaceRef.current : undefined}>
                 <Popover.Content
                   side="top"
                   align="center"
                   sideOffset={8}
-                  collisionPadding={8}
+                  collisionPadding={fullscreen ? 16 : 8}
                   onOpenAutoFocus={(event) => event.preventDefault()}
-                  className={cn('flex h-10 items-center rounded-full border border-white/20 bg-black/75 px-3 text-text-on-media-strong shadow-sm', fullscreen ? 'z-90' : 'z-50')}
+                  onCloseAutoFocus={(event) => {
+                    if (brushSizePopoverColor && brushSizePopoverColor !== paintColor.value) {
+                      event.preventDefault()
+                    }
+                  }}
+                  className={cn(
+                    'flex items-center rounded-full border border-white/20 bg-black/75 text-text-on-media-strong shadow-sm',
+                    fullscreen ? 'z-90 h-14 w-[min(280px,calc(100vw-32px))] px-5' : 'z-50 h-10 px-3',
+                  )}
                 >
-                  <label className="flex items-center" title="Brush size">
+                  <label className={cn('flex items-center', fullscreen && 'w-full')} title="Brush size">
                     <input
                       type="range"
                       min="12"
@@ -710,7 +721,12 @@ function SprayPaintSurface({
                       step="2"
                       value={brushSize}
                       onChange={(event) => setBrushSize(Number(event.target.value))}
-                      className="w-20 cursor-pointer appearance-none border-0 bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 [&::-webkit-slider-runnable-track]:h-1 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:border-0 [&::-webkit-slider-runnable-track]:bg-white/30 [&::-webkit-slider-thumb]:-mt-1.5 [&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-0 [&::-webkit-slider-thumb]:bg-white [&::-moz-range-track]:h-1 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:border-0 [&::-moz-range-track]:bg-white/30 [&::-moz-range-thumb]:size-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-white"
+                      className={cn(
+                        'touch-none select-none cursor-pointer appearance-none border-0 bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 [&::-webkit-slider-runnable-track]:h-1 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:border-0 [&::-webkit-slider-runnable-track]:bg-white/30 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-0 [&::-webkit-slider-thumb]:bg-white [&::-moz-range-track]:h-1 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:border-0 [&::-moz-range-track]:bg-white/30 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-white',
+                        fullscreen
+                          ? 'h-11 w-full [&::-webkit-slider-thumb]:-mt-2.5 [&::-webkit-slider-thumb]:size-6 [&::-moz-range-thumb]:size-6'
+                          : 'w-20 [&::-webkit-slider-thumb]:-mt-1.5 [&::-webkit-slider-thumb]:size-4 [&::-moz-range-thumb]:size-4',
+                      )}
                       aria-label={`${paintColor.name} brush size`}
                       aria-valuetext={`${brushSize} pixels`}
                     />
