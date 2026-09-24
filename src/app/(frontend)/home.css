@@ -87,7 +87,6 @@ html:has([data-about-intro]) {
   --home-max-width: 1400px; /* Match the production About container. */
   --home-gutter: 20px;
   --home-grid-gap: 24px;
-  --home-outer-gutter: max(var(--home-gutter), calc((100vw - var(--home-max-width)) / 2 + var(--home-gutter)));
 }
 
 .home-page-gutters {
@@ -106,7 +105,6 @@ html:has([data-about-intro]) {
 }
 
 .home-work-marquee .liked-work-marquee {
-  padding-inline: var(--home-outer-gutter);
   --liked-work-marquee-gap: var(--home-grid-gap);
 }
 

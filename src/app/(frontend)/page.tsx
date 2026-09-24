@@ -115,9 +115,9 @@ function splitApproachItem(item: any, index: number) {
   const sourceTitle = typeof item.title === 'string' && item.title.trim()
     ? item.title.trim()
     : extractedTitle || `Step ${index + 1}`
-  const title = /^I['’]ll be your thought partner[.!]?$/i.test(sourceTitle)
+  const title = (/^I['’]ll be your thought partner[.!]?$/i.test(sourceTitle)
     ? 'A thought partner'
-    : sourceTitle
+    : sourceTitle).replace(/\.+$/, '')
 
   if (!leadIsBoldText) return { title, description: data }
 

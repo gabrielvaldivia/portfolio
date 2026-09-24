@@ -1,6 +1,11 @@
 {
-  "throughCommit": "ef4285f19e6136fe38f3fe49181e4a3e12a89057",
+  "throughCommit": "7e0a0f62146bdf8e65803c3ee1f56b675ab277b6",
   "commits": [
+    {
+      "hash": "7e0a0f62146bdf8e65803c3ee1f56b675ab277b6",
+      "date": "2026-09-24",
+      "subject": "Refine About links and sharpen project carousel"
+    },
     {
       "hash": "ef4285f19e6136fe38f3fe49181e4a3e12a89057",
       "date": "2026-09-24",
