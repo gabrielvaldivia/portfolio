@@ -1,0 +1,146 @@
+/* The portrait stays in place while the expanded bio and sections appear. */
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-group(.about-continuity) {
+  animation-duration: 180ms;
+  animation-timing-function: ease-out;
+}
+
+::view-transition-old(.about-continuity),
+::view-transition-new(.about-continuity) {
+  animation-duration: 180ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+
+/* The hero spans the viewport, with shared page gutters and room for the next card. */
+.hero-project-strip {
+  --project-strip-gutter: var(--home-gutter);
+  --project-strip-card-width: min(calc((100vw - var(--home-gutter) * 2) * 0.9), 135vh);
+}
+
+.home-mobile-slideshow,
+.home-hero-tagline,
+.hero-project-strip-viewport {
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+}
+
+.hero-project-strip-viewport {
+  scroll-padding-inline: var(--project-strip-gutter);
+  scroll-behavior: auto;
+}
+
+.hero-project-strip-track {
+  width: max-content;
+  padding-inline: var(--project-strip-gutter);
+  gap: var(--home-grid-gap);
+}
+
+.hero-project-strip-card {
+  width: var(--project-strip-card-width);
+  scroll-snap-align: center;
+}
+
+.hero-project-strip-card:first-child {
+  scroll-snap-align: start;
+}
+
+.hero-project-strip-card:last-child {
+  scroll-snap-align: end;
+}
+
+/* Reserve the original mobile slideshow height while its bundle loads. */
+.home-mobile-slideshow:empty {
+  height: 100dvh;
+}
+
+.hero-project-strip-card {
+  cursor: inherit;
+}
+
+.home-page-content,
+.about-page-container:has([data-about-expanded]) {
+  max-width: var(--home-max-width);
+}
+
+.hero-project-strip-shade {
+  background: linear-gradient(to bottom, transparent 40%, rgb(0 0 0 / 0.7));
+}
+
+/* Keep history restoration immediate when moving between the shared About sections. */
+html:has([data-about-intro]) {
+  scroll-behavior: auto;
+}
+
+/* One six-column grid connects the homepage sections below the full-width hero. */
+:root {
+  --home-max-width: 1400px; /* Match the production About container. */
+  --home-gutter: 20px;
+  --home-grid-gap: 24px;
+  --home-outer-gutter: max(var(--home-gutter), calc((100vw - var(--home-max-width)) / 2 + var(--home-gutter)));
+}
+
+.home-page-gutters {
+  padding-inline: var(--home-gutter);
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--home-grid-gap);
+}
+
+.home-work-marquee {
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+}
+
+.home-work-marquee .liked-work-marquee {
+  padding-inline: var(--home-outer-gutter);
+  --liked-work-marquee-gap: var(--home-grid-gap);
+}
+
+@media (min-width: 810px) {
+  :root {
+    --home-gutter: 40px;
+    --home-grid-gap: 40px;
+  }
+
+  .home-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .home-grid-sidebar,
+  .home-section-layout > :first-child,
+  .home-approach-row > :first-child {
+    grid-column: span 2;
+  }
+
+  .home-grid-main,
+  .home-section-layout > :last-child,
+  .home-approach-row > :last-child {
+    grid-column: span 4;
+    min-width: 0;
+  }
+}
+
+.home-work-heading {
+  display: flex;
+  justify-content: space-between;
+}
+
+@media (min-width: 810px) {
+  .home-work-heading {
+    display: grid;
+  }
+}

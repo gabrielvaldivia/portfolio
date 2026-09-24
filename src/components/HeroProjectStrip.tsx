@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { animate, useInView, useReducedMotion, type AnimationPlaybackControls } from 'motion/react'
-import { useEffect, useRef, useState, type PointerEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent } from 'react'
 import { PayloadImage } from '@/components/PayloadImage'
 import { HeroProjectPills } from '@/components/HeroProjectPills'
 import type { ResponsiveImageMedia } from '@/lib/responsiveImage'
@@ -43,6 +43,12 @@ export function HeroProjectStrip({ projects }: { projects: Project[] }) {
   const animation = useRef<AnimationPlaybackControls | null>(null)
 
   useEffect(() => () => { animation.current?.stop() }, [])
+
+  useLayoutEffect(() => {
+    // Reordering the cards can make scroll anchoring keep a moved card in view.
+    // Start each new project order at the first card.
+    ref.current?.scrollTo({ left: 0, behavior: 'instant' })
+  }, [displayProjects])
 
   useEffect(() => {
     const shuffled = [...projects]

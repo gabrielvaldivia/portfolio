@@ -1,4 +1,5 @@
 import './globals.css'
+import './home.css'
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { NavMenu } from '@/components/NavMenu'
