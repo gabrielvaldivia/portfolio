@@ -1,6 +1,11 @@
 {
-  "throughCommit": "8c5705c247faa6fa3785721636ec1c9b6a184806",
+  "throughCommit": "abf005f7973a28453f5f780abdef584b5956f703",
   "commits": [
+    {
+      "hash": "abf005f7973a28453f5f780abdef584b5956f703",
+      "date": "2026-09-24",
+      "subject": "Add dark About portrait and cascading reveal"
+    },
     {
       "hash": "8c5705c247faa6fa3785721636ec1c9b6a184806",
       "date": "2026-09-24",
