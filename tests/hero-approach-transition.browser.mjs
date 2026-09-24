@@ -31,7 +31,13 @@ try {
       await page.waitForTimeout(16)
     }
   }
-  const remaining = () => page.locator('.hero-approach-snap-point').evaluate(el => el.getBoundingClientRect().top - parseFloat(getComputedStyle(el).scrollMarginTop))
+  const remaining = () => page.locator('.hero-followup-snap-point').evaluate(el => el.getBoundingClientRect().top - parseFloat(getComputedStyle(el).scrollMarginTop))
+
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
+  await drag(180, 550)
+  await end()
+  await page.waitForFunction(() => Math.abs(document.querySelector('.hero-project-scroll-region').getBoundingClientRect().top) < 2, undefined, { timeout: 3000 })
+  console.log('PASS: mobile swipe from the intro snaps into the slideshow')
 
   const heroY = await enter()
   await drag()
@@ -40,7 +46,7 @@ try {
   const samples = await page.evaluate(async () => {
     const samples = [], start = performance.now()
     while (performance.now() - start < 750) {
-      const el = document.querySelector('.hero-approach-snap-point')
+      const el = document.querySelector('.hero-followup-snap-point')
       samples.push({ ms: performance.now() - start, remaining: el.getBoundingClientRect().top - parseFloat(getComputedStyle(el).scrollMarginTop), y: scrollY })
       await new Promise(requestAnimationFrame)
     }

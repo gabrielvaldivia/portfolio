@@ -1,13 +1,13 @@
 import { animate } from 'motion/react'
 
-/** Keep native entry snapping, with a short, cancellable exit to Approach. */
+/** Keep native entry snapping, with a short, cancellable exit to the next section. */
 export function observeMobileHeroPagination(region: HTMLElement) {
   const root = document.documentElement
-  const approach = document.querySelector<HTMLElement>('.hero-approach-snap-point')
-  if (!approach) return
+  const followUp = document.querySelector<HTMLElement>('.hero-followup-snap-point, .hero-approach-snap-point')
+  if (!followUp) return
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
 
-  let approachSnapY = 0
+  let followUpSnapY = 0
   let heroSnapY = 0
   let viewportWidth = window.innerWidth
   let freeScrollReleased = false
@@ -21,13 +21,13 @@ export function observeMobileHeroPagination(region: HTMLElement) {
     axis: 'x' | 'y' | null
     canExit: boolean
     ownsExit: boolean
-    startedInApproach: boolean
+    startedInFollowUp: boolean
     interrupted: boolean
   } | null = null
 
   const measureBoundary = () => {
-    const margin = Number.parseFloat(getComputedStyle(approach).scrollMarginTop) || 0
-    approachSnapY = approach.getBoundingClientRect().top + window.scrollY - margin
+    const margin = Number.parseFloat(getComputedStyle(followUp).scrollMarginTop) || 0
+    followUpSnapY = followUp.getBoundingClientRect().top + window.scrollY - margin
     heroSnapY = region.getBoundingClientRect().top + window.scrollY
   }
   const setFreeScroll = (free: boolean) => {
@@ -46,12 +46,12 @@ export function observeMobileHeroPagination(region: HTMLElement) {
   const finishExit = (target: number) => {
     exitAnimation = null
     region.removeAttribute('data-hero-exit-active')
-    freeScrollReleased = target === approachSnapY
+    freeScrollReleased = target === followUpSnapY
     setFreeScroll(freeScrollReleased)
   }
   const settleExit = () => {
     const from = window.scrollY
-    const target = from - heroSnapY >= 48 ? approachSnapY : heroSnapY
+    const target = from - heroSnapY >= 48 ? followUpSnapY : heroSnapY
     setFreeScroll(true)
     if (reducedMotion.matches || Math.abs(target - from) < 1) {
       window.scrollTo({ top: target, behavior: 'instant' })
@@ -67,19 +67,19 @@ export function observeMobileHeroPagination(region: HTMLElement) {
       onComplete: () => finishExit(target),
     })
   }
-  const updateGestureMode = (deltaY: number, startedInApproach = false) => {
+  const updateGestureMode = (deltaY: number, startedInFollowUp = false) => {
     if (!deltaY || exitAnimation || gesture?.ownsExit) return
     if (deltaY < 0) freeScrollReleased = false
-    else if (startedInApproach) freeScrollReleased = true
-    const distancePastApproach = window.scrollY - approachSnapY
+    else if (startedInFollowUp) freeScrollReleased = true
+    const distancePastFollowUp = window.scrollY - followUpSnapY
     // A reverse swipe must keep control until release. Restoring CSS snap
-    // mid-gesture can restart the cancelled trip to Approach under the finger.
-    setFreeScroll(Boolean(gesture?.interrupted) || freeScrollReleased || distancePastApproach > 1 || (deltaY > 0 && distancePastApproach >= -1))
+    // mid-gesture can restart the cancelled trip to FollowUp under the finger.
+    setFreeScroll(Boolean(gesture?.interrupted) || freeScrollReleased || distancePastFollowUp > 1 || (deltaY > 0 && distancePastFollowUp >= -1))
   }
   const handleScrollEnd = () => {
     if (exitAnimation || gesture?.ownsExit || gesture?.interrupted) return
     measureBoundary()
-    setFreeScroll(freeScrollReleased || window.scrollY > approachSnapY + 1)
+    setFreeScroll(freeScrollReleased || window.scrollY > followUpSnapY + 1)
   }
   const handleTouchStart = (event: TouchEvent) => {
     const interrupted = stopExit()
@@ -94,7 +94,7 @@ export function observeMobileHeroPagination(region: HTMLElement) {
       canExit: !interrupted && Math.abs(window.scrollY - heroSnapY) <= 2
         && event.target instanceof Node && region.contains(event.target),
       ownsExit: false,
-      startedInApproach: event.target instanceof Node && approach.contains(event.target),
+      startedInFollowUp: event.target instanceof Node && followUp.contains(event.target),
       interrupted,
     } : null
   }
@@ -117,11 +117,11 @@ export function observeMobileHeroPagination(region: HTMLElement) {
     if (gesture.ownsExit) {
       event.preventDefault()
       window.scrollTo({
-        top: Math.max(heroSnapY, Math.min(approachSnapY, gesture.startScrollY + deltaY)),
+        top: Math.max(heroSnapY, Math.min(followUpSnapY, gesture.startScrollY + deltaY)),
         behavior: 'instant',
       })
     } else if (gesture.axis === 'y') {
-      updateGestureMode(gesture.lastY - nextY, gesture.startedInApproach)
+      updateGestureMode(gesture.lastY - nextY, gesture.startedInFollowUp)
     }
     gesture.lastY = nextY
   }
@@ -163,7 +163,7 @@ export function observeMobileHeroPagination(region: HTMLElement) {
   const handleScroll = () => {
     if (exitAnimation || gesture?.ownsExit || gesture?.interrupted) return
     if (window.scrollY <= heroSnapY + 1) freeScrollReleased = false
-    if (!freeScrollReleased && window.scrollY < approachSnapY - 1) setFreeScroll(false)
+    if (!freeScrollReleased && window.scrollY < followUpSnapY - 1) setFreeScroll(false)
     if (!supportsScrollEnd) {
       clearTimeout(settleTimeout)
       settleTimeout = setTimeout(handleScrollEnd, 180)

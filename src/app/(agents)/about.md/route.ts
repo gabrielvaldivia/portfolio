@@ -1,3 +1,4 @@
+import { ABOUT_BIO_HEADING, ABOUT_BIO_PARAGRAPHS } from '@/lib/aboutBio'
 import { getPageBySlug, getSideProjects } from '@/lib/queries'
 import { absoluteSiteUrl } from '@/lib/structuredData'
 import {
@@ -7,11 +8,6 @@ import {
 } from '@/lib/agentMarkdown'
 
 export const revalidate = 3600
-
-const BIOGRAPHY = [
-  'I’ve spent 15 years designing for some of the world’s top tech companies while building products of my own. From Automatic to Meta, Google, CNN, and Patreon, I’ve worked across product, brand, and emerging technology, helping teams turn ambitious ideas into products people use.',
-  'Today, I bring that experience to early-stage teams building their first generation of products. I work fractionally with companies like Daylight Computer, Workmate, Slingshot AI, and Google Ventures, helping founders avoid attractive wrong turns, make better decisions, and move quickly from idea to product.',
-]
 
 function linkedItem(item: Record<string, any>) {
   const label = typeof item.title === 'string' ? item.title : ''
@@ -67,7 +63,7 @@ export async function GET() {
 
   const markdown = markdownDocument('About Gabriel Valdivia', [
     `Canonical page: ${absoluteSiteUrl('/about')}`,
-    `## Bio\n\n${BIOGRAPHY.join('\n\n')}`,
+    `## ${ABOUT_BIO_HEADING}\n\n${ABOUT_BIO_PARAGRAPHS.join('\n\n')}`,
     ...generatedSections,
     playground ? `## Selected playground projects\n\n${playground}` : null,
     '## Contact\n\n- Email: [gabe@valdivia.works](mailto:gabe@valdivia.works)',

@@ -1,3 +1,4 @@
+import { HomeAboutSection } from '@/components/HomeAboutSection'
 import { ProjectCard } from '@/components/ProjectCard'
 import { Testimonial } from '@/components/Testimonial'
 import { RichText } from '@/components/RichText'
@@ -6,7 +7,8 @@ import { HScrollContainer } from '@/components/HScrollContainer'
 import { normalizeSocialLink } from '@/lib/socialLinks'
 import { ContactForm } from '@/components/ContactForm'
 import { AskMeAnything, AskMeAnythingRestart } from '@/components/AskMeAnything'
-import { HeroProjectSlideshow } from '@/components/HeroProjectSlideshow'
+import { HomeHeroProjects } from '@/components/HomeHeroProjects'
+import { normalizeHeroPills } from '@/lib/heroProjectPills'
 import { LikedWorkMarquee, type LikedWorkMarqueeItem } from '@/components/LikedWorkMarquee'
 import { ApproachTimelineItem } from '@/components/ApproachTimelineItem'
 import { buildPageMetadata } from '@/lib/pageMetadata'
@@ -17,8 +19,6 @@ import { getPageBySlug } from '@/lib/queries'
 import { getPayload, isPayloadUnavailable } from '@/lib/payload'
 import { getFAQItemsFromSections } from '@/lib/buildContext'
 import { getModuleLikeFeed } from '@/lib/moduleLikeActivity'
-import { resolveHeroTestimonial } from '@/lib/heroTestimonial'
-import { normalizeHeroPills } from '@/lib/heroProjectPills'
 import { cn } from '@/lib/cn'
 import Link from 'next/link'
 import type { Metadata } from 'next'
@@ -37,7 +37,7 @@ function HomeContainer({
   className?: string
   id?: string
 }) {
-  return <div id={id} className={`w-full px-5 tablet:px-10 ${className}`}>{children}</div>
+  return <div id={id} className={`home-page-content home-page-gutters mx-auto w-full ${className}`}>{children}</div>
 }
 
 async function getPublicHomepagePreview() {
@@ -112,9 +112,12 @@ function splitApproachItem(item: any, index: number) {
     && typeof lead.text === 'string'
     && (Number(lead.format) & 1) === 1
   const extractedTitle = leadIsBoldText ? lead.text.trim() : ''
-  const title = typeof item.title === 'string' && item.title.trim()
+  const sourceTitle = typeof item.title === 'string' && item.title.trim()
     ? item.title.trim()
     : extractedTitle || `Step ${index + 1}`
+  const title = /^I['’]ll be your thought partner[.!]?$/i.test(sourceTitle)
+    ? 'A thought partner'
+    : sourceTitle
 
   if (!leadIsBoldText) return { title, description: data }
 
@@ -142,69 +145,18 @@ function splitApproachItem(item: any, index: number) {
   }
 }
 
-function relationName(value: any) {
-  return typeof value === 'object' && value !== null && typeof value.name === 'string'
-    ? value.name
-    : ''
-}
-
-function normalizeEntityName(value: string) {
-  return value.toLowerCase().replace(/[^a-z0-9]/g, '')
-}
-
-function buildHeroProjectSlides(projects: any[], testimonials: any[]) {
-  const matchedTestimonials = projects.map((project) => {
-    const teamMatch = Array.isArray(project.team)
-      ? project.team.find((person: any) => typeof person === 'object' && person?.testimonial)
-      : null
-    if (teamMatch) return teamMatch
-
-    const clientName = normalizeEntityName(relationName(project.client))
-    if (!clientName) return null
-
-    return testimonials.find((testimonial: any) => (
-      normalizeEntityName(relationName(testimonial.company)) === clientName
-    )) || null
-  })
-
-  return projects.map((project, index) => {
-    const testimonial = matchedTestimonials[index]
-    const projectId = String(project.id || project.slug || index)
-    const testimonialQuote = typeof project.heroTestimonialQuote === 'string'
-      ? project.heroTestimonialQuote.trim()
-      : ''
-    const testimonialName = typeof project.heroTestimonialName === 'string'
-      ? project.heroTestimonialName.trim()
-      : ''
-
-    return {
-      id: projectId,
-      title: project.title,
-      slug: project.slug,
-      subtitle: project.subtitle || undefined,
-      pills: normalizeHeroPills(project.heroPills),
-      gradientColor: typeof project.heroGradientColor === 'string'
-        ? project.heroGradientColor
-        : undefined,
-      featuredImage: typeof project.featuredImage === 'object' && project.featuredImage?.url
-        ? {
-            url: project.featuredImage.url,
-            alt: project.featuredImage.alt,
-            mimeType: project.featuredImage.mimeType,
-            width: project.featuredImage.width,
-            height: project.featuredImage.height,
-            sizes: project.featuredImage.sizes,
-          }
-        : undefined,
-      testimonial: resolveHeroTestimonial({
-        projectId,
-        projectTitle: project.title,
-        quoteOverride: testimonialQuote,
-        nameOverride: testimonialName,
-        source: testimonial,
-      }),
-    }
-  })
+function buildHeroProjects(projects: any[]) {
+  return projects.map((project, index) => ({
+    id: String(project.id || project.slug || index),
+    title: project.title,
+    slug: project.slug,
+    subtitle: project.subtitle || undefined,
+    pills: normalizeHeroPills(project.heroPills),
+    gradientColor: typeof project.heroGradientColor === 'string' ? project.heroGradientColor : undefined,
+    featuredImage: typeof project.featuredImage === 'object' && project.featuredImage?.url
+      ? project.featuredImage
+      : undefined,
+  }))
 }
 
 function resolveHeroProjects(slides: any[], projects: any[]) {
@@ -341,10 +293,10 @@ function HomeHeroTagline({ heading = HOME_HERO_TAGLINE }: { heading?: string | n
   const lines = (heading?.trim() || HOME_HERO_TAGLINE).split(/\r?\n/)
 
   return (
-    <div className="hero-intro-snap-point px-5 tablet:px-10 tablet:pt-20 desktop:pt-24">
+    <div className="hero-intro-snap-point home-hero-tagline home-page-gutters home-grid tablet:pt-20 desktop:pt-24">
       <h1
         aria-label={lines.join(' ')}
-        className="home-hero-heading max-w-[1120px] text-left"
+        className="home-hero-heading tablet:col-span-6 text-left"
       >
         {lines.map((line, index) => (
           <span
@@ -390,9 +342,6 @@ export default async function HomePage() {
       ])
   const page = pageResult.docs[0] || null
   const sections = (page?.sections || []) as any[]
-  const homepageTestimonials = sections.find((section: any) => (
-    section.blockType === 'hScroll' && section.source === 'featuredTestimonials'
-  ))?.testimonials || []
   const faqItems = getFAQItemsFromSections(sections)
   const likedWorkItems = buildLikedWorkMarqueeItems(likedWorkResult as any[])
   const questionCounts = new Map<string, { question: string; count: number }>()
@@ -432,12 +381,13 @@ export default async function HomePage() {
         <section id="hero" className="scroll-mt-0">
           <HomeHeroTagline />
         </section>
-        <div className="h-20 tablet:h-28 desktop:h-[200px]" />
+        <HomeAboutSection />
+        <div className="h-20 tablet:h-28 desktop:h-40" />
       </>
     )
   }
 
-  function renderSection(block: any, i: number, options?: { heroSlideshow?: boolean }) {
+  function renderSection(block: any, i: number, options?: { heroStrip?: boolean }) {
     switch (block.blockType) {
       case 'hero': {
         const heroProjects = resolveHeroProjects(block.slides || [], projectsResult.docs as any[])
@@ -445,12 +395,13 @@ export default async function HomePage() {
           <div key={block.id || i} id="hero" className="scroll-mt-0">
             <HomeHeroTagline heading={block.heading} />
             {heroProjects.length ? (
-              <div className="mt-4 min-w-0 tablet:mt-[123px] desktop:mt-[133px]">
-                <HeroProjectSlideshow
-                  projects={buildHeroProjectSlides(heroProjects, homepageTestimonials)}
+              <div className="mt-10 min-w-0 tablet:mt-20 desktop:mt-24">
+                <HomeHeroProjects
+                  projects={buildHeroProjects(heroProjects)}
                 />
               </div>
             ) : null}
+            <HomeAboutSection />
           </div>
         )
       }
@@ -459,13 +410,13 @@ export default async function HomePage() {
         const items = block.source === 'featuredProjects' ? (block.projects || []) : (block.testimonials || [])
         if (!items.length) return null
         const fw = block.fullWidth
-        const heroSlideshow = options?.heroSlideshow === true
+        const heroStrip = options?.heroStrip === true
 
-        if (heroSlideshow) {
+        if (heroStrip) {
           return (
-            <HeroProjectSlideshow
+            <HomeHeroProjects
               key={block.id || i}
-              projects={buildHeroProjectSlides(items, homepageTestimonials)}
+              projects={buildHeroProjects(items)}
             />
           )
         }
@@ -571,9 +522,9 @@ export default async function HomePage() {
         const items = (block.items || []) as any[]
         if (!items.length) return null
         return (
-          <HomeContainer key={block.id || i} className="hero-approach-snap-point">
+          <HomeContainer key={block.id || i}>
             <h2>{block.title || 'Approach'}</h2>
-            <ol className="mt-16 flex list-none flex-col gap-16 p-0 tablet:mt-24 tablet:gap-20 desktop:mt-32 desktop:gap-24">
+            <ol className="mt-12 flex list-none flex-col gap-16 p-0 tablet:mt-16 tablet:gap-20 desktop:mt-20 desktop:gap-24">
               {items.map((item: any, j: number) => {
                 const { title, description } = splitApproachItem(item, j)
 
@@ -583,7 +534,7 @@ export default async function HomePage() {
                     index={j}
                     title={title}
                   >
-                    <div className="home-approach-copy ml-10 max-w-[900px] text-body-large text-pretty tablet:ml-0">
+                    <div className="home-approach-copy ml-10 text-body-large text-pretty tablet:ml-0">
                       <RichText data={description} />
                     </div>
                   </ApproachTimelineItem>
@@ -600,11 +551,11 @@ export default async function HomePage() {
         return (
           <section key={block.id || i}>
             <HomeContainer>
-              <div className="flex items-baseline justify-between gap-5">
-                <h2 className="text-balance">Work</h2>
+              <div className="home-grid home-work-heading items-baseline">
+                <h2 className="home-grid-sidebar text-balance">Work</h2>
                 <Link
                   href="/work"
-                  className="inline-flex items-center gap-1 rounded-sm text-body text-text-body transition-opacity hover:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content"
+                  className="home-grid-main justify-self-end inline-flex items-center gap-1 rounded-sm text-body text-text-muted transition-opacity hover:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content"
                 >
                   See all
                   <svg
@@ -620,7 +571,7 @@ export default async function HomePage() {
                 </Link>
               </div>
             </HomeContainer>
-            <div className="mt-10 tablet:mt-12 desktop:mt-16">
+            <div className="home-work-marquee mt-10 tablet:mt-12 desktop:mt-16">
               <LikedWorkMarquee items={likedWorkItems} />
             </div>
           </section>
@@ -696,104 +647,107 @@ export default async function HomePage() {
     <>
       <JsonLd data={structuredData} />
 
-      {(() => {
-        const groups: { blocks: any[] }[] = []
-        sections
-          .filter((block: any) => (
-            block.blockType !== 'aboutSection'
-            && block.blockType !== 'accordion'
-            && !(block.blockType === 'hScroll' && block.source === 'featuredTestimonials')
-          ))
-          .forEach((block: any) => {
-            const cols = block.columns || '6'
-            if (cols !== '6') {
-              const lastGroup = groups[groups.length - 1]
-              const lastBlock = lastGroup?.blocks[lastGroup.blocks.length - 1]
-              const lastBlockCols = lastBlock ? (lastBlock.columns || '6') : '6'
-              // Group consecutive non-full-width blocks together
-              if (lastGroup && lastBlockCols !== '6') {
-                lastGroup.blocks.push(block)
+      <div className="home-page-content mx-auto w-full">
+        {(() => {
+          const groups: { blocks: any[] }[] = []
+          sections
+            .filter((block: any) => (
+              block.blockType !== 'aboutSection'
+              && block.blockType !== 'accordion'
+              && !(block.blockType === 'hScroll' && block.source === 'featuredTestimonials')
+            ))
+            .forEach((block: any) => {
+              const cols = block.columns || '6'
+              if (cols !== '6') {
+                const lastGroup = groups[groups.length - 1]
+                const lastBlock = lastGroup?.blocks[lastGroup.blocks.length - 1]
+                const lastBlockCols = lastBlock ? (lastBlock.columns || '6') : '6'
+                // Group consecutive non-full-width blocks together
+                if (lastGroup && lastBlockCols !== '6') {
+                  lastGroup.blocks.push(block)
+                } else {
+                  groups.push({ blocks: [block] })
+                }
               } else {
                 groups.push({ blocks: [block] })
               }
-            } else {
-              groups.push({ blocks: [block] })
-            }
-          })
+            })
 
-        return groups.map((group, gi) => {
-          const isGrid = group.blocks.length > 1 || (group.blocks[0]?.columns || '6') !== '6'
-          const blockType = group.blocks[0]?.blockType
-          const previousBlock = gi > 0
-            ? groups[gi - 1].blocks[groups[gi - 1].blocks.length - 1]
-            : null
-          const prevBlockType = previousBlock?.blockType
-          const nextGroup = groups[gi + 1]
-          const nextBlock = nextGroup?.blocks[0]
-          const isHeroShowcase = blockType === 'hero'
-            && group.blocks.length === 1
-            && !(group.blocks[0]?.slides || []).length
-            && nextGroup?.blocks.length === 1
-            && nextBlock?.blockType === 'hScroll'
-            && nextBlock?.source === 'featuredProjects'
-          const isPairedHeroSlideshow = blockType === 'hScroll'
-            && group.blocks.length === 1
-            && group.blocks[0]?.source === 'featuredProjects'
-            && prevBlockType === 'hero'
+          return groups.map((group, gi) => {
+            const isGrid = group.blocks.length > 1 || (group.blocks[0]?.columns || '6') !== '6'
+            const blockType = group.blocks[0]?.blockType
+            const previousBlock = gi > 0
+              ? groups[gi - 1].blocks[groups[gi - 1].blocks.length - 1]
+              : null
+            const prevBlockType = previousBlock?.blockType
+            const nextGroup = groups[gi + 1]
+            const nextBlock = nextGroup?.blocks[0]
+            const isHeroShowcase = blockType === 'hero'
+              && group.blocks.length === 1
+              && !(group.blocks[0]?.slides || []).length
+              && nextGroup?.blocks.length === 1
+              && nextBlock?.blockType === 'hScroll'
+              && nextBlock?.source === 'featuredProjects'
+            const isPairedHeroStrip = blockType === 'hScroll'
+              && group.blocks.length === 1
+              && group.blocks[0]?.source === 'featuredProjects'
+              && prevBlockType === 'hero'
 
-          if (isPairedHeroSlideshow) return null
+            if (isPairedHeroStrip) return null
 
-          if (isHeroShowcase) {
-            return (
-              <div key={gi} id="hero" className="scroll-mt-0">
-                <HomeHeroTagline heading={group.blocks[0]?.heading} />
-                <div className="mt-4 min-w-0 tablet:mt-[123px] desktop:mt-[133px]">
-                  {renderSection(nextBlock, gi * 100, { heroSlideshow: true })}
+            if (isHeroShowcase) {
+              return (
+                <div key={gi} id="hero" className="scroll-mt-0">
+                  <HomeHeroTagline heading={group.blocks[0]?.heading} />
+                  <div className="mt-10 min-w-0 tablet:mt-20 desktop:mt-24">
+                    {renderSection(nextBlock, gi * 100, { heroStrip: true })}
+                  </div>
+                  <HomeAboutSection />
                 </div>
+              )
+            }
+
+            const isHeroFollowUp = blockType === 'hScroll' && prevBlockType === 'hero'
+            return (
+              <div
+                key={gi}
+                className={cn(
+                  isHeroFollowUp && 'mt-10 tablet:mt-16 desktop:mt-20',
+                  gi > 0 && !isHeroFollowUp && 'mt-20 tablet:mt-28 desktop:mt-40',
+                )}
+              >
+                {isGrid ? (
+                  <HomeContainer>
+                    <div className="grid grid-cols-1 tablet:grid-cols-6 tablet:auto-rows-[200px] gap-5 tablet:gap-10" style={{ gridAutoFlow: 'dense' }}>
+                      {group.blocks.map((block: any, bi: number) => {
+                        const cols = block.columns || '6'
+                        const rowsVal = block.rows && block.rows !== 'auto' ? parseInt(block.rows) : null
+                        const spanMap: Record<string, string> = { '1': 'tablet:col-span-1', '2': 'tablet:col-span-2', '3': 'tablet:col-span-3', '4': 'tablet:col-span-4', '5': 'tablet:col-span-5', '6': 'tablet:col-span-6' }
+                        const rowSpanMap: Record<string, string> = { '1': 'tablet:row-span-1', '2': 'tablet:row-span-2', '3': 'tablet:row-span-3', '4': 'tablet:row-span-4', '5': 'tablet:row-span-5', '6': 'tablet:row-span-6', '7': 'tablet:row-span-7', '8': 'tablet:row-span-8', '9': 'tablet:row-span-9', '10': 'tablet:row-span-10' }
+                        const spanClass = spanMap[cols] || 'tablet:col-span-6'
+                        const rowSpanClass = rowsVal ? (rowSpanMap[String(rowsVal)] || '') : ''
+                        return (
+                          <div key={block.id || `${gi}-${bi}`} className={`${spanClass} ${rowSpanClass}`}>
+                            {renderSection(block, gi * 100 + bi)}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </HomeContainer>
+                ) : group.blocks[0].rows && group.blocks[0].rows !== 'auto' ? (
+                  <div style={{ height: `${parseInt(group.blocks[0].rows) * 200 + (parseInt(group.blocks[0].rows) - 1) * 40}px` }}>
+                    {renderSection(group.blocks[0], gi)}
+                  </div>
+                ) : (
+                  renderSection(group.blocks[0], gi)
+                )}
               </div>
             )
-          }
+          })
+        })()}
 
-          const isHeroFollowUp = blockType === 'hScroll' && prevBlockType === 'hero'
-          return (
-            <div
-              key={gi}
-              className={cn(
-                isHeroFollowUp && 'mt-10 tablet:mt-16 desktop:mt-20',
-                gi > 0 && !isHeroFollowUp && 'mt-20 tablet:mt-28 desktop:mt-[200px]',
-              )}
-            >
-              {isGrid ? (
-                <HomeContainer>
-                  <div className="grid grid-cols-1 tablet:grid-cols-6 tablet:auto-rows-[200px] gap-5 tablet:gap-10" style={{ gridAutoFlow: 'dense' }}>
-                    {group.blocks.map((block: any, bi: number) => {
-                      const cols = block.columns || '6'
-                      const rowsVal = block.rows && block.rows !== 'auto' ? parseInt(block.rows) : null
-                      const spanMap: Record<string, string> = { '1': 'tablet:col-span-1', '2': 'tablet:col-span-2', '3': 'tablet:col-span-3', '4': 'tablet:col-span-4', '5': 'tablet:col-span-5', '6': 'tablet:col-span-6' }
-                      const rowSpanMap: Record<string, string> = { '1': 'tablet:row-span-1', '2': 'tablet:row-span-2', '3': 'tablet:row-span-3', '4': 'tablet:row-span-4', '5': 'tablet:row-span-5', '6': 'tablet:row-span-6', '7': 'tablet:row-span-7', '8': 'tablet:row-span-8', '9': 'tablet:row-span-9', '10': 'tablet:row-span-10' }
-                      const spanClass = spanMap[cols] || 'tablet:col-span-6'
-                      const rowSpanClass = rowsVal ? (rowSpanMap[String(rowsVal)] || '') : ''
-                      return (
-                        <div key={block.id || `${gi}-${bi}`} className={`${spanClass} ${rowSpanClass}`}>
-                          {renderSection(block, gi * 100 + bi)}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </HomeContainer>
-              ) : group.blocks[0].rows && group.blocks[0].rows !== 'auto' ? (
-                <div style={{ height: `${parseInt(group.blocks[0].rows) * 200 + (parseInt(group.blocks[0].rows) - 1) * 40}px` }}>
-                  {renderSection(group.blocks[0], gi)}
-                </div>
-              ) : (
-                renderSection(group.blocks[0], gi)
-              )}
-            </div>
-          )
-        })
-      })()}
-
-      <div className="h-20 tablet:h-28 desktop:h-[200px]" />
+      </div>
+      <div className="h-20 tablet:h-28 desktop:h-40" />
     </>
   )
 }

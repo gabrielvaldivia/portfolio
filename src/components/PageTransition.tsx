@@ -12,7 +12,9 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
   // Render the server-provided page immediately on refresh. Only subsequent
   // route changes should play the entrance animation, before children commit.
   if (route.key !== transitionKey) {
-    setRoute({ key: transitionKey, animate: true })
+    const continuingAbout = (route.key === '/' && transitionKey === '/about')
+      || (route.key === '/about' && transitionKey === '/')
+    setRoute({ key: transitionKey, animate: !continuingAbout })
   }
 
   useEffect(() => {

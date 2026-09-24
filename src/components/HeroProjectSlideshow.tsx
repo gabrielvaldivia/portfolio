@@ -23,7 +23,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import { Testimonial } from '@/components/Testimonial'
-import { ServicePill } from '@/components/ServicePill'
+import { HeroProjectPills } from '@/components/HeroProjectPills'
 import { PayloadImage } from '@/components/PayloadImage'
 import { observeHeroTrackpadNavigation } from '@/lib/observeHeroTrackpadNavigation'
 import type { ResponsiveImageMedia } from '@/lib/responsiveImage'
@@ -214,20 +214,6 @@ function isVideoMedia(media?: HeroProjectSlide['featuredImage']) {
   return Boolean(
     media?.mimeType?.startsWith('video/')
     || media?.url?.match(/\.(?:mp4|mov|m4v|webm)(?:\?.*)?$/i),
-  )
-}
-
-function HeroProjectPills({ pills = [] }: { pills?: string[] }) {
-  if (!pills.length) return null
-
-  return (
-    <ul aria-label="Capabilities and industries" className="hero-project-pills mt-2 flex min-w-0 flex-wrap gap-2.5 max-tablet:flex-nowrap max-tablet:gap-1.5 max-tablet:overflow-x-auto">
-      {pills.map(title => (
-        <li key={title} className="shrink-0">
-          <ServicePill title={title} size="small" variant="on-media" className="max-tablet:px-2 max-tablet:py-1 max-tablet:text-[11px]" />
-        </li>
-      ))}
-    </ul>
   )
 }
 
@@ -730,7 +716,7 @@ export function HeroProjectSlideshow({ projects: initialProjects }: Props) {
             ref={mobileCarouselRef}
             tabIndex={0}
             aria-label="Scroll featured projects left or right"
-            className="hero-mobile-carousel flex w-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-white"
+            className="hero-mobile-carousel flex w-full cursor-grab select-none snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-white"
             style={{ height: MOBILE_SLIDE_HEIGHT, touchAction: 'pan-y pinch-zoom' }}
           >
             {isMobileViewport && projects.length > 1 ? (

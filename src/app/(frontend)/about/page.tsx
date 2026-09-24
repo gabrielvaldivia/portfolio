@@ -1,3 +1,6 @@
+import { ABOUT_BIO_HEADING } from '@/lib/aboutBio'
+import { AboutBio } from '@/components/AboutBio'
+import { AboutContinuity, AboutSharedElement } from '@/components/AboutContinuity'
 import { Container } from '@/components/Container'
 import { FitText } from '@/components/FitText'
 import { PayloadImage } from '@/components/PayloadImage'
@@ -54,28 +57,6 @@ function AboutSection({
       <div className="tablet:col-span-4">
         {children}
       </div>
-    </div>
-  )
-}
-
-function AboutBio() {
-  return (
-    <div className="rich-text text-pretty text-body-large">
-      <p>
-        I’ve spent 15 years designing for some of the world’s top tech companies while building products of my own. From{' '}
-        <Link href="/work/automatic">Automatic</Link> to{' '}
-        <Link href="/work/fb-sharing">Meta</Link>,{' '}
-        <Link href="/work/assembler">Google</Link>,{' '}
-        <Link href="/work/tonic">CNN</Link>, and{' '}
-        <Link href="/work/patreon">Patreon</Link>, I’ve worked across product, brand, and emerging technology, helping teams turn ambitious ideas into products people use.
-      </p>
-      <p>
-        Today, I bring that experience to early-stage teams building their first generation of products. I work fractionally with companies like{' '}
-        <Link href="/work/daylight">Daylight Computer</Link>,{' '}
-        <Link href="/work/workmate">Workmate</Link>,{' '}
-        <Link href="/work/slingshot">Slingshot AI</Link>, and{' '}
-        <a href="https://www.gv.com/" target="_blank" rel="noopener noreferrer">Google Ventures</a>, helping founders avoid attractive wrong turns, make better decisions, and move quickly from idea to product.
-      </p>
     </div>
   )
 }
@@ -211,39 +192,44 @@ export default async function AboutPage() {
     switch (section.blockType) {
       case 'aboutBioSection': {
         return (
-          <AboutSection
-            title={section.title || 'Bio'}
-            alignBaseline={false}
-            aside={(
-              <div className="w-full tablet:sticky tablet:top-5 tablet:max-w-[360px]">
-                <SprayPaintPortrait
-                  image={portraitImage}
-                  eager
-                />
-              </div>
-            )}
-          >
-            <div className="flex flex-col gap-6">
-              <h2 className="text-balance tablet:hidden">About</h2>
-              <AboutBio />
-            </div>
-            <Link
-              href="/timeline"
-              className="mt-8 inline-flex items-center gap-2 text-body-large text-text-body transition-opacity duration-150 hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
+          <AboutContinuity full>
+            <AboutSection
+              title={section.title || 'Bio'}
+              alignBaseline={false}
+              aside={(
+                <AboutSharedElement name="portrait">
+                  <div className="w-full tablet:sticky tablet:top-5 tablet:max-w-[360px]">
+                    <SprayPaintPortrait image={portraitImage} eager />
+                  </div>
+                </AboutSharedElement>
+              )}
             >
-              View timeline
-              <svg
-                aria-hidden="true"
-                className="size-6 shrink-0 translate-y-px"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              >
-                <path d="M6 4l4 4-4 4" />
-              </svg>
-            </Link>
-          </AboutSection>
+              <AboutSharedElement name="bio">
+                <div>
+                  <div className="flex flex-col gap-6">
+                    <h2 className="about-bio-heading text-balance">{ABOUT_BIO_HEADING}</h2>
+                    <AboutBio />
+                  </div>
+                  <Link
+                    href="/timeline"
+                    className="mt-8 inline-flex items-center gap-2 text-body-large text-text-body transition-opacity duration-150 hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
+                  >
+                    View timeline
+                    <svg
+                      aria-hidden="true"
+                      className="size-6 shrink-0 translate-y-px"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    >
+                      <path d="M6 4l4 4-4 4" />
+                    </svg>
+                  </Link>
+                </div>
+              </AboutSharedElement>
+            </AboutSection>
+          </AboutContinuity>
         )
       }
       case 'aboutTalksSection': {
@@ -296,9 +282,11 @@ export default async function AboutPage() {
     <>
       <JsonLd data={structuredData} />
       <section className="pb-20 tablet:pb-40">
-        <Container>
+        <Container className="about-page-container">
           <div className="hidden pb-20 tablet:block">
-            <FitText className="font-heading" maxSize={120}>About</FitText>
+            <div className="h-[138px]">
+              <FitText className="font-heading" maxSize={120}>About</FitText>
+            </div>
           </div>
           <div className="flex flex-col gap-20 desktop:gap-40">
             {aboutSections.map((section: any, i: number) => (
