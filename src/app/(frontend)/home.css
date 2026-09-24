@@ -144,3 +144,10 @@ html:has([data-about-intro]) {
     display: grid;
   }
 }
+
+/* Give the shared mobile About intro room between the portrait and bio. */
+@media (max-width: 809px) {
+  .about-intro-grid {
+    row-gap: 48px;
+  }
+}

@@ -1,6 +1,11 @@
 {
-  "throughCommit": "22498e2bd4e0dd09cea4ba51164d83163f37d4ee",
+  "throughCommit": "1622e0a74a70f6659b368fe6491c8d6c99e6c739",
   "commits": [
+    {
+      "hash": "1622e0a74a70f6659b368fe6491c8d6c99e6c739",
+      "date": "2026-09-24",
+      "subject": "Restore homepage gutters in production"
+    },
     {
       "hash": "22498e2bd4e0dd09cea4ba51164d83163f37d4ee",
       "date": "2026-09-24",

@@ -8,7 +8,7 @@ export function HomeAboutSection() {
     <section id="about" aria-labelledby="home-about-heading" className="hero-followup-snap-point mt-20 scroll-mt-8 tablet:mt-28 desktop:mt-40">
       <div className="home-page-content home-page-gutters mx-auto">
         <AboutContinuity>
-          <div className="home-grid items-start">
+          <div className="about-intro-grid home-grid items-start">
             <div className="home-grid-sidebar">
               <AboutSharedElement name="portrait">
                 <div className="w-full tablet:max-w-[360px]">

@@ -40,16 +40,19 @@ function AboutSection({
   children,
   alignBaseline = true,
   aside,
+  className,
 }: {
   title: string
   children: ReactNode
   alignBaseline?: boolean
   aside?: ReactNode
+  className?: string
 }) {
   return (
     <div className={cn(
       'grid grid-cols-1 gap-6 tablet:grid-cols-6 tablet:gap-10',
       alignBaseline ? 'tablet:items-baseline' : 'tablet:items-start',
+      className,
     )}>
       <div className="tablet:col-span-2">
         {aside || <h2 className="sticky top-5 text-balance">{title}</h2>}
@@ -195,6 +198,7 @@ export default async function AboutPage() {
           <AboutContinuity full>
             <AboutSection
               title={section.title || 'Bio'}
+              className="about-intro-grid"
               alignBaseline={false}
               aside={(
                 <AboutSharedElement name="portrait">
@@ -212,19 +216,10 @@ export default async function AboutPage() {
                   </div>
                   <Link
                     href="/timeline"
-                    className="mt-8 inline-flex items-center gap-2 text-body-large text-text-body transition-opacity duration-150 hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
+                    className="mt-8 inline-flex items-center gap-2 text-text-muted transition-opacity hover:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
                   >
                     View timeline
-                    <svg
-                      aria-hidden="true"
-                      className="size-6 shrink-0 translate-y-px"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                    >
-                      <path d="M6 4l4 4-4 4" />
-                    </svg>
+                    <svg aria-hidden="true" className="shrink-0 translate-y-[1px]" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg>
                   </Link>
                 </div>
               </AboutSharedElement>
