@@ -32,6 +32,8 @@ const expandedDesktopCollapseOffsets = [196, 124, 60] as const
 
 const desktopNavCollapseThreshold = 64
 const desktopNavExpandThreshold = 16
+const menuButtonSurface = 'bg-neutral-300/45 backdrop-blur-md hover:bg-neutral-300/60 dark:bg-neutral-700/45 dark:hover:bg-neutral-700/60'
+const openMenuButtonSurface = 'bg-black/55 backdrop-blur-md hover:bg-black/65 dark:bg-white/55 dark:hover:bg-white/65'
 
 const subscribeToHydration = () => () => {}
 const getHydratedSnapshot = () => true
@@ -172,9 +174,11 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
               opacity: collapsedMenuButtonVisible ? 1 : 0,
               transform: `scale(${collapsedMenuButtonVisible ? 1 : 0.82})`,
             }}
-            className={cn(`flex size-10 items-center justify-center rounded-full backdrop-blur-[40px] transition-colors cursor-pointer ${
-              open ? 'bg-content dark:hover:bg-neutral-300' : 'bg-floating hover:bg-neutral-300/60 dark:hover:bg-neutral-800/60'
-            }`, 'origin-center transition-[background-color,color,opacity,transform] duration-200 ease-out motion-reduce:duration-0', !collapsedMenuButtonVisible && 'pointer-events-none')}
+            className={cn(
+              'flex size-10 items-center justify-center rounded-full cursor-pointer origin-center transition-[background-color,color,opacity,transform] duration-200 ease-out motion-reduce:duration-0',
+              open ? openMenuButtonSurface : menuButtonSurface,
+              !collapsedMenuButtonVisible && 'pointer-events-none',
+            )}
           >
             <div className="w-4 h-3 relative flex flex-col justify-center items-center">
               <span
@@ -234,9 +238,10 @@ export function NavMenu({ pages }: { pages?: NavMenuPage[] }) {
           <button
             onClick={() => setOpen(!open)}
             aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
-            className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-[40px] transition-colors cursor-pointer ${
-              open ? 'bg-content dark:hover:bg-neutral-300' : 'bg-floating hover:bg-neutral-300/60 dark:hover:bg-neutral-800/60'
-            }`}
+            className={cn(
+              'flex size-10 items-center justify-center rounded-full cursor-pointer transition-colors',
+              open ? openMenuButtonSurface : menuButtonSurface,
+            )}
             style={open ? { color: 'var(--color-nav-active-text)' } : undefined}
           >
             <div className="w-4 h-3 relative flex flex-col justify-center items-center">

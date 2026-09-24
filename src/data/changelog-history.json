@@ -1,6 +1,11 @@
 {
-  "throughCommit": "abf005f7973a28453f5f780abdef584b5956f703",
+  "throughCommit": "70b5148f56a1659bf4b0db7d3469714738f720d0",
   "commits": [
+    {
+      "hash": "70b5148f56a1659bf4b0db7d3469714738f720d0",
+      "date": "2026-09-24",
+      "subject": "Remove cascading About reveal"
+    },
     {
       "hash": "abf005f7973a28453f5f780abdef584b5956f703",
       "date": "2026-09-24",
