@@ -2,8 +2,8 @@
 
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Popover from '@radix-ui/react-popover'
+import Image from 'next/image'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { PayloadImage } from '@/components/PayloadImage'
 import { cn } from '@/lib/cn'
 import type { ResponsiveImageMedia } from '@/lib/responsiveImage'
 
@@ -37,6 +37,7 @@ type Drip = {
   color: PaintColor
 }
 
+const DARK_PORTRAIT_SRC = '/images/about-portrait-dark.webp'
 const DEFAULT_COLOR = '#001feb'
 const DEFAULT_BRUSH_SIZE = 44
 const MAX_PIXEL_RATIO = 2
@@ -62,6 +63,33 @@ function rgba(color: PaintColor, opacity: number) {
   return `rgba(${color.r}, ${color.g}, ${color.b}, ${opacity})`
 }
 
+function ThemedPortraitImage({
+  image,
+  className,
+  sizes,
+  eager = false,
+}: {
+  image: PortraitImage
+  className: string
+  sizes: string
+  eager?: boolean
+}) {
+  return (
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcSet={DARK_PORTRAIT_SRC} />
+      <Image
+        src={image.url}
+        alt={image.alt || 'Portrait of Gabriel Valdivia'}
+        fill
+        unoptimized
+        className={className}
+        sizes={sizes}
+        loading={eager ? 'eager' : undefined}
+      />
+    </picture>
+  )
+}
+
 export function SprayPaintPortrait({
   image,
   eager = false,
@@ -80,13 +108,11 @@ export function SprayPaintPortrait({
             aria-label="Open portrait fullscreen"
             className="relative block aspect-[4/3] w-full cursor-zoom-in overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content tablet:hidden after:pointer-events-none after:absolute after:inset-0 after:rounded-xl after:border after:border-border"
           >
-            <PayloadImage
-              media={image}
-              alt={image.alt || 'Portrait of Gabriel Valdivia'}
-              fill
-              className="object-cover object-[50%_calc(50%+30px)] dark:grayscale"
+            <ThemedPortraitImage
+              image={image}
+              className="object-cover object-[50%_calc(50%+30px)]"
               sizes="100vw"
-              loading={eager ? 'eager' : undefined}
+              eager={eager}
             />
           </button>
         </Dialog.Trigger>
@@ -568,13 +594,11 @@ function SprayPaintSurface({
         maxWidth: `calc((100dvh - max(64px, env(safe-area-inset-top)) - max(96px, env(safe-area-inset-bottom))) * ${imageAspectRatio})`,
       } : undefined}
     >
-      <PayloadImage
-        media={image}
-        alt={image.alt || 'Portrait of Gabriel Valdivia'}
-        fill
-        className="object-cover object-center dark:grayscale"
+      <ThemedPortraitImage
+        image={image}
+        className="object-cover object-center"
         sizes={fullscreen ? '100vw' : '(max-width: 1280px) 100vw, 33vw'}
-        loading={eager ? 'eager' : undefined}
+        eager={eager}
       />
 
       <canvas

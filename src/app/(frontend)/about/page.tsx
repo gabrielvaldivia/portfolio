@@ -271,19 +271,23 @@ export default async function AboutPage() {
       <JsonLd data={structuredData} />
       <section className="pb-20 tablet:pb-40">
         <Container className="about-page-container">
-          <div className="hidden pb-20 tablet:block">
+          <div data-about-reveal className="hidden pb-20 tablet:block" style={{ animationDelay: '60ms' }}>
             <div className="h-[138px]">
               <FitText className="font-heading" maxSize={120}>About</FitText>
             </div>
           </div>
           <div className="flex flex-col gap-20 desktop:gap-40">
             {aboutSections.map((section: any, i: number) => (
-              <div key={section.id || `${section.blockType}-${i}`}>
+              <div
+                key={section.id || `${section.blockType}-${i}`}
+                data-about-reveal={section.blockType === 'aboutBioSection' ? undefined : ''}
+                style={section.blockType === 'aboutBioSection' ? undefined : { animationDelay: `${120 + i * 110}ms` }}
+              >
                 {renderSection(section)}
               </div>
             ))}
             {!hasPlaygroundSection && (
-              <div>
+              <div data-about-reveal style={{ animationDelay: `${120 + aboutSections.length * 110}ms` }}>
                 {renderPlayground({ title: 'Playground', itemLimit: 5, linkText: 'View all' })}
               </div>
             )}
