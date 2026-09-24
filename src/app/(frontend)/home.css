@@ -59,6 +59,10 @@
   scroll-snap-align: end;
 }
 
+.hero-project-strip .hero-project-pills {
+  margin-top: 20px;
+}
+
 /* Reserve the original mobile slideshow height while its bundle loads. */
 .home-mobile-slideshow:empty {
   height: 100dvh;

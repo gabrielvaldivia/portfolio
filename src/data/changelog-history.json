@@ -1,6 +1,11 @@
 {
-  "throughCommit": "7e0a0f62146bdf8e65803c3ee1f56b675ab277b6",
+  "throughCommit": "59d81f63f031546f6154d56e605739d49b0821b3",
   "commits": [
+    {
+      "hash": "59d81f63f031546f6154d56e605739d49b0821b3",
+      "date": "2026-09-24",
+      "subject": "Align Work marquee with viewport edge"
+    },
     {
       "hash": "7e0a0f62146bdf8e65803c3ee1f56b675ab277b6",
       "date": "2026-09-24",
