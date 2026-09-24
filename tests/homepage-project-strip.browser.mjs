@@ -119,7 +119,7 @@ try {
         await page.mouse.down()
         await page.mouse.move(920, y, { steps: 20 })
         await page.mouse.up()
-        await page.waitForTimeout(300)
+        await page.waitForTimeout(650)
         const cardBox = await page.locator('[data-project-card]').nth(index).boundingBox()
         if (index === await page.locator('[data-project-card]').count() - 1) {
           near(cardBox.x + cardBox.width, geometry.viewport - 40, 'last card aligns with the right gutter')
@@ -154,7 +154,8 @@ try {
     for (const name of ['Talks', 'Interviews', 'Patents', 'Playground']) {
       assert.equal(await page.getByRole('heading', { name, exact: true }).count(), 1)
     }
-    assert.equal(await page.getByRole('link', { name: 'View timeline', exact: true }).getAttribute('href'), '/timeline')
+    assert.equal(await page.getByRole('link', { name: 'two decades', exact: true }).getAttribute('href'), '/timeline')
+    assert.equal(await page.getByRole('link', { name: 'View timeline', exact: true }).count(), 0)
 
     await page.goBack()
     await page.waitForURL(url => url.pathname === '/')

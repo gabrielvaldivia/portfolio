@@ -212,15 +212,8 @@ export default async function AboutPage() {
                 <div>
                   <div className="flex flex-col gap-6">
                     <h2 className="about-bio-heading text-balance">{ABOUT_BIO_HEADING}</h2>
-                    <AboutBio />
+                    <AboutBio linkTimeline />
                   </div>
-                  <Link
-                    href="/timeline"
-                    className="mt-8 inline-flex items-center gap-2 text-text-muted transition-opacity hover:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
-                  >
-                    View timeline
-                    <svg aria-hidden="true" className="shrink-0 translate-y-[1px]" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4" /></svg>
-                  </Link>
                 </div>
               </AboutSharedElement>
             </AboutSection>

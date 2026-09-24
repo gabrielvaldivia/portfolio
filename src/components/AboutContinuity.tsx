@@ -48,10 +48,10 @@ export function AboutReadMore() {
         const intro = document.querySelector('[data-about-intro="preview"]')
         pendingAboutPosition = intro ? { top: intro.getBoundingClientRect().top, startedAt: performance.now() } : null
       }}
-      className="mt-8 inline-flex items-center gap-2 text-body-large text-text-body transition-opacity duration-150 hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
+      className="mt-8 inline-flex items-center gap-2 text-text-muted transition-opacity hover:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
     >
       Read more
-      <svg aria-hidden="true" className="size-6 shrink-0 translate-y-px" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <svg aria-hidden="true" className="shrink-0 translate-y-[1px]" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
         <path d="M6 4l4 4-4 4" />
       </svg>
     </Link>

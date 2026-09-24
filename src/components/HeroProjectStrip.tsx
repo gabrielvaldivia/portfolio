@@ -7,6 +7,14 @@ import { PayloadImage } from '@/components/PayloadImage'
 import { HeroProjectPills } from '@/components/HeroProjectPills'
 import type { ResponsiveImageMedia } from '@/lib/responsiveImage'
 
+// The CMS copy of Dex is 1400px wide; use the 3000px hero asset for large cards.
+const DEX_HERO_IMAGE: ResponsiveImageMedia = {
+  url: '/hero/dex.webp',
+  width: 3000,
+  height: 1687,
+  mimeType: 'image/webp',
+}
+
 type Project = {
   id: string
   title: string
@@ -95,8 +103,8 @@ export function HeroProjectStrip({ projects }: { projects: Project[] }) {
       return
     }
     animation.current = animate(track.scrollLeft, target, {
-      duration: 0.18,
-      ease: 'easeOut',
+      duration: 0.45,
+      ease: [0.22, 1, 0.36, 1],
       onUpdate: left => { track.scrollLeft = left },
       onComplete: restoreSnap,
     })
@@ -146,7 +154,9 @@ export function HeroProjectStrip({ projects }: { projects: Project[] }) {
       >
         <div className="hero-project-strip-track flex items-start select-none">
           {displayProjects.map((project, index) => {
-            const media = project.featuredImage
+            const media = project.slug === 'dex' && project.featuredImage?.url?.endsWith('/dex.webp')
+              ? DEX_HERO_IMAGE
+              : project.featuredImage
             const video = media?.mimeType?.startsWith('video/') || /\.(mp4|webm|mov)(\?|$)/i.test(media?.url || '')
             return (
               <Link
@@ -158,7 +168,7 @@ export function HeroProjectStrip({ projects }: { projects: Project[] }) {
               >
                 <div className="relative aspect-[3/2] overflow-hidden">
                   {media?.url ? video ? <ProjectVideo src={media.url} /> : (
-                    <PayloadImage media={media} alt={media.alt || project.title} fill draggable={false} className="object-cover" sizes="(min-width: 1400px) 1110px, (min-width: 810px) 80vw, 90vw" priority={index === 0} />
+                    <PayloadImage media={media} alt={media.alt || project.title} fill draggable={false} className="object-cover" sizes="(min-width: 810px) min(108vw, 180vh), 100vw" priority={index === 0} />
                   ) : <div className="flex size-full items-center justify-center text-text-muted">{project.title}</div>}
                 </div>
                 <div className="hero-project-strip-shade pointer-events-none absolute inset-0" aria-hidden="true" />
