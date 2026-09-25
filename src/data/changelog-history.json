@@ -1,6 +1,11 @@
 {
-  "throughCommit": "6a00578a55546f3b859cbc6925e45c7cec2c2b1d",
+  "throughCommit": "79f39374adec31c087c0db55e9a5da0fc5503acd",
   "commits": [
+    {
+      "hash": "79f39374adec31c087c0db55e9a5da0fc5503acd",
+      "date": "2026-09-25",
+      "subject": "Sync Home and About CMS content with the live pages"
+    },
     {
       "hash": "6a00578a55546f3b859cbc6925e45c7cec2c2b1d",
       "date": "2026-09-24",

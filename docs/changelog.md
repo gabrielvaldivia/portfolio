@@ -8,7 +8,7 @@ The unlisted `/changelog` page has two sources:
 ## With each site change
 
 1. Run `npm run changelog:update` to import commits since the last snapshot. If it lists dates without summaries, add those summaries first and rerun. A failed import leaves the snapshot unchanged.
-2. Add or expand the current day's entry in `changelog-entries.json`. Use `YYYY-MM-DD`, newest first, with one entry per day. Describe the resulting behavior in plain language. Group related spacing, typography, and interaction refinements into one polish bullet.
+2. Update the current day's entry in `changelog-entries.json`. Use `YYYY-MM-DD`, newest first, with one entry per day. Write one tweet-length summary of at most 280 characters, including spaces and punctuation but excluding the title and date; store it as one string in `changes`. Use the space for meaningful detail on busy days, without padding small fixes. Focus on visitor-facing outcomes and leave implementation details in the expandable commits. Rewrite the summary as work evolves instead of appending every tweak.
 3. Run `npm run check:changelog`. It checks staged, unstaged, and untracked files against `HEAD`. To check committed work, use `npm run check:changelog -- --base origin/master --head HEAD` with an appropriate comparison ref.
 4. Include the summary and any imported history in the same change as the site work.
 
