@@ -112,12 +112,9 @@ function splitApproachItem(item: any, index: number) {
     && typeof lead.text === 'string'
     && (Number(lead.format) & 1) === 1
   const extractedTitle = leadIsBoldText ? lead.text.trim() : ''
-  const sourceTitle = typeof item.title === 'string' && item.title.trim()
+  const title = typeof item.title === 'string' && item.title.trim()
     ? item.title.trim()
     : extractedTitle || `Step ${index + 1}`
-  const title = (/^I['’]ll be your thought partner[.!]?$/i.test(sourceTitle)
-    ? 'A thought partner'
-    : sourceTitle).replace(/\.+$/, '')
 
   if (!leadIsBoldText) return { title, description: data }
 
@@ -381,7 +378,6 @@ export default async function HomePage() {
         <section id="hero" className="scroll-mt-0">
           <HomeHeroTagline />
         </section>
-        <HomeAboutSection />
         <div className="h-20 tablet:h-28 desktop:h-40" />
       </>
     )
@@ -401,10 +397,12 @@ export default async function HomePage() {
                 />
               </div>
             ) : null}
-            <HomeAboutSection />
           </div>
         )
       }
+
+      case 'aboutSection':
+        return <HomeAboutSection key={block.id || i} section={block} />
 
       case 'hScroll': {
         const items = block.source === 'featuredProjects' ? (block.projects || []) : (block.testimonials || [])
@@ -552,12 +550,12 @@ export default async function HomePage() {
           <section key={block.id || i}>
             <HomeContainer>
               <div className="home-grid home-work-heading items-baseline">
-                <h2 className="home-grid-sidebar text-balance">Work</h2>
+                <h2 className="home-grid-sidebar text-balance">{block.title || 'Work'}</h2>
                 <Link
-                  href="/work"
+                  href={block.linkUrl || '/work'}
                   className="home-grid-main justify-self-end inline-flex items-center gap-1 rounded-sm text-body text-text-muted transition-opacity hover:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content"
                 >
-                  See all
+                  {block.linkText || 'See all'}
                   <svg
                     aria-hidden="true"
                     className="size-4 shrink-0 translate-y-px"
@@ -627,7 +625,7 @@ export default async function HomePage() {
             <HomeContainer>
               <div className="flex flex-col items-center gap-10 tablet:gap-12 desktop:gap-16">
                 <h2 className="contact-prompt max-w-4xl text-balance text-center font-normal">
-                  Building something new? Let&apos;s talk.
+                  {block.title || "Building something new? Let's talk."}
                 </h2>
                 <div className="w-full max-w-[720px] rounded-[20px] bg-background-alt p-6 tablet:rounded-[30px] tablet:p-8 desktop:rounded-[40px] desktop:p-10">
                   <ContactForm email={email} />
@@ -652,8 +650,7 @@ export default async function HomePage() {
           const groups: { blocks: any[] }[] = []
           sections
             .filter((block: any) => (
-              block.blockType !== 'aboutSection'
-              && block.blockType !== 'accordion'
+              block.blockType !== 'accordion'
               && !(block.blockType === 'hScroll' && block.source === 'featuredTestimonials')
             ))
             .forEach((block: any) => {
@@ -702,7 +699,6 @@ export default async function HomePage() {
                   <div className="mt-10 min-w-0 tablet:mt-20 desktop:mt-24">
                     {renderSection(nextBlock, gi * 100, { heroStrip: true })}
                   </div>
-                  <HomeAboutSection />
                 </div>
               )
             }

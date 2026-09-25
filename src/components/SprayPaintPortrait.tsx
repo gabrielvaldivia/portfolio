@@ -37,7 +37,6 @@ type Drip = {
   color: PaintColor
 }
 
-const DARK_PORTRAIT_SRC = '/images/about-portrait-dark.webp'
 const DEFAULT_COLOR = '#001feb'
 const DEFAULT_BRUSH_SIZE = 44
 const MAX_PIXEL_RATIO = 2
@@ -65,18 +64,20 @@ function rgba(color: PaintColor, opacity: number) {
 
 function ThemedPortraitImage({
   image,
+  darkImage,
   className,
   sizes,
   eager = false,
 }: {
   image: PortraitImage
+  darkImage?: PortraitImage
   className: string
   sizes: string
   eager?: boolean
 }) {
   return (
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcSet={DARK_PORTRAIT_SRC} />
+    <picture className="absolute inset-0">
+      <source media="(prefers-color-scheme: dark)" srcSet={darkImage?.url || image.url} />
       <Image
         src={image.url}
         alt={image.alt || 'Portrait of Gabriel Valdivia'}
@@ -92,9 +93,11 @@ function ThemedPortraitImage({
 
 export function SprayPaintPortrait({
   image,
+  darkImage,
   eager = false,
 }: {
   image: PortraitImage
+  darkImage?: PortraitImage
   eager?: boolean
 }) {
   const fullscreenContentRef = useRef<HTMLDivElement>(null)
@@ -110,6 +113,7 @@ export function SprayPaintPortrait({
           >
             <ThemedPortraitImage
               image={image}
+              darkImage={darkImage}
               className="object-cover object-[50%_calc(50%+30px)]"
               sizes="100vw"
               eager={eager}
@@ -138,12 +142,12 @@ export function SprayPaintPortrait({
                 <path d="m6 6 12 12M6 18 18 6" />
               </svg>
             </Dialog.Close>
-            <SprayPaintSurface image={image} eager fullscreen />
+            <SprayPaintSurface image={image} darkImage={darkImage} eager fullscreen />
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
       <div className="hidden tablet:block">
-        <SprayPaintSurface image={image} eager={eager} />
+        <SprayPaintSurface image={image} darkImage={darkImage} eager={eager} />
       </div>
     </>
   )
@@ -151,10 +155,12 @@ export function SprayPaintPortrait({
 
 function SprayPaintSurface({
   image,
+  darkImage,
   eager = false,
   fullscreen = false,
 }: {
   image: PortraitImage
+  darkImage?: PortraitImage
   eager?: boolean
   fullscreen?: boolean
 }) {
@@ -596,6 +602,7 @@ function SprayPaintSurface({
     >
       <ThemedPortraitImage
         image={image}
+        darkImage={darkImage}
         className="object-cover object-center"
         sizes={fullscreen ? '100vw' : '(max-width: 1280px) 100vw, 33vw'}
         eager={eager}

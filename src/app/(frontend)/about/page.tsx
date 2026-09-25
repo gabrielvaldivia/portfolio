@@ -1,4 +1,4 @@
-import { ABOUT_BIO_HEADING } from '@/lib/aboutBio'
+import { getAboutPortraits } from '@/lib/aboutBio'
 import { AboutBio } from '@/components/AboutBio'
 import { AboutContinuity, AboutSharedElement } from '@/components/AboutContinuity'
 import { Container } from '@/components/Container'
@@ -24,13 +24,15 @@ async function getPublicAboutPreview() {
     return response.json()
   }
 
-  const [aboutResult, sideProjectsResult] = await Promise.all([
+  const [aboutResult, sideProjectsResult, homeResult] = await Promise.all([
     request('/pages?where%5Bslug%5D%5Bequals%5D=about&depth=2&limit=1'),
     request('/side-projects?sort=order&depth=2&limit=100'),
+    request('/pages?where%5Bslug%5D%5Bequals%5D=home&depth=1&limit=1'),
   ])
 
   return {
     aboutPage: aboutResult.docs?.[0] || null,
+    homePage: homeResult.docs?.[0] || null,
     sideProjects: sideProjectsResult.docs || [],
   }
 }
@@ -78,9 +80,10 @@ export async function generateMetadata(): Promise<Metadata> {
 export const revalidate = 3600
 
 export default async function AboutPage() {
-  const [localPage, sideProjectsResult] = await Promise.all([
+  const [localPage, sideProjectsResult, homePage] = await Promise.all([
     getPageBySlug('about'),
     getSideProjects(),
+    getPageBySlug('home'),
   ])
   const publicPreview = process.env.NODE_ENV === 'development' && !localPage
     ? await getPublicAboutPreview().catch((error) => {
@@ -93,15 +96,10 @@ export default async function AboutPage() {
     ? sideProjectsResult.docs
     : publicPreview?.sideProjects || []) as any[]
   const aboutSections = (page?.aboutSections as any[]) || []
-  const hasPlaygroundSection = aboutSections.some(
-    (section: any) => section.blockType === 'aboutPlaygroundSection',
+  const homeSections = ((homePage || publicPreview?.homePage)?.sections || []) as any[]
+  const { image: portraitImage, darkImage } = getAboutPortraits(
+    homeSections.find((section: any) => section.blockType === 'aboutSection'),
   )
-  const portraitImage = {
-    url: '/images/about-portrait.jpg',
-    alt: 'Portrait of Gabriel Valdivia',
-    width: 1118,
-    height: 1342,
-  }
   const structuredData = buildSiteStructuredData([{
     '@type': 'ProfilePage',
     '@id': absoluteSiteUrl('/about#profile-page'),
@@ -203,7 +201,7 @@ export default async function AboutPage() {
               aside={(
                 <AboutSharedElement name="portrait">
                   <div className="w-full tablet:sticky tablet:top-5 tablet:max-w-[360px]">
-                    <SprayPaintPortrait image={portraitImage} eager />
+                    <SprayPaintPortrait image={portraitImage} darkImage={darkImage} eager />
                   </div>
                 </AboutSharedElement>
               )}
@@ -211,8 +209,8 @@ export default async function AboutPage() {
               <AboutSharedElement name="bio">
                 <div>
                   <div className="flex flex-col gap-6">
-                    <h2 className="about-bio-heading text-balance">{ABOUT_BIO_HEADING}</h2>
-                    <AboutBio linkTimeline />
+                    <h2 className="about-bio-heading text-balance">{section.title}</h2>
+                    <AboutBio data={section.bio} />
                   </div>
                 </div>
               </AboutSharedElement>
@@ -282,11 +280,6 @@ export default async function AboutPage() {
                 {renderSection(section)}
               </div>
             ))}
-            {!hasPlaygroundSection && (
-              <div>
-                {renderPlayground({ title: 'Playground', itemLimit: 5, linkText: 'View all' })}
-              </div>
-            )}
           </div>
         </Container>
       </section>

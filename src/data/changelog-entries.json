@@ -1,5 +1,13 @@
 [
   {
+    "date": "2026-09-25",
+    "title": "Home and About content in sync",
+    "changes": [
+      "Synced the CMS with the live Home and About introductions, Approach titles, Work link, contact heading, and portraits. Both pages now render their editable content, and share the light and dark portraits managed in Home.",
+      "Made Home’s About section and About’s Playground follow the CMS section order, removed the retired testimonial section, and clarified which controls supply the Chat page and footer. About’s text export and chat context use the current CMS biography."
+    ]
+  },
+  {
     "date": "2026-09-24",
     "title": "A new homepage project strip and About preview",
     "changes": [

@@ -1,10 +1,10 @@
-import { ABOUT_BIO_HEADING, ABOUT_BIO_PARAGRAPHS } from '@/lib/aboutBio'
 import { getPageBySlug, getSideProjects } from '@/lib/queries'
 import { absoluteSiteUrl } from '@/lib/structuredData'
 import {
   markdownDocument,
   markdownListItem,
   markdownResponse,
+  lexicalToMarkdown,
 } from '@/lib/agentMarkdown'
 
 export const revalidate = 3600
@@ -29,7 +29,10 @@ export async function GET() {
       ? section.title.trim()
       : ''
 
-    if (section.blockType === 'aboutBioSection') return []
+    if (section.blockType === 'aboutBioSection') {
+      const bio = lexicalToMarkdown(section.bio)
+      return bio ? [`## ${heading || 'Bio'}\n\n${bio}`] : []
+    }
 
     if (section.blockType === 'aboutTalksSection' || section.blockType === 'aboutInterviewsSection') {
       const items = section.blockType === 'aboutTalksSection' ? section.talks : section.interviews
@@ -55,7 +58,7 @@ export async function GET() {
   const playgroundLimit = typeof playgroundSection?.itemLimit === 'number' && playgroundSection.itemLimit > 0
     ? playgroundSection.itemLimit
     : 5
-  const playground = sideProjectsResult.docs.slice(0, playgroundLimit).flatMap((project) => (
+  const playground = (playgroundSection ? sideProjectsResult.docs.slice(0, playgroundLimit) : []).flatMap((project) => (
     project.slug
       ? [markdownListItem(project.title, absoluteSiteUrl(`/playground/${project.slug}`), project.description)]
       : []
@@ -63,7 +66,6 @@ export async function GET() {
 
   const markdown = markdownDocument('About Gabriel Valdivia', [
     `Canonical page: ${absoluteSiteUrl('/about')}`,
-    `## ${ABOUT_BIO_HEADING}\n\n${ABOUT_BIO_PARAGRAPHS.join('\n\n')}`,
     ...generatedSections,
     playground ? `## Selected playground projects\n\n${playground}` : null,
     '## Contact\n\n- Email: [gabe@valdivia.works](mailto:gabe@valdivia.works)',

@@ -68,7 +68,7 @@ const HeroBlock: Block = {
       labels: { singular: 'Slide', plural: 'Slides' },
       maxRows: 20,
       admin: {
-        description: 'Choose and reorder the projects shown in the homepage hero. Leave overrides blank to use the project content.',
+        description: 'Choose the projects in the homepage hero. Their display order shuffles on each visit. Leave overrides blank to use project content.',
         initCollapsed: true,
       },
       fields: [
@@ -125,11 +125,13 @@ const HeroBlock: Block = {
           name: 'testimonialQuote',
           type: 'textarea',
           label: 'Testimonial quote override',
+          admin: { hidden: true },
         },
         {
           name: 'testimonialName',
           type: 'text',
           label: 'Testimonial name override',
+          admin: { hidden: true },
         },
       ],
     },
@@ -149,7 +151,7 @@ const HScrollBlock: Block = {
       required: true,
       options: [
         { label: 'Projects', value: 'featuredProjects' },
-        { label: 'Testimonials', value: 'featuredTestimonials' },
+        { label: 'Archived testimonials (not displayed)', value: 'featuredTestimonials' },
       ],
     },
     {
@@ -179,8 +181,8 @@ const AboutBlock: Block = {
   labels: { singular: 'About', plural: 'About Sections' },
   fields: [
     sizeFields,
-    { name: 'image', type: 'upload', relationTo: 'media', label: 'Image (Light Mode)' },
-    { name: 'imageDark', type: 'upload', relationTo: 'media', label: 'Image (Dark Mode)' },
+    { name: 'image', type: 'upload', relationTo: 'media', label: 'Portrait (Light Mode)', admin: { description: 'Shared with the About page.' } },
+    { name: 'imageDark', type: 'upload', relationTo: 'media', label: 'Portrait (Dark Mode)', admin: { description: 'Shared with the About page. Leave empty to use the light portrait.' } },
     { name: 'heading', type: 'text' },
     { name: 'text', type: 'richText' },
   ],
@@ -223,37 +225,40 @@ const NumberedGridBlock: Block = {
 
 const MarqueeBlock: Block = {
   slug: 'marqueeSection',
-  labels: { singular: 'Marquee', plural: 'Marquees' },
+  labels: { singular: 'Work', plural: 'Work Sections' },
   fields: [
     sizeFields,
-    { name: 'title', type: 'text', defaultValue: 'Clients' },
+    { name: 'title', type: 'text', defaultValue: 'Work', admin: { description: 'Displays work automatically, ranked by visitor likes.' } },
     {
       name: 'clients',
       type: 'relationship',
       relationTo: 'clients',
       hasMany: true,
+      admin: { hidden: true },
     },
-    { name: 'linkUrl', type: 'text', defaultValue: '/clients' },
-    { name: 'linkText', type: 'text', defaultValue: 'View all' },
-    { name: 'speed', type: 'number', defaultValue: 60 },
-    { name: 'fontSize', type: 'number', defaultValue: 48 },
-    { name: 'gap', type: 'number', defaultValue: 60 },
-    { name: 'opacity', type: 'number', defaultValue: 30 },
+    { name: 'linkUrl', type: 'text', defaultValue: '/work' },
+    { name: 'linkText', type: 'text', defaultValue: 'See all' },
+    { name: 'speed', type: 'number', defaultValue: 60, admin: { hidden: true } },
+    { name: 'fontSize', type: 'number', defaultValue: 48, admin: { hidden: true } },
+    { name: 'gap', type: 'number', defaultValue: 60, admin: { hidden: true } },
+    { name: 'opacity', type: 'number', defaultValue: 30, admin: { hidden: true } },
   ],
 }
 
 const AccordionBlock: Block = {
   slug: 'accordion',
-  labels: { singular: 'Chat', plural: 'Chats' },
+  labels: { singular: 'Chat Knowledge', plural: 'Chat Knowledge' },
+  admin: { group: 'Supporting content' },
   fields: [
-    sizeFields,
-    { name: 'fixedHeight', type: 'text', label: 'Fixed Height', defaultValue: '80dvh', admin: { description: 'CSS height value (e.g. 70dvh, 600px, auto). Applied on mobile, overridden by rows on desktop.' } },
-    { name: 'title', type: 'text', defaultValue: 'Ask me anything' },
+    { ...sizeFields, admin: { hidden: true } },
+    { name: 'fixedHeight', type: 'text', defaultValue: '80dvh', admin: { hidden: true } },
+    { name: 'title', type: 'text', defaultValue: 'Ask me anything', admin: { hidden: true } },
     { name: 'systemPromptExtra', type: 'textarea', label: 'Extra Instructions', admin: { description: 'Additional instructions appended to the system prompt' } },
     {
       name: 'items',
       type: 'array',
       label: 'Suggested Questions',
+      admin: { description: 'Used on the Chat page. This block is not displayed on Home.' },
       fields: [
         { name: 'question', type: 'text', required: true },
         { name: 'answer', type: 'richText', required: true },
@@ -287,12 +292,12 @@ const SocialLinksBlock: Block = {
   labels: { singular: 'Contact', plural: 'Contact Sections' },
   fields: [
     sizeFields,
-    { name: 'title', type: 'text', defaultValue: 'Contact' },
+    { name: 'title', label: 'Heading', type: 'text', defaultValue: "Building something new? Let's talk." },
     {
       name: 'links',
       type: 'array',
-      label: 'Contact Links',
-      admin: { description: 'Add each social profile or contact method to show on the homepage.' },
+      label: 'Email and Footer Links',
+      admin: { description: 'Email is used by the contact form. All links appear in the site footer.' },
       fields: [
         {
           name: 'platform',
@@ -331,8 +336,8 @@ const AboutBioSectionBlock: Block = {
   slug: 'aboutBioSection',
   labels: { singular: 'Bio', plural: 'Bio Sections' },
   fields: [
-    { name: 'title', type: 'text', defaultValue: 'Bio' },
-    { name: 'bio', type: 'richText' },
+    { name: 'title', label: 'Heading', type: 'text' },
+    { name: 'bio', type: 'richText', admin: { description: 'The full About introduction. Edit the shared light and dark portraits in Home → About.' } },
   ],
 }
 
@@ -458,10 +463,12 @@ export const Pages: CollectionConfig = {
     // ── Home: composable sections ──
     {
       name: 'sections',
+      label: 'Home Content',
       type: 'blocks',
       admin: {
         condition: isType('home'),
         initCollapsed: true,
+        description: 'Page sections appear in this order. Chat Knowledge supplies the separate Chat page.',
       },
       blocks: [HeroBlock, HScrollBlock, AboutBlock, PillGridBlock, NumberedGridBlock, MarqueeBlock, AccordionBlock, CalloutBlock, SocialLinksBlock],
     },

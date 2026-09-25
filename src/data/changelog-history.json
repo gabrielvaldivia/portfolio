@@ -1,6 +1,11 @@
 {
-  "throughCommit": "70b5148f56a1659bf4b0db7d3469714738f720d0",
+  "throughCommit": "6a00578a55546f3b859cbc6925e45c7cec2c2b1d",
   "commits": [
+    {
+      "hash": "6a00578a55546f3b859cbc6925e45c7cec2c2b1d",
+      "date": "2026-09-24",
+      "subject": "Refine menu button blurred surface"
+    },
     {
       "hash": "70b5148f56a1659bf4b0db7d3469714738f720d0",
       "date": "2026-09-24",
