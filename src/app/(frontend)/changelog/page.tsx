@@ -45,13 +45,13 @@ export default function ChangelogPage() {
             </header>
             <div className="tablet:grid tablet:grid-cols-4 tablet:gap-x-8">
               <div className="min-w-0 tablet:col-span-3 tablet:col-start-2">
-                <ul className="mt-4 space-y-3 text-body text-text-body tablet:mt-0">
+                <div className="mt-4 space-y-3 text-body text-text-body tablet:mt-0">
                   {entry.changes.map((change) => (
-                    <li key={change} className="relative pl-5 text-pretty before:absolute before:left-0 before:top-0 before:text-text-subtle before:content-['–']">
+                    <p key={change} className="text-pretty">
                       {change}
-                    </li>
+                    </p>
                   ))}
-                </ul>
+                </div>
                 {entry.commits.length > 0 && (
                   <details className="mt-5 text-caption text-text-muted">
                     <summary className="w-fit cursor-pointer hover:text-text-strong focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content">

@@ -1,6 +1,11 @@
 {
-  "throughCommit": "79f39374adec31c087c0db55e9a5da0fc5503acd",
+  "throughCommit": "a2690e5ad082106aa5fd0c06f9f5524ab99f4386",
   "commits": [
+    {
+      "hash": "a2690e5ad082106aa5fd0c06f9f5524ab99f4386",
+      "date": "2026-09-25",
+      "subject": "Keep daily changelog summaries within 280 characters"
+    },
     {
       "hash": "79f39374adec31c087c0db55e9a5da0fc5503acd",
       "date": "2026-09-25",
