@@ -1,5 +1,12 @@
 [
   {
+    "date": "2026-09-28",
+    "title": "A more conversational chat",
+    "changes": [
+      "Chat now answers follow-ups in its own words instead of repeating the same pitch. Replies match the length of the question, mention the email once, keep the context of short follow-ups like \"weekly rate?\", and get rewritten if they would restate an earlier answer."
+    ]
+  },
+  {
     "date": "2026-09-25",
     "title": "Home and About content in sync",
     "changes": [

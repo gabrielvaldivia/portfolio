@@ -1,6 +1,11 @@
 {
-  "throughCommit": "a2690e5ad082106aa5fd0c06f9f5524ab99f4386",
+  "throughCommit": "4c225a3178a8eed077115e748d9d3f6f7831de69",
   "commits": [
+    {
+      "hash": "4c225a3178a8eed077115e748d9d3f6f7831de69",
+      "date": "2026-09-28",
+      "subject": "Make chat replies conversational and avoid repeating answers"
+    },
     {
       "hash": "a2690e5ad082106aa5fd0c06f9f5524ab99f4386",
       "date": "2026-09-25",
