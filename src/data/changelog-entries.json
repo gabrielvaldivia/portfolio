@@ -3,7 +3,7 @@
     "date": "2026-09-28",
     "title": "A more conversational chat",
     "changes": [
-      "Chat now answers follow-ups in its own words instead of repeating the same pitch. Replies match the length of the question, mention the email once, keep the context of short follow-ups like \"weekly rate?\", and get rewritten if they would restate an earlier answer."
+      "Chat now answers follow-ups in its own words instead of repeating the same pitch, with shorter replies to short questions, the email mentioned once, and context kept for quick follow-ups like \"weekly rate?\". Replies also come from a more capable model."
     ]
   },
   {
