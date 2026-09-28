@@ -86,10 +86,12 @@ export async function createWorkersAICompletion({
   messages,
   tools,
   maxTokens = 1_024,
+  temperature = 0.25,
 }: {
   messages: WorkersAIMessage[]
   tools?: WorkersAITool[]
   maxTokens?: number
+  temperature?: number
 }) {
   const accountId = getCloudflareAccountId()
   const apiToken = process.env.CLOUDFLARE_AI_API_TOKEN?.trim()
@@ -114,7 +116,7 @@ export async function createWorkersAICompletion({
           messages,
           ...(tools?.length ? { tools, tool_choice: 'auto' } : {}),
           max_tokens: Math.min(Math.max(Math.trunc(maxTokens), 1), 1_024),
-          temperature: 0.25,
+          temperature: Math.min(Math.max(temperature, 0), 1),
         }),
         cache: 'no-store',
         signal: controller.signal,

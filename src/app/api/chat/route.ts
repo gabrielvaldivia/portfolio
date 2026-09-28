@@ -8,6 +8,7 @@ import {
   CHAT_PERSONA_LOCK,
   isChatImplementationQuestion,
 } from '@/lib/chatPersona'
+import { CHAT_REPETITION_NUDGE, repeatsEarlierReply } from '@/lib/chatRepetition'
 import {
   createWorkersAICompletion,
   isWorkersAIConfigured,
@@ -21,6 +22,8 @@ export const maxDuration = 30
 const GABOS_API = process.env.GABOS_API_URL?.trim() || 'https://gabos.vercel.app'
 const MAX_SYSTEM_PROMPT_CHARS = 60_000
 const MAX_BODY_BYTES = 80_000
+const CHAT_TEMPERATURE = 0.6
+const FALLBACK_FOLLOWUPS = '{{FOLLOWUPS: What projects are you working on? | How can we work together? | Where can I read your writing?}}'
 
 function truncate(value: unknown, maxLength: number) {
   const text = typeof value === 'string' ? value.trim() : ''
@@ -83,7 +86,7 @@ async function getWritingContext(queryValue: unknown) {
   }
 }
 
-function faqFallback(question: string, faqItems: FAQItem[]) {
+function faqFallback(question: string, faqItems: FAQItem[], earlierReplies: string[] = []) {
   const queryTokens = new Set(question.toLowerCase().match(/[a-z0-9]+/g) || [])
   const ranked = faqItems
     .map((faq) => {
@@ -97,11 +100,14 @@ function faqFallback(question: string, faqItems: FAQItem[]) {
     .sort((a, b) => b.score - a.score)
 
   const best = ranked[0]
+  const bestAnswer = best?.score > 0 ? truncate(best.faq.answer, 2_000) : ''
   const answer =
-    best?.score > 0
-      ? truncate(best.faq.answer, 2_000)
-      : "I'm at my AI limit for the moment, but you can email me at gabe@valdivia.works and I'll get back to you."
-  return `${answer}\n\n{{FOLLOWUPS: What projects are you working on? | How can we work together? | Where can I read your writing?}}`
+    bestAnswer && !repeatsEarlierReply(bestAnswer, earlierReplies)
+      ? bestAnswer
+      : earlierReplies.length
+        ? "That's probably easiest to dig into over email at gabe@valdivia.works, and I'll get back to you with specifics."
+        : "I'm at my AI limit for the moment, but you can email me at gabe@valdivia.works and I'll get back to you."
+  return `${answer}\n\n${FALLBACK_FOLLOWUPS}`
 }
 
 function eventStream(
@@ -173,6 +179,13 @@ export async function POST(req: Request) {
   }
 
   const latestQuestion = messages.at(-1)?.content || ''
+  const earlierReplies = messages.filter((message) => message.role === 'assistant').map((message) => message.content)
+  // Short follow-ups ("weekly rate?") only make sense next to the previous question.
+  const retrievalQuery = messages
+    .filter((message) => message.role === 'user')
+    .slice(-3)
+    .map((message) => message.content)
+    .join(' ')
 
   if (isChatImplementationQuestion(latestQuestion)) {
     return eventStream(CHAT_IMPLEMENTATION_BOUNDARY, rateLimit)
@@ -181,15 +194,15 @@ export async function POST(req: Request) {
   let systemPrompt: string
   let faqItems: FAQItem[]
   try {
-    ;({ systemPrompt, faqItems } = await buildContext(latestQuestion))
+    ;({ systemPrompt, faqItems } = await buildContext(retrievalQuery))
     systemPrompt = boundSystemPrompt(`${systemPrompt}\n\n${CHAT_PERSONA_LOCK}`)
   } catch (error) {
     console.error('Chat context unavailable', error instanceof Error ? error.name : 'unknown')
-    return eventStream(faqFallback(latestQuestion, []), rateLimit)
+    return eventStream(faqFallback(latestQuestion, [], earlierReplies), rateLimit)
   }
 
   if (!isWorkersAIConfigured()) {
-    return eventStream(faqFallback(latestQuestion, faqItems), rateLimit)
+    return eventStream(faqFallback(latestQuestion, faqItems, earlierReplies), rateLimit)
   }
 
   const writingContext = await getWritingContext(latestQuestion)
@@ -213,18 +226,38 @@ export async function POST(req: Request) {
   ]
 
   try {
-    const response = await createWorkersAICompletion({ messages: currentMessages, maxTokens: 512 })
-    const content = response.content?.trim() || ''
+    const response = await createWorkersAICompletion({
+      messages: currentMessages,
+      maxTokens: 512,
+      temperature: CHAT_TEMPERATURE,
+    })
+    let content = response.content?.trim() || ''
+    const priorReplies = hasUnsafePersonaHistory ? [] : earlierReplies
+    if (content && repeatsEarlierReply(content, priorReplies)) {
+      const retry = await createWorkersAICompletion({
+        messages: [
+          ...currentMessages,
+          { role: 'assistant', content },
+          { role: 'system', content: CHAT_REPETITION_NUDGE },
+        ],
+        maxTokens: 512,
+        temperature: CHAT_TEMPERATURE,
+      })
+      const retried = retry.content?.trim() || ''
+      content = retried && !repeatsEarlierReply(retried, priorReplies)
+        ? retried
+        : faqFallback(latestQuestion, [], priorReplies)
+    }
     if (breaksChatPersona(content)) {
       console.warn('Chat persona guard replaced an invalid response')
       return eventStream(CHAT_IMPLEMENTATION_BOUNDARY, rateLimit)
     }
-    return eventStream(content || faqFallback(latestQuestion, faqItems), rateLimit)
+    return eventStream(content || faqFallback(latestQuestion, faqItems, earlierReplies), rateLimit)
   } catch (error) {
     const status = error instanceof WorkersAIError ? error.status : 500
     const code = error instanceof WorkersAIError ? error.code : 'unknown'
     console.error('Workers AI chat failed', { status, code })
-    return eventStream(faqFallback(latestQuestion, faqItems), rateLimit)
+    return eventStream(faqFallback(latestQuestion, faqItems, earlierReplies), rateLimit)
   }
 }
 
