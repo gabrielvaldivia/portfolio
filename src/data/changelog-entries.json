@@ -1,5 +1,12 @@
 [
   {
+    "date": "2026-10-01",
+    "title": "Full-width images in Notes",
+    "changes": [
+      "Images in Notes now expand to fill the content column, including smaller uploads, while preserving their proportions on desktop and mobile."
+    ]
+  },
+  {
     "date": "2026-09-28",
     "title": "A more conversational chat",
     "changes": [

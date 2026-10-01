@@ -865,6 +865,11 @@ p a {
   color: inherit;
 }
 
+.note-page .rich-text img {
+  width: 100%;
+  height: auto;
+}
+
 .note-page .rich-text hr {
   width: 250px;
   max-width: 100%;
