@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { getPayload } from '@/lib/payload'
+import { getGalleryPhotoDocuments } from '@/lib/photos'
 import { getSiteSettings } from '@/lib/queries'
 import { getPagePath } from '@/lib/pageOrdering'
 import { SITE_ORIGIN } from '@/lib/siteMetadata'
@@ -67,13 +68,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       draft: false,
       select: { slug: true, updatedAt: true },
     }),
-    payload.find({
-      collection: 'photos',
-      limit: 500,
-      pagination: false,
-      depth: 0,
-      select: { slug: true, updatedAt: true },
-    }),
+    getGalleryPhotoDocuments(),
   ])
 
   const configuredOrigin = (settings as { canonicalUrl?: string | null }).canonicalUrl

@@ -1,5 +1,6 @@
 import { cache } from 'react'
 import { getPayload } from './payload'
+import { findGalleryPhotos } from './photoGallery'
 import { normalizeSiteOrigin } from './structuredData'
 
 export const SITE_URL = normalizeSiteOrigin()
@@ -44,14 +45,10 @@ const FALLBACK_PHOTOS: Photo[] = [
   },
 ]
 
+export const getGalleryPhotoDocuments = cache(async () => findGalleryPhotos(await getPayload()))
+
 export const getPhotos = cache(async (): Promise<Photo[]> => {
-  const payload = await getPayload()
-  const result = await payload.find({
-    collection: 'photos',
-    limit: 500,
-    depth: 0,
-    sort: '-captureDate',
-  })
+  const result = await getGalleryPhotoDocuments()
   const photos = result.docs
     .map((doc) => {
       const src = doc.url

@@ -1,6 +1,11 @@
 {
-  "throughCommit": "1cae1e4d13fda79d423c67ee031a22403d3f97b8",
+  "throughCommit": "ce8b2f402cfdd89d5a8497e72c94b59151284c9f",
   "commits": [
+    {
+      "hash": "ce8b2f402cfdd89d5a8497e72c94b59151284c9f",
+      "date": "2026-10-01",
+      "subject": "Make note images fill the content width"
+    },
     {
       "hash": "1cae1e4d13fda79d423c67ee031a22403d3f97b8",
       "date": "2026-09-28",

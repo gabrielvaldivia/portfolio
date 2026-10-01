@@ -1,4 +1,4 @@
-import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import { lexicalEditor, UploadFeature } from '@payloadcms/richtext-lexical'
 import type { CollectionConfig } from 'payload'
 import { NoteLinkedImagesFeature } from '../components/admin/noteLinkedImages/feature.server'
 import { sendPublishedNoteNewsletter } from '../lib/noteNewsletter'
@@ -135,7 +135,8 @@ export const Notes: CollectionConfig = {
                   placeholder: 'Start writing…',
                 },
                 features: ({ defaultFeatures }) => [
-                  ...defaultFeatures,
+                  ...defaultFeatures.filter((feature) => feature.key !== 'upload'),
+                  UploadFeature({ enabledCollections: ['media'] }),
                   NoteLinkedImagesFeature(),
                 ],
               }),

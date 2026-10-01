@@ -1,9 +1,9 @@
 [
   {
     "date": "2026-10-01",
-    "title": "Full-width images in Notes",
+    "title": "Notes images and a cleaner Photos gallery",
     "changes": [
-      "Images in Notes now expand to fill the content column, including smaller uploads, while preserving their proportions on desktop and mobile."
+      "Images in Notes fill the content column while preserving their proportions. Note uploads now stay separate from Photos, and existing note images no longer appear in the gallery, photo feed, or photo links in search results."
     ]
   },
   {
