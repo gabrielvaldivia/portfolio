@@ -1,9 +1,9 @@
 [
   {
     "date": "2026-10-02",
-    "title": "Notes email delivery and full-width website previews",
+    "title": "Notes delivery, draft titles, and full-width website previews",
     "changes": [
-      "Published notes now queue subscriber emails with a shared 100-per-day limit, automatic continuation, unsubscribe checks, and delivery progress in the CMS. Homepage website previews fill their browser frames from the top, without side gaps."
+      "Published notes queue subscriber emails with a 100-per-day limit, automatic continuation, unsubscribe checks, and CMS delivery progress. Homepage previews fill their browser frames from the top. Recent now shows saved draft titles for unpublished notes."
     ]
   },
   {

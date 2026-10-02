@@ -67,6 +67,8 @@ export async function RecentDashboard({ initPageResult: { req }, permissions }: 
         const result = await payload.find({
           collection: source.slug,
           depth: 0,
+          // Autosaved note titles live in the latest draft version.
+          draft: source.slug === 'notes',
           limit: 10,
           overrideAccess: false,
           pagination: false,
