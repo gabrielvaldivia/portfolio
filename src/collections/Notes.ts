@@ -1,7 +1,7 @@
 import { lexicalEditor, UploadFeature } from '@payloadcms/richtext-lexical'
 import type { CollectionConfig } from 'payload'
 import { NoteLinkedImagesFeature } from '../components/admin/noteLinkedImages/feature.server'
-import { sendPublishedNoteNewsletter } from '../lib/noteNewsletter'
+import { queuePublishedNoteNewsletter } from '../lib/noteNewsletter'
 import { generateNotePreviewURL } from '../lib/notePreview'
 import { prepareNotePublication } from '../lib/notePublishing'
 
@@ -78,21 +78,10 @@ export const Notes: CollectionConfig = {
           return doc
         }
 
-        try {
-          const { recipientCount } = await sendPublishedNoteNewsletter(doc, req.payload, req)
-          await req.payload.update({
-            collection: 'notes',
-            id: doc.id,
-            data: { newsletterSentAt: new Date().toISOString() },
-            context: { skipNoteNewsletter: true },
-            draft: false,
-            overrideAccess: true,
-            req,
-          })
-          req.payload.logger.info(`Sent note ${doc.id} to ${recipientCount} email subscriber(s)`)
-        } catch (error) {
-          req.payload.logger.error({ err: error, msg: `Could not send newsletter for note ${doc.id}` })
-        }
+        // Queue in the publication transaction. A storage failure rolls back
+        // publication so a retry cannot silently lose the newsletter.
+        const { recipientCount } = await queuePublishedNoteNewsletter(doc, req.payload, req)
+        req.payload.logger.info(`Queued note ${doc.id} for ${recipientCount} email subscriber(s)`)
 
         return doc
       },
@@ -149,6 +138,7 @@ export const Notes: CollectionConfig = {
         {
           label: 'Metadata',
           fields: [
+            { name: 'newsletterDelivery', type: 'ui', admin: { components: { Field: './components/admin/NoteNewsletterStatus#NoteNewsletterStatus' } } },
             {
               name: 'slug',
               type: 'text',

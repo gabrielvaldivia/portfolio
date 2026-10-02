@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict'
 import { afterEach, beforeEach, mock, test } from 'node:test'
-import type { Payload, PayloadRequest } from 'payload'
 import { renderNoteEmailContent } from '../src/lib/noteEmailContent'
-import { sendPublishedNoteNewsletter } from '../src/lib/noteNewsletter'
+import { buildNoteNewsletterEmail } from '../src/lib/noteNewsletter'
 import { verifySubscriptionToken } from '../src/lib/noteSubscriptions'
 
 const text = (value: string, format = 0) => ({ type: 'text', text: value, format, version: 1 })
@@ -69,28 +68,10 @@ afterEach(() => {
   }
 })
 
-test('newsletter sends full content with only the requested footer and recipient-specific unsubscribe links', async () => {
+test('newsletter snapshots full content with only the requested footer and recipient-specific unsubscribe links', async () => {
   const note = { id: 123, title: 'The note title <&>', slug: 'the-note', excerpt: 'Only a teaser', updatedAt: '2026-09-18T18:00:00Z', body }
-  const req = {} as PayloadRequest
-  const find = mock.fn(async () => ({ docs: [{ email: 'first@example.com' }, { email: 'second@example.com' }], hasNextPage: false }))
-  const findByID = mock.fn(async () => note)
-  const payload = { find, findByID } as unknown as Payload
-  let sent: any[] = []
-  let idempotencyKey: string | null = null
-  mock.method(globalThis, 'fetch', async (url: unknown, options?: RequestInit) => {
-    assert.equal(String(url), 'https://api.resend.com/emails/batch')
-    sent = JSON.parse(options?.body as string)
-    idempotencyKey = new Headers(options?.headers).get('idempotency-key')
-    return Response.json({ data: [{ id: 'test-first' }, { id: 'test-second' }] })
-  })
-
-  assert.deepEqual(await sendPublishedNoteNewsletter(note, payload, req), { recipientCount: 2 })
-  assert.equal(findByID.mock.callCount(), 1)
-  assert.deepEqual((findByID.mock.calls[0].arguments as unknown[])[0], {
-    collection: 'notes', id: 123, depth: 2, draft: false, overrideAccess: true, req,
-  })
-  assert.deepEqual(((find.mock.calls[0].arguments as unknown[])[0] as any).where, { status: { equals: 'subscribed' } })
-  assert.equal(idempotencyKey, 'note-123-2026-09-18T18:00:00Z-0')
+  const content = renderNoteEmailContent(body, 'https://portfolio.example')
+  const sent = ['first@example.com', 'second@example.com'].map(email => buildNoteNewsletterEmail(note, { email }, content))
   for (const [index, email] of sent.entries()) {
     assert.equal(email.subject, note.title)
     assert.match(email.html, /<body style="margin:0;padding:0;/)

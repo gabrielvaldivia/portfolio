@@ -1,3 +1,4 @@
+import * as migration_20261002_120000_queue_note_newsletters from './20261002_120000_queue_note_newsletters';
 import * as migration_20260918_020000_schedule_notes from './20260918_020000_schedule_notes';
 import * as migration_20260922_223000_queue_engagement_notifications from './20260922_223000_queue_engagement_notifications';
 import * as migration_20260616_053500_add_client_details_active from './20260616_053500_add_client_details_active';
@@ -149,5 +150,10 @@ export const migrations = [
     up: migration_20260922_223000_queue_engagement_notifications.up,
     down: migration_20260922_223000_queue_engagement_notifications.down,
     name: '20260922_223000_queue_engagement_notifications',
+  },
+  {
+    up: migration_20261002_120000_queue_note_newsletters.up,
+    down: migration_20261002_120000_queue_note_newsletters.down,
+    name: '20261002_120000_queue_note_newsletters',
   },
 ];

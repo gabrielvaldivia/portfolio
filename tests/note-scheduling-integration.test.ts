@@ -4,6 +4,8 @@ import { PGlite } from '@electric-sql/pglite'
 import { drizzle } from 'drizzle-orm/pglite'
 import { buildConfig, getPayload, type Payload } from 'payload'
 import { postgresAdapter, type PostgresAdapter } from '@payloadcms/db-postgres'
+import { up as queueMigration } from '../src/migrations/20261002_120000_queue_note_newsletters'
+import { PgDialect } from 'drizzle-orm/pg-core'
 import { publishScheduledNotes } from '../src/lib/notePublishing'
 
 const { Notes } = await import('../src/collections/Notes')
@@ -27,6 +29,7 @@ before(async () => {
   const statements = await kit.generateMigration(empty, schema)
   await client.exec(statements.join(';\n'))
   adapter.drizzle = drizzle(client, { schema: adapter.schema }) as unknown as PostgresAdapter['drizzle']
+  await queueMigration({ db: { execute: (q: any) => client.exec(new PgDialect().sqlToQuery(q).sql) } } as any)
   adapter.resolveInitializing()
 })
 after(async () => { await client.close() })
@@ -87,8 +90,9 @@ test('publishing draft changes and republishing a note never emails subscribers 
     slug: 'already-published-note', body: body as any, _status: 'published', publishedAt: '2020-01-01T09:00:00Z' } })
   const firstPublication = await payload.findByID({ collection: 'notes', id: created.id, draft: false })
   assert.ok(firstPublication.firstPublishedAt)
-  assert.ok(firstPublication.newsletterSentAt)
-  assert.equal(send.mock.callCount(), 1)
+  assert.equal(firstPublication.newsletterSentAt, null)
+  assert.equal((await client.query<{ count: number }>('SELECT count(*)::int AS count FROM note_newsletter_deliveries')).rows[0].count, 1)
+  assert.equal(send.mock.callCount(), 0)
 
   await payload.update({ collection: 'notes', id: created.id, draft: true, autosave: true,
     data: { title: 'Draft changes to a published note', _status: 'draft' } })
@@ -97,14 +101,14 @@ test('publishing draft changes and republishing a note never emails subscribers 
   assert.equal(draft._status, 'draft')
   assert.equal(live._status, 'published')
   assert.equal(live.title, 'Already published note')
-  assert.equal(send.mock.callCount(), 1)
+  assert.equal(send.mock.callCount(), 0)
 
   await payload.update({ collection: 'notes', id: created.id, data: { _status: 'published' } })
   const updated = await payload.findByID({ collection: 'notes', id: created.id, draft: false })
   assert.equal(updated.title, draft.title)
   assert.equal(updated.firstPublishedAt, firstPublication.firstPublishedAt)
   assert.equal(updated.newsletterSentAt, firstPublication.newsletterSentAt)
-  assert.equal(send.mock.callCount(), 1)
+  assert.equal(send.mock.callCount(), 0)
 
   // Publication history also protects an unpublished note with no email receipt.
   await payload.update({ collection: 'notes', id: created.id, unpublishAllLocales: true,
@@ -117,5 +121,5 @@ test('publishing draft changes and republishing a note never emails subscribers 
   assert.equal(republished._status, 'published')
   assert.equal(republished.firstPublishedAt, firstPublication.firstPublishedAt)
   assert.equal(republished.newsletterSentAt, null)
-  assert.equal(send.mock.callCount(), 1)
+  assert.equal(send.mock.callCount(), 0)
 })

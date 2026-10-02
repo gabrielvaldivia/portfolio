@@ -1,11 +1,12 @@
 import type { Payload, PayloadRequest } from 'payload'
-import { Resend } from 'resend'
+import { randomUUID } from 'node:crypto'
+import { sql } from '@payloadcms/db-postgres'
+import { completeNewsletters, newsletterEnvironment, newsletterRows, type NewsletterDB } from './noteNewsletterQueue'
 import { escapeHTML } from './noteContent'
 import type { renderNoteEmailContent } from './noteEmailContent'
 import { createSubscriptionToken, getSiteURL } from './noteSubscriptions'
 
 const UNSUBSCRIBE_TTL_SECONDS = 60 * 60 * 24 * 365 * 10
-const EMAIL_BATCH_SIZE = 100
 
 type NewsletterNote = {
   body?: unknown
@@ -36,7 +37,7 @@ function subscriptionLinks(email: string) {
   return { siteURL, unsubscribeURL }
 }
 
-function buildEmail(note: NewsletterNote, subscriber: NewsletterSubscriber, content: ReturnType<typeof renderNoteEmailContent>) {
+export function buildNoteNewsletterEmail(note: NewsletterNote, subscriber: NewsletterSubscriber, content: ReturnType<typeof renderNoteEmailContent>) {
   const { siteURL, unsubscribeURL } = subscriptionLinks(subscriber.email)
 
   return {
@@ -65,6 +66,7 @@ async function getSubscribers(payload: Payload, req?: PayloadRequest) {
       limit: 100,
       overrideAccess: true,
       page,
+      sort: 'id',
       where: { status: { equals: 'subscribed' } },
     })
 
@@ -76,26 +78,39 @@ async function getSubscribers(payload: Payload, req?: PayloadRequest) {
   return subscribers
 }
 
-export async function sendPublishedNoteNewsletter(note: NewsletterNote, payload: Payload, req?: PayloadRequest) {
+export async function queuePublishedNoteNewsletter(note: NewsletterNote, payload: Payload, req?: PayloadRequest) {
+  const transactionID = await req?.transactionID
+  if (req && !transactionID) throw new Error('Newsletter queuing requires a publication transaction')
+  const db = (transactionID ? payload.db.sessions?.[transactionID]?.db : payload.db.drizzle) as NewsletterDB | undefined
+  if (!db) throw new Error('Newsletter publication transaction unavailable')
+  const environment = newsletterEnvironment()
+  const newsletterID = randomUUID()
+  const created = newsletterRows(await db.execute(sql`
+    INSERT INTO note_newsletters (id, note_id, environment) VALUES (${newsletterID}, ${note.id}, ${environment})
+    ON CONFLICT (note_id, environment) DO NOTHING RETURNING id
+  `))
+  if (!created.length) return { queued: false, recipientCount: 0 }
+
   const subscribers = await getSubscribers(payload, req)
-  if (subscribers.length === 0) return { recipientCount: 0 }
-  if (!process.env.RESEND_API_KEY) throw new Error('RESEND_API_KEY is required to send Notes email')
-
-  // Load converters after Payload has initialized its rich-text collection config.
-  const { renderNoteEmailContent } = await import('./noteEmailContent')
-  // Populate inline uploads and internal links once, within the publication transaction.
-  const publishedNote = await payload.findByID({
-    collection: 'notes', id: note.id, depth: 2, draft: false, overrideAccess: true, req,
-  })
-  const content = renderNoteEmailContent(publishedNote.body, getSiteURL())
-  const resend = new Resend(process.env.RESEND_API_KEY)
-  for (let index = 0; index < subscribers.length; index += EMAIL_BATCH_SIZE) {
-    const batch = subscribers.slice(index, index + EMAIL_BATCH_SIZE).map((subscriber) => buildEmail(note, subscriber, content))
-    const result = await resend.batch.send(batch, {
-      headers: { 'Idempotency-Key': `note-${note.id}-${note.publishedAt || note.updatedAt}-${index / EMAIL_BATCH_SIZE}` },
+  if (subscribers.length) {
+    // Freeze the first publication and recipient-specific links so multi-day
+    // delivery and network retries use exactly the same content.
+    const { renderNoteEmailContent } = await import('./noteEmailContent')
+    const publishedNote = await payload.findByID({
+      collection: 'notes', id: note.id, depth: 2, draft: false, overrideAccess: true, req,
     })
-    if (result.error) throw new Error(result.error.message)
+    const content = renderNoteEmailContent(publishedNote.body, getSiteURL())
+    for (let index = 0; index < subscribers.length; index += 100) {
+      const values = subscribers.slice(index, index + 100).map(subscriber => sql`(
+        ${randomUUID()}, ${newsletterID}, ${subscriber.email},
+        ${JSON.stringify(buildNoteNewsletterEmail(note, subscriber, content))}::jsonb
+      )`)
+      await db.execute(sql`
+        INSERT INTO note_newsletter_deliveries (id, newsletter_id, email, message)
+        VALUES ${sql.join(values, sql`, `)} ON CONFLICT (newsletter_id, email) DO NOTHING
+      `)
+    }
   }
-
-  return { recipientCount: subscribers.length }
+  await completeNewsletters(db, environment)
+  return { queued: true, recipientCount: subscribers.length }
 }

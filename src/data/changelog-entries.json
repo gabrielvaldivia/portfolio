@@ -1,5 +1,12 @@
 [
   {
+    "date": "2026-10-02",
+    "title": "Notes email delivery, one day at a time",
+    "changes": [
+      "Publishing a note now queues subscriber emails automatically, with a shared limit of 100 per day. Remaining emails resume on later days, unsubscribed readers are skipped, and delivery progress appears in the CMS."
+    ]
+  },
+  {
     "date": "2026-10-01",
     "title": "Notes images and a cleaner Photos gallery",
     "changes": [

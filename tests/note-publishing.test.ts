@@ -9,6 +9,8 @@ import { up as notesMigration } from '../src/migrations/20260905_145858_add_note
 import { up as subscriptionMigration } from '../src/migrations/20260906_034551_add_note_subscribers_and_newsletter'
 import { up as schedulingMigration } from '../src/migrations/20260918_020000_schedule_notes'
 
+import { up as queueMigration } from '../src/migrations/20261002_120000_queue_note_newsletters'
+
 const { Notes } = await import('../src/collections/Notes')
 const db = new PGlite()
 const dialect = new PgDialect()
@@ -48,10 +50,12 @@ before(async () => {
   const { rows: drafts } = await db.query<{ id: number }>('INSERT INTO notes (title, slug, _status, published_at) VALUES ($1, $2, $3, $4) RETURNING id', ['Old edited note', 'old-edited-note', 'draft', past])
   await db.query('INSERT INTO _notes_v (parent_id, version__status, version_published_at) VALUES ($1, $2, $3)', [drafts[0].id, 'published', past])
   await migrate(schedulingMigration)
+  await migrate(queueMigration)
   const sessions: Record<string, { db: { execute: typeof execute } }> = {}
   payload = {
     config: {},
     db: {
+      drizzle: { execute },
       sessions,
       beginTransaction: async () => { await db.exec('BEGIN'); sessions.test = { db: { execute } }; return 'test' },
       commitTransaction: async () => { await db.exec('COMMIT'); delete sessions.test },
@@ -149,7 +153,7 @@ test('autosave cannot change a schedule; explicitly publishing can reschedule it
   assert.equal((await prepare({}, saved, { cancelNoteSchedule: true })).scheduledFor, null)
 })
 
-test('scheduler publishes only due drafts and sends one newsletter, even on repeated runs', async () => {
+test('scheduler publishes only due drafts and queues one newsletter without sending, even on repeated runs', async () => {
   const { rows } = await db.query<{ id: number }>('INSERT INTO notes (title,slug,scheduled_for,published_at) VALUES ($1,$2,$3,$3) RETURNING id', ['Scheduled test', 'due-note', past])
   const result = await publishScheduledNotes(payload)
   assert.deepEqual(result, [{ id: rows[0].id, slug: 'due-note' }])
@@ -157,10 +161,11 @@ test('scheduler publishes only due drafts and sends one newsletter, even on repe
   assert.equal(published._status, 'published')
   assert.equal(published.scheduledFor, null)
   assert.equal(published.publishedAt, past)
-  assert.ok(published.newsletterSentAt)
-  assert.equal(sent, 1)
+  assert.equal(published.newsletterSentAt, null)
+  assert.equal((await db.query<{ count: number }>("SELECT count(*)::int AS count FROM note_newsletters")).rows[0].count, 1)
+  assert.equal(sent, 0)
   assert.deepEqual(await publishScheduledNotes(payload), [])
-  assert.equal(sent, 1)
+  assert.equal(sent, 0)
   const futureNote = (await db.query<Doc>('SELECT _status FROM notes WHERE slug=$1', ['scheduled-note'])).rows[0]
   assert.equal(futureNote._status, 'draft')
 })
@@ -174,7 +179,7 @@ test('a failed publication rolls back and stays scheduled for a later retry', as
   assert.equal(note.scheduledFor, past)
   failUpdate = false
   assert.equal((await publishScheduledNotes(payload)).length, 1)
-  assert.equal(sent, 2)
+  assert.equal(sent, 0)
 })
 
 test('schedule cancellation requires authentication', async () => {
