@@ -1,9 +1,9 @@
 [
   {
     "date": "2026-10-02",
-    "title": "Notes email delivery, one day at a time",
+    "title": "Notes email delivery and full-width website previews",
     "changes": [
-      "Publishing a note now queues subscriber emails automatically, with a shared limit of 100 per day. Remaining emails resume on later days, unsubscribed readers are skipped, and delivery progress appears in the CMS."
+      "Published notes now queue subscriber emails with a shared 100-per-day limit, automatic continuation, unsubscribe checks, and delivery progress in the CMS. Homepage website previews fill their browser frames from the top, without side gaps."
     ]
   },
   {

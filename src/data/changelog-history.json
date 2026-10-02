@@ -1,6 +1,11 @@
 {
-  "throughCommit": "47de16d7e16477e69a1330c3d985ce919ce05e81",
+  "throughCommit": "978b8a41bd8222fa4cf1931a8b4807b1bf205d76",
   "commits": [
+    {
+      "hash": "978b8a41bd8222fa4cf1931a8b4807b1bf205d76",
+      "date": "2026-10-02",
+      "subject": "Queue Notes newsletters with a shared daily sending limit"
+    },
     {
       "hash": "47de16d7e16477e69a1330c3d985ce919ce05e81",
       "date": "2026-10-01",

@@ -75,7 +75,9 @@ function WorkMedia({
     <PayloadImage
       media={thumbnail}
       alt=""
-      fill
+      {...(thumbnail.browser && thumbnail.width && thumbnail.height
+        ? { width: thumbnail.width, height: thumbnail.height }
+        : { fill: true })}
       sizes="(max-width: 809px) 384px, (max-width: 1279px) 512px, 560px"
       className={className}
     />
@@ -83,9 +85,10 @@ function WorkMedia({
 }
 
 function WorkThumbnail({ thumbnail }: { thumbnail: LikedWorkThumbnail }) {
-  const cropFromTop = Boolean(thumbnail.cropFromTop)
+  const cropFromTop = Boolean(thumbnail.browser || thumbnail.cropFromTop)
   const mediaClassName = cn(
-    'block size-full',
+    'block',
+    thumbnail.browser ? 'h-auto w-full' : 'size-full',
     cropFromTop
       ? 'object-cover object-top'
       : thumbnail.fit === 'contain'
@@ -112,7 +115,7 @@ function WorkThumbnail({ thumbnail }: { thumbnail: LikedWorkThumbnail }) {
             </div>
             <div className="w-5 shrink-0 tablet:w-6" />
           </div>
-          <div className="relative min-h-0 flex-1 bg-background">
+          <div className="relative min-h-0 flex-1 overflow-hidden bg-background">
             <WorkMedia thumbnail={thumbnail} className={mediaClassName} />
           </div>
         </div>
