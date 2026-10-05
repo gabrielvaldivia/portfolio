@@ -127,14 +127,13 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
     mountedRef.current = true
     void refresh()
     const onFocus = () => { if (document.visibilityState === 'visible') void refresh() }
-    // Refresh on returning to the page and while reading, without caching visitor ownership.
-    const interval = window.setInterval(onFocus, 60_000)
+    // Returning to a note refreshes other readers' highlights. Saving and removing
+    // a highlight already refreshes this reader's state; an idle tab needn't poll.
     window.addEventListener('focus', onFocus)
     document.addEventListener('visibilitychange', onFocus)
     return () => {
       mountedRef.current = false
       requestRef.current++
-      clearInterval(interval)
       window.removeEventListener('focus', onFocus)
       document.removeEventListener('visibilitychange', onFocus)
     }

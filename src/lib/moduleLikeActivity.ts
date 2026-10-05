@@ -1,6 +1,7 @@
 import { sql } from '@payloadcms/db-postgres'
 import { isIP } from 'net'
 import { cache } from 'react'
+import { unstable_cache } from 'next/cache'
 import { getCountryFromCoordinates } from '@/lib/coordinateCountry'
 import { countryCodeByName, countryDisplayNames } from '@/lib/locationCountries'
 import { getPayload, isPayloadUnavailable } from '@/lib/payload'
@@ -591,7 +592,7 @@ function indexNoteTargets(index: Map<string, ActivityTarget>, notes: any[]) {
   })
 }
 
-const getActivityTargetIndex = cache(async function getActivityTargetIndex() {
+const getCachedActivityTargets = unstable_cache(async function getCachedActivityTargets() {
   const payload = await getPayload()
   if (isPayloadUnavailable(payload)) throw new Error('Activity target data is temporarily unavailable')
   const [projects, sideProjects, photos, notes] = await Promise.all([
@@ -614,8 +615,11 @@ const getActivityTargetIndex = cache(async function getActivityTargetIndex() {
   indexPhotoTargets(index, photos)
   indexNoteTargets(index, notes.docs)
 
-  return index
-})
+  // Next's persistent cache stores JSON; serialize Map entries explicitly.
+  return Array.from(index.entries())
+}, ['activity-targets-v1'], { tags: ['activity-targets'], revalidate: 3600 })
+
+const getActivityTargetIndex = cache(async () => new Map(await getCachedActivityTargets()))
 
 function getFallbackTarget(targetId: string): ActivityTarget {
   const parsed = parseModuleLikeTargetId(targetId)

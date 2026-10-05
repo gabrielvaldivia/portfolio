@@ -25,15 +25,32 @@ test('publishing, editing, unpublishing and deleting notes refresh public conten
   assert.equal(refreshes, 5)
 })
 
-test('draft autosaves, scheduling and newsletter markers do not invalidate published pages', async () => {
-  let refreshes = 0
-  const notes = collection('notes', () => { refreshes++ })
+test('drafts refresh gallery and scheduler caches without invalidating published pages', async () => {
+  const refreshes: { tags: readonly string[]; pages: boolean }[] = []
+  const notes = withContentRevalidation({ slug: 'notes', fields: [] }, (_req, options) => { refreshes.push(options) })
   const change = notes.hooks!.afterChange!.at(-1)!
   const draft = { _status: 'draft', scheduledFor: '2099-01-01' }
   await change({ doc: draft, previousDoc: { _status: 'published' }, context: {}, req: {} } as any)
   await change({ doc: draft, context: { cancelNoteSchedule: true }, req: {} } as any)
   await change({ doc: { _status: 'published' }, context: { skipNoteNewsletter: true }, req: {} } as any)
-  assert.equal(refreshes, 0)
+  assert.equal(refreshes.length, 2)
+  for (const refresh of refreshes) {
+    assert.equal(refresh.pages, false)
+    assert.deepEqual(refresh.tags, ['gallery-photos', 'activity-targets', 'background-work'])
+  }
+})
+
+test('publication and deletion refresh shared content and the worker schedule', async () => {
+  const refreshes: { tags: readonly string[]; pages: boolean }[] = []
+  const notes = withContentRevalidation({ slug: 'notes', fields: [] }, (_req, options) => { refreshes.push(options) })
+  await notes.hooks!.afterChange!.at(-1)!({ doc: { _status: 'published' }, previousDoc: { _status: 'draft' }, context: {}, req: {} } as any)
+  await notes.hooks!.afterDelete!.at(-1)!({ doc: { _status: 'draft' }, req: {} } as any)
+  for (const refresh of refreshes) {
+    assert.equal(refresh.pages, true)
+    for (const tag of ['gallery-photos', 'activity-targets', 'chat-page-content', 'note-highlight-text', 'background-work']) {
+      assert.ok(refresh.tags.includes(tag), `missing invalidation for ${tag}`)
+    }
+  }
 })
 
 test('public content preserves existing hooks and invalidates on saves and deletions', async () => {

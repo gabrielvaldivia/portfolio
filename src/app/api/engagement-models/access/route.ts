@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkEngagementAccessRateLimit } from '@/lib/chatRateLimit'
 import { queueEngagementNotification } from '@/lib/engagementNotificationQueue'
 import { getPayload } from '@/lib/payload'
+import { invalidateBackgroundWork } from '@/lib/backgroundWork'
 import {
   createEngagementAccessToken,
   ENGAGEMENT_ACCESS_COOKIE,
@@ -46,6 +47,7 @@ export async function POST(request: NextRequest) {
     stage = 'save-email'
     const payload = await getPayload()
     await queueEngagementNotification(payload.db.drizzle, engagementNotification(email))
+    invalidateBackgroundWork()
 
     // The email is safely stored; provider quotas must not prevent opening the page.
     stage = 'access-cookie'

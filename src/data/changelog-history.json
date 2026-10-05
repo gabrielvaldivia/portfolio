@@ -1,6 +1,11 @@
 {
-  "throughCommit": "dd42805e1c72762cf4a1609b040bc42bfb77126e",
+  "throughCommit": "bc054ea60bed29572bf35af77ba7d9bd1ec81e5e",
   "commits": [
+    {
+      "hash": "bc054ea60bed29572bf35af77ba7d9bd1ec81e5e",
+      "date": "2026-10-02",
+      "subject": "Show saved draft note titles in Recent"
+    },
     {
       "hash": "dd42805e1c72762cf4a1609b040bc42bfb77126e",
       "date": "2026-10-02",

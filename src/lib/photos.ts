@@ -1,5 +1,6 @@
 import { cache } from 'react'
-import { getPayload } from './payload'
+import { unstable_cache } from 'next/cache'
+import { getPayload, isPayloadUnavailable } from './payload'
 import { findGalleryPhotos } from './photoGallery'
 import { normalizeSiteOrigin } from './structuredData'
 
@@ -45,7 +46,11 @@ const FALLBACK_PHOTOS: Photo[] = [
   },
 ]
 
-export const getGalleryPhotoDocuments = cache(async () => findGalleryPhotos(await getPayload()))
+export const getGalleryPhotoDocuments = cache(unstable_cache(async () => {
+  const payload = await getPayload()
+  if (isPayloadUnavailable(payload)) throw new Error('Photo gallery unavailable')
+  return findGalleryPhotos(payload)
+}, ['gallery-photos-v1'], { tags: ['gallery-photos'], revalidate: 3600 }))
 
 export const getPhotos = cache(async (): Promise<Photo[]> => {
   const result = await getGalleryPhotoDocuments()

@@ -1,8 +1,9 @@
 import { deliverNextEngagementNotification } from '@/lib/engagementNotificationQueue'
 import { getPayload, isPayloadUnavailable } from '@/lib/payload'
+import { invalidateBackgroundWork, shouldRunBackgroundWork } from '@/lib/backgroundWork'
 
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const revalidate = 0
 export const maxDuration = 60
 
 export async function GET(request: Request) {
@@ -11,7 +12,12 @@ export async function GET(request: Request) {
   if (request.headers.get('authorization') !== `Bearer ${secret}`) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
+  let ran = false
   try {
+    if (!await shouldRunBackgroundWork('notifications')) {
+      return Response.json({ status: 'empty', skipped: true }, { headers: { 'Cache-Control': 'no-store' } })
+    }
+    ran = true
     const payload = await getPayload()
     if (isPayloadUnavailable(payload)) throw new Error('Database unavailable')
     const result = await deliverNextEngagementNotification(payload.db.drizzle)
@@ -22,5 +28,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('Engagement notification retry failed:', error instanceof Error ? error.name : 'unknown')
     return Response.json({ error: 'Notification retry failed.' }, { status: 500 })
+  } finally {
+    if (ran) invalidateBackgroundWork()
   }
 }

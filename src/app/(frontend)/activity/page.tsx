@@ -6,7 +6,7 @@ import {
   type ModuleLikeActivityPage,
 } from '@/lib/moduleLikeActivity'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export const metadata: Metadata = {
   title: 'Activity - Gabriel Valdivia',

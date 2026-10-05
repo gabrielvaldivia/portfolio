@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict'
 import { afterEach, mock, test } from 'node:test'
+import 'next/dist/server/node-environment'
 import { NextRequest } from 'next/server'
 import { PgDialect } from 'drizzle-orm/pg-core'
+import { workAsyncStorage } from 'next/dist/server/app-render/work-async-storage.external'
 import {
   createEngagementAccessToken,
   ENGAGEMENT_ACCESS_COOKIE,
@@ -18,7 +20,16 @@ process.env.PAYLOAD_SKIP_DATABASE = '1'
 process.env.PAYLOAD_SECRET = 'engagement-access-test-secret'
 process.env.RESEND_API_KEY = 're_test_only'
 const { getPayload } = await import('../src/lib/payload')
-const { POST } = await import('../src/app/api/engagement-models/access/route')
+const { POST: handlePost } = await import('../src/app/api/engagement-models/access/route')
+async function POST(request: NextRequest) {
+  // Run the actual cache invalidation in the request context supplied by Next.
+  const store = { route: '/api/engagement-models/access', incrementalCache: {} } as any
+  const response = await workAsyncStorage.run(store, () => handlePost(request))
+  if (response.status === 200 && !request.cookies.has(ENGAGEMENT_ACCESS_COOKIE)) {
+    assert.ok(store.pendingRevalidatedTags?.some((entry: { tag: string }) => entry.tag === 'background-work'))
+  }
+  return response
+}
 const { GET: retryNotifications } = await import('../src/app/api/engagement-models/notifications/route')
 const payload = await getPayload()
 

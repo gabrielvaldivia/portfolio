@@ -1,5 +1,12 @@
 [
   {
+    "date": "2026-10-05",
+    "title": "Lighter background work and shared content loading",
+    "changes": [
+      "Photos, Activity, and Chat reuse shared content for lighter loading. Notes refresh highlights when you return, without constant polling. Publishing and email delivery keep their five-minute schedule while empty queues let the database rest."
+    ]
+  },
+  {
     "date": "2026-10-02",
     "title": "Notes delivery, draft titles, and full-width website previews",
     "changes": [

@@ -9,7 +9,7 @@ type Status = Awaited<ReturnType<typeof getNoteNewsletterStatus>> & {
 }
 
 export function NoteNewsletterStatus() {
-  const { id, data: document } = useDocumentInfo()
+  const { id, data: noteDocument } = useDocumentInfo()
   const [status, setStatus] = useState<Status | null>(null)
   const [error, setError] = useState('')
   const [refresh, setRefresh] = useState(0)
@@ -27,9 +27,17 @@ export function NoteNewsletterStatus() {
     }).catch(error => {
       if (!controller.signal.aborted) setError(error instanceof Error ? error.message : 'Could not load email delivery.')
     })
-    const timer = setInterval(() => setRefresh(value => value + 1), 30_000)
-    return () => { controller.abort(); clearInterval(timer) }
-  }, [id, document?.updatedAt, refresh])
+    return () => { controller.abort() }
+  }, [id, noteDocument?.updatedAt, refresh])
+
+  useEffect(() => {
+    if (!id) return
+    const onFocus = () => {
+      if (document.visibilityState === 'visible') setRefresh(value => value + 1)
+    }
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [id])
 
   return <section className="note-highlight-moderation" aria-labelledby="newsletter-status-title">
     <div className="note-highlight-moderation__heading">

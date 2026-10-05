@@ -1,37 +1,28 @@
 import type { Payload } from 'payload'
-
-function collectNotePhotoIDs(value: unknown, ids: Set<number | string>) {
-  if (!value || typeof value !== 'object') return
-  if (Array.isArray(value)) {
-    for (const item of value) collectNotePhotoIDs(item, ids)
-    return
-  }
-
-  const node = value as Record<string, unknown>
-  if (node.type === 'upload' && node.relationTo === 'photos') {
-    const id = node.value && typeof node.value === 'object'
-      ? (node.value as Record<string, unknown>).id
-      : node.value
-    if (typeof id === 'number' || typeof id === 'string') ids.add(id)
-  }
-  for (const child of Object.values(node)) collectNotePhotoIDs(child, ids)
-}
+import { sql } from '@payloadcms/db-postgres'
 
 /** Older note uploads share the Photos collection; keep them out of public galleries. */
-export async function findGalleryPhotos(payload: Pick<Payload, 'find'>) {
+export async function findGalleryPhotos(payload: Pick<Payload, 'find' | 'db'>) {
   // Include both saved content and the latest autosave: an unpublished edit may
   // contain a new image, or may have removed one that is still in the live note.
-  const notes = await Promise.all([false, true].map((draft) => payload.find({
-    collection: 'notes',
-    draft,
-    overrideAccess: true,
-    pagination: false,
-    depth: 0,
-    select: { body: true },
-  })))
+  // Extract just upload IDs in Postgres instead of transferring every note body.
+  const result = await payload.db.drizzle.execute(sql`
+    SELECT DISTINCT CASE WHEN jsonb_typeof(reference.value) = 'object'
+      THEN reference.value->'id' ELSE reference.value END AS photo_id
+    FROM (
+      SELECT body FROM notes
+      UNION ALL
+      SELECT version_body AS body FROM _notes_v WHERE latest = true
+    ) AS bodies
+    CROSS JOIN LATERAL jsonb_path_query(bodies.body,
+      '$.** ? (@.type == "upload" && @.relationTo == "photos").value') AS reference(value)
+  `)
+  const rows = Array.isArray(result) ? result : result?.rows
+  if (!Array.isArray(rows)) throw new Error('Photo exclusions unavailable')
   const notePhotoIDs = new Set<number | string>()
-  for (const result of notes) {
-    for (const note of result.docs) collectNotePhotoIDs(note.body, notePhotoIDs)
+  for (const row of rows) {
+    const id = (row as { photo_id: unknown }).photo_id
+    if (typeof id === 'number' || typeof id === 'string') notePhotoIDs.add(id)
   }
 
   return payload.find({

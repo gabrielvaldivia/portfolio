@@ -6,6 +6,8 @@ import { ChatHeader } from '@/components/ChatHeader'
 import { getPayload } from '@/lib/payload'
 import { getFAQItemsFromSections } from '@/lib/buildContext'
 import { normalizeSocialLink } from '@/lib/socialLinks'
+import { unstable_cache } from 'next/cache'
+import { isPayloadUnavailable } from '@/lib/payload'
 
 export const metadata: Metadata = {
   title: 'Chat — Gabriel Valdivia',
@@ -15,20 +17,16 @@ export const metadata: Metadata = {
 
 export const revalidate = 3600
 
-export default async function ChatByIdPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const isNew = id === 'new'
-  const numericId = isNew ? null : Number(id)
-  if (!isNew && (!Number.isFinite(numericId) || numericId! <= 0)) notFound()
-
+const getChatPageContent = unstable_cache(async () => {
   const payload = await getPayload()
+  if (isPayloadUnavailable(payload)) throw new Error('Chat content unavailable')
 
   const [homePageResult, aboutPageResult, allProjects, allPeople, allSideProjects] = await Promise.all([
     payload.find({ collection: 'pages', where: { slug: { equals: 'home' } }, depth: 2, limit: 1 }),
     payload.find({ collection: 'pages', where: { slug: { equals: 'about' } }, depth: 0, limit: 1 }),
-    payload.find({ collection: 'projects', sort: 'order', limit: 100, depth: 0 }),
-    payload.find({ collection: 'people', limit: 100, depth: 0 }),
-    payload.find({ collection: 'side-projects', sort: 'order', limit: 100, depth: 0 }),
+    payload.find({ collection: 'projects', sort: 'order', limit: 100, depth: 0, select: { title: true, slug: true } }),
+    payload.find({ collection: 'people', limit: 100, depth: 0, select: { name: true, linkedIn: true } }),
+    payload.find({ collection: 'side-projects', sort: 'order', limit: 100, depth: 0, select: { title: true, slug: true } }),
   ])
 
   const home = homePageResult.docs[0] as any
@@ -58,6 +56,16 @@ export default async function ChatByIdPage({ params }: { params: Promise<{ id: s
       .filter((t: any) => t.url)
       .map((t: any) => ({ title: t.title, url: t.url })),
   ]
+
+  return { faqItems, projectLinks, peopleLinks, sideProjectLinks, socialLinks, talkLinks }
+}, ['chat-page-content-v1'], { tags: ['chat-page-content'], revalidate: 3600 })
+
+export default async function ChatByIdPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const isNew = id === 'new'
+  const numericId = isNew ? null : Number(id)
+  if (!isNew && (!Number.isFinite(numericId) || numericId! <= 0)) notFound()
+  const { faqItems, projectLinks, peopleLinks, sideProjectLinks, socialLinks, talkLinks } = await getChatPageContent()
 
   return (
     <section>

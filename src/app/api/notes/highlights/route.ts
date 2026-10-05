@@ -2,25 +2,21 @@ import { NextRequest } from 'next/server'
 import { getVisitor, getVisitorHash, withVisitorCookie } from '@/lib/anonymousVisitor'
 import { getPayload, isPayloadUnavailable } from '@/lib/payload'
 import { getPayloadSecret } from '@/lib/payloadSecret'
-import { getNoteHighlightText, parseHighlightAnchor } from '@/lib/noteHighlightAnchors'
+import { parseHighlightAnchor } from '@/lib/noteHighlightAnchors'
+import { getPublishedHighlightText, loadPublishedHighlightText } from '@/lib/noteHighlightContent'
 import { getHighlightRequestLocation } from '@/lib/noteHighlightAttribution'
 import { checkHighlightRateLimit, HighlightError, highlightTextVersion, isHighlightingPaused, loadPublicHighlights, writeHighlight } from '@/lib/noteHighlightStore'
 import { checkHighlightOrigin, readHighlightJSON } from '@/lib/noteHighlightRequest'
 
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
-async function getNote(noteId: unknown) {
+async function getNote(noteId: unknown, mutate: boolean) {
   if (typeof noteId !== 'string' || !/^[1-9]\d{0,9}$/.test(noteId)) throw new HighlightError('A valid note is required.', 400)
   const payload = await getPayload()
   if (isPayloadUnavailable(payload)) throw new HighlightError('Highlights are temporarily unavailable. Please try again.', 503)
-  const result = await payload.find({
-    collection: 'notes', depth: 0, draft: false, limit: 1,
-    where: { and: [{ id: { equals: Number(noteId) } }, { _status: { equals: 'published' } }] },
-    select: { body: true },
-  })
-  if (!result.docs[0]) throw new HighlightError('Note not found.', 404)
-  const text = getNoteHighlightText(result.docs[0].body)
+  const text = await (mutate ? loadPublishedHighlightText : getPublishedHighlightText)(Number(noteId))
+  if (text === null) throw new HighlightError('Note not found.', 404)
   return { db: payload.db.drizzle, id: Number(noteId), text, version: highlightTextVersion(text) }
 }
 
@@ -35,7 +31,7 @@ async function respond(req: NextRequest, mutate: boolean) {
     }
     const anchor = mutate ? parseHighlightAnchor(body.anchor) : null
     if (mutate && !anchor) throw new HighlightError('Select between 3 and 1,000 characters in the note.', 400)
-    const note = await getNote(mutate ? body.noteId : req.nextUrl.searchParams.get('noteId'))
+    const note = await getNote(mutate ? body.noteId : req.nextUrl.searchParams.get('noteId'), mutate)
     if (mutate && anchor) {
       if (body.version !== note.version) throw new HighlightError('This note changed. Refresh it before highlighting.', 409)
       const ip = req.headers.get('x-vercel-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
