@@ -1,6 +1,11 @@
 {
-  "throughCommit": "bc054ea60bed29572bf35af77ba7d9bd1ec81e5e",
+  "throughCommit": "4b2af2c29ba34b0426e0b9691bc523b248d9febf",
   "commits": [
+    {
+      "hash": "4b2af2c29ba34b0426e0b9691bc523b248d9febf",
+      "date": "2026-10-05",
+      "subject": "Let idle background jobs sleep and cache shared content"
+    },
     {
       "hash": "bc054ea60bed29572bf35af77ba7d9bd1ec81e5e",
       "date": "2026-10-02",

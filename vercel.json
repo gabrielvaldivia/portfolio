@@ -1,6 +1,7 @@
 {
   "framework": "nextjs",
   "buildCommand": "next build",
+  "ignoreCommand": "node scripts/ignore-vercel-build.mjs",
   "outputDirectory": ".next",
   "crons": [
     {

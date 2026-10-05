@@ -8,6 +8,12 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
+## Deployment costs
+
+- Group related iterations and verify locally before one production push per completed request, unless the user asks for an interim release.
+- A push to `master` triggers Vercel automatically. Do not also run a CLI production deployment for the same change.
+- Documentation and test-only updates can skip Vercel builds. Keep the safeguard conservative so source, assets, dependencies, and configuration changes still deploy. See `docs/deployment.md`.
+
 ## Changelog maintenance
 
 - Update the daily summary in `src/data/changelog-entries.json` with every meaningful site feature, fix, content, or performance change. Keep one entry per day, newest first. Write one tweet-length summary of at most 280 characters, including spaces and punctuation but excluding the title and date; store it as one string in `changes`. Use the space for meaningful detail on busy days, without padding small fixes. Describe visitor-facing outcomes and leave implementation details in the expandable commits. Rewrite the summary as work evolves instead of appending every tweak.
