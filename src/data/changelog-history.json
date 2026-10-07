@@ -1,6 +1,21 @@
 {
-  "throughCommit": "4b2af2c29ba34b0426e0b9691bc523b248d9febf",
+  "throughCommit": "cae277cab42f2bec9ed3896f9526691b76996dbf",
   "commits": [
+    {
+      "hash": "cae277cab42f2bec9ed3896f9526691b76996dbf",
+      "date": "2026-10-07",
+      "subject": "Narrow newsletter email measure to 600px for legibility"
+    },
+    {
+      "hash": "37a2bdbdc16341f6998946b61de4a53ac62599a2",
+      "date": "2026-10-07",
+      "subject": "Fix scheduled-note header overlap and trim Email delivery explainer"
+    },
+    {
+      "hash": "c702493ad6c13e3b1c5bc0cfe9d72e5de19a30b7",
+      "date": "2026-10-05",
+      "subject": "Skip production builds for documentation and test changes"
+    },
     {
       "hash": "4b2af2c29ba34b0426e0b9691bc523b248d9febf",
       "date": "2026-10-05",

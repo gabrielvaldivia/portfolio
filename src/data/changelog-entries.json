@@ -1,9 +1,9 @@
 [
  {
   "date": "2026-10-07",
-  "title": "Notes email legibility and editor cleanup",
+  "title": "Notes spacing, email legibility, and editor cleanup",
   "changes": [
-   "Notes admin cleanup: the scheduled-note header keeps Preview and Save visible on narrow screens, the Email delivery section shows only live status, and newsletter emails use a 600px measure for legible line lengths."
+   "Desktop Notes headers have 100px above the title and date and 80px below. Newsletter emails use a narrower 600px text column. Scheduled-note headers keep Preview and Save visible on narrow screens, and Email delivery shows live status."
   ]
  },
  {
