@@ -1,9 +1,9 @@
 [
  {
   "date": "2026-10-07",
-  "title": "Notes editor header and email section cleanup",
+  "title": "Notes email legibility and editor cleanup",
   "changes": [
-   "The scheduled-note header keeps the Preview and Save buttons visible on narrow screens instead of clipping them. The Email delivery section drops its introductory text and shows only the live delivery status."
+   "Notes admin cleanup: the scheduled-note header keeps Preview and Save visible on narrow screens, the Email delivery section shows only live status, and newsletter emails use a 600px measure for legible line lengths."
   ]
  },
  {
