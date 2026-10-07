@@ -67,8 +67,11 @@ export function NotesPreviewButton() {
   }
 
   return (
-    <div className="notes-preview-controls">
-      {hasPublishPermission && schedule && <span className="notes-schedule-status" role="status">
+    // flexShrink lets the wrapper give way so the schedule status truncates
+    // instead of shoving the Preview and Save buttons off the header.
+    <div className="notes-preview-controls" style={{ flexShrink: 1 }}>
+      {hasPublishPermission && schedule && <span className="notes-schedule-status" role="status"
+        style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         Scheduled for {new Date(schedule).toLocaleString(undefined, {
           month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
         })}

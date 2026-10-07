@@ -44,7 +44,6 @@ export function NoteNewsletterStatus() {
       <h2 id="newsletter-status-title">Email delivery</h2>
       {id ? <Button type="button" buttonStyle="secondary" size="small" onClick={() => setRefresh(value => value + 1)}>Refresh</Button> : null}
     </div>
-    <p>Publishing a new note queues an email for each confirmed subscriber. Up to 100 emails are sent per day across all notes. Delivery runs automatically every 5 minutes and the daily allowance resets at midnight UTC.</p>
     {error ? <p role="alert">{error}</p> : null}
     {id && !status && !error ? <p role="status">Loading delivery status…</p> : null}
     {!id ? <p>Save and publish this note to start its email queue.</p> : null}

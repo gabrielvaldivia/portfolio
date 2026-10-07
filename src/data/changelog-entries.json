@@ -1,443 +1,450 @@
 [
-  {
-    "date": "2026-10-05",
-    "title": "Lighter loading and fewer unnecessary rebuilds",
-    "changes": [
-      "Photos, Activity, and Chat load with less background work. Highlights refresh when you return to a note. Publishing and email delivery stay on time while idle queues let the database rest. Routine maintenance avoids unnecessary site rebuilds."
-    ]
-  },
-  {
-    "date": "2026-10-02",
-    "title": "Notes delivery, draft titles, and full-width website previews",
-    "changes": [
-      "Published notes queue subscriber emails with a 100-per-day limit, automatic continuation, unsubscribe checks, and CMS delivery progress. Homepage previews fill their browser frames from the top. Recent now shows saved draft titles for unpublished notes."
-    ]
-  },
-  {
-    "date": "2026-10-01",
-    "title": "Notes images and a cleaner Photos gallery",
-    "changes": [
-      "Images in Notes fill the content column while preserving their proportions. Note uploads now stay separate from Photos, and existing note images no longer appear in the gallery, photo feed, or photo links in search results."
-    ]
-  },
-  {
-    "date": "2026-09-28",
-    "title": "A more conversational chat",
-    "changes": [
-      "Chat now answers follow-ups in its own words instead of repeating the same pitch, with shorter replies to short questions, the email mentioned once, and context kept for quick follow-ups like \"weekly rate?\". Replies also come from a more capable model."
-    ]
-  },
-  {
-    "date": "2026-09-25",
-    "title": "Home and About content in sync",
-    "changes": [
-      "Synced Home and About with their editable CMS content, including introductions, portraits, links, and section order. Removed the retired testimonial section, clarified Chat and footer controls, and updated the biography used by text exports and chat."
-    ]
-  },
-  {
-    "date": "2026-09-24",
-    "title": "Homepage projects and About preview",
-    "changes": [
-      "Refreshed the homepage with a draggable desktop project carousel and a mobile slideshow. Added an About preview with a shared portrait transition into the full bio, sharper project images, a warm dark-mode portrait, more consistent spacing, and a translucent menu."
-    ]
-  },
-  {
-    "date": "2026-09-23",
-    "title": "A refreshed About portrait",
-    "changes": [
-      "Refreshed the About portrait with a wider photo and more room between sections. On mobile, tap the portrait to open the full image and draw on it. Desktop drawing tools appear on hover, and the brush-size slider is easier to use with touch."
-    ]
-  },
-  {
-    "date": "2026-09-22",
-    "title": "Working together and clearer mobile Notes headers",
-    "changes": [
-      "Renamed engagement models to Working together and made email access more reliable. Simplified mobile Notes controls, refreshed About portraits, and fixed missing photos. Better caching and fewer background jobs reduce recurring hosting work."
-    ]
-  },
-  {
-    "date": "2026-09-21",
-    "title": "Email signup from the Notes index",
-    "changes": [
-      "Added email signup and an RSS link to the Notes index, with a sticky desktop sidebar and a Subscribe modal on mobile. Improved keyboard navigation, email headings, and signup sizing, then polished Notes typography, spacing, title wrapping, and dark mode."
-    ]
-  },
-  {
-    "date": "2026-09-20",
-    "title": "Easier subscriptions to Notes",
-    "changes": [
-      "Made the Notes RSS feed discoverable from the homepage and individual posts, as well as the Notes index, so readers can find the subscription from more places on the site."
-    ]
-  },
-  {
-    "date": "2026-09-19",
-    "title": "A running history of the site",
-    "changes": [
-      "Added an unlisted changelog with daily summaries and expandable commit details reaching back to the site's first version. A history importer and an automated check now help keep the record current as the site changes."
-    ]
-  },
-  {
-    "date": "2026-09-18",
-    "title": "Scheduled notes and a better reading experience in your inbox",
-    "changes": [
-      "Added scheduled publishing for Notes and clearer preview, publish, and unpublish controls. Newsletter emails now contain the full essay with comfortable reading margins. Added an Edit link to previews and polished editor menus, lists, and typography."
-    ]
-  },
-  {
-    "date": "2026-09-17",
-    "title": "Share a draft before it goes live",
-    "changes": [
-      "Added private links for sharing unpublished notes, restored email signup, and improved confirmation emails and subscription notifications. Made room for multiple untitled drafts, polished editor navigation, and organized the admin into Site and Operations."
-    ]
-  },
-  {
-    "date": "2026-09-16",
-    "title": "A new entry point for working together",
-    "changes": [
-      "Added email access to the engagement models page and refreshed its layout, giving visitors a new way to explore how we might work together."
-    ]
-  },
-  {
-    "date": "2026-09-15",
-    "title": "A different first impression on every visit",
-    "changes": [
-      "The homepage project slideshow now shuffles its order on each visit, giving returning visitors a different first impression of the work."
-    ]
-  },
-  {
-    "date": "2026-09-12",
-    "title": "Horizontal swiping returns to the mobile homepage",
-    "changes": [
-      "Restored horizontal swiping and pagination to the mobile homepage slideshow, making it easier to move through projects and keep track of your place."
-    ]
-  },
-  {
-    "date": "2026-09-11",
-    "title": "Smoother slides and quieter highlights",
-    "changes": [
-      "Smoothed desktop slideshow transitions and trackpad gestures, with subtler pagination and button hover states. Highlight attribution now disappears when the pointer leaves and stays above floating controls on smaller screens."
-    ]
-  },
-  {
-    "date": "2026-09-10",
-    "title": "Your highlights, and everyone else’s",
-    "changes": [
-      "Separated personal and community highlights with independent visibility controls. Added hover fills and reader attribution, refined the highlight popover, and brought trackpad swipes to the desktop slideshow. Recommendation arrows now stay beside their titles."
-    ]
-  },
-  {
-    "date": "2026-09-09",
-    "title": "Ways to work together, and a more readable site",
-    "changes": [
-      "Added the engagement models page and published Markdown versions of About, Work, and Notes for AI agents. Expanded the weekly email digest to include site activity beyond chats, and refined project card interactions and editing."
-    ]
-  },
-  {
-    "date": "2026-09-08",
-    "title": "Roll the credits",
-    "changes": [
-      "Added cinematic Credits with playback controls above the footer. Moved Photos into the main navigation, made menu items reorderable, and made Home return to the top. Sharpened mobile slideshows and fixed Safari pagination, device frames, and like spacing."
-    ]
-  },
-  {
-    "date": "2026-09-07",
-    "title": "A faster, more considered foundation",
-    "changes": [
-      "Added momentum dragging and editable labels to homepage projects, sped up mobile slideshows, and improved keyboard and reduced-motion support. Added a recent edits feed and polished Notes, sharing, highlights, and mobile admin controls."
-    ]
-  },
-  {
-    "date": "2026-09-06",
-    "title": "Highlight the parts that stay with you",
-    "changes": [
-      "Added public note highlights with reader attribution, visibility controls, and activity updates. Notes now show dates, reading recommendations, and custom social images. Polished typography and editing, fixed republishing, and steadied mobile slideshow pagination."
-    ]
-  },
-  {
-    "date": "2026-09-05",
-    "title": "A new homepage, and a home for Notes",
-    "changes": [
-      "Rebuilt the homepage around a project slideshow, liked-work marquee, and refreshed Approach section. Introduced Notes with the Patina essays, a writing editor, likes, recommendations, and RSS and email subscriptions. Added mobile swiping and recent admin edits."
-    ]
-  },
-  {
-    "date": "2026-08-30",
-    "title": "Conversations join the activity feed",
-    "changes": [
-      "Brought conversations into the activity feed, grouped by session with locations and country flags. Unified the feed's view controls, refined mobile back navigation, and adjusted phone previews to fit more comfortably."
-    ]
-  },
-  {
-    "date": "2026-08-26",
-    "title": "A timeline that keeps up",
-    "changes": [
-      "The life timeline now extends through today automatically, keeping its endpoint current as time passes instead of stopping at a fixed date."
-    ]
-  },
-  {
-    "date": "2026-08-23",
-    "title": "A clearer voice in chat",
-    "changes": [
-      "Refined the chat persona for a more consistent voice and added support for formatted lists in responses. Linked the About biography to the life timeline so readers can explore the story in more detail."
-    ]
-  },
-  {
-    "date": "2026-08-22",
-    "title": "Faces through the years",
-    "changes": [
-      "Added portraits that change with age on the timeline and a future-age Easter egg. Improved date picking, scrubbing, portrait placement, early Cuba locations, and the handling of future dates. Fixed follow-up questions in chat."
-    ]
-  },
-  {
-    "date": "2026-08-21",
-    "title": "A little more life in the globe",
-    "changes": [
-      "Gave the timeline globe solid land shapes, subtle movement as the pointer moves, and more pronounced rotation, adding depth and a little more life to the location view."
-    ]
-  },
-  {
-    "date": "2026-08-20",
-    "title": "More ways to explore the timeline",
-    "changes": [
-      "Added city locations and a globe to the timeline, with links to people, projects, and individual news articles. Improved scrubbing and chapter navigation on mobile and desktop. The timeline now opens at the prologue, and chapter links are editable."
-    ]
-  },
-  {
-    "date": "2026-08-19",
-    "title": "A life, on a timeline",
-    "changes": [
-      "Introduced an interactive life timeline with chapters, ages, locations, and world events. Chapters support rich text and links to historical news. Refined chapter navigation, hover details, and mobile gestures, including the layout around Safari's controls."
-    ]
-  },
-  {
-    "date": "2026-08-11",
-    "title": "More room for photos",
-    "changes": [
-      "Expanded the photo gallery to the full page width, with a column count that adapts to the screen. Also made the media upload setup safe to run repeatedly without applying the same patch twice."
-    ]
-  },
-  {
-    "date": "2026-07-27",
-    "title": "Less friction when adding images",
-    "changes": [
-      "Added image uploads directly inside editor fields, with visible progress. Fixed saving after drag-and-drop uploads and improved photo management, gallery loading, lightbox interactions, and activity handling."
-    ]
-  },
-  {
-    "date": "2026-07-20",
-    "title": "A visual media library",
-    "changes": [
-      "Added a masonry view to the admin media library, making the image collection easier to browse visually while managing the site's media."
-    ]
-  },
-  {
-    "date": "2026-07-19",
-    "title": "Take a closer look",
-    "changes": [
-      "Added zooming to photos in the lightbox, including trackpad pinch-to-zoom, so visitors can take a closer look at details without leaving the gallery."
-    ]
-  },
-  {
-    "date": "2026-07-18",
-    "title": "A better place to manage the site",
-    "changes": [
-      "Polished the admin dashboard, login, sidebar, account menu, and page ordering across screen sizes. Improved media uploads, photo controls, mobile previews, and the activity feed. Updated footer navigation, moved Chat there, and resolved deployment issues."
-    ]
-  },
-  {
-    "date": "2026-07-17",
-    "title": "Photography gets its own space",
-    "changes": [
-      "Launched a photo gallery with individual permalinks and a Photoring feed, managed through the CMS. Photos open in the lightbox and include camera details and capture dates. Restored the three-column footer with email and social links."
-    ]
-  },
-  {
-    "date": "2026-07-14",
-    "title": "Say hello directly",
-    "changes": [
-      "Added a contact form so visitors can get in touch directly from the site. Refined chat with conversation summaries, sidebar improvements, and a clearer presentation of the map and activity."
-    ]
-  },
-  {
-    "date": "2026-07-13",
-    "title": "A more connected portfolio",
-    "changes": [
-      "Added an Ask Me Anything experience and polished chat headers, video controls, navigation, and page transitions. Projects can now open in the lightbox from the activity feed, with smoother mobile zooming, swiping, and return transitions. Unified site avatars."
-    ]
-  },
-  {
-    "date": "2026-07-12",
-    "title": "Lighter pages, steadier interactions",
-    "changes": [
-      "Fixed mobile phone previews and restored responsive image optimization. Reduced database traffic, offscreen work, scrolling overhead, and deployment assets. Refined the full-width chat layout and sidebar, tightened CMS secret handling, and removed unused code."
-    ]
-  },
-  {
-    "date": "2026-07-11",
-    "title": "Smoother zooming into projects",
-    "changes": [
-      "Improved how project lightboxes open, with smoother transitions and better performance. Swipe gestures now stay on the intended axis, making movement through expanded project media more predictable."
-    ]
-  },
-  {
-    "date": "2026-07-10",
-    "title": "Project details, up close",
-    "changes": [
-      "Added a lightbox for project modules, with a zoom transition from the original card into the expanded view. Fixed avatar image sizing and adjusted the deployment workflow for database migrations."
-    ]
-  },
-  {
-    "date": "2026-07-09",
-    "title": "A tidier activity feed",
-    "changes": [
-      "Tidied the activity feed with better grouping and video previews. Updated content synchronization and refined the information available to chat so responses have more useful context about the portfolio."
-    ]
-  },
-  {
-    "date": "2026-07-08",
-    "title": "Likes, superlikes, and a little feedback",
-    "changes": [
-      "Added likes and superlikes to project modules, giving visitors more ways to respond to the work. Superlikes now appear in the activity feed, including earlier interactions added to the record."
-    ]
-  },
-  {
-    "date": "2026-07-03",
-    "title": "Less data behind the scenes",
-    "changes": [
-      "Reduced the amount of data transferred by the content management system in preparation for a database migration."
-    ]
-  },
-  {
-    "date": "2026-07-02",
-    "title": "Refreshed projects and content tools",
-    "changes": [
-      "Refreshed project content and assets alongside the About page. Improved page editing, media rendering, and the tools that keep site content synchronized with the CMS."
-    ]
-  },
-  {
-    "date": "2026-06-15",
-    "title": "More reliable content migrations",
-    "changes": [
-      "Added a workflow for CMS database migrations and fixed a mismatch in the clients database structure, making content changes more reliable to carry between environments."
-    ]
-  },
-  {
-    "date": "2026-04-16",
-    "title": "A dedicated home for conversations",
-    "changes": [
-      "Gave conversations a dedicated Chat page with a collapsible sidebar and a map view. Moved the map to Mapbox, gave it its own address, and refined navigation between chat views."
-    ]
-  },
-  {
-    "date": "2026-04-12",
-    "title": "Easier uploads and a more useful digest",
-    "changes": [
-      "Fixed media uploads that were missing alt text by filling the field automatically. Added a summary to the conversation digest to make the email easier to scan."
-    ]
-  },
-  {
-    "date": "2026-04-10",
-    "title": "One weekly catch-up",
-    "changes": [
-      "Replaced individual chat email alerts with a scheduled weekly digest, bringing conversations together in one catch-up instead of sending a notification for each chat."
-    ]
-  },
-  {
-    "date": "2026-04-07",
-    "title": "A livelier client marquee",
-    "changes": [
-      "Increased the speed of the scrolling client logos, giving the client marquee a livelier pace."
-    ]
-  },
-  {
-    "date": "2026-03-31",
-    "title": "More personal testimonials",
-    "changes": [
-      "Added client logos and avatar tooltips to testimonials, with logos that adapt to light and dark mode. Testimonials can now be reordered in the editor, and related build issues are fixed."
-    ]
-  },
-  {
-    "date": "2026-03-30",
-    "title": "Meet the people behind the work",
-    "changes": [
-      "Introduced a People page with a photo grid and role filters, alongside a new navigation menu and page transitions. Reorganized the admin, improved people and company editing, and added timeouts and automatic retries to help chat recover from failures."
-    ]
-  },
-  {
-    "date": "2026-03-29",
-    "title": "A quieter database",
-    "changes": [
-      "Reduced database usage by caching chat context, saving conversations less frequently, and keeping pages cached longer. These changes cut repeated work behind the scenes."
-    ]
-  },
-  {
-    "date": "2026-03-28",
-    "title": "Better conversation starters",
-    "changes": [
-      "Added 30 curated chat questions with rich-text answers, showing four random suggestions at a time. Improved talk and interview links, email delivery, mobile spacing, and sidebar scrolling. Added scheduling for seasonal aurora and star effects."
-    ]
-  },
-  {
-    "date": "2026-03-27",
-    "title": "Conversations worth continuing",
-    "changes": [
-      "Added follow-up suggestions, shareable conversations, and retries for failed chat responses. Answers now link to people, projects, talks, and interviews. Refined response tone and length, mobile chat scrolling, dark-mode avatars, and email notifications."
-    ]
-  },
-  {
-    "date": "2026-03-26",
-    "title": "Ask the portfolio a question",
-    "changes": [
-      "Replaced the FAQ with AI chat, including suggested prompts and mobile layouts. Added saved conversations, a sidebar, session persistence, and email notifications. Improved the context behind answers, client details, active status, and Projector content."
-    ]
-  },
-  {
-    "date": "2026-03-25",
-    "title": "More reliable side project links",
-    "changes": [
-      "Fixed broken side project images and added readable URL slugs, making links to individual projects more reliable."
-    ]
-  },
-  {
-    "date": "2026-03-24",
-    "title": "Small touches across the site",
-    "changes": [
-      "Made birthday balloons respond to device motion on mobile. Polished image borders, video sizing, titles, and the About photo, and restored missing side project images. Images now load directly from media storage to reduce optimization usage."
-    ]
-  },
-  {
-    "date": "2026-03-23",
-    "title": "Birthday balloons",
-    "changes": [
-      "Added birthday balloons, confetti, and a donation link for KIND. Refined the balloon physics and mobile layout, made the availability badge open email, and cleaned up unused components."
-    ]
-  },
-  {
-    "date": "2026-03-22",
-    "title": "More devices, simpler editing",
-    "changes": [
-      "Added iPhone X and iPhone 6 frames for project previews, and reorganized site settings and navigation to make editing easier."
-    ]
-  },
-  {
-    "date": "2026-03-21",
-    "title": "Faster loading and finer details",
-    "changes": [
-      "Added an iPhone 5 frame, momentum scrolling, and centered testimonial snapping. Sped up pages with caching, deferred video loading, and lighter images and bundles. Fixed font loading and polished typography, mobile spacing, client logos, and dark mode."
-    ]
-  },
-  {
-    "date": "2026-03-20",
-    "title": "A better stage for the work",
-    "changes": [
-      "Added DC-1 and iPhone 15 device frames, better video blocks, and a more flexible image grid. Kept featured projects in sync with the scrolling project list, and polished cards, hover states, links, and mobile layouts."
-    ]
-  },
-  {
-    "date": "2026-03-19",
-    "title": "The first version of this site",
-    "changes": [
-      "Launched the portfolio with a CMS, hosting, and media storage. Added Talk Turkey and Makeshift pages, linked from About, with hover-to-play videos. Refined responsive project layouts, talks, interviews, and client logos, and fixed early image delivery issues."
-    ]
-  }
+ {
+  "date": "2026-10-07",
+  "title": "Notes editor header and email section cleanup",
+  "changes": [
+   "The scheduled-note header keeps the Preview and Save buttons visible on narrow screens instead of clipping them. The Email delivery section drops its introductory text and shows only the live delivery status."
+  ]
+ },
+ {
+  "date": "2026-10-05",
+  "title": "Lighter loading and fewer unnecessary rebuilds",
+  "changes": [
+   "Photos, Activity, and Chat load with less background work. Highlights refresh when you return to a note. Publishing and email delivery stay on time while idle queues let the database rest. Routine maintenance avoids unnecessary site rebuilds."
+  ]
+ },
+ {
+  "date": "2026-10-02",
+  "title": "Notes delivery, draft titles, and full-width website previews",
+  "changes": [
+   "Published notes queue subscriber emails with a 100-per-day limit, automatic continuation, unsubscribe checks, and CMS delivery progress. Homepage previews fill their browser frames from the top. Recent now shows saved draft titles for unpublished notes."
+  ]
+ },
+ {
+  "date": "2026-10-01",
+  "title": "Notes images and a cleaner Photos gallery",
+  "changes": [
+   "Images in Notes fill the content column while preserving their proportions. Note uploads now stay separate from Photos, and existing note images no longer appear in the gallery, photo feed, or photo links in search results."
+  ]
+ },
+ {
+  "date": "2026-09-28",
+  "title": "A more conversational chat",
+  "changes": [
+   "Chat now answers follow-ups in its own words instead of repeating the same pitch, with shorter replies to short questions, the email mentioned once, and context kept for quick follow-ups like \"weekly rate?\". Replies also come from a more capable model."
+  ]
+ },
+ {
+  "date": "2026-09-25",
+  "title": "Home and About content in sync",
+  "changes": [
+   "Synced Home and About with their editable CMS content, including introductions, portraits, links, and section order. Removed the retired testimonial section, clarified Chat and footer controls, and updated the biography used by text exports and chat."
+  ]
+ },
+ {
+  "date": "2026-09-24",
+  "title": "Homepage projects and About preview",
+  "changes": [
+   "Refreshed the homepage with a draggable desktop project carousel and a mobile slideshow. Added an About preview with a shared portrait transition into the full bio, sharper project images, a warm dark-mode portrait, more consistent spacing, and a translucent menu."
+  ]
+ },
+ {
+  "date": "2026-09-23",
+  "title": "A refreshed About portrait",
+  "changes": [
+   "Refreshed the About portrait with a wider photo and more room between sections. On mobile, tap the portrait to open the full image and draw on it. Desktop drawing tools appear on hover, and the brush-size slider is easier to use with touch."
+  ]
+ },
+ {
+  "date": "2026-09-22",
+  "title": "Working together and clearer mobile Notes headers",
+  "changes": [
+   "Renamed engagement models to Working together and made email access more reliable. Simplified mobile Notes controls, refreshed About portraits, and fixed missing photos. Better caching and fewer background jobs reduce recurring hosting work."
+  ]
+ },
+ {
+  "date": "2026-09-21",
+  "title": "Email signup from the Notes index",
+  "changes": [
+   "Added email signup and an RSS link to the Notes index, with a sticky desktop sidebar and a Subscribe modal on mobile. Improved keyboard navigation, email headings, and signup sizing, then polished Notes typography, spacing, title wrapping, and dark mode."
+  ]
+ },
+ {
+  "date": "2026-09-20",
+  "title": "Easier subscriptions to Notes",
+  "changes": [
+   "Made the Notes RSS feed discoverable from the homepage and individual posts, as well as the Notes index, so readers can find the subscription from more places on the site."
+  ]
+ },
+ {
+  "date": "2026-09-19",
+  "title": "A running history of the site",
+  "changes": [
+   "Added an unlisted changelog with daily summaries and expandable commit details reaching back to the site's first version. A history importer and an automated check now help keep the record current as the site changes."
+  ]
+ },
+ {
+  "date": "2026-09-18",
+  "title": "Scheduled notes and a better reading experience in your inbox",
+  "changes": [
+   "Added scheduled publishing for Notes and clearer preview, publish, and unpublish controls. Newsletter emails now contain the full essay with comfortable reading margins. Added an Edit link to previews and polished editor menus, lists, and typography."
+  ]
+ },
+ {
+  "date": "2026-09-17",
+  "title": "Share a draft before it goes live",
+  "changes": [
+   "Added private links for sharing unpublished notes, restored email signup, and improved confirmation emails and subscription notifications. Made room for multiple untitled drafts, polished editor navigation, and organized the admin into Site and Operations."
+  ]
+ },
+ {
+  "date": "2026-09-16",
+  "title": "A new entry point for working together",
+  "changes": [
+   "Added email access to the engagement models page and refreshed its layout, giving visitors a new way to explore how we might work together."
+  ]
+ },
+ {
+  "date": "2026-09-15",
+  "title": "A different first impression on every visit",
+  "changes": [
+   "The homepage project slideshow now shuffles its order on each visit, giving returning visitors a different first impression of the work."
+  ]
+ },
+ {
+  "date": "2026-09-12",
+  "title": "Horizontal swiping returns to the mobile homepage",
+  "changes": [
+   "Restored horizontal swiping and pagination to the mobile homepage slideshow, making it easier to move through projects and keep track of your place."
+  ]
+ },
+ {
+  "date": "2026-09-11",
+  "title": "Smoother slides and quieter highlights",
+  "changes": [
+   "Smoothed desktop slideshow transitions and trackpad gestures, with subtler pagination and button hover states. Highlight attribution now disappears when the pointer leaves and stays above floating controls on smaller screens."
+  ]
+ },
+ {
+  "date": "2026-09-10",
+  "title": "Your highlights, and everyone else\u2019s",
+  "changes": [
+   "Separated personal and community highlights with independent visibility controls. Added hover fills and reader attribution, refined the highlight popover, and brought trackpad swipes to the desktop slideshow. Recommendation arrows now stay beside their titles."
+  ]
+ },
+ {
+  "date": "2026-09-09",
+  "title": "Ways to work together, and a more readable site",
+  "changes": [
+   "Added the engagement models page and published Markdown versions of About, Work, and Notes for AI agents. Expanded the weekly email digest to include site activity beyond chats, and refined project card interactions and editing."
+  ]
+ },
+ {
+  "date": "2026-09-08",
+  "title": "Roll the credits",
+  "changes": [
+   "Added cinematic Credits with playback controls above the footer. Moved Photos into the main navigation, made menu items reorderable, and made Home return to the top. Sharpened mobile slideshows and fixed Safari pagination, device frames, and like spacing."
+  ]
+ },
+ {
+  "date": "2026-09-07",
+  "title": "A faster, more considered foundation",
+  "changes": [
+   "Added momentum dragging and editable labels to homepage projects, sped up mobile slideshows, and improved keyboard and reduced-motion support. Added a recent edits feed and polished Notes, sharing, highlights, and mobile admin controls."
+  ]
+ },
+ {
+  "date": "2026-09-06",
+  "title": "Highlight the parts that stay with you",
+  "changes": [
+   "Added public note highlights with reader attribution, visibility controls, and activity updates. Notes now show dates, reading recommendations, and custom social images. Polished typography and editing, fixed republishing, and steadied mobile slideshow pagination."
+  ]
+ },
+ {
+  "date": "2026-09-05",
+  "title": "A new homepage, and a home for Notes",
+  "changes": [
+   "Rebuilt the homepage around a project slideshow, liked-work marquee, and refreshed Approach section. Introduced Notes with the Patina essays, a writing editor, likes, recommendations, and RSS and email subscriptions. Added mobile swiping and recent admin edits."
+  ]
+ },
+ {
+  "date": "2026-08-30",
+  "title": "Conversations join the activity feed",
+  "changes": [
+   "Brought conversations into the activity feed, grouped by session with locations and country flags. Unified the feed's view controls, refined mobile back navigation, and adjusted phone previews to fit more comfortably."
+  ]
+ },
+ {
+  "date": "2026-08-26",
+  "title": "A timeline that keeps up",
+  "changes": [
+   "The life timeline now extends through today automatically, keeping its endpoint current as time passes instead of stopping at a fixed date."
+  ]
+ },
+ {
+  "date": "2026-08-23",
+  "title": "A clearer voice in chat",
+  "changes": [
+   "Refined the chat persona for a more consistent voice and added support for formatted lists in responses. Linked the About biography to the life timeline so readers can explore the story in more detail."
+  ]
+ },
+ {
+  "date": "2026-08-22",
+  "title": "Faces through the years",
+  "changes": [
+   "Added portraits that change with age on the timeline and a future-age Easter egg. Improved date picking, scrubbing, portrait placement, early Cuba locations, and the handling of future dates. Fixed follow-up questions in chat."
+  ]
+ },
+ {
+  "date": "2026-08-21",
+  "title": "A little more life in the globe",
+  "changes": [
+   "Gave the timeline globe solid land shapes, subtle movement as the pointer moves, and more pronounced rotation, adding depth and a little more life to the location view."
+  ]
+ },
+ {
+  "date": "2026-08-20",
+  "title": "More ways to explore the timeline",
+  "changes": [
+   "Added city locations and a globe to the timeline, with links to people, projects, and individual news articles. Improved scrubbing and chapter navigation on mobile and desktop. The timeline now opens at the prologue, and chapter links are editable."
+  ]
+ },
+ {
+  "date": "2026-08-19",
+  "title": "A life, on a timeline",
+  "changes": [
+   "Introduced an interactive life timeline with chapters, ages, locations, and world events. Chapters support rich text and links to historical news. Refined chapter navigation, hover details, and mobile gestures, including the layout around Safari's controls."
+  ]
+ },
+ {
+  "date": "2026-08-11",
+  "title": "More room for photos",
+  "changes": [
+   "Expanded the photo gallery to the full page width, with a column count that adapts to the screen. Also made the media upload setup safe to run repeatedly without applying the same patch twice."
+  ]
+ },
+ {
+  "date": "2026-07-27",
+  "title": "Less friction when adding images",
+  "changes": [
+   "Added image uploads directly inside editor fields, with visible progress. Fixed saving after drag-and-drop uploads and improved photo management, gallery loading, lightbox interactions, and activity handling."
+  ]
+ },
+ {
+  "date": "2026-07-20",
+  "title": "A visual media library",
+  "changes": [
+   "Added a masonry view to the admin media library, making the image collection easier to browse visually while managing the site's media."
+  ]
+ },
+ {
+  "date": "2026-07-19",
+  "title": "Take a closer look",
+  "changes": [
+   "Added zooming to photos in the lightbox, including trackpad pinch-to-zoom, so visitors can take a closer look at details without leaving the gallery."
+  ]
+ },
+ {
+  "date": "2026-07-18",
+  "title": "A better place to manage the site",
+  "changes": [
+   "Polished the admin dashboard, login, sidebar, account menu, and page ordering across screen sizes. Improved media uploads, photo controls, mobile previews, and the activity feed. Updated footer navigation, moved Chat there, and resolved deployment issues."
+  ]
+ },
+ {
+  "date": "2026-07-17",
+  "title": "Photography gets its own space",
+  "changes": [
+   "Launched a photo gallery with individual permalinks and a Photoring feed, managed through the CMS. Photos open in the lightbox and include camera details and capture dates. Restored the three-column footer with email and social links."
+  ]
+ },
+ {
+  "date": "2026-07-14",
+  "title": "Say hello directly",
+  "changes": [
+   "Added a contact form so visitors can get in touch directly from the site. Refined chat with conversation summaries, sidebar improvements, and a clearer presentation of the map and activity."
+  ]
+ },
+ {
+  "date": "2026-07-13",
+  "title": "A more connected portfolio",
+  "changes": [
+   "Added an Ask Me Anything experience and polished chat headers, video controls, navigation, and page transitions. Projects can now open in the lightbox from the activity feed, with smoother mobile zooming, swiping, and return transitions. Unified site avatars."
+  ]
+ },
+ {
+  "date": "2026-07-12",
+  "title": "Lighter pages, steadier interactions",
+  "changes": [
+   "Fixed mobile phone previews and restored responsive image optimization. Reduced database traffic, offscreen work, scrolling overhead, and deployment assets. Refined the full-width chat layout and sidebar, tightened CMS secret handling, and removed unused code."
+  ]
+ },
+ {
+  "date": "2026-07-11",
+  "title": "Smoother zooming into projects",
+  "changes": [
+   "Improved how project lightboxes open, with smoother transitions and better performance. Swipe gestures now stay on the intended axis, making movement through expanded project media more predictable."
+  ]
+ },
+ {
+  "date": "2026-07-10",
+  "title": "Project details, up close",
+  "changes": [
+   "Added a lightbox for project modules, with a zoom transition from the original card into the expanded view. Fixed avatar image sizing and adjusted the deployment workflow for database migrations."
+  ]
+ },
+ {
+  "date": "2026-07-09",
+  "title": "A tidier activity feed",
+  "changes": [
+   "Tidied the activity feed with better grouping and video previews. Updated content synchronization and refined the information available to chat so responses have more useful context about the portfolio."
+  ]
+ },
+ {
+  "date": "2026-07-08",
+  "title": "Likes, superlikes, and a little feedback",
+  "changes": [
+   "Added likes and superlikes to project modules, giving visitors more ways to respond to the work. Superlikes now appear in the activity feed, including earlier interactions added to the record."
+  ]
+ },
+ {
+  "date": "2026-07-03",
+  "title": "Less data behind the scenes",
+  "changes": [
+   "Reduced the amount of data transferred by the content management system in preparation for a database migration."
+  ]
+ },
+ {
+  "date": "2026-07-02",
+  "title": "Refreshed projects and content tools",
+  "changes": [
+   "Refreshed project content and assets alongside the About page. Improved page editing, media rendering, and the tools that keep site content synchronized with the CMS."
+  ]
+ },
+ {
+  "date": "2026-06-15",
+  "title": "More reliable content migrations",
+  "changes": [
+   "Added a workflow for CMS database migrations and fixed a mismatch in the clients database structure, making content changes more reliable to carry between environments."
+  ]
+ },
+ {
+  "date": "2026-04-16",
+  "title": "A dedicated home for conversations",
+  "changes": [
+   "Gave conversations a dedicated Chat page with a collapsible sidebar and a map view. Moved the map to Mapbox, gave it its own address, and refined navigation between chat views."
+  ]
+ },
+ {
+  "date": "2026-04-12",
+  "title": "Easier uploads and a more useful digest",
+  "changes": [
+   "Fixed media uploads that were missing alt text by filling the field automatically. Added a summary to the conversation digest to make the email easier to scan."
+  ]
+ },
+ {
+  "date": "2026-04-10",
+  "title": "One weekly catch-up",
+  "changes": [
+   "Replaced individual chat email alerts with a scheduled weekly digest, bringing conversations together in one catch-up instead of sending a notification for each chat."
+  ]
+ },
+ {
+  "date": "2026-04-07",
+  "title": "A livelier client marquee",
+  "changes": [
+   "Increased the speed of the scrolling client logos, giving the client marquee a livelier pace."
+  ]
+ },
+ {
+  "date": "2026-03-31",
+  "title": "More personal testimonials",
+  "changes": [
+   "Added client logos and avatar tooltips to testimonials, with logos that adapt to light and dark mode. Testimonials can now be reordered in the editor, and related build issues are fixed."
+  ]
+ },
+ {
+  "date": "2026-03-30",
+  "title": "Meet the people behind the work",
+  "changes": [
+   "Introduced a People page with a photo grid and role filters, alongside a new navigation menu and page transitions. Reorganized the admin, improved people and company editing, and added timeouts and automatic retries to help chat recover from failures."
+  ]
+ },
+ {
+  "date": "2026-03-29",
+  "title": "A quieter database",
+  "changes": [
+   "Reduced database usage by caching chat context, saving conversations less frequently, and keeping pages cached longer. These changes cut repeated work behind the scenes."
+  ]
+ },
+ {
+  "date": "2026-03-28",
+  "title": "Better conversation starters",
+  "changes": [
+   "Added 30 curated chat questions with rich-text answers, showing four random suggestions at a time. Improved talk and interview links, email delivery, mobile spacing, and sidebar scrolling. Added scheduling for seasonal aurora and star effects."
+  ]
+ },
+ {
+  "date": "2026-03-27",
+  "title": "Conversations worth continuing",
+  "changes": [
+   "Added follow-up suggestions, shareable conversations, and retries for failed chat responses. Answers now link to people, projects, talks, and interviews. Refined response tone and length, mobile chat scrolling, dark-mode avatars, and email notifications."
+  ]
+ },
+ {
+  "date": "2026-03-26",
+  "title": "Ask the portfolio a question",
+  "changes": [
+   "Replaced the FAQ with AI chat, including suggested prompts and mobile layouts. Added saved conversations, a sidebar, session persistence, and email notifications. Improved the context behind answers, client details, active status, and Projector content."
+  ]
+ },
+ {
+  "date": "2026-03-25",
+  "title": "More reliable side project links",
+  "changes": [
+   "Fixed broken side project images and added readable URL slugs, making links to individual projects more reliable."
+  ]
+ },
+ {
+  "date": "2026-03-24",
+  "title": "Small touches across the site",
+  "changes": [
+   "Made birthday balloons respond to device motion on mobile. Polished image borders, video sizing, titles, and the About photo, and restored missing side project images. Images now load directly from media storage to reduce optimization usage."
+  ]
+ },
+ {
+  "date": "2026-03-23",
+  "title": "Birthday balloons",
+  "changes": [
+   "Added birthday balloons, confetti, and a donation link for KIND. Refined the balloon physics and mobile layout, made the availability badge open email, and cleaned up unused components."
+  ]
+ },
+ {
+  "date": "2026-03-22",
+  "title": "More devices, simpler editing",
+  "changes": [
+   "Added iPhone X and iPhone 6 frames for project previews, and reorganized site settings and navigation to make editing easier."
+  ]
+ },
+ {
+  "date": "2026-03-21",
+  "title": "Faster loading and finer details",
+  "changes": [
+   "Added an iPhone 5 frame, momentum scrolling, and centered testimonial snapping. Sped up pages with caching, deferred video loading, and lighter images and bundles. Fixed font loading and polished typography, mobile spacing, client logos, and dark mode."
+  ]
+ },
+ {
+  "date": "2026-03-20",
+  "title": "A better stage for the work",
+  "changes": [
+   "Added DC-1 and iPhone 15 device frames, better video blocks, and a more flexible image grid. Kept featured projects in sync with the scrolling project list, and polished cards, hover states, links, and mobile layouts."
+  ]
+ },
+ {
+  "date": "2026-03-19",
+  "title": "The first version of this site",
+  "changes": [
+   "Launched the portfolio with a CMS, hosting, and media storage. Added Talk Turkey and Makeshift pages, linked from About, with hover-to-play videos. Refined responsive project layouts, talks, interviews, and client logos, and fixed early image delivery issues."
+  ]
+ }
 ]
