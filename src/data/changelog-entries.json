@@ -3,7 +3,7 @@
   "date": "2026-10-07",
   "title": "Notes spacing, email legibility, and editor cleanup",
   "changes": [
-   "Desktop Notes headers have 100px above the title and date and 80px below. Newsletter emails use a narrower 600px text column. Scheduled-note headers keep Preview and Save visible on narrow screens, and Email delivery shows live status."
+   "Notes headers have proportional spacing on medium and large screens. Newsletter emails use a narrower 600px text column. Scheduled-note headers keep Preview and Save visible on narrow screens, and Email delivery shows live status."
   ]
  },
  {

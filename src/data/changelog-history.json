@@ -1,6 +1,11 @@
 {
-  "throughCommit": "cae277cab42f2bec9ed3896f9526691b76996dbf",
+  "throughCommit": "672bf1d0d787216a36afc4830421e2d94229fc1b",
   "commits": [
+    {
+      "hash": "672bf1d0d787216a36afc4830421e2d94229fc1b",
+      "date": "2026-10-07",
+      "subject": "Adjust desktop Notes header spacing"
+    },
     {
       "hash": "cae277cab42f2bec9ed3896f9526691b76996dbf",
       "date": "2026-10-07",
