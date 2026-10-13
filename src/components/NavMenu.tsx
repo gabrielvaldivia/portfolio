@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import Link from '@/components/SiteLink'
+import { useSitePathname as usePathname } from '@/components/ReviewNavigation'
 import { cn } from '@/lib/cn'
 import { orderSiteNavigationItems } from '@/lib/siteNavigation'
 

@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import Link from '@/components/SiteLink'
 import { useLayoutEffect, useRef, useState, ViewTransition, type ReactNode } from 'react'
 
 let pendingAboutPosition: { top: number; startedAt: number } | null = null

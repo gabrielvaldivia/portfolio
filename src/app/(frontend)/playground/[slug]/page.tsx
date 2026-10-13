@@ -1,3 +1,5 @@
+
+import { SiteAnchor } from '@/components/SiteLink'
 import { Container } from '@/components/Container'
 import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { RichText } from '@/components/RichText'
@@ -70,7 +72,7 @@ export default async function SideProjectPage({ params }: { params: Promise<{ sl
                           return (
                             <span key={i}>
                               {separator && <span className="text-text-muted">{separator}</span>}
-                              {linkedin ? <a href={linkedin} target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-text-strong hover:underline underline-offset-[3px] transition-all">{name}</a> : <span className="text-text-muted">{name}</span>}
+                              {linkedin ? <SiteAnchor href={linkedin} target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-text-strong hover:underline underline-offset-[3px] transition-all">{name}</SiteAnchor> : <span className="text-text-muted">{name}</span>}
                             </span>
                           )
                         })}
@@ -84,7 +86,7 @@ export default async function SideProjectPage({ params }: { params: Promise<{ sl
               {(project.links as any[])?.length > 0 && (
                 <div className="flex flex-wrap gap-3">
                   {(project.links as any[]).map((link: any, i: number) => (
-                    <a
+                    <SiteAnchor
                       key={i}
                       href={link.url}
                       target={link.url.startsWith('/') ? undefined : '_blank'}
@@ -96,7 +98,7 @@ export default async function SideProjectPage({ params }: { params: Promise<{ sl
                       {!link.url.startsWith('/') && (
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17L17 7M17 7H9M17 7V15" /></svg>
                       )}
-                    </a>
+                    </SiteAnchor>
                   ))}
                 </div>
               )}

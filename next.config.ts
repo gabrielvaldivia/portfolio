@@ -49,6 +49,10 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: '/dive/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
+      {
         source: '/notes/preview/:path*',
         headers: [
           { key: 'Referrer-Policy', value: 'no-referrer' },

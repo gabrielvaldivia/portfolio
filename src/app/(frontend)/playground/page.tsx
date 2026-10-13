@@ -1,9 +1,11 @@
+
+import { SiteAnchor } from '@/components/SiteLink'
 import { Container } from '@/components/Container'
 import { FitText } from '@/components/FitText'
 import { buildPageMetadata } from '@/lib/pageMetadata'
 import { getPageBySlug, getSideProjects } from '@/lib/queries'
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import Link from '@/components/SiteLink'
 import { HoverChevron } from '@/components/Icons'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -70,7 +72,7 @@ export default async function PlaygroundPage() {
                               )}
                             </Link>
                           ) : (
-                            <a href={href} target="_blank" rel="noopener noreferrer" className="flex flex-col tablet:flex-row tablet:items-baseline gap-1 tablet:gap-4 tablet:hover:opacity-60 transition-colors min-w-0">
+                            <SiteAnchor href={href} target="_blank" rel="noopener noreferrer" className="flex flex-col tablet:flex-row tablet:items-baseline gap-1 tablet:gap-4 tablet:hover:opacity-60 transition-colors min-w-0">
                               <h4>{project.title}</h4>
                               {project.description && (
                                 <p className="text-text-muted tablet:overflow-hidden tablet:text-ellipsis tablet:whitespace-nowrap tablet:inline-flex tablet:items-baseline tablet:gap-2">{project.description}<HoverChevron /></p>
@@ -78,7 +80,7 @@ export default async function PlaygroundPage() {
                               {!project.description && (
                                 <HoverChevron />
                               )}
-                            </a>
+                            </SiteAnchor>
                           )
                         ) : (
                           <>

@@ -1,3 +1,5 @@
+
+import { SiteAnchor } from '@/components/SiteLink'
 import type { Metadata } from 'next'
 
 import { CreditsPlaybackControl } from '@/components/CreditsPlaybackControl'
@@ -503,14 +505,14 @@ function LinkedName({ name, href }: NamedCredit) {
   if (!href) return content
 
   return (
-    <a
+    <SiteAnchor
       href={href}
       target="_blank"
       rel="noopener noreferrer"
       className="inline-block transition-opacity duration-150 hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content"
     >
       {content}
-    </a>
+    </SiteAnchor>
   )
 }
 

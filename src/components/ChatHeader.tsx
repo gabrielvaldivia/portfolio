@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
+import { useSitePathname as usePathname } from '@/components/ReviewNavigation'
 import { SegmentedControl } from '@/components/SegmentedControl'
 
 function SidebarIcon() {

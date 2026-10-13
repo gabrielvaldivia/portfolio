@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/SiteLink'
 import { Heart, MessageCircle } from 'lucide-react'
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityVideoThumbnail } from '@/components/ActivityVideoThumbnail'

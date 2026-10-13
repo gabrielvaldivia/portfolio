@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from '@/components/SiteLink'
 import { PayloadImage } from '@/components/PayloadImage'
 import { cn } from '@/lib/cn'
 import type { ResponsiveImageMedia } from '@/lib/responsiveImage'

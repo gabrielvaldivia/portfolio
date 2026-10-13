@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import Link from '@/components/SiteLink'
 import { Container } from '@/components/Container'
 import { NotesSubscribeForm } from '@/components/NotesSubscribeForm'
 

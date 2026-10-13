@@ -1,5 +1,12 @@
 [
  {
+  "date": "2026-10-12",
+  "title": "Dive Club portfolio review",
+  "changes": [
+   "A dedicated, unlisted Dive Club review version includes the portfolio and case studies, keeps browsing within the review, and supports page-specific feedback through Inflight."
+  ]
+ },
+ {
   "date": "2026-10-07",
   "title": "Notes spacing, email legibility, and editor cleanup",
   "changes": [

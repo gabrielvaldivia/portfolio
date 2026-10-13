@@ -1,7 +1,9 @@
 'use client'
 
+import { SiteAnchor } from '@/components/SiteLink'
+
 import { HScrollContainer } from '@/components/HScrollContainer'
-import Link from 'next/link'
+import Link from '@/components/SiteLink'
 import { useState } from 'react'
 
 type Client = {
@@ -115,7 +117,7 @@ export function ClientsList({ clients }: { clients: Client[] }) {
                     {href && isInternal ? (
                       <Link href={href} className="flex items-baseline gap-2 hover:opacity-60 transition-colors">{linkContent}</Link>
                     ) : href ? (
-                      <a href={href} target="_blank" rel="noopener noreferrer" className="flex items-baseline gap-2 hover:opacity-60 transition-colors">{linkContent}</a>
+                      <SiteAnchor href={href} target="_blank" rel="noopener noreferrer" className="flex items-baseline gap-2 hover:opacity-60 transition-colors">{linkContent}</SiteAnchor>
                     ) : (
                       <>
                         <h4 className="shrink-0">{client.name}</h4>

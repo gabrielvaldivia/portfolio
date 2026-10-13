@@ -1,6 +1,11 @@
 {
-  "throughCommit": "672bf1d0d787216a36afc4830421e2d94229fc1b",
+  "throughCommit": "807b8ad58d9a9092605c925adc3240c5ed51b4eb",
   "commits": [
+    {
+      "hash": "807b8ad58d9a9092605c925adc3240c5ed51b4eb",
+      "date": "2026-10-07",
+      "subject": "Scale Notes header spacing for medium screens"
+    },
     {
       "hash": "672bf1d0d787216a36afc4830421e2d94229fc1b",
       "date": "2026-10-07",

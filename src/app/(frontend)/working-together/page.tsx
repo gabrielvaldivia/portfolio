@@ -1,3 +1,5 @@
+
+import { SiteAnchor } from '@/components/SiteLink'
 import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
 import { ArrowDown } from 'lucide-react'
@@ -147,7 +149,7 @@ export default async function WorkingTogetherPage() {
           <div className="mt-auto">
             <div className="grid gap-6 tablet:grid-cols-2 tablet:gap-8 desktop:gap-10">
               {engagements.map((engagement) => (
-                <a
+                <SiteAnchor
                   key={engagement.slug}
                   href={`#${engagement.slug}`}
                   aria-labelledby={`${engagement.slug}-summary`}
@@ -175,7 +177,7 @@ export default async function WorkingTogetherPage() {
                       View details <ArrowDown className="size-4" aria-hidden="true" />
                     </span>
                   </div>
-                </a>
+                </SiteAnchor>
               ))}
             </div>
           </div>

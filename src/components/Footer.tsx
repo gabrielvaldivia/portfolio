@@ -1,8 +1,10 @@
 'use client'
 
-import Link from 'next/link'
+import { SiteAnchor } from '@/components/SiteLink'
+
+import Link from '@/components/SiteLink'
 import { useEffect, useRef, useState } from 'react'
-import { usePathname } from 'next/navigation'
+import { useSitePathname as usePathname } from '@/components/ReviewNavigation'
 import { SocialIcon } from './Icons'
 
 const ALTERNATE_COPYRIGHT = '© Copyright is a fallacy'
@@ -131,7 +133,7 @@ export function Footer({
 
           <div className="order-3 flex items-center gap-4 tablet:order-none tablet:justify-self-center">
             {footerSocialLinks.map((link) => (
-              <a
+              <SiteAnchor
                 key={`${link.platform}:${link.url}`}
                 href={link.url}
                 target={link.url.startsWith('mailto:') ? undefined : '_blank'}
@@ -142,7 +144,7 @@ export function Footer({
                 <span aria-hidden="true">
                   <SocialIcon platform={link.platform} />
                 </span>
-              </a>
+              </SiteAnchor>
             ))}
           </div>
 

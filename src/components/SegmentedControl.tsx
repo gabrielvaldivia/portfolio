@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from '@/components/SiteLink'
 import { cn } from '@/lib/cn'
 
 export type SegmentedControlItem = {

@@ -9,7 +9,7 @@ import { getNoteLikeTargetId } from '@/lib/moduleLikes'
 import { buildPageMetadata } from '@/lib/pageMetadata'
 import { getPublishedNoteBySlug, getPublishedNoteSlugs, getReadNextNotes } from '@/lib/queries'
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import Link from '@/components/SiteLink'
 import { notFound } from 'next/navigation'
 import { JsonLd } from '@/components/JsonLd'
 import {

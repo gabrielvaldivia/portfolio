@@ -1,5 +1,8 @@
 'use client'
 
+import { useReviewHref } from '@/components/ReviewNavigation'
+import { SiteAnchor } from '@/components/SiteLink'
+
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { SocialIcon } from './Icons'
 import { Avatar } from './Avatar'
@@ -117,37 +120,37 @@ function linkify(text: string, projects: ProjectLink[], blogPosts: BlogPost[] = 
       })
       if (blogMatch?.url) linkUrl = blogMatch.url
       parts.push(
-        <a key={key++} href={linkUrl} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+        <SiteAnchor key={key++} href={linkUrl} target="_blank" rel="noopener noreferrer" style={linkStyle}>
           {linkTitle}
-        </a>,
+        </SiteAnchor>,
       )
     } else if (/^https?:\/\//.test(matched)) {
       parts.push(
-        <a key={key++} href={matched} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+        <SiteAnchor key={key++} href={matched} target="_blank" rel="noopener noreferrer" style={linkStyle}>
           {matched}
-        </a>,
+        </SiteAnchor>,
       )
     } else if (/^[\w.-]+@[\w.-]+\.\w+$/.test(matched)) {
       parts.push(
-        <a key={key++} href={`mailto:${matched}`} style={linkStyle}>
+        <SiteAnchor key={key++} href={`mailto:${matched}`} style={linkStyle}>
           {matched}
-        </a>,
+        </SiteAnchor>,
       )
     } else {
       const project = sortedProjects.find((p) => p.title.toLowerCase() === matched.toLowerCase())
       if (project) {
         parts.push(
-          <a key={key++} href={`/work/${project.slug}`} style={linkStyle}>
+          <SiteAnchor key={key++} href={`/work/${project.slug}`} style={linkStyle}>
             {matched}
-          </a>,
+          </SiteAnchor>,
         )
       } else {
         const sideProject = sortedSideProjects.find((p) => p.title.toLowerCase() === matched.toLowerCase())
         if (sideProject) {
           parts.push(
-            <a key={key++} href={`/playground/${sideProject.slug}`} style={linkStyle}>
+            <SiteAnchor key={key++} href={`/playground/${sideProject.slug}`} style={linkStyle}>
               {matched}
-            </a>,
+            </SiteAnchor>,
           )
         } else {
           // Check for talk/interview titles (matched includes surrounding quotes)
@@ -157,16 +160,16 @@ function linkify(text: string, projects: ProjectLink[], blogPosts: BlogPost[] = 
           if (talk) {
             parts.push(
               <span key={key++}>
-                &quot;<a href={talk.url} target="_blank" rel="noopener noreferrer" style={linkStyle}>{talkTitle}</a>&quot;
+                &quot;<SiteAnchor href={talk.url} target="_blank" rel="noopener noreferrer" style={linkStyle}>{talkTitle}</SiteAnchor>&quot;
               </span>,
             )
           } else {
             const person = sortedPeople.find((p) => p.name.toLowerCase() === matched.toLowerCase())
             if (person) {
               parts.push(
-                <a key={key++} href={person.linkedin} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+                <SiteAnchor key={key++} href={person.linkedin} target="_blank" rel="noopener noreferrer" style={linkStyle}>
                   {matched}
-                </a>,
+                </SiteAnchor>,
               )
             } else {
               parts.push(matched)
@@ -434,6 +437,7 @@ export function Chat({
     }
   }, [persistentSidebar, sidebarOpen])
 
+  const scopeHref = useReviewHref()
   const setConversationId = useCallback(
     (id: number | null) => {
       setConversationIdRaw(id)
@@ -441,13 +445,13 @@ export function Chat({
       if (id !== null) sessionStorage.setItem('conversationId', String(id))
       else sessionStorage.removeItem('conversationId')
       if (persistentSidebar) {
-        const newPath = id !== null ? `/chat/${id}` : '/chat/new'
+        const newPath = scopeHref(id !== null ? `/chat/${id}` : '/chat/new')
         if (window.location.pathname !== newPath) {
           window.history.pushState(null, '', newPath)
         }
       }
     },
-    [persistentSidebar],
+    [persistentSidebar, scopeHref],
   )
   const [animateBubbles, setAnimateBubbles] = useState(true)
   const linksRef = useRef<HTMLDivElement>(null)
@@ -881,7 +885,7 @@ export function Chat({
 
               {/* Social icons */}
               {socialLinks.map((link, idx) => (
-                <a
+                <SiteAnchor
                   key={idx}
                   href={shouldCollapse ? undefined : link.url}
                   aria-hidden={shouldCollapse}
@@ -897,14 +901,14 @@ export function Chat({
                   }}
                 >
                   <SocialIcon platform={link.platform} />
-                </a>
+                </SiteAnchor>
               ))}
             </div>
 
             {showLinks && shouldCollapse && (
               <nav id="chat-social-links" aria-label="Social links" className="absolute bottom-12 left-0 bg-background rounded-[16px] shadow-lg border border-border py-2 min-w-[160px] z-10">
                 {socialLinks.map((link, i) => (
-                  <a
+                  <SiteAnchor
                     key={i}
                     href={link.url}
                     target="_blank"
@@ -916,7 +920,7 @@ export function Chat({
                       <SocialIcon platform={link.platform} />
                     </span>
                     {link.platform}
-                  </a>
+                  </SiteAnchor>
                 ))}
               </nav>
             )}

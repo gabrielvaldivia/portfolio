@@ -1,3 +1,5 @@
+
+import { SiteAnchor } from '@/components/SiteLink'
 import { getAboutPortraits } from '@/lib/aboutBio'
 import { AboutBio } from '@/components/AboutBio'
 import { AboutContinuity, AboutSharedElement } from '@/components/AboutContinuity'
@@ -8,7 +10,7 @@ import { buildPageMetadata } from '@/lib/pageMetadata'
 import { getPageBySlug, getSideProjects } from '@/lib/queries'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import Link from 'next/link'
+import Link from '@/components/SiteLink'
 import { HoverArrow, HoverChevron } from '@/components/Icons'
 import { SprayPaintPortrait } from '@/components/SprayPaintPortrait'
 import { cn } from '@/lib/cn'
@@ -119,12 +121,12 @@ export default async function AboutPage() {
           <div key={i} className="flex flex-col tablet:flex-row tablet:items-center gap-3 tablet:gap-6 group">
             {thumb?.url && (
               item.url ? (
-                <a href={item.url} target="_blank" rel="noopener noreferrer" className="w-full tablet:w-52 tablet:shrink-0 aspect-video rounded-lg overflow-hidden border border-border relative block">
+                <SiteAnchor href={item.url} target="_blank" rel="noopener noreferrer" className="w-full tablet:w-52 tablet:shrink-0 aspect-video rounded-lg overflow-hidden border border-border relative block">
                   <PayloadImage media={thumb} alt={thumb.alt || item.title} fill className="object-cover object-center" sizes="(min-width: 768px) 208px, 100vw" />
                   {item.duration && (
                     <span className="absolute bottom-1.5 right-1.5 bg-black/75 text-text-on-media-strong text-[11px] font-mono px-1.5 py-0.5 rounded uppercase">{item.duration}</span>
                   )}
-                </a>
+                </SiteAnchor>
               ) : (
                 <div className="w-full tablet:w-52 tablet:shrink-0 aspect-video rounded-lg overflow-hidden border border-border relative">
                   <PayloadImage media={thumb} alt={thumb.alt || item.title} fill className="object-cover object-center" sizes="(min-width: 768px) 208px, 100vw" />
@@ -136,9 +138,9 @@ export default async function AboutPage() {
             )}
             <div className="tablet:flex-1">
               {item.url ? (
-                <a href={item.url} target="_blank" rel="noopener noreferrer" className="hover:opacity-60 transition-colors">
+                <SiteAnchor href={item.url} target="_blank" rel="noopener noreferrer" className="hover:opacity-60 transition-colors">
                   <h4 className="inline">{item.title}<HoverArrow /></h4>
-                </a>
+                </SiteAnchor>
               ) : (
                 <h4>{item.title}</h4>
               )}
@@ -243,9 +245,9 @@ export default async function AboutPage() {
           <AboutSection title={section.title || 'Patents'}>
             <div className="flex flex-col gap-8">
               {patents.map((patent: any, i: number) => patent.url ? (
-                <a key={i} href={patent.url} target="_blank" rel="noopener noreferrer" className="group hover:opacity-60 transition-colors">
+                <SiteAnchor key={i} href={patent.url} target="_blank" rel="noopener noreferrer" className="group hover:opacity-60 transition-colors">
                   <h4 className="inline">{patent.title}<HoverArrow /></h4>
-                </a>
+                </SiteAnchor>
               ) : (
                 <div key={i} className="flex items-center gap-6">
                   <div className="flex-1">

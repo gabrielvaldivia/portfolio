@@ -5,7 +5,7 @@ import { NotesSubscribePanel } from '@/components/NotesSubscribePanel'
 import { buildPageMetadata } from '@/lib/pageMetadata'
 import { getPublishedNotes } from '@/lib/queries'
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import Link from '@/components/SiteLink'
 import { JsonLd } from '@/components/JsonLd'
 import { absoluteSiteUrl, buildSiteStructuredData, websiteReference } from '@/lib/structuredData'
 

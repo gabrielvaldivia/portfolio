@@ -1,3 +1,5 @@
+
+import { SiteAnchor } from '@/components/SiteLink'
 import { HomeAboutSection } from '@/components/HomeAboutSection'
 import { ProjectCard } from '@/components/ProjectCard'
 import { Testimonial } from '@/components/Testimonial'
@@ -20,7 +22,7 @@ import { getPayload, isPayloadUnavailable } from '@/lib/payload'
 import { getFAQItemsFromSections } from '@/lib/buildContext'
 import { getModuleLikeFeed } from '@/lib/moduleLikeActivity'
 import { cn } from '@/lib/cn'
-import Link from 'next/link'
+import Link from '@/components/SiteLink'
 import type { Metadata } from 'next'
 
 export const revalidate = 3600
@@ -604,10 +606,10 @@ export default async function HomePage() {
                     </div>
                   )}
                   {block.availability && (
-                    <a href="mailto:gabe@valdivia.works" className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border mt-8 hover:border-muted transition-colors">
+                    <SiteAnchor href="mailto:gabe@valdivia.works" className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border mt-8 hover:border-muted transition-colors">
                       <span className="relative flex size-2"><span className="absolute inset-0 rounded-full bg-green-400 animate-ping opacity-75" /><span className="relative size-2 rounded-full bg-green-500" /></span>
                       <span className="text-sm text-text-body group-hover:text-text-strong transition-colors">{block.availability}</span>
-                    </a>
+                    </SiteAnchor>
                   )}
                 </div>
               </SectionWithTitle>
