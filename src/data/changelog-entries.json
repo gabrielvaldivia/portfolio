@@ -1,5 +1,12 @@
 [
  {
+  "date": "2026-10-15",
+  "title": "Camera and microphone access for portfolio reviews",
+  "changes": [
+   "Dive Club reviewers can use their camera and microphone for Inflight recordings after granting browser permission. Device access remains restricted on the rest of the portfolio."
+  ]
+ },
+ {
   "date": "2026-10-12",
   "title": "Dive Club portfolio review",
   "changes": [

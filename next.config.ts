@@ -50,7 +50,11 @@ const nextConfig: NextConfig = {
       },
       {
         source: '/dive/:path*',
-        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+        headers: [
+          // Inflight records in the page itself, so only review pages need device access.
+          { key: 'Permissions-Policy', value: 'camera=(self), geolocation=(), microphone=(self), payment=(), usb=()' },
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
+        ],
       },
       {
         source: '/notes/preview/:path*',

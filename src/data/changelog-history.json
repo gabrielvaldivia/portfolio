@@ -1,6 +1,11 @@
 {
-  "throughCommit": "807b8ad58d9a9092605c925adc3240c5ed51b4eb",
+  "throughCommit": "a61a2d30d31d57e91a6f3a0a17018878e7990610",
   "commits": [
+    {
+      "hash": "a61a2d30d31d57e91a6f3a0a17018878e7990610",
+      "date": "2026-10-12",
+      "subject": "Add scoped Dive Club portfolio review at /dive"
+    },
     {
       "hash": "807b8ad58d9a9092605c925adc3240c5ed51b4eb",
       "date": "2026-10-07",
