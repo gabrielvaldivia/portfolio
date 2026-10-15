@@ -11,6 +11,7 @@ import { ContactForm } from '@/components/ContactForm'
 import { AskMeAnything, AskMeAnythingRestart } from '@/components/AskMeAnything'
 import { HomeHeroProjects } from '@/components/HomeHeroProjects'
 import { normalizeHeroPills } from '@/lib/heroProjectPills'
+import { resolveHeroTestimonial } from '@/lib/heroTestimonial'
 import { LikedWorkMarquee, type LikedWorkMarqueeItem } from '@/components/LikedWorkMarquee'
 import { ApproachTimelineItem } from '@/components/ApproachTimelineItem'
 import { buildPageMetadata } from '@/lib/pageMetadata'
@@ -144,18 +145,40 @@ function splitApproachItem(item: any, index: number) {
   }
 }
 
-function buildHeroProjects(projects: any[]) {
-  return projects.map((project, index) => ({
-    id: String(project.id || project.slug || index),
-    title: project.title,
-    slug: project.slug,
-    subtitle: project.subtitle || undefined,
-    pills: normalizeHeroPills(project.heroPills),
-    gradientColor: typeof project.heroGradientColor === 'string' ? project.heroGradientColor : undefined,
-    featuredImage: typeof project.featuredImage === 'object' && project.featuredImage?.url
-      ? project.featuredImage
-      : undefined,
-  }))
+function buildHeroProjects(projects: any[], testimonials: any[]) {
+  const normalizeCompany = (company: any) => (
+    typeof company?.name === 'string' ? company.name.toLowerCase().replace(/[^a-z0-9]/g, '') : ''
+  )
+
+  return projects.map((project, index) => {
+    const projectId = String(project.id || project.slug || index)
+    const teamTestimonial = Array.isArray(project.team)
+      ? project.team.find((person: any) => typeof person === 'object' && person?.testimonial)
+      : undefined
+    const clientName = normalizeCompany(project.client)
+    const testimonial = teamTestimonial || (clientName
+      ? testimonials.find((person: any) => normalizeCompany(person.company) === clientName)
+      : undefined)
+
+    return {
+      id: projectId,
+      title: project.title,
+      slug: project.slug,
+      subtitle: project.subtitle || undefined,
+      pills: normalizeHeroPills(project.heroPills),
+      gradientColor: typeof project.heroGradientColor === 'string' ? project.heroGradientColor : undefined,
+      featuredImage: typeof project.featuredImage === 'object' && project.featuredImage?.url
+        ? project.featuredImage
+        : undefined,
+      testimonial: resolveHeroTestimonial({
+        projectId,
+        projectTitle: project.title,
+        quoteOverride: project.heroTestimonialQuote,
+        nameOverride: project.heroTestimonialName,
+        source: testimonial,
+      }),
+    }
+  })
 }
 
 function resolveHeroProjects(slides: any[], projects: any[]) {
@@ -341,6 +364,9 @@ export default async function HomePage() {
       ])
   const page = pageResult.docs[0] || null
   const sections = (page?.sections || []) as any[]
+  const homepageTestimonials = sections.find((section: any) => (
+    section.blockType === 'hScroll' && section.source === 'featuredTestimonials'
+  ))?.testimonials || []
   const faqItems = getFAQItemsFromSections(sections)
   const likedWorkItems = buildLikedWorkMarqueeItems(likedWorkResult as any[])
   const questionCounts = new Map<string, { question: string; count: number }>()
@@ -395,7 +421,7 @@ export default async function HomePage() {
             {heroProjects.length ? (
               <div className="mt-10 min-w-0 tablet:mt-20 desktop:mt-24">
                 <HomeHeroProjects
-                  projects={buildHeroProjects(heroProjects)}
+                  projects={buildHeroProjects(heroProjects, homepageTestimonials)}
                 />
               </div>
             ) : null}
@@ -416,7 +442,7 @@ export default async function HomePage() {
           return (
             <HomeHeroProjects
               key={block.id || i}
-              projects={buildHeroProjects(items)}
+              projects={buildHeroProjects(items, homepageTestimonials)}
             />
           )
         }

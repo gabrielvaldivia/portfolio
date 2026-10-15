@@ -5,6 +5,8 @@ import { animate, useInView, useReducedMotion, type AnimationPlaybackControls } 
 import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent } from 'react'
 import { PayloadImage } from '@/components/PayloadImage'
 import { HeroProjectPills } from '@/components/HeroProjectPills'
+import { Testimonial } from '@/components/Testimonial'
+import type { resolveHeroTestimonial } from '@/lib/heroTestimonial'
 import type { ResponsiveImageMedia } from '@/lib/responsiveImage'
 
 // The CMS copy of Dex is 1400px wide; use the 3000px hero asset for large cards.
@@ -15,6 +17,9 @@ const DEX_HERO_IMAGE: ResponsiveImageMedia = {
   mimeType: 'image/webp',
 }
 
+// Keep media edges covered while shifting the screens up and left.
+const heroMediaClassName = 'origin-bottom-right scale-[1.15] object-cover'
+
 type Project = {
   id: string
   title: string
@@ -22,6 +27,7 @@ type Project = {
   subtitle?: string
   pills?: string[]
   featuredImage?: ResponsiveImageMedia
+  testimonial?: ReturnType<typeof resolveHeroTestimonial>
 }
 
 function ProjectVideo({ src }: { src: string }) {
@@ -39,7 +45,7 @@ function ProjectVideo({ src }: { src: string }) {
     else video.pause()
   }, [visible, reducedMotion])
 
-  return <video ref={ref} src={src} muted playsInline loop preload="metadata" aria-hidden="true" className="size-full object-cover" />
+  return <video ref={ref} src={src} muted playsInline loop preload="metadata" aria-hidden="true" className={`size-full ${heroMediaClassName} object-[60%_50%]`} />
 }
 
 export function HeroProjectStrip({ projects }: { projects: Project[] }) {
@@ -168,16 +174,23 @@ export function HeroProjectStrip({ projects }: { projects: Project[] }) {
               >
                 <div className="relative aspect-[3/2] overflow-hidden">
                   {media?.url ? video ? <ProjectVideo src={media.url} /> : (
-                    <PayloadImage media={media} alt={media.alt || project.title} fill draggable={false} className="object-cover" sizes="(min-width: 810px) min(108vw, 180vh), 100vw" priority={index === 0} />
+                    <PayloadImage media={media} alt={media.alt || project.title} fill draggable={false} className={`${heroMediaClassName} ${project.slug === 'dex' ? 'object-[35%_50%]' : 'object-[60%_50%]'}`} sizes="(min-width: 810px) min(124.2vw, 207vh), 100vw" priority={index === 0} />
                   ) : <div className="flex size-full items-center justify-center text-text-muted">{project.title}</div>}
                 </div>
                 <div className="hero-project-strip-shade pointer-events-none absolute inset-0" aria-hidden="true" />
-                <div className="pointer-events-none absolute inset-x-5 bottom-5 pr-12 tablet:inset-x-8 tablet:bottom-8 tablet:pr-16">
-                  <h2 className="hero-project-title text-balance text-text-on-media-strong">{project.title}</h2>
-                  {project.subtitle && <p className="mt-2 max-w-2xl text-pretty text-text-on-media-body">{project.subtitle}</p>}
-                  <HeroProjectPills pills={project.pills} />
+                <div className={`pointer-events-none absolute inset-x-5 bottom-5 tablet:inset-x-8 tablet:bottom-8 ${project.testimonial ? 'grid grid-cols-2 items-end gap-6 desktop:gap-10' : 'pr-12 tablet:pr-16'}`}>
+                  <div className="min-w-0">
+                    <h2 className="hero-project-title text-balance text-text-on-media-strong">{project.title}</h2>
+                    {project.subtitle && <p className="mt-2 max-w-2xl text-pretty text-text-on-media-body">{project.subtitle}</p>}
+                    <HeroProjectPills pills={project.pills} />
+                  </div>
+                  {project.testimonial ? (
+                    <div className="w-full max-w-[480px] justify-self-end">
+                      <Testimonial quote={project.testimonial.quote} name={project.testimonial.name} variant="hero" />
+                    </div>
+                  ) : null}
                 </div>
-                <span aria-hidden="true" className="pointer-events-none absolute right-5 bottom-5 flex size-11 items-center justify-center rounded-full bg-white text-black opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 tablet:right-8 tablet:bottom-8 tablet:size-12">
+                <span aria-hidden="true" className="pointer-events-none absolute right-5 top-5 flex size-11 items-center justify-center rounded-full bg-white text-black opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 tablet:right-8 tablet:top-8 tablet:size-12">
                   <svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
                 </span>
               </Link>

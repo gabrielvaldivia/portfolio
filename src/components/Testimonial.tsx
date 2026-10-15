@@ -31,12 +31,17 @@ export function Testimonial({ quote, name, company, companyLogo, photo, linkedIn
       )}
     </div>
   )
+  const author = linkedIn ? (
+    <a href={linkedIn} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
+      {authorBlock}
+    </a>
+  ) : authorBlock
 
   return (
     <div
       className={cn(
         isHero
-          ? 'flex flex-col gap-4 rounded-[20px] bg-black/60 p-5 backdrop-blur-[40px] tablet:rounded-[24px] tablet:p-6'
+          ? 'flex flex-col gap-4 rounded-[20px] bg-white/10 p-5 backdrop-blur-[40px] tablet:rounded-[24px] tablet:bg-black/20 tablet:p-6'
           : 'flex h-full flex-col rounded-[20px] bg-background-alt p-6 tablet:rounded-[30px] tablet:p-8 desktop:rounded-[40px] desktop:p-10',
       )}
     >
@@ -44,20 +49,14 @@ export function Testimonial({ quote, name, company, companyLogo, photo, linkedIn
         className={cn(
           'leading-[1.4]',
           isHero
-            ? 'text-[16px] text-text-on-media-strong tablet:text-[18px] desktop:text-[20px]'
+            ? 'text-[16px] text-text-on-media-strong desktop:text-[18px]'
             : 'text-text-strong flex-1 pb-10 text-[18px] tablet:text-[22px] desktop:text-[26px]',
         )}
         style={{ textIndent: '-0.4em' }}
       >
         &ldquo;{quote}&rdquo;
       </p>
-      {linkedIn ? (
-        <a href={linkedIn} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
-          {authorBlock}
-        </a>
-      ) : (
-        authorBlock
-      )}
+      {author}
     </div>
   )
 }

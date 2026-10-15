@@ -1,6 +1,11 @@
 {
-  "throughCommit": "a61a2d30d31d57e91a6f3a0a17018878e7990610",
+  "throughCommit": "160185f41494fa08427db12963d8302a9412a2b4",
   "commits": [
+    {
+      "hash": "160185f41494fa08427db12963d8302a9412a2b4",
+      "date": "2026-10-15",
+      "subject": "Allow camera and microphone for Dive reviews"
+    },
     {
       "hash": "a61a2d30d31d57e91a6f3a0a17018878e7990610",
       "date": "2026-10-12",

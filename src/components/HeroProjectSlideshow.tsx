@@ -263,8 +263,8 @@ function MobileHeroSlide({
         className="hero-mobile-surface relative grid size-full grid-cols-1 grid-rows-[minmax(0,1fr)_auto_auto] overflow-hidden"
         style={{ backgroundColor: `rgb(${gradientColor})` }}
       >
-        {/* The media shares the title's bottom grid line; text wrapping and
-            editable pills determine the solid-color area without JS sizing. */}
+        {/* The media shares the title's bottom grid line; captions and
+            testimonials determine the solid-color area without JS sizing. */}
         <div
           className="hero-mobile-media pointer-events-none relative col-start-1 row-start-1 row-end-3 min-h-0 overflow-hidden"
           style={{ maskImage: MOBILE_IMAGE_MASK, WebkitMaskImage: MOBILE_IMAGE_MASK }}
@@ -308,25 +308,35 @@ function MobileHeroSlide({
 
         <Link
           href={`/work/${project.slug}`}
-          className="hero-mobile-caption z-10 col-start-1 row-start-2 row-end-4 ml-5 mr-24 grid grid-rows-subgrid rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+          className="hero-mobile-caption z-10 col-start-1 row-start-2 row-end-4 mx-5 grid grid-rows-subgrid rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
         >
-          <h2 className="hero-project-title text-balance">{project.title}</h2>
+          <div className="flex items-center justify-between gap-5">
+            <h2 className="hero-project-title text-balance">{project.title}</h2>
+            {!project.testimonial ? (
+              <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white">
+                <svg className="size-6 text-text-on-light" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+                  <path d="M6 16h20M18 8l8 8-8 8" />
+                </svg>
+              </span>
+            ) : null}
+          </div>
           <div className="hero-mobile-details flex flex-col gap-2 pt-2" style={{ paddingBottom: MOBILE_CONTENT_BOTTOM }}>
             {project.subtitle ? (
               <p className="max-w-2xl text-body text-pretty text-text-on-media-muted">{project.subtitle}</p>
             ) : null}
             <HeroProjectPills pills={project.pills} />
+            {project.testimonial ? (
+              <div className="mt-2 flex flex-col gap-4">
+                <Testimonial quote={project.testimonial.quote} name={project.testimonial.name} variant="hero" />
+                <span className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-medium text-black">
+                  View work
+                  <svg aria-hidden="true" className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M5 12h14m-7-7 7 7-7 7" />
+                  </svg>
+                </span>
+              </div>
+            ) : null}
           </div>
-        </Link>
-        <Link
-          href={`/work/${project.slug}`}
-          aria-label={`Open ${project.title} project`}
-          className="absolute right-5 z-20 flex size-10 items-center justify-center rounded-full bg-white transition-colors duration-150 hover:bg-white/90 active:bg-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-          style={{ bottom: MOBILE_CONTENT_BOTTOM }}
-        >
-          <svg aria-hidden="true" className="size-6 text-text-on-light" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
-            <path d="M6 16h20M18 8l8 8-8 8" />
-          </svg>
         </Link>
       </div>
     </div>

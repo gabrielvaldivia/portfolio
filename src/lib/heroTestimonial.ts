@@ -18,7 +18,7 @@ export function resolveHeroTestimonial({
   source?: SourceTestimonial | null
 }) {
   const customQuote = quoteOverride?.trim() || ''
-  const quote = customQuote || source?.testimonial
+  const quote = customQuote || source?.testimonial?.trim()
   if (!quote) return undefined
 
   return {
