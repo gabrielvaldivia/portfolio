@@ -1,6 +1,11 @@
 {
-  "throughCommit": "160185f41494fa08427db12963d8302a9412a2b4",
+  "throughCommit": "2cc1bdf7a865a83409ad4e4af487c06c8fc44fa6",
   "commits": [
+    {
+      "hash": "2cc1bdf7a865a83409ad4e4af487c06c8fc44fa6",
+      "date": "2026-10-15",
+      "subject": "Restore homepage carousel testimonials across devices"
+    },
     {
       "hash": "160185f41494fa08427db12963d8302a9412a2b4",
       "date": "2026-10-15",

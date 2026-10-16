@@ -45,9 +45,20 @@ const nextConfig: NextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), geolocation=(), microphone=(), payment=(), usb=()' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          {
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors 'self' https://campground-gv.vercel.app http://localhost:3158;",
+          },
         ],
       },
+      // Campground can embed public pages; keep CMS, API, and draft previews same-origin.
+      ...['/admin/:path*', '/api/:path*', '/notes/preview/:path*'].map((source) => ({
+        source,
+        headers: [
+          { key: 'Content-Security-Policy', value: "frame-ancestors 'self';" },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+        ],
+      })),
       {
         source: '/dive/:path*',
         headers: [

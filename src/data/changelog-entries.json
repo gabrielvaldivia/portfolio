@@ -1,5 +1,12 @@
 [
  {
+  "date": "2026-10-16",
+  "title": "Campground website previews",
+  "changes": [
+   "Public pages can now appear inside Campground previews, including links with or without www. Embedding is limited to this site and the approved Campground origins; admin pages and draft previews retain their existing restrictions."
+  ]
+ },
+ {
   "date": "2026-10-15",
   "title": "Homepage testimonials and portfolio review recordings",
   "changes": [
