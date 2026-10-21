@@ -15,10 +15,32 @@ export function NotesPublishButton() {
   const { config: { routes: { api } } } = useConfig()
   const { submit } = useForm()
   const [pickerRequest, setPickerRequest] = useState(0)
+  const [completedPublish, setCompletedPublish] = useState<{
+    previousData: typeof data
+    hasBeenPublished: boolean
+    hadSchedule: boolean
+  } | null>(null)
   const hasBeenPublished = Boolean(hasPublishedDoc || data?.firstPublishedAt)
   const future = Boolean(publishDate && new Date(publishDate).getTime() > Date.now())
   const schedule = typeof data?.scheduledFor === 'string' ? data.scheduledFor : null
   const scheduleChanged = Boolean(schedule && new Date(publishDate || '').getTime() !== new Date(schedule).getTime())
+
+  useEffect(() => {
+    if (!completedPublish || !data || data === completedPublish.previousData) return
+
+    // Payload updates document data from the save response, while submit() can
+    // return form fields that still contain the previous draft status.
+    const published = data._status === 'published'
+    setHasPublishedDoc(published)
+    setMostRecentVersionIsAutosaved(false)
+    setUnpublishedVersionCount(0)
+    setCompletedPublish(null)
+    toast.success(published
+      ? (completedPublish.hasBeenPublished ? 'Changes published' : 'Note published')
+      : data.scheduledFor
+        ? (completedPublish.hadSchedule ? 'Schedule updated' : 'Note scheduled')
+        : 'Note saved')
+  }, [completedPublish, data, setHasPublishedDoc, setMostRecentVersionIsAutosaved, setUnpublishedVersionCount])
 
   useEffect(() => {
     if (!pickerRequest) return
@@ -52,11 +74,7 @@ export function NotesPublishButton() {
       disableSuccessStatus: true,
     })
     if (!result?.res.ok) return
-    const published = result.formState?._status?.value === 'published'
-    setHasPublishedDoc(published)
-    setMostRecentVersionIsAutosaved(false)
-    setUnpublishedVersionCount(0)
-    toast.success(published ? (hasBeenPublished ? 'Changes published' : 'Note published') : schedule ? 'Schedule updated' : 'Note scheduled')
+    setCompletedPublish({ previousData: data, hasBeenPublished, hadSchedule: Boolean(schedule) })
   }
 
   const publishLabel = future ? (schedule ? (scheduleChanged ? 'Save schedule' : 'Update schedule') : 'Schedule') : hasBeenPublished ? 'Publish changes' : 'Publish'

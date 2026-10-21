@@ -1,6 +1,11 @@
 {
-  "throughCommit": "2cc1bdf7a865a83409ad4e4af487c06c8fc44fa6",
+  "throughCommit": "5fb7b463862d5105499f3a98b23283b77633b85b",
   "commits": [
+    {
+      "hash": "5fb7b463862d5105499f3a98b23283b77633b85b",
+      "date": "2026-10-16",
+      "subject": "Allow public portfolio pages to be embedded in Campground"
+    },
     {
       "hash": "2cc1bdf7a865a83409ad4e4af487c06c8fc44fa6",
       "date": "2026-10-15",

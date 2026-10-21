@@ -1,5 +1,12 @@
 [
  {
+  "date": "2026-10-20",
+  "title": "Accurate note publishing confirmations",
+  "changes": [
+   "Notes now confirm when a note or its changes are published immediately, and only show scheduling confirmations when a publication date is actually scheduled."
+  ]
+ },
+ {
   "date": "2026-10-16",
   "title": "Campground website previews",
   "changes": [
