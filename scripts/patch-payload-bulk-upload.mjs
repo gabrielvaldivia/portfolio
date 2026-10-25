@@ -1160,3 +1160,36 @@ for (const [patchIndex, patch] of patches.entries()) {
 if (applied > 0) {
   console.log(`[patch-payload-bulk-upload] Applied ${applied} Payload bulk upload patch${applied === 1 ? '' : 'es'}`)
 }
+
+// Most client-bundle patches match minified names and are optional, so a
+// Payload release can skip them silently. Fail when the result is incomplete.
+const readInstalled = (file) => {
+  const filePath = path.join(root, file)
+  return fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : ''
+}
+const versionOf = (name) => {
+  try {
+    return JSON.parse(readInstalled(`node_modules/${name}/package.json`)).version
+  } catch {
+    return undefined
+  }
+}
+const payloadPackages = ['payload', '@payloadcms/ui', '@payloadcms/next', '@payloadcms/storage-s3']
+const versions = new Set(payloadPackages.map(versionOf).filter(Boolean))
+const markers = [
+  ['@payloadcms/ui/dist/exports/client/index.js', 'inlineUploading'],
+  ['@payloadcms/ui/dist/exports/client/index.js', 'Payload bulk upload success callback failed'],
+  ['@payloadcms/ui/dist/exports/client/index.js', 'autoSaveInitialFiles'],
+  ['@payloadcms/ui/dist/exports/client/index.js', 'let It=new FormData;return It.append("_payload",JSON.stringify(ut))'],
+  ['@payloadcms/ui/dist/fields/Upload/Input.js', 'inlineUploadProgress'],
+  ['@payloadcms/storage-s3/dist/client/S3ClientUploadHandler.js', 'new XMLHttpRequest()'],
+]
+const missing = markers.filter(([file, marker]) => !readInstalled(`node_modules/${file}`).includes(marker))
+if (versions.size > 1 || missing.length) {
+  throw new Error([
+    '[patch-payload-bulk-upload] Payload patches are incomplete.',
+    versions.size > 1 ? `Payload packages are on different versions: ${[...versions].join(', ')}.` : '',
+    ...missing.map(([file, marker]) => `Missing ${JSON.stringify(marker)} in ${file}.`),
+    'Pin every Payload package to one version and update the patches for it.',
+  ].filter(Boolean).join('\n'))
+}
