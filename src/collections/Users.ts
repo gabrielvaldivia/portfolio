@@ -25,5 +25,12 @@ export const Users: CollectionConfig = {
   auth: {
     tokenExpiration: THIRTY_DAYS_IN_SECONDS,
   },
-  fields: [],
+  fields: [
+    {
+      // Display only: explains how to connect AI clients on the account page.
+      name: 'mcpConnection',
+      type: 'ui',
+      admin: { components: { Field: './components/admin/McpConnectionField#McpConnectionField' } },
+    },
+  ],
 }

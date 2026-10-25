@@ -1,0 +1,40 @@
+.mcp-connection {
+  display: grid;
+  gap: 16px;
+  margin-block: 8px 32px;
+  padding: 20px 24px;
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: 16px;
+
+  &__title { margin: 0; }
+
+  &__help,
+  &__hint {
+    margin: 0;
+    color: var(--theme-elevation-600);
+  }
+
+  &__item {
+    display: grid;
+    gap: 6px;
+  }
+
+  &__label { font-weight: 500; }
+
+  &__value {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--theme-elevation-50);
+
+    code {
+      flex: 1;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font-size: 13px;
+    }
+  }
+}

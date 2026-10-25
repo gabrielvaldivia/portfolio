@@ -5357,3 +5357,8 @@ body:has(.collection-edit--notes) .popup__content:has(#notes-edit-menu-writing) 
     max-width: calc(100vw - var(--cms-header-left, 0px) - 96px);
   }
 }
+
+// The admin is English only, so the account page's language picker has nothing to offer.
+.payload-settings__language {
+  display: none;
+}
