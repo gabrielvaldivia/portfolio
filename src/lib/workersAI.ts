@@ -87,11 +87,14 @@ export async function createWorkersAICompletion({
   tools,
   maxTokens = 1_024,
   temperature = 0.25,
+  deadline,
 }: {
   messages: WorkersAIMessage[]
   tools?: WorkersAITool[]
   maxTokens?: number
   temperature?: number
+  /** Epoch milliseconds by which the request must finish. */
+  deadline?: number
 }) {
   const accountId = getCloudflareAccountId()
   const apiToken = process.env.CLOUDFLARE_AI_API_TOKEN?.trim()
@@ -100,7 +103,8 @@ export async function createWorkersAICompletion({
   }
 
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), getTimeoutMs())
+  const timeoutMs = deadline ? Math.min(getTimeoutMs(), Math.max(deadline - Date.now(), 0)) : getTimeoutMs()
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
 
   try {
     const response = await fetch(

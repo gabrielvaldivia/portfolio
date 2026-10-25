@@ -18,3 +18,13 @@ test('allows a reply that builds on an earlier answer', () => {
 test('ignores the first reply in a conversation', () => {
   assert.equal(repeatsEarlierReply(retainerAnswer, []), false)
 })
+
+test('conversation updates may only append to saved messages', async () => {
+  const { extendsConversation } = await import('../src/lib/chatMessages')
+  type Message = { role: 'user' | 'assistant'; content: string }
+  const saved: Message[] = [{ role: 'assistant', content: 'Hi' }, { role: 'user', content: 'Q' }]
+  const next: Message[] = [...saved, { role: 'assistant', content: 'A' }]
+  assert.equal(extendsConversation(saved, next), true)
+  assert.equal(extendsConversation(saved, [{ role: 'assistant', content: 'Rewritten' }, ...next.slice(1)]), false)
+  assert.equal(extendsConversation(next, saved), false)
+})

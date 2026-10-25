@@ -596,14 +596,14 @@ const getCachedActivityTargets = unstable_cache(async function getCachedActivity
   const payload = await getPayload()
   if (isPayloadUnavailable(payload)) throw new Error('Activity target data is temporarily unavailable')
   const [projects, sideProjects, photos, notes] = await Promise.all([
-    payload.find({ collection: 'projects', limit: 200, depth: 1, select: { title: true, slug: true, content: true } }),
-    payload.find({ collection: 'side-projects', limit: 200, depth: 1, select: { title: true, slug: true, content: true } }),
+    payload.find({ collection: 'projects', pagination: false, depth: 1, select: { title: true, slug: true, content: true } }),
+    payload.find({ collection: 'side-projects', pagination: false, depth: 1, select: { title: true, slug: true, content: true } }),
     getPhotos(),
     payload.find({
       collection: 'notes',
       depth: 1,
       draft: false,
-      limit: 200,
+      pagination: false,
       select: { title: true, slug: true, coverImage: true },
       where: { _status: { equals: 'published' } },
     }),
@@ -620,6 +620,11 @@ const getCachedActivityTargets = unstable_cache(async function getCachedActivity
 }, ['activity-targets-v1'], { tags: ['activity-targets'], revalidate: 3600 })
 
 const getActivityTargetIndex = cache(async () => new Map(await getCachedActivityTargets()))
+
+/** Likes are only accepted for modules, photos, and notes that exist on the site. */
+export async function isActivityTarget(targetId: string) {
+  return (await getActivityTargetIndex()).has(targetId)
+}
 
 function getFallbackTarget(targetId: string): ActivityTarget {
   const parsed = parseModuleLikeTargetId(targetId)
@@ -830,8 +835,9 @@ export async function getModuleLikeActivityPage({
   const result = rowLimit
     ? await db.execute(sql`
       WITH "conversation_owners" AS (
+        -- Only the columns the feed uses; messages can be large.
         SELECT
-          *,
+          "id", "created_at", "location", "latitude", "longitude",
           COALESCE("owner_hash", 'conversation:' || "id"::text) AS "owner_key"
         FROM "conversations"
       ),
@@ -921,8 +927,9 @@ export async function getModuleLikeActivityPage({
     `)
     : await db.execute(sql`
       WITH "conversation_owners" AS (
+        -- Only the columns the feed uses; messages can be large.
         SELECT
-          *,
+          "id", "created_at", "location", "latitude", "longitude",
           COALESCE("owner_hash", 'conversation:' || "id"::text) AS "owner_key"
         FROM "conversations"
       ),

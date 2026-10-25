@@ -97,23 +97,15 @@ export function getFAQItemsFromSections(sections: any[] = []): FAQItem[] {
   })
 }
 
-export async function buildContext(query = ''): Promise<CachedContext> {
-  const cacheKey = [...tokens(query)].sort().slice(0, 8).join('|') || 'default'
-  const cached = contextCache.get(cacheKey)
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) return cached.data
+/**
+ * The CMS reads are the same for every question; only the ranking below
+ * depends on the query. Share one load per instance for the cache window.
+ */
+let contextSources: { promise: ReturnType<typeof fetchContextSources>; timestamp: number } | null = null
 
+async function fetchContextSources() {
   const payload = await getPayload()
-  const [
-    homePage,
-    aboutPage,
-    projectsResult,
-    clientsResult,
-    testimonialsResult,
-    allPeopleResult,
-    servicesResult,
-    sideProjectsResult,
-    annotatedConversations,
-  ] = await Promise.all([
+  return Promise.all([
     payload.find({ collection: 'pages', where: { slug: { equals: 'home' } }, depth: 2, limit: 1 }),
     payload.find({ collection: 'pages', where: { slug: { equals: 'about' } }, depth: 2, limit: 1 }),
     payload.find({ collection: 'projects', sort: 'order', limit: 100, depth: 2 }),
@@ -124,12 +116,42 @@ export async function buildContext(query = ''): Promise<CachedContext> {
     payload.find({ collection: 'side-projects', sort: 'order', limit: 100, depth: 2 }),
     payload.find({
       collection: 'conversations',
-      where: { notes: { not_equals: '' } },
+      // not_equals alone also matches NULL, which crowds annotated chats out of the limit.
+      where: { and: [{ notes: { exists: true } }, { notes: { not_equals: '' } }] },
       limit: 50,
       depth: 0,
       overrideAccess: true,
     }),
   ])
+}
+
+function loadContextSources() {
+  if (!contextSources || Date.now() - contextSources.timestamp >= CACHE_TTL) {
+    const promise = fetchContextSources()
+    contextSources = { promise, timestamp: Date.now() }
+    promise.catch(() => {
+      if (contextSources?.promise === promise) contextSources = null
+    })
+  }
+  return contextSources.promise
+}
+
+export async function buildContext(query = ''): Promise<CachedContext> {
+  const cacheKey = [...tokens(query)].sort().slice(0, 8).join('|') || 'default'
+  const cached = contextCache.get(cacheKey)
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) return cached.data
+
+  const [
+    homePage,
+    aboutPage,
+    projectsResult,
+    clientsResult,
+    testimonialsResult,
+    allPeopleResult,
+    servicesResult,
+    sideProjectsResult,
+    annotatedConversations,
+  ] = await loadContextSources()
 
   const home = homePage.docs[0] as any
   const about = aboutPage.docs[0] as any

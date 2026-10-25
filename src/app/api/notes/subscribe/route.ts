@@ -126,11 +126,20 @@ export async function POST(request: Request) {
         overrideAccess: true,
       })
     } else {
-      await payload.create({
-        collection: 'note-subscribers',
-        data: { email, source: 'website', status: 'pending' },
-        overrideAccess: true,
-      })
+      try {
+        await payload.create({
+          collection: 'note-subscribers',
+          data: { email, source: 'website', status: 'pending' },
+          overrideAccess: true,
+        })
+      } catch (error) {
+        // A simultaneous signup for the same email already created the record.
+        const raced = await payload.find({
+          collection: 'note-subscribers', depth: 0, limit: 1, overrideAccess: true,
+          where: { email: { equals: email } },
+        })
+        if (!raced.docs[0]) throw error
+      }
     }
 
     const token = createSubscriptionToken(email, 'confirm', CONFIRM_TTL_SECONDS)

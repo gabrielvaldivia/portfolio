@@ -2,8 +2,10 @@ import { sql } from '@payloadcms/db-postgres'
 import { NextRequest } from 'next/server'
 import {
   getModuleLikeRequestLocation,
+  isActivityTarget,
   readRows,
 } from '@/lib/moduleLikeActivity'
+import { checkModuleLikeRateLimit } from '@/lib/chatRateLimit'
 import { getPayload } from '@/lib/payload'
 import { getVisitor, getVisitorHash, withVisitorCookie } from '@/lib/anonymousVisitor'
 import { assertSameOrigin, HTTPRequestError, readJSONBody } from '@/lib/httpRequest'
@@ -124,12 +126,29 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // New visitors get a fresh cookie, so limit by network address as well.
+    const rateLimit = await checkModuleLikeRateLimit(req.headers)
+    if (!rateLimit.allowed) {
+      return withVisitorCookie({ error: 'Too many likes' }, visitor, {
+        status: 429,
+        headers: { 'Retry-After': String(rateLimit.retryAfterSeconds) },
+      })
+    }
+    if (!await isActivityTarget(id)) {
+      return withVisitorCookie({ error: 'Unknown module' }, visitor, { status: 404 })
+    }
+
     const payload = await getPayload()
     const db = payload.db.drizzle
     const likeLocation = await getModuleLikeRequestLocation(req.headers)
 
+    // Log what was actually added, since the per-visitor cap can trim a super like.
     await db.execute(sql`
-      WITH "accepted_like" AS (
+      WITH "previous_like" AS (
+        SELECT "like_count" FROM "module_likes"
+        WHERE "target_id" = ${id} AND "visitor_hash" = ${visitorHash}
+      ),
+      "accepted_like" AS (
         INSERT INTO "module_likes" ("target_id", "visitor_hash", "like_count", "created_at", "updated_at")
         VALUES (${id}, ${visitorHash}, ${amount}, now(), now())
         ON CONFLICT ("target_id", "visitor_hash")
@@ -137,10 +156,11 @@ export async function POST(req: NextRequest) {
           "like_count" = LEAST("module_likes"."like_count" + ${amount}, ${MAX_MODULE_LIKES_PER_VISITOR}),
           "updated_at" = now()
         WHERE "module_likes"."like_count" < ${MAX_MODULE_LIKES_PER_VISITOR}
-        RETURNING "target_id"
+        RETURNING "like_count"
       )
       INSERT INTO "module_like_events" ("target_id", "visitor_hash", "amount", "location", "city", "region", "country", "created_at")
-      SELECT ${id}, ${visitorHash}, ${amount}, ${likeLocation.location}, ${likeLocation.city}, ${likeLocation.region}, ${likeLocation.country}, now()
+      SELECT ${id}, ${visitorHash}, "accepted_like"."like_count" - COALESCE((SELECT "like_count" FROM "previous_like"), 0),
+        ${likeLocation.location}, ${likeLocation.city}, ${likeLocation.region}, ${likeLocation.country}, now()
       FROM "accepted_like"
     `)
 

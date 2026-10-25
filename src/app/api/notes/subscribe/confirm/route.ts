@@ -21,9 +21,9 @@ export async function GET(request: Request) {
     const payload = await getPayload()
     if (isPayloadUnavailable(payload)) throw new Error('Payload is unavailable')
 
-    await confirmNoteSubscription(payload, verified.email)
+    const confirmed = await confirmNoteSubscription(payload, verified.email)
 
-    return redirect('confirmed')
+    return redirect(confirmed ? 'confirmed' : 'invalid')
   } catch (error) {
     console.error('Notes confirmation failed:', error)
     return redirect('error')

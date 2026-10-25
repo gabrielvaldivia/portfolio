@@ -205,3 +205,21 @@ export function checkEngagementAccessRateLimit(headers: Headers) {
     dailyLimit: 100,
   })
 }
+
+export function checkConversationWriteRateLimit(headers: Headers) {
+  return checkPersistentRateLimit({
+    headers,
+    namespace: 'conversation-writes',
+    limit: 60,
+    dailyLimit: 5_000,
+  })
+}
+
+export function checkModuleLikeRateLimit(headers: Headers) {
+  return checkPersistentRateLimit({
+    headers,
+    namespace: 'module-likes',
+    limit: 120,
+    dailyLimit: 100_000,
+  })
+}

@@ -3,7 +3,7 @@
   "date": "2026-10-25",
   "title": "Tighter access, steadier chat",
   "changes": [
-   "Only signed-in editors can change content, and rate limits count only requests that go through. Unpublished notes leave right away. Switching chats mid-answer no longer overwrites the other conversation, long answers stop timing out, and failed activity loads stop retrying."
+   "Only signed-in editors can change content. Rate limits now cover chats, likes, and signups without one burst blocking everyone. Unpublished notes leave right away, chat answers stay in their own conversation, and unsubscribe links ask before acting."
   ]
  },
  {

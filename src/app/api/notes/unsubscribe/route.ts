@@ -4,9 +4,20 @@ import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 
-async function unsubscribe(request: Request) {
+function readToken(request: Request) {
   const token = new URL(request.url).searchParams.get('token') || ''
-  const verified = token.length <= 2048 ? verifySubscriptionToken(token, 'unsubscribe') : null
+  return token.length <= 2048 ? verifySubscriptionToken(token, 'unsubscribe') : null
+}
+
+function redirect(query: string) {
+  return NextResponse.redirect(`${getSiteURL()}/notes/subscription?${query}`, {
+    status: 303,
+    headers: { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' },
+  })
+}
+
+async function unsubscribe(request: Request) {
+  const verified = readToken(request)
   if (!verified) return false
 
   const payload = await getPayload()
@@ -33,21 +44,27 @@ async function unsubscribe(request: Request) {
   return true
 }
 
+// Mail scanners open links before readers do, so the link only shows a
+// confirmation page. Unsubscribing takes a POST from that page or the
+// mail client's one-click List-Unsubscribe request.
 export async function GET(request: Request) {
-  let status: 'invalid' | 'unsubscribed' = 'invalid'
-  try {
-    if (await unsubscribe(request)) status = 'unsubscribed'
-  } catch (error) {
-    console.error('Notes unsubscribe failed:', error)
-  }
-  return NextResponse.redirect(`${getSiteURL()}/notes?subscription=${status}#email-updates`, 303)
+  const token = new URL(request.url).searchParams.get('token') || ''
+  if (!readToken(request)) return redirect('status=invalid-unsubscribe')
+  return redirect(`status=unsubscribe&token=${encodeURIComponent(token)}`)
 }
 
 export async function POST(request: Request) {
+  const form = request.headers.get('content-type')?.includes('application/x-www-form-urlencoded')
+    ? await request.formData().catch(() => null)
+    : null
+  const fromPage = form?.get('confirm') === '1'
   try {
-    return new Response(null, { status: (await unsubscribe(request)) ? 204 : 400 })
+    const unsubscribed = await unsubscribe(request)
+    if (fromPage) return redirect(`status=${unsubscribed ? 'unsubscribed' : 'invalid-unsubscribe'}`)
+    return new Response(null, { status: unsubscribed ? 204 : 400 })
   } catch (error) {
     console.error('Notes unsubscribe failed:', error)
+    if (fromPage) return redirect('status=unsubscribe-error')
     return new Response(null, { status: 500 })
   }
 }

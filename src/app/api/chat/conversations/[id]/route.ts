@@ -1,5 +1,6 @@
 import { getPayload } from '@/lib/payload'
-import { normalizeConversationMessages } from '@/lib/chatMessages'
+import { checkConversationWriteRateLimit } from '@/lib/chatRateLimit'
+import { extendsConversation, normalizeConversationMessages } from '@/lib/chatMessages'
 import {
   conversationOwnerMatches,
   getConversationOwner,
@@ -37,6 +38,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return requestErrorResponse(error) || Response.json({ error: 'Invalid request' }, { status: 400 })
   }
 
+  const rateLimit = await checkConversationWriteRateLimit(req.headers)
+  if (!rateLimit.allowed) {
+    return Response.json({ error: 'Too many requests' }, {
+      status: 429,
+      headers: { 'Retry-After': String(rateLimit.retryAfterSeconds) },
+    })
+  }
+
   const messages = normalizeConversationMessages(body.messages)
 
   if (!messages) {
@@ -54,6 +63,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const owner = getConversationOwner(req)
     if (!owner || !conversationOwnerMatches((existing as any).ownerHash, owner.hash)) {
       return Response.json({ error: 'Forbidden' }, { status: 403 })
+    }
+    if (!extendsConversation((existing as any).messages, messages)) {
+      return Response.json({ error: 'Saved messages cannot be changed' }, { status: 409 })
     }
 
     const doc = await payload.update({

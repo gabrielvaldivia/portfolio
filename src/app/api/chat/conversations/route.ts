@@ -1,5 +1,6 @@
 import { sql } from '@payloadcms/db-postgres'
 import { getPayload } from '@/lib/payload'
+import { checkConversationWriteRateLimit } from '@/lib/chatRateLimit'
 import { normalizeConversationMessages } from '@/lib/chatMessages'
 import {
   applyConversationOwnerCookie,
@@ -60,7 +61,7 @@ export async function GET(req: NextRequest) {
       : DEFAULT_SUMMARY_LIMIT
     const cursorUpdatedAt = url.searchParams.get('cursorUpdatedAt')
     const cursorId = Number(url.searchParams.get('cursorId'))
-    const hasCursor = Boolean(cursorUpdatedAt) && Number.isFinite(cursorId)
+    const hasCursor = Boolean(cursorUpdatedAt) && !Number.isNaN(Date.parse(cursorUpdatedAt || '')) && Number.isFinite(cursorId)
     const cursorFilter = hasCursor
       ? sql`WHERE ("updated_at", "id") < (${cursorUpdatedAt}, ${cursorId})`
       : sql``
@@ -113,6 +114,14 @@ export async function POST(req: NextRequest) {
     body = await readJSONBody(req, { maxBytes: MAX_BODY_BYTES })
   } catch (error) {
     return requestErrorResponse(error) || Response.json({ error: 'Invalid request' }, { status: 400 })
+  }
+
+  const rateLimit = await checkConversationWriteRateLimit(req.headers)
+  if (!rateLimit.allowed) {
+    return Response.json({ error: 'Too many requests' }, {
+      status: 429,
+      headers: { 'Retry-After': String(rateLimit.retryAfterSeconds) },
+    })
   }
 
   const title = typeof body.title === 'string' ? body.title.trim().slice(0, 160) : ''

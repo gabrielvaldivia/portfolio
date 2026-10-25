@@ -35,6 +35,14 @@ export function normalizeConversationMessages(value: unknown): ChatMessage[] | n
   return messages
 }
 
+/** Saved turns are history: an update may only add messages after them. */
+export function extendsConversation(existing: unknown, next: ChatMessage[]) {
+  if (!Array.isArray(existing) || existing.length > next.length) return false
+  return existing.every((message, index) => (
+    message?.role === next[index].role && message?.content === next[index].content
+  ))
+}
+
 export function normalizeAIChatMessages(value: unknown): ChatMessage[] | null {
   const normalized = normalizeConversationMessages(value)
   if (!normalized || normalized.at(-1)?.role !== 'user') return null

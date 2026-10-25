@@ -1,4 +1,5 @@
 import type { Block, CollectionConfig, Field } from 'payload'
+import { isCmsUser } from '../lib/cmsAccess'
 import { SectionHeader } from '../blocks/SectionHeader/config'
 import { FullWidthImage } from '../blocks/FullWidthImage/config'
 import { FullWidthVideo } from '../blocks/FullWidthVideo/config'
@@ -253,7 +254,8 @@ const AccordionBlock: Block = {
     { ...sizeFields, admin: { hidden: true } },
     { name: 'fixedHeight', type: 'text', defaultValue: '80dvh', admin: { hidden: true } },
     { name: 'title', type: 'text', defaultValue: 'Ask me anything', admin: { hidden: true } },
-    { name: 'systemPromptExtra', type: 'textarea', label: 'Extra Instructions', admin: { description: 'Additional instructions appended to the system prompt' } },
+    // Server code reads this through the local API; visitors must not see it.
+    { name: 'systemPromptExtra', type: 'textarea', label: 'Extra Instructions', access: { read: isCmsUser }, admin: { description: 'Additional instructions appended to the system prompt' } },
     {
       name: 'items',
       type: 'array',

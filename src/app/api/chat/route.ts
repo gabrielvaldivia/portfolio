@@ -18,6 +18,9 @@ import {
 
 export const runtime = 'nodejs'
 export const maxDuration = 30
+// Leave room under maxDuration to stream the answer or the FAQ fallback.
+const RESPONSE_BUDGET_MS = 25_000
+const MIN_RETRY_MS = 8_000
 
 const GABOS_API = process.env.GABOS_API_URL?.trim() || 'https://gabos.vercel.app'
 const MAX_SYSTEM_PROMPT_CHARS = 60_000
@@ -36,14 +39,16 @@ function boundSystemPrompt(prompt: string) {
   return `${prompt.slice(0, 48_000)}\n\n[Less relevant context omitted]\n\n${prompt.slice(-12_000)}`
 }
 
-async function getWritingContext(queryValue: unknown) {
+async function getWritingContext(queryValue: unknown, deadline: number) {
   const query = truncate(queryValue, 160)
   if (!query) return ''
+  // Writing is optional context; it gets a third of the budget, search and posts together.
+  const signal = AbortSignal.timeout(Math.max(Math.min(8_000, deadline - Date.now()), 0))
 
   try {
     const response = await fetch(`${GABOS_API}/api/search?q=${encodeURIComponent(query)}`, {
       cache: 'no-store',
-      signal: AbortSignal.timeout(8_000),
+      signal,
     })
     if (!response.ok) return ''
 
@@ -63,7 +68,7 @@ async function getWritingContext(queryValue: unknown) {
         try {
           const postResponse = await fetch(
             `${GABOS_API}/api/post?slug=${encodeURIComponent(result.slug)}&dir=${encodeURIComponent(result.dir)}`,
-            { cache: 'no-store', signal: AbortSignal.timeout(8_000) },
+            { cache: 'no-store', signal },
           )
           if (!postResponse.ok) return ''
           const post = await postResponse.json()
@@ -141,6 +146,7 @@ function eventStream(
 }
 
 export async function POST(req: Request) {
+  const deadline = Date.now() + RESPONSE_BUDGET_MS
   let body: Record<string, unknown>
   try {
     assertSameOrigin(req)
@@ -191,6 +197,8 @@ export async function POST(req: Request) {
     return eventStream(CHAT_IMPLEMENTATION_BOUNDARY, rateLimit)
   }
 
+  // Start the optional writing search while the site context loads.
+  const writingContextPromise = isWorkersAIConfigured() ? getWritingContext(latestQuestion, deadline) : Promise.resolve('')
   let systemPrompt: string
   let faqItems: FAQItem[]
   try {
@@ -205,7 +213,7 @@ export async function POST(req: Request) {
     return eventStream(faqFallback(latestQuestion, faqItems, earlierReplies), rateLimit)
   }
 
-  const writingContext = await getWritingContext(latestQuestion)
+  const writingContext = await writingContextPromise
   const hasUnsafePersonaHistory = messages
     .slice(0, -1)
     .some((message) =>
@@ -230,10 +238,13 @@ export async function POST(req: Request) {
       messages: currentMessages,
       maxTokens: 512,
       temperature: CHAT_TEMPERATURE,
+      deadline,
     })
     let content = response.content?.trim() || ''
     const priorReplies = hasUnsafePersonaHistory ? [] : earlierReplies
-    if (content && repeatsEarlierReply(content, priorReplies)) {
+    if (content && repeatsEarlierReply(content, priorReplies) && deadline - Date.now() < MIN_RETRY_MS) {
+      content = faqFallback(latestQuestion, [], priorReplies)
+    } else if (content && repeatsEarlierReply(content, priorReplies)) {
       const retry = await createWorkersAICompletion({
         messages: [
           ...currentMessages,
@@ -242,6 +253,7 @@ export async function POST(req: Request) {
         ],
         maxTokens: 512,
         temperature: CHAT_TEMPERATURE,
+        deadline,
       })
       const retried = retry.content?.trim() || ''
       content = retried && !repeatsEarlierReply(retried, priorReplies)

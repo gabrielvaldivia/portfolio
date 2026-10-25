@@ -54,8 +54,9 @@ export async function GET(req: Request) {
         limit: getRequestedLimit(url.searchParams.get('limit'), MODULE_LIKE_ACTIVITY_PAGE_SIZE),
       })
 
+    // The feed is the same for every visitor, so the CDN can absorb repeat loads.
     return NextResponse.json(page, {
-      headers: { 'Cache-Control': 'no-store' },
+      headers: { 'Cache-Control': 'public, s-maxage=15, stale-while-revalidate=60' },
     })
   } catch (error) {
     console.error('Unable to load activity page.', error)

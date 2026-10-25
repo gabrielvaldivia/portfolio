@@ -89,6 +89,8 @@ function getSubject(stats: WeeklyActivityStats) {
   return `Weekly portfolio activity${counts.length ? ` · ${counts.join(' · ')}` : ''}`
 }
 
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000
+
 export async function GET(req: Request) {
   const authHeader = req.headers.get('authorization')
   const expected = process.env.CRON_SECRET
@@ -99,44 +101,51 @@ export async function GET(req: Request) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const sinceDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-  const activityPage = await getModuleLikeActivityPage({ limit: null, since: sinceDate })
-  const stats = summarizeWeeklyActivity(activityPage.items)
+  try {
+    const sinceDate = new Date(Date.now() - WEEK_MS)
+    const activityPage = await getModuleLikeActivityPage({ limit: null, since: sinceDate })
+    const stats = summarizeWeeklyActivity(activityPage.items)
 
-  if (stats.activityRows === 0) {
-    return Response.json({ ok: true, sent: false, reason: 'No new activity this week' })
+    if (stats.activityRows === 0) {
+      return Response.json({ ok: true, sent: false, reason: 'No new activity this week' })
+    }
+
+    const chatOpenings = stats.chatSessions && isWorkersAIConfigured()
+      ? await getRecentChatOpenings(sinceDate)
+      : []
+    const summary = await generateSummary(stats, chatOpenings)
+    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'https://gabrielvaldivia.com'
+    const { html, text } = renderWeeklyActivityEmail({ serverUrl, stats, summary })
+
+    const resend = new Resend(process.env.RESEND_API_KEY)
+    // A retried or manual run within Resend's 24-hour window sends this week's digest once.
+    const digestWeek = new Date(Math.floor(Date.now() / WEEK_MS) * WEEK_MS).toISOString().slice(0, 10)
+    const sendResult = await resend.emails.send({
+      from: 'Portfolio Activity <onboarding@resend.dev>',
+      to: 'gabe@valdivia.works',
+      subject: getSubject(stats),
+      text,
+      html,
+    }, { idempotencyKey: `activity-digest:${digestWeek}` })
+
+    if (sendResult.error || !sendResult.data?.id) {
+      console.error('Activity digest email failed:', sendResult.error?.name || 'missing email id')
+      return Response.json({ error: 'Unable to send activity digest' }, { status: 502 })
+    }
+
+    return Response.json({
+      ok: true,
+      sent: true,
+      emailId: sendResult.data.id,
+      count: stats.activityRows,
+      activity: {
+        chats: stats.chats,
+        highlightedPassages: stats.highlightedPassages,
+        likes: stats.likes,
+      },
+    })
+  } catch (error) {
+    console.error('Activity digest failed:', error instanceof Error ? error.name : 'unknown')
+    return Response.json({ error: 'Unable to build activity digest' }, { status: 500 })
   }
-
-  const chatOpenings = stats.chatSessions && isWorkersAIConfigured()
-    ? await getRecentChatOpenings(sinceDate)
-    : []
-  const summary = await generateSummary(stats, chatOpenings)
-  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'https://gabrielvaldivia.com'
-  const { html, text } = renderWeeklyActivityEmail({ serverUrl, stats, summary })
-
-  const resend = new Resend(process.env.RESEND_API_KEY)
-  const sendResult = await resend.emails.send({
-    from: 'Portfolio Activity <onboarding@resend.dev>',
-    to: 'gabe@valdivia.works',
-    subject: getSubject(stats),
-    text,
-    html,
-  })
-
-  if (sendResult.error || !sendResult.data?.id) {
-    console.error('Activity digest email failed:', sendResult.error?.name || 'missing email id')
-    return Response.json({ error: 'Unable to send activity digest' }, { status: 502 })
-  }
-
-  return Response.json({
-    ok: true,
-    sent: true,
-    emailId: sendResult.data.id,
-    count: stats.activityRows,
-    activity: {
-      chats: stats.chats,
-      highlightedPassages: stats.highlightedPassages,
-      likes: stats.likes,
-    },
-  })
 }

@@ -21,10 +21,11 @@ function respondWith(chunks: string[], delayMs: number) {
 }
 
 test('long answers keep streaming while chunks keep arriving', async () => {
-  respondWith(['data: {"text":"a"}\n', 'data: {"text":"b"}\n', 'data: {"text":"c"}\n', 'data: [DONE]\n'], 20)
+  // Each chunk arrives well inside the idle timeout, but the whole answer outlasts it.
+  respondWith(['data: {"text":"a"}\n', 'data: {"text":"b"}\n', 'data: {"text":"c"}\n', 'data: [DONE]\n'], 150)
   const seen: string[] = []
   const answer = await streamChat([{ role: 'user', content: 'hi' }], {
-    signal: new AbortController().signal, idleTimeoutMs: 50, onText: (text) => seen.push(text),
+    signal: new AbortController().signal, idleTimeoutMs: 400, onText: (text) => seen.push(text),
   })
   assert.equal(answer, 'abc')
   assert.deepEqual(seen, ['a', 'ab', 'abc'])
@@ -50,8 +51,8 @@ test('rate-limited requests report their status', async () => {
 })
 
 test('a stalled stream times out', async () => {
-  respondWith(['data: {"text":"a"}\n', 'data: {"text":"b"}\n'], 80)
+  respondWith(['data: {"text":"a"}\n', 'data: {"text":"b"}\n'], 400)
   await assert.rejects(streamChat([{ role: 'user', content: 'hi' }], {
-    signal: new AbortController().signal, idleTimeoutMs: 40,
+    signal: new AbortController().signal, idleTimeoutMs: 100,
   }))
 })

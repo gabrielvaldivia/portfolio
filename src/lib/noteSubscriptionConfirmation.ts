@@ -14,6 +14,8 @@ export async function confirmNoteSubscription(payload: Payload, email: string) {
   const subscriber = result.docs[0]
   // Refreshing an already-used confirmation link must not send another email.
   if (subscriber?.status === 'subscribed') return subscriber
+  // A confirmation link stays valid for days; it must not undo a later unsubscribe.
+  if (subscriber?.status === 'unsubscribed') return null
 
   const confirmedAt = subscriber?.confirmedAt || new Date().toISOString()
   const confirmed = subscriber
