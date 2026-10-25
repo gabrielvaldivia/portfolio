@@ -67,3 +67,19 @@ test('authorization requests must use registered redirects, PKCE, and this resou
 test('changing the password changes the token version', () => {
   assert.notEqual(oauth.userTokenVersion(user), oauth.userTokenVersion({ ...user, hash: 'new-hash' }))
 })
+
+test('the Allow form is accepted from this site and rejected from others', async () => {
+  const { POST } = await import('../src/app/oauth/authorize/route')
+  const submit = (headers: Record<string, string>) => POST(new Request('https://portfolio.example/oauth/authorize', {
+    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', ...headers }, body: 'client_id=unknown&decision=allow',
+  }))
+  // Browsers send `Origin: null` under a no-referrer policy; Sec-Fetch-Site still identifies the page.
+  for (const headers of [{ Origin: 'https://portfolio.example' }, { Origin: 'null', 'Sec-Fetch-Site': 'same-origin' }]) {
+    const html = await (await submit(headers)).text()
+    assert.doesNotMatch(html, /did not come from this site/)
+    assert.match(html, /Unknown client/)
+  }
+  for (const headers of [{ Origin: 'https://evil.example' }, { Origin: 'null', 'Sec-Fetch-Site': 'cross-site' }, {}]) {
+    assert.match(await (await submit(headers)).text(), /did not come from this site/)
+  }
+})

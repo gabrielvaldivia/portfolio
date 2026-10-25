@@ -3,7 +3,7 @@
   "date": "2026-10-25",
   "title": "Portfolio editing, access, and speed",
   "changes": [
-   "AI clients connect by signing in with the admin account, no keys needed, with setup steps on the account page, and publish notes only when asked. 45 unused uploads were cleared. Only signed-in editors can change content, and rate limits no longer let one burst block everyone."
+   "AI clients connect by signing in with the admin account, no keys needed, with setup steps on the account page and a working Allow step. 45 unused uploads were cleared. Only signed-in editors can change content, and rate limits no longer let one burst block everyone."
   ]
  },
  {

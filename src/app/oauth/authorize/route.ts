@@ -17,7 +17,9 @@ const AUTHORIZE_PARAMS = ['client_id', 'redirect_uri', 'response_type', 'code_ch
 const pageHeaders = {
   'Content-Type': 'text/html; charset=utf-8',
   'Cache-Control': 'no-store',
-  'Referrer-Policy': 'no-referrer',
+  // Not no-referrer: under that policy browsers send `Origin: null` with the
+  // Allow form, which the same-site check below would reject.
+  'Referrer-Policy': 'same-origin',
   'X-Robots-Tag': 'noindex, nofollow',
   // A consent screen must never be framed, or a page could trick a click onto Allow.
   'Content-Security-Policy': "frame-ancestors 'none'",
@@ -73,6 +75,16 @@ function consentPage(authorization: AuthorizationRequest, email: string, params:
 </form>`)
 }
 
+/** The Allow form must be submitted from this site's own consent page. */
+function assertApprovalFromThisSite(request: Request) {
+  const origin = request.headers.get('origin')
+  const fetchSite = request.headers.get('sec-fetch-site')
+  // Pages served before this fix, and some in-app browsers, send `Origin: null`;
+  // the browser's Sec-Fetch-Site still says whether the form came from this site.
+  if (origin === 'null' && fetchSite === 'same-origin') return
+  assertSameOrigin(request, { requireOrigin: true, message: 'This approval did not come from this site. Start connecting again.' })
+}
+
 export async function GET(request: Request) {
   const params = new URL(request.url).searchParams
   let authorization: AuthorizationRequest
@@ -94,7 +106,7 @@ export async function POST(request: Request) {
   let params: URLSearchParams
   let authorization: AuthorizationRequest
   try {
-    assertSameOrigin(request, { requireOrigin: true, message: 'This approval did not come from this site. Start connecting again.' })
+    assertApprovalFromThisSite(request)
     const form = await request.formData()
     params = new URLSearchParams()
     for (const name of [...AUTHORIZE_PARAMS, 'decision']) {
