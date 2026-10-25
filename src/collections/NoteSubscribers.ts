@@ -10,7 +10,10 @@ export const NoteSubscribers: CollectionConfig = {
   admin: {
     group: 'Admin',
     useAsTitle: 'email',
-    defaultColumns: ['email', 'status', 'confirmedAt', 'updatedAt'],
+    defaultColumns: ['email', 'status', 'confirmedAt'],
+    components: {
+      beforeListTable: ['./components/admin/SubscriberMetrics#SubscriberMetrics'],
+    },
   },
   access: {
     create: isAuthenticated,

@@ -79,6 +79,8 @@ html[data-theme="dark"] .thumbnail-card__thumbnail img {
   --cms-text-secondary: #525252;
   --cms-text-tertiary: #737373;
   --cms-text-quaternary: #a3a3a3;
+  --cms-text-positive: #15803d;
+  --cms-text-negative: #b91c1c;
   --cms-primary-bg: #262626;
   --cms-primary-bg-hover: #313131;
   --cms-primary-text: #fcfcfc;
@@ -140,6 +142,8 @@ html[data-theme="dark"] .thumbnail-card__thumbnail img {
 }
 
 html[data-theme="dark"] {
+  --cms-text-positive: #4ade80;
+  --cms-text-negative: #f87171;
   --cms-bg-main: #0d0d0d;
   --cms-bg-primary: #171717;
   --cms-bg-secondary: #262626;
@@ -5361,4 +5365,101 @@ body:has(.collection-edit--notes) .popup__content:has(#notes-edit-menu-writing) 
 // The admin is English only, so the account page's language picker has nothing to offer.
 .payload-settings__language {
   display: none;
+}
+
+.collection-list > .gutter:has(> .subscriber-metrics) {
+  display: flex;
+  flex-direction: column;
+}
+
+.subscriber-metrics {
+  order: -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 20px;
+}
+
+.subscriber-metrics__item {
+  min-width: 0;
+  padding: 16px;
+  border: 0.5px solid var(--cms-border-secondary);
+  border-radius: var(--cms-control-radius);
+  background: var(--cms-bg-secondary);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  column-gap: 12px;
+}
+
+.subscriber-metrics__label {
+  grid-column: 1 / -1;
+  color: var(--cms-text-secondary);
+  font-size: 13px;
+}
+
+.subscriber-metrics__value {
+  margin: 6px 0 0;
+  color: var(--cms-text-primary);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.subscriber-metrics__trend-wrap,
+.subscriber-metrics__trend {
+  margin: 0;
+}
+
+.subscriber-metrics__trend-wrap {
+  align-self: center;
+  margin-top: 6px;
+}
+
+.subscriber-metrics__sparkline {
+  display: block;
+  width: 88px;
+  height: 24px;
+  overflow: visible;
+}
+
+.subscriber-metrics__line {
+  fill: none;
+  stroke: var(--cms-text-quaternary);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.subscriber-metrics__delta {
+  margin: 0;
+  min-width: 3ch;
+  color: var(--cms-text-tertiary);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.1;
+  text-align: end;
+}
+
+.subscriber-metrics__delta--good {
+  color: var(--cms-text-positive);
+}
+
+.subscriber-metrics__delta--bad {
+  color: var(--cms-text-negative);
+}
+
+.subscriber-metrics__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .subscriber-metrics {
+    grid-template-columns: 1fr;
+  }
 }

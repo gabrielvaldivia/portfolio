@@ -1,6 +1,41 @@
 {
-  "throughCommit": "39bc3d1a07f53b0098fa281d3544611ba539ebdc",
+  "throughCommit": "c3d3e84baf6f2ad8f4bd6927a8270d45e2117ce2",
   "commits": [
+    {
+      "hash": "c3d3e84baf6f2ad8f4bd6927a8270d45e2117ce2",
+      "date": "2026-10-25",
+      "subject": "Show subscriber metrics with trends on the subscribers page"
+    },
+    {
+      "hash": "05dfe3925dfbb422d0ef2dd98f5eecce36a07622",
+      "date": "2026-10-25",
+      "subject": "Type the Allow form test's header lists"
+    },
+    {
+      "hash": "939b78c94484c86be3ab7965d2acfc758a547a40",
+      "date": "2026-10-25",
+      "subject": "Accept the MCP Allow form when browsers send Origin: null"
+    },
+    {
+      "hash": "385350463b1b091105331b9653b7d5916b4e5512",
+      "date": "2026-10-25",
+      "subject": "Show MCP connection steps on the account page"
+    },
+    {
+      "hash": "5118d95754bedfced5f470afe9cb1f1a614aa49f",
+      "date": "2026-10-25",
+      "subject": "Sign MCP clients in with OAuth instead of API keys"
+    },
+    {
+      "hash": "c85ad2db96170f4e4c49274eae09571cd28c9889",
+      "date": "2026-10-25",
+      "subject": "Link MCP keys from the admin account menu"
+    },
+    {
+      "hash": "b31d784dfca5d4b5b6f1abf39c6094d55eb174c3",
+      "date": "2026-10-25",
+      "subject": "Add Payload MCP server for AI-assisted portfolio editing"
+    },
     {
       "hash": "39bc3d1a07f53b0098fa281d3544611ba539ebdc",
       "date": "2026-10-25",
