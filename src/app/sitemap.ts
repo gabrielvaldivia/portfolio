@@ -39,7 +39,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     payload.find({
       collection: 'pages',
       where: { status: { equals: 'published' } },
-      limit: 100,
       pagination: false,
       depth: 0,
       select: { slug: true, updatedAt: true },
@@ -47,14 +46,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     payload.find({
       collection: 'projects',
       where: { hide: { not_equals: true } },
-      limit: 100,
       pagination: false,
       depth: 0,
       select: { slug: true, updatedAt: true },
     }),
     payload.find({
       collection: 'side-projects',
-      limit: 100,
       pagination: false,
       depth: 0,
       select: { slug: true, updatedAt: true },
@@ -62,7 +59,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     payload.find({
       collection: 'notes',
       where: { _status: { equals: 'published' } },
-      limit: 100,
       pagination: false,
       depth: 0,
       draft: false,

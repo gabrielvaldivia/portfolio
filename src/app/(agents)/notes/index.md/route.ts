@@ -1,11 +1,11 @@
 import { markdownDocument, markdownListItem, markdownResponse } from '@/lib/agentMarkdown'
-import { getPublishedNotes } from '@/lib/queries'
+import { getPublishedNoteList } from '@/lib/queries'
 import { absoluteSiteUrl } from '@/lib/structuredData'
 
 export const revalidate = 3600
 
 export async function GET() {
-  const { docs: notes } = await getPublishedNotes()
+  const { docs: notes } = await getPublishedNoteList()
   const noteList = notes.map((note) => {
     const date = note.publishedAt || note.createdAt
     const prefix = date ? new Date(date).toISOString().slice(0, 10) : ''

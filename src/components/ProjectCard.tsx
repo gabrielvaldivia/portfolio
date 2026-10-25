@@ -11,12 +11,14 @@ type Props = {
   href?: string
   icon?: React.ReactNode
   priority?: boolean
+  /** Rendered width hint; defaults to the responsive grid. */
+  sizes?: string
   variant?: 'default' | 'hero'
   tabIndex?: number
   emphasizeHover?: boolean
 }
 
-export function ProjectCard({ title, slug, subtitle, featuredImage, href, icon, priority, variant = 'default', tabIndex, emphasizeHover = false }: Props) {
+export function ProjectCard({ title, slug, subtitle, featuredImage, href, icon, priority, sizes = '(max-width: 810px) 100vw, (max-width: 1280px) 50vw, 33vw', variant = 'default', tabIndex, emphasizeHover = false }: Props) {
   const isHero = variant === 'hero'
 
   return (
@@ -59,7 +61,7 @@ export function ProjectCard({ title, slug, subtitle, featuredImage, href, icon, 
                 'object-cover',
                 !emphasizeHover && 'transition-transform duration-500 group-hover:scale-[1.03]',
               )}
-              sizes="(max-width: 810px) 100vw, (max-width: 1280px) 50vw, 33vw"
+              sizes={sizes}
               priority={priority}
             />
           ) : (

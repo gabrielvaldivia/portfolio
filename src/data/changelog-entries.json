@@ -1,9 +1,9 @@
 [
  {
   "date": "2026-10-25",
-  "title": "Tighter access, steadier chat",
+  "title": "Tighter access, faster pages",
   "changes": [
-   "Only signed-in editors can change content. Rate limits now cover chats, likes, and signups without one burst blocking everyone. Unpublished notes leave right away, chat answers stay in their own conversation, and unsubscribe links ask before acting."
+   "Only signed-in editors can change content, and rate limits no longer let one burst block everyone. Pages are cached instead of rebuilt per visit, load lighter images and less data, and shares show each page's own title. Chats, likes, and unsubscribes are more reliable."
   ]
  },
  {

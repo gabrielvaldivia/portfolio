@@ -11,7 +11,8 @@ function resolveUrl(fields: any): string {
   if (fields.doc) {
     const doc = fields.doc
     const slug = doc.value?.slug || doc.slug
-    const collection = fields.relationTo
+    // Lexical stores polymorphic links as { relationTo, value } on the doc field.
+    const collection = doc.relationTo || fields.relationTo
 
     // Projects
     if (collection === 'projects') {
@@ -22,8 +23,11 @@ function resolveUrl(fields: any): string {
       return `/notes/${slug}`
     }
 
+    if (collection === 'side-projects') return slug ? `/playground/${slug}` : '/playground'
+    if (collection === 'photos') return slug ? `/photos/${slug}` : '/photos'
+
     // Pages
-    if (slug) {
+    if (slug && (!collection || collection === 'pages')) {
       if (slug === 'home') return '/'
       return `/${slug}`
     }
@@ -45,6 +49,13 @@ export function RichText({ data, renderLinkedImages = false }: { data: any; rend
         data={data}
         converters={({ defaultConverters }) => ({
           ...defaultConverters,
+          // A deleted file leaves its upload node behind with no value; skip it.
+          upload: (args) => {
+            const value = (args.node as { value?: unknown }).value
+            if (!value || typeof value !== 'object' || !(value as { url?: unknown }).url) return null
+            const convert = defaultConverters.upload
+            return typeof convert === 'function' ? convert(args) : null
+          },
           link: ({ node, nodesToJSX }) => {
             const fields = node.fields as any
             const url = resolveUrl(fields)

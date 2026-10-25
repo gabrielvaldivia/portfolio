@@ -82,21 +82,18 @@ export function buildPageMetadata(
           },
         }
       : {}),
-    ...(openGraphImage
-      ? {
-          openGraph: {
-            title,
-            description,
-            ...(canonicalPath ? { url: canonicalPath } : {}),
-            images: [openGraphImage],
-          },
-          twitter: {
-            card: 'summary_large_image' as const,
-            title,
-            description,
-            images: [{ url: openGraphImage.url, ...(image?.alt ? { alt: image.alt } : {}) }],
-          },
-        }
-      : {}),
+    // Always describe the page itself; otherwise shares fall back to the site-wide title.
+    openGraph: {
+      title,
+      description,
+      ...(canonicalPath ? { url: canonicalPath } : {}),
+      ...(openGraphImage ? { images: [openGraphImage] } : {}),
+    },
+    twitter: {
+      card: 'summary_large_image' as const,
+      title,
+      description,
+      ...(openGraphImage ? { images: [{ url: openGraphImage.url, ...(image?.alt ? { alt: image.alt } : {}) }] } : {}),
+    },
   }
 }

@@ -113,6 +113,20 @@ type WindowWithWebAudio = Window &
     webkitAudioContext?: typeof AudioContext
   }
 
+// Browsers cap live audio contexts, so every like button shares one.
+let sharedAudioContext: AudioContext | null = null
+
+function getSharedAudioContext() {
+  if (typeof window === 'undefined') return null
+  if (!sharedAudioContext) {
+    const AudioContextConstructor = window.AudioContext || (window as WindowWithWebAudio).webkitAudioContext
+    if (!AudioContextConstructor) return null
+    sharedAudioContext = new AudioContextConstructor()
+  }
+  if (sharedAudioContext.state === 'suspended') void sharedAudioContext.resume()
+  return sharedAudioContext
+}
+
 function HeartIcon({ className, size = HEART_ICON_SIZE }: { className?: string; size?: number }) {
   return (
     <svg
@@ -242,7 +256,6 @@ export function ModuleLikeButton({
   const suppressNextClickRef = useRef(false)
   const pointerIdRef = useRef<number | null>(null)
   const superLikeChargeVisibleRef = useRef(false)
-  const audioContextRef = useRef<AudioContext | null>(null)
   const chargeOscillatorRef = useRef<OscillatorNode | null>(null)
   const chargeGainRef = useRef<GainNode | null>(null)
 
@@ -274,14 +287,15 @@ export function ModuleLikeButton({
 
     return () => {
       isActive = false
-      if (particleTimeout.current) clearTimeout(particleTimeout.current)
-      if (limitTimeout.current) clearTimeout(limitTimeout.current)
-      if (superLikeTimeout.current) clearTimeout(superLikeTimeout.current)
-      if (superLikeChargeTimeout.current) clearTimeout(superLikeChargeTimeout.current)
-      if (superLikeBonusTimeout.current) clearTimeout(superLikeBonusTimeout.current)
-      if (popTimeout.current) clearTimeout(popTimeout.current)
-      if (suppressClickTimeout.current) clearTimeout(suppressClickTimeout.current)
+      // Clear and forget timers: the lightbox reuses this button for the next
+      // slide, and a stale hold timer would block super likes there.
+      for (const timeout of [particleTimeout, limitTimeout, superLikeTimeout, superLikeChargeTimeout,
+        superLikeBonusTimeout, popTimeout, suppressClickTimeout]) {
+        if (timeout.current) clearTimeout(timeout.current)
+        timeout.current = null
+      }
       countTimeouts.current.forEach(clearTimeout)
+      countTimeouts.current = []
       pendingCountAnimation.current = null
       superLikeChargeVisibleRef.current = false
       try {
@@ -340,25 +354,10 @@ export function ModuleLikeButton({
     animateDisplayCount(pending.from, pending.to)
   }, [animateDisplayCount])
 
-  const getAudioContext = useCallback(() => {
-    if (typeof window === 'undefined') return null
-
-    if (!audioContextRef.current) {
-      const AudioContextConstructor =
-        window.AudioContext || (window as WindowWithWebAudio).webkitAudioContext
-      if (!AudioContextConstructor) return null
-      audioContextRef.current = new AudioContextConstructor()
-    }
-
-    if (audioContextRef.current.state === 'suspended') {
-      void audioContextRef.current.resume()
-    }
-
-    return audioContextRef.current
-  }, [])
+  const getAudioContext = useCallback(() => getSharedAudioContext(), [])
 
   const stopChargeSound = useCallback((fadeDuration = 0.06) => {
-    const audioContext = audioContextRef.current
+    const audioContext = sharedAudioContext
     const oscillator = chargeOscillatorRef.current
     const gain = chargeGainRef.current
     if (!audioContext || !oscillator || !gain) return

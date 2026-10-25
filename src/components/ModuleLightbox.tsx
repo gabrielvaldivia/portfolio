@@ -139,10 +139,13 @@ function getSurfacePaddingRatios(element: HTMLElement) {
 export function ModuleLightboxProvider({
   slides,
   initialSlideId,
+  initialSlideQuery,
   children,
 }: {
   slides: ModuleLightboxSlide[]
   initialSlideId?: string | null
+  /** Open a slide named in the URL, read on the client so the page can stay static. */
+  initialSlideQuery?: { param: string; idPrefix: string }
   children: ReactNode
 }) {
   const [openState, setOpenState] = useState<OpenLightboxState | null>(null)
@@ -263,13 +266,22 @@ export function ModuleLightboxProvider({
     registerMovableSurface,
   }), [hiddenSlideId, openSlide, registerMovableSurface, registerSlideAspectRatio, registerSlideElement])
 
+  const queryParam = initialSlideQuery?.param
+  const queryPrefix = initialSlideQuery?.idPrefix
   useEffect(() => {
-    if (!initialSlideId || initialSlideOpenedRef.current === initialSlideId) return
+    const queryValue = queryParam ? new URLSearchParams(window.location.search).get(queryParam) : null
+    const querySlideId = queryValue ? `${queryPrefix || ''}${queryValue}` : null
+    const slideId = initialSlideId || (querySlideId && slideIndexById.has(querySlideId) ? querySlideId : null)
+    if (!slideId || initialSlideOpenedRef.current === slideId) return
 
-    initialSlideOpenedRef.current = initialSlideId
-    const frame = requestAnimationFrame(() => openSlide(initialSlideId))
+    // Mark it opened only once the frame runs, so a cancelled frame (Strict
+    // Mode's effect replay) does not leave the slide marked but never opened.
+    const frame = requestAnimationFrame(() => {
+      initialSlideOpenedRef.current = slideId
+      openSlide(slideId)
+    })
     return () => cancelAnimationFrame(frame)
-  }, [initialSlideId, openSlide])
+  }, [initialSlideId, openSlide, queryParam, queryPrefix, slideIndexById])
 
   return (
     <ModuleLightboxContext.Provider value={contextValue}>

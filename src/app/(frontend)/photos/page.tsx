@@ -15,23 +15,9 @@ export const metadata: Metadata = {
   },
 }
 
-type PhotosPageSearchParams = {
-  photo?: string | string[]
-}
-
-function getSearchParamValue(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value
-}
-
-export default async function PhotosPage({
-  searchParams,
-}: {
-  searchParams?: Promise<PhotosPageSearchParams>
-}) {
-  const [resolvedSearchParams, photos] = await Promise.all([
-    searchParams || Promise.resolve({} as PhotosPageSearchParams),
-    getPhotos(),
-  ])
+// ?photo= deep links open in the gallery on the client, so this page stays static.
+export default async function PhotosPage() {
+  const photos = await getPhotos()
   const structuredData = buildSiteStructuredData([{
     '@type': 'CollectionPage',
     '@id': absoluteSiteUrl('/photos#collection-page'),
@@ -54,7 +40,7 @@ export default async function PhotosPage({
   return (
     <>
       <JsonLd data={structuredData} />
-      <PhotoGallery initialPhotoSlug={getSearchParamValue(resolvedSearchParams.photo)} />
+      <PhotoGallery />
     </>
   )
 }

@@ -6,20 +6,22 @@ import { Calendar04Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import {
-  DEFAULT_TIMELINE_CHAPTERS,
-  type TimelineChapter,
-} from '../data/timelineContent'
+import dynamic from 'next/dynamic'
+// The page passes CMS chapters; keep the large defaults out of the client bundle.
+import type { TimelineChapter } from '../data/timelineContent'
 import { LOCATION_CONTEXT } from '../data/timelineWorldContext'
 import { HoverArrow } from './Icons'
 import { RichText } from './RichText'
-import {
-  TimelineCursorGlobe,
-  type GlobeLocation,
-} from './TimelineCursorGlobe'
+import type { GlobeLocation } from './TimelineCursorGlobe'
 import { Calendar } from './ui/Calendar'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/Popover'
 import styles from './TimelineExperience.module.css'
+
+// The globe pulls in d3-geo and a world map; load them on the first location hover.
+const TimelineCursorGlobe = dynamic(
+  () => import('./TimelineCursorGlobe').then((module) => module.TimelineCursorGlobe),
+  { ssr: false },
+)
 
 const BIRTH_YEAR = 1987
 const BIRTH_TIMESTAMP = Date.UTC(1987, 2, 23)
@@ -247,10 +249,10 @@ const CHAPTER_YEARS = new Set(
   CHAPTER_STARTS.map((timestamp) => new Date(timestamp).getUTCFullYear()),
 )
 export function TimelineExperience({
-  chapters = DEFAULT_TIMELINE_CHAPTERS,
+  chapters,
   presentDate,
 }: {
-  chapters?: readonly TimelineChapter[]
+  chapters: readonly TimelineChapter[]
   presentDate: string
 }) {
   const [presentYear, presentMonth, presentDay] = presentDate.split('-').map(Number)
@@ -299,6 +301,8 @@ export function TimelineExperience({
   const [isAgePortraitVisible, setIsAgePortraitVisible] = useState(false)
   const [isBeyondPresentPreview, setIsBeyondPresentPreview] = useState(false)
   const [isLocationGlobeVisible, setIsLocationGlobeVisible] = useState(false)
+  const [hasShownLocationGlobe, setHasShownLocationGlobe] = useState(false)
+  if (isLocationGlobeVisible && !hasShownLocationGlobe) setHasShownLocationGlobe(true)
   const [locationGlobePortalRoot, setLocationGlobePortalRoot] = useState<HTMLElement | null>(null)
   const hoverProgressRef = useRef<number | null>(null)
   const targetRef = useRef(0)
@@ -2218,11 +2222,13 @@ export function TimelineExperience({
           data-visible={isLocationGlobeVisible}
           aria-hidden="true"
         >
-          <TimelineCursorGlobe
-            active={isLocationGlobeVisible}
-            location={locationGlobe}
-            longitudeOffsetRef={locationGlobeLongitudeOffsetRef}
-          />
+          {hasShownLocationGlobe ? (
+            <TimelineCursorGlobe
+              active={isLocationGlobeVisible}
+              location={locationGlobe}
+              longitudeOffsetRef={locationGlobeLongitudeOffsetRef}
+            />
+          ) : null}
         </div>,
         locationGlobePortalRoot,
       )}

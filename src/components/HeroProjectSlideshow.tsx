@@ -76,10 +76,12 @@ const MOBILE_HERO_MEDIA_OVERRIDES: Record<string, ResponsiveImageMedia> = {
 // Smoothstep alpha stops: a gentle fade with flat tangents at both ends.
 const MOBILE_IMAGE_MASK = 'linear-gradient(to bottom, #000 60%, rgb(0 0 0 / .972) 64%, rgb(0 0 0 / .896) 68%, rgb(0 0 0 / .784) 72%, rgb(0 0 0 / .648) 76%, rgb(0 0 0 / .5) 80%, rgb(0 0 0 / .352) 84%, rgb(0 0 0 / .216) 88%, rgb(0 0 0 / .104) 92%, rgb(0 0 0 / .028) 96%, transparent 100%)'
 
-function SilentBackgroundVideo({ src, label, playing = true, onLoadedData, onError }: {
+function SilentBackgroundVideo({ src, label, playing = true, load = true, onLoadedData, onError }: {
   src: string
   label: string
   playing?: boolean
+  /** Attach the source only once the slide is close to view. */
+  load?: boolean
   onLoadedData?: (video: HTMLVideoElement) => void
   onError?: () => void
 }) {
@@ -87,7 +89,7 @@ function SilentBackgroundVideo({ src, label, playing = true, onLoadedData, onErr
 
   useEffect(() => {
     const video = videoRef.current
-    if (!video) return
+    if (!video || !load) return
 
     // Set every mute control before attaching the source. On mobile Safari this
     // prevents a decorative video from briefly claiming the device audio session.
@@ -103,7 +105,7 @@ function SilentBackgroundVideo({ src, label, playing = true, onLoadedData, onErr
       video.removeAttribute('src')
       video.load()
     }
-  }, [src])
+  }, [load, src])
 
   useEffect(() => {
     const video = videoRef.current
@@ -111,7 +113,7 @@ function SilentBackgroundVideo({ src, label, playing = true, onLoadedData, onErr
 
     if (playing) void video.play().catch(() => {})
     else video.pause()
-  }, [playing, src])
+  }, [load, playing, src])
 
   return (
     <video
@@ -217,19 +219,29 @@ function isVideoMedia(media?: HeroProjectSlide['featuredImage']) {
   )
 }
 
+function isNearbySlide(index: number, activeIndex: number, count: number) {
+  const distance = Math.abs(index - activeIndex)
+  return Math.min(distance, count - distance) <= 1
+}
+
 function MobileHeroSlide({
   project,
   active,
+  nearby,
   priority,
   position,
   clone = false,
 }: {
   project: HeroProjectSlide
   active: boolean
+  /** The active slide or a neighbor; farther videos wait so they don't all download at once. */
+  nearby: boolean
   priority: boolean
   position: string
   clone?: boolean
 }) {
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(nearby)
+  if (nearby && !shouldLoadVideo) setShouldLoadVideo(true)
   const mediaOverride = MOBILE_HERO_MEDIA_OVERRIDES[project.slug]
   const media = mediaOverride
     ? { ...project.featuredImage, ...mediaOverride, sizes: null }
@@ -276,6 +288,7 @@ function MobileHeroSlide({
                 src={media.url}
                 label={media.alt || `${project.title} project video`}
                 playing={active}
+                load={shouldLoadVideo}
                 onLoadedData={needsColorSample ? updateMediaColor : undefined}
                 onError={() => setCanSampleColor(false)}
               />
@@ -344,17 +357,16 @@ function MobileHeroSlide({
 }
 
 export function HeroProjectSlideshow({ projects: initialProjects }: Props) {
-  const [projects, setProjects] = useState(initialProjects)
-
-  useEffect(() => {
-    // Shuffle after hydration so each visit gets its own stable slide order.
+  // This slideshow only mounts on the client (mobile), so shuffling before the
+  // first render is safe and avoids loading one first slide and then another.
+  const [projects] = useState(() => {
     const shuffledProjects = [...initialProjects]
     for (let index = shuffledProjects.length - 1; index > 0; index--) {
       const randomIndex = Math.floor(Math.random() * (index + 1))
       ;[shuffledProjects[index], shuffledProjects[randomIndex]] = [shuffledProjects[randomIndex], shuffledProjects[index]]
     }
-    setProjects(shuffledProjects)
-  }, [initialProjects])
+    return shuffledProjects
+  })
 
   const cursorTextPathId = `hero-cursor-${useId().replaceAll(':', '')}`
   const regionRef = useRef<HTMLDivElement>(null)
@@ -733,6 +745,7 @@ export function HeroProjectSlideshow({ projects: initialProjects }: Props) {
               <MobileHeroSlide
                 project={projects[projects.length - 1]}
                 active={activeIndex === projects.length - 1}
+                nearby={activeIndex === 0 || activeIndex === projects.length - 1}
                 priority={false}
                 position={`${projects.length} of ${projects.length}`}
                 clone
@@ -743,6 +756,7 @@ export function HeroProjectSlideshow({ projects: initialProjects }: Props) {
                 key={project.id}
                 project={project}
                 active={isMobileViewport && index === activeIndex}
+                nearby={isNearbySlide(index, activeIndex, projects.length)}
                 priority={index === 0}
                 position={`${index + 1} of ${projects.length}`}
               />
@@ -751,6 +765,7 @@ export function HeroProjectSlideshow({ projects: initialProjects }: Props) {
               <MobileHeroSlide
                 project={projects[0]}
                 active={activeIndex === 0}
+                nearby={activeIndex === 0 || activeIndex === projects.length - 1}
                 priority={false}
                 position={`1 of ${projects.length}`}
                 clone

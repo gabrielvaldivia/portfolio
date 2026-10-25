@@ -83,3 +83,13 @@ test('unpublishing a note refreshes public pages while draft saves over it do no
   await change({ doc: draft, previousDoc, context: {}, req: savedStatus('published') } as any)
   assert.deepEqual(refreshes, [true, false])
 })
+
+test('new media uploads do not refresh the site until content links them', async () => {
+  let refreshes = 0
+  const media = collection('media', () => { refreshes++ })
+  const change = media.hooks!.afterChange!.at(-1)!
+  await change({ doc: { id: 1 }, operation: 'create', context: {}, req: {} } as any)
+  assert.equal(refreshes, 0)
+  await change({ doc: { id: 1 }, previousDoc: { id: 1 }, operation: 'update', context: {}, req: {} } as any)
+  assert.equal(refreshes, 1)
+})

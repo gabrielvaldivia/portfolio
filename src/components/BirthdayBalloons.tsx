@@ -352,6 +352,9 @@ function BalloonScene() {
 
       // Update and draw confetti on canvas
       const confetti = confettiRef.current
+      // On mobile confetti rests on the donation pill; read its position once per frame.
+      const confettiFloorEl = w < 810 ? document.getElementById('birthday-donation') : null
+      const confettiFloor = confettiFloorEl ? confettiFloorEl.getBoundingClientRect().top : h
       for (const c of confetti) {
         if (!c.grounded) {
           c.vy += GRAVITY * 2.5
@@ -380,10 +383,8 @@ function BalloonScene() {
             }
           }
 
-          const confettiFloorEl = document.getElementById('birthday-donation')
-          const confettiFloor = (w < 810 && confettiFloorEl) ? confettiFloorEl.getBoundingClientRect().top : h
           if (c.y + c.size > confettiFloor) {
-            c.y = h - c.size
+            c.y = confettiFloor - c.size
             c.grounded = true
             c.groundedAt = now
             c.vx = 0

@@ -13,7 +13,8 @@ import {
 export const revalidate = 3600
 
 export async function generateStaticParams() {
-  const photos = await getPhotos()
+  // Build without a database; unlisted photos render on first visit.
+  const photos = await getPhotos().catch(() => [])
   return photos.map((photo) => ({ slug: photo.slug }))
 }
 

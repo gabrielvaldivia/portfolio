@@ -3,7 +3,8 @@ import { FitText } from '@/components/FitText'
 import { HoverChevron } from '@/components/Icons'
 import { NotesSubscribePanel } from '@/components/NotesSubscribePanel'
 import { buildPageMetadata } from '@/lib/pageMetadata'
-import { getPublishedNotes } from '@/lib/queries'
+import { withSiteSocialDefaults } from '@/lib/pageMetadataDefaults'
+import { getPublishedNoteList } from '@/lib/queries'
 import type { Metadata } from 'next'
 import Link from '@/components/SiteLink'
 import { JsonLd } from '@/components/JsonLd'
@@ -18,17 +19,17 @@ function getNoteYear(value?: string | null) {
   return Number.isNaN(date.getTime()) ? null : String(date.getUTCFullYear())
 }
 
-export function generateMetadata(): Metadata {
-  return buildPageMetadata(null, {
+export async function generateMetadata(): Promise<Metadata> {
+  return withSiteSocialDefaults(buildPageMetadata(null, {
     fallbackTitle: 'Notes',
     fallbackDescription: 'Essays and notes by Gabriel Valdivia.',
     canonicalPath: '/notes',
     markdownPath: '/notes/index.md',
-  })
+  }))
 }
 
 export default async function NotesPage() {
-  const { docs: notes } = await getPublishedNotes()
+  const { docs: notes } = await getPublishedNoteList()
   const structuredData = buildSiteStructuredData([{
     '@type': 'CollectionPage',
     '@id': absoluteSiteUrl('/notes#collection-page'),

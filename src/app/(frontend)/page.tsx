@@ -15,10 +15,11 @@ import { resolveHeroTestimonial } from '@/lib/heroTestimonial'
 import { LikedWorkMarquee, type LikedWorkMarqueeItem } from '@/components/LikedWorkMarquee'
 import { ApproachTimelineItem } from '@/components/ApproachTimelineItem'
 import { buildPageMetadata } from '@/lib/pageMetadata'
+import { withSiteSocialDefaults } from '@/lib/pageMetadataDefaults'
 import { SITE_TAGLINE } from '@/lib/siteMetadata'
 import { JsonLd } from '@/components/JsonLd'
 import { absoluteSiteUrl, buildSiteStructuredData, personReference, websiteReference } from '@/lib/structuredData'
-import { getPageBySlug } from '@/lib/queries'
+import { getHomePage, getRepeatedQuestions } from '@/lib/queries'
 import { getPayload, isPayloadUnavailable } from '@/lib/payload'
 import { getFAQItemsFromSections } from '@/lib/buildContext'
 import { getModuleLikeFeed } from '@/lib/moduleLikeActivity'
@@ -80,18 +81,18 @@ async function getPublicHomepagePreview() {
     }),
   ])
 
-  return [pageResult, services, { docs: [] }, projectsResult, likedWorkResult] as const
+  return [pageResult, services, [], projectsResult, likedWorkResult] as const
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  const page = await getPageBySlug('home')
+  const page = (await getHomePage()).docs[0] as Parameters<typeof buildPageMetadata>[0] | undefined
 
-  return buildPageMetadata(page, {
+  return withSiteSocialDefaults(buildPageMetadata(page, {
     fallbackTitle: 'Gabriel Valdivia',
     fallbackDescription: SITE_TAGLINE,
     appendSiteName: false,
     canonicalPath: '/',
-  })
+  }))
 }
 
 function normalizeAskedQuestion(question: string) {
@@ -347,16 +348,21 @@ export default async function HomePage() {
   }])
   const payload = await getPayload()
   const usePublicPreview = process.env.NODE_ENV === 'development' && isPayloadUnavailable(payload)
-  const [pageResult, services, conversationsResult, projectsResult, likedWorkResult] = usePublicPreview
+  const [pageResult, services, askedQuestions, projectsResult, likedWorkResult] = usePublicPreview
     ? await getPublicHomepagePreview().catch((error) => {
         console.error('Public homepage preview unavailable.', error)
-        return [{ docs: [] }, { docs: [] }, { docs: [] }, { docs: [] }, []] as const
+        return [{ docs: [] }, { docs: [] }, [], { docs: [] }, []] as const
       })
     : await Promise.all([
-        payload.find({ collection: 'pages', where: { slug: { equals: 'home' } }, depth: 3, limit: 1 }),
+        getHomePage(),
         payload.find({ collection: 'services', sort: 'order', limit: 20, where: { featured: { equals: true } }, select: { title: true } }),
-        payload.find({ collection: 'conversations', sort: '-updatedAt', limit: 500, depth: 0, select: { messages: true } }),
-        payload.find({ collection: 'projects', sort: 'order', limit: 100, depth: 3, where: { hide: { not_equals: true } } }),
+        getRepeatedQuestions().catch((error) => {
+          console.error('Asked questions unavailable.', error)
+          return []
+        }),
+        // Hero slides only need card fields, plus team and client to match testimonials.
+        payload.find({ collection: 'projects', sort: 'order', limit: 100, depth: 2, where: { hide: { not_equals: true } },
+          select: { title: true, slug: true, subtitle: true, featuredImage: true, team: true, client: true } }),
         getModuleLikeFeed(null).catch((error) => {
           console.error('Liked work unavailable.', error)
           return []
@@ -369,28 +375,10 @@ export default async function HomePage() {
   ))?.testimonials || []
   const faqItems = getFAQItemsFromSections(sections)
   const likedWorkItems = buildLikedWorkMarqueeItems(likedWorkResult as any[])
-  const questionCounts = new Map<string, { question: string; count: number }>()
-
-  for (const conversation of conversationsResult.docs as any[]) {
-    for (const message of Array.isArray(conversation.messages) ? conversation.messages : []) {
-      if (message?.role !== 'user' || typeof message.content !== 'string') continue
-      const question = message.content.trim()
-      const normalized = normalizeAskedQuestion(question)
-      if (normalized.length < 8 || normalized.length > 160 || /@|https?:\/\//i.test(question)) continue
-      const existing = questionCounts.get(normalized)
-      questionCounts.set(normalized, {
-        question: existing?.question || question,
-        count: (existing?.count || 0) + 1,
-      })
-    }
-  }
-
-  const suggestedQuestions = [...questionCounts.entries()]
-    .filter(([, entry]) => entry.count >= 2)
-    .sort((a, b) => b[1].count - a[1].count)
-    .map(([normalized, entry]) => {
+  const suggestedQuestions = (askedQuestions as { normalized: string; question: string }[])
+    .map(({ normalized, question }) => {
       const authored = faqItems.find((item) => normalizeAskedQuestion(item.question) === normalized)
-      return { question: entry.question, answer: authored?.answer || '' }
+      return { question, answer: authored?.answer || '' }
     })
 
   for (const item of faqItems.filter((faq) => faq.showAsPill !== false)) {
@@ -459,6 +447,7 @@ export default async function HomePage() {
                         subtitle={item.subtitle}
                         featuredImage={item.featuredImage}
                         priority={idx === 0}
+                        sizes="(min-width: 768px) 440px, 320px"
                       />
                     ) : (
                       <Testimonial

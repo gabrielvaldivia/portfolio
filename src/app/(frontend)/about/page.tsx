@@ -7,6 +7,7 @@ import { Container } from '@/components/Container'
 import { FitText } from '@/components/FitText'
 import { PayloadImage } from '@/components/PayloadImage'
 import { buildPageMetadata } from '@/lib/pageMetadata'
+import { withSiteSocialDefaults } from '@/lib/pageMetadataDefaults'
 import { getPageBySlug, getSideProjects } from '@/lib/queries'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
@@ -71,12 +72,12 @@ function AboutSection({
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getPageBySlug('about')
 
-  return buildPageMetadata(page, {
+  return withSiteSocialDefaults(buildPageMetadata(page, {
     fallbackTitle: 'About',
     fallbackDescription: 'Designer and creative technologist',
     canonicalPath: '/about',
     markdownPath: '/about.md',
-  })
+  }))
 }
 
 export const revalidate = 3600

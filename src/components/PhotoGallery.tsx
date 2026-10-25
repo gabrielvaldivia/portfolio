@@ -41,11 +41,14 @@ function getPhotoSlides(photos: Photo[]): ModuleLightboxSlide[] {
   }))
 }
 
+const PHOTO_SLIDE_PREFIX = getPhotoSlideIdFromSlug('')
+
 function getInitialSlideId(photos: Photo[], slug?: string | null) {
   if (!slug || !photos.some((photo) => photo.slug === slug)) return undefined
   return getPhotoSlideIdFromSlug(slug)
 }
 
+/** Photo pages pass their slug; the gallery reads ?photo= deep links on the client. */
 export async function PhotoGallery({ initialPhotoSlug }: { initialPhotoSlug?: string | null }) {
   const photos = await getPhotos()
   const initialSlideId = getInitialSlideId(photos, initialPhotoSlug)
@@ -55,7 +58,7 @@ export async function PhotoGallery({ initialPhotoSlug }: { initialPhotoSlug?: st
       {photos.length === 0 ? (
         <p className="px-5 text-text-body tablet:px-10">No photos yet.</p>
       ) : (
-        <ModuleLightboxProvider slides={getPhotoSlides(photos)} initialSlideId={initialSlideId}>
+        <ModuleLightboxProvider slides={getPhotoSlides(photos)} initialSlideId={initialSlideId} initialSlideQuery={{ param: 'photo', idPrefix: PHOTO_SLIDE_PREFIX }}>
           <div className="columns-[350px] gap-[10px] px-[10px]">
             {photos.map((photo) => (
               <div key={photo.slug} className="group/photo relative mb-[10px] inline-block w-full break-inside-avoid">

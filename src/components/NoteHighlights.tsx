@@ -126,7 +126,13 @@ export function NoteHighlights({ noteId, likeTargetId, version, children }: { no
   useEffect(() => {
     mountedRef.current = true
     void refresh()
-    const onFocus = () => { if (document.visibilityState === 'visible') void refresh() }
+    // Returning to a tab fires both focus and visibilitychange; refresh once.
+    let lastRefresh = 0
+    const onFocus = () => {
+      if (document.visibilityState !== 'visible' || Date.now() - lastRefresh < 1_000) return
+      lastRefresh = Date.now()
+      void refresh()
+    }
     // Returning to a note refreshes other readers' highlights. Saving and removing
     // a highlight already refreshes this reader's state; an idle tab needn't poll.
     window.addEventListener('focus', onFocus)

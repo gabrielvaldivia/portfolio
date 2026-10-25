@@ -3,17 +3,18 @@ import { FitText } from '@/components/FitText'
 import { PeopleGrid } from '@/components/PeopleGrid'
 import { getPayload } from '@/lib/payload'
 import { buildPageMetadata } from '@/lib/pageMetadata'
+import { withSiteSocialDefaults } from '@/lib/pageMetadataDefaults'
 import { getPageBySlug } from '@/lib/queries'
 import type { Metadata } from 'next'
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getPageBySlug('people')
 
-  return buildPageMetadata(page, {
+  return withSiteSocialDefaults(buildPageMetadata(page, {
     fallbackTitle: 'People',
     fallbackDescription: 'People I have worked with',
     canonicalPath: '/people',
-  })
+  }))
 }
 
 export const revalidate = 3600

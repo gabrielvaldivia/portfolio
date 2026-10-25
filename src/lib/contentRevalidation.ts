@@ -64,7 +64,10 @@ export function withContentRevalidation(
       ...collection.hooks,
       afterChange: [
         ...(collection.hooks?.afterChange || []),
-        async ({ doc, previousDoc, context, req }) => {
+        async ({ doc, previousDoc, context, operation, req }) => {
+          // Nothing public can reference a file until another document links it,
+          // and that document's save refreshes the pages that show it.
+          if (collection.slug === 'media' && operation === 'create') return doc
           if (collection.slug === 'notes') {
             // Drafts can change scheduling and which photos belong in the gallery,
             // while leaving the public note and its pages unchanged.

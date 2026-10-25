@@ -17,6 +17,12 @@ export const metadata: Metadata = {
 
 export const revalidate = 3600
 
+// Render each path on first visit, then cache it for the revalidate window.
+// Without this, Next renders the route on every request.
+export async function generateStaticParams() {
+  return []
+}
+
 const getChatPageContent = unstable_cache(async () => {
   const payload = await getPayload()
   if (isPayloadUnavailable(payload)) throw new Error('Chat content unavailable')

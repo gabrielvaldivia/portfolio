@@ -1,6 +1,7 @@
 import { ProjectCard } from '@/components/ProjectCard'
 import { FitText } from '@/components/FitText'
 import { buildPageMetadata } from '@/lib/pageMetadata'
+import { withSiteSocialDefaults } from '@/lib/pageMetadataDefaults'
 import { getPageBySlug, getProjects } from '@/lib/queries'
 import type { Metadata } from 'next'
 import { JsonLd } from '@/components/JsonLd'
@@ -9,12 +10,12 @@ import { absoluteSiteUrl, buildSiteStructuredData, websiteReference } from '@/li
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getPageBySlug('work')
 
-  return buildPageMetadata(page, {
+  return withSiteSocialDefaults(buildPageMetadata(page, {
     fallbackTitle: 'Work',
     fallbackDescription: 'Selected projects and case studies',
     canonicalPath: '/work',
     markdownPath: '/work/index.md',
-  })
+  }))
 }
 
 export const revalidate = 3600
@@ -52,9 +53,10 @@ export default async function WorkPage() {
             </div>
           </div>
           <div className="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-4">
-            {projects.map((project: any) => (
+            {projects.map((project: any, index: number) => (
               <ProjectCard
                 key={project.id}
+                priority={index < 3}
                 title={project.title}
                 slug={project.slug}
                 subtitle={project.subtitle}

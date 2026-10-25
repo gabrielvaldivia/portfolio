@@ -3,6 +3,7 @@ import { SiteAnchor } from '@/components/SiteLink'
 import { Container } from '@/components/Container'
 import { FitText } from '@/components/FitText'
 import { buildPageMetadata } from '@/lib/pageMetadata'
+import { withSiteSocialDefaults } from '@/lib/pageMetadataDefaults'
 import { getPageBySlug, getSideProjects } from '@/lib/queries'
 import type { Metadata } from 'next'
 import Link from '@/components/SiteLink'
@@ -11,11 +12,11 @@ import { HoverChevron } from '@/components/Icons'
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getPageBySlug('playground')
 
-  return buildPageMetadata(page, {
+  return withSiteSocialDefaults(buildPageMetadata(page, {
     fallbackTitle: 'Playground',
     fallbackDescription: 'Side projects and experiments',
     canonicalPath: '/playground',
-  })
+  }))
 }
 
 export const revalidate = 3600

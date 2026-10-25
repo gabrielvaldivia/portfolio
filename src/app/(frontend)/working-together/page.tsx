@@ -123,7 +123,7 @@ export default async function WorkingTogetherPage() {
   const exampleSlugs = new Set<string>(
     engagements.flatMap((engagement) => engagement.examples.map((example) => example.slug)),
   )
-  const { docs: projects } = await getProjects({ includeHidden: true })
+  const { docs: projects } = await getProjects({ includeHidden: true, slugs: [...exampleSlugs] })
   const projectsBySlug = new Map(
     projects
       .filter((project) => exampleSlugs.has(project.slug))

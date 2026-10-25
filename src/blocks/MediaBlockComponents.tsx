@@ -38,6 +38,15 @@ const ROW_GAP = 40
 const VIDEO_LIGHTBOX_VERTICAL_OFFSET = 72
 const BROWSER_REFERENCE_WIDTH = 1280
 
+// The block grid only has columns at desktop width; below that every block is full width.
+const desktopColumnWidths: Record<string, string> = { '1': '16vw', '2': '33vw', '3': '50vw', '4': '66vw' }
+
+function getBlockImageSizes(columns: string | undefined, isLightbox: boolean) {
+  const desktopWidth = columns ? desktopColumnWidths[columns] : undefined
+  if (isLightbox || !desktopWidth) return '100vw'
+  return `(min-width: 1280px) ${desktopWidth}, 100vw`
+}
+
 export function ModuleLikeOverlay({ targetId }: { targetId: string }) {
   return (
     <div className="module-like-overlay pointer-events-none absolute bottom-3 left-3 z-20 opacity-100 transition-opacity duration-150 desktop:opacity-0 desktop:group-hover/module:opacity-100 desktop:group-focus-within/module:opacity-100">
@@ -139,7 +148,7 @@ function ImageBlockComponent({
           style={{ aspectRatio, ...(rowHeight && !isLightbox ? { ['--row-height' as string]: `${rowHeight}px` } : {}) }}
         >
           <div className={`absolute inset-0 ${roundedClass} ${rounded || imageBorder ? 'overflow-hidden' : ''}`}>
-            <PayloadImage media={image} alt={image.alt || ''} fill className={objectFit} sizes={isLightbox ? '100vw' : columns === '1' ? '16vw' : columns === '2' ? '33vw' : columns === '3' ? '50vw' : columns === '4' ? '66vw' : '100vw'} />
+            <PayloadImage media={image} alt={image.alt || ''} fill className={objectFit} sizes={getBlockImageSizes(columns, isLightbox)} />
             {imageBorder && <div className={`absolute inset-0 z-10 pointer-events-none border border-border ${roundedClass}`} />}
           </div>
         </div>
@@ -295,7 +304,7 @@ function BrowserBlockComponent({
             <div className="w-14 shrink-0 tablet:w-16" style={{ width: scaledLength(64) }} aria-hidden="true" />
           </div>
           <div className="relative bg-background" style={{ aspectRatio }}>
-            <PayloadImage media={image} alt={image.alt || ''} fill className={objectFit} sizes={isLightbox ? '100vw' : columns === '1' ? '16vw' : columns === '2' ? '33vw' : columns === '3' ? '50vw' : columns === '4' ? '66vw' : '100vw'} />
+            <PayloadImage media={image} alt={image.alt || ''} fill className={objectFit} sizes={getBlockImageSizes(columns, isLightbox)} />
             {imageBorder && <div className="pointer-events-none absolute inset-0 z-10 border border-border" />}
           </div>
         </div>

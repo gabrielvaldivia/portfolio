@@ -9,6 +9,7 @@ import { orderSiteNavigationItems } from './siteNavigation'
 
 type GetProjectsOptions = {
   includeHidden?: boolean
+  slugs?: string[]
 }
 
 type PageQueryResult = PageLike & {
@@ -56,15 +57,21 @@ type PublishedNote = {
   updatedAt: string
 }
 
+/** Card fields only; case-study pages load the full project by slug. */
 export async function getProjects(options: GetProjectsOptions = {}) {
   const payload = await getPayload()
+  const filters: Where[] = [
+    ...(options.includeHidden ? [] : [{ hide: { not_equals: true } }]),
+    ...(options.slugs ? [{ slug: { in: options.slugs } }] : []),
+  ]
 
   return payload.find({
     collection: 'projects',
     sort: 'order',
-    limit: 100,
-    where: options.includeHidden ? {} : { hide: { not_equals: true } },
-    depth: 2,
+    pagination: false,
+    where: filters.length ? { and: filters } : {},
+    depth: 1,
+    select: { title: true, slug: true, subtitle: true, featuredImage: true },
   })
 }
 
@@ -94,6 +101,22 @@ export async function getSideProjects() {
   const payload = await getPayload()
   return payload.find({ collection: 'side-projects', sort: 'order', limit: 100, depth: 2 })
 }
+
+/** Titles and dates for lists, without note bodies, for every published note. */
+export const getPublishedNoteList = cache(async function getPublishedNoteList() {
+  const payload = await getPayload()
+  const result = await payload.find({
+    collection: 'notes',
+    where: { _status: { equals: 'published' } },
+    sort: '-publishedAt',
+    pagination: false,
+    depth: 0,
+    draft: false,
+    select: { title: true, slug: true, excerpt: true, publishedAt: true, createdAt: true, updatedAt: true },
+  })
+
+  return { ...result, docs: result.docs as unknown as PublishedNote[] }
+})
 
 export const getPublishedNotes = cache(async function getPublishedNotes() {
   const payload = await getPayload()
@@ -245,6 +268,38 @@ export const getPageBySlug = cache(async function getPageBySlug(slug: string): P
     limit: 1,
   })
   return (result.docs[0] as unknown as PageQueryResult | undefined) || null
+})
+
+/** The homepage and its metadata share this read; hero slides need depth 3. */
+export const getHomePage = cache(async function getHomePage() {
+  const payload = await getPayload()
+  return payload.find({ collection: 'pages', where: { slug: { equals: 'home' } }, depth: 3, limit: 1 })
+})
+
+/** Questions visitors asked at least twice, counted in the database instead of loading every chat. */
+export const getRepeatedQuestions = cache(async function getRepeatedQuestions() {
+  const payload = await getPayload()
+  const result = await payload.db.drizzle.execute(sql`
+    WITH "recent" AS (
+      SELECT "messages" FROM "conversations" ORDER BY "updated_at" DESC LIMIT 500
+    ),
+    "asked" AS (
+      SELECT
+        btrim("message"->>'content') AS "question",
+        btrim(regexp_replace(regexp_replace(lower("message"->>'content'), '[^a-z0-9[:space:]]', '', 'g'), '[[:space:]]+', ' ', 'g')) AS "normalized"
+      FROM "recent", jsonb_array_elements(COALESCE("recent"."messages", '[]'::jsonb)) AS "message"
+      WHERE "message"->>'role' = 'user' AND "message"->>'content' !~* '@|https?://'
+    )
+    SELECT "normalized", (array_agg("question"))[1] AS "question", count(*)::int AS "count"
+    FROM "asked"
+    WHERE length("normalized") BETWEEN 8 AND 160
+    GROUP BY "normalized"
+    HAVING count(*) >= 2
+    ORDER BY "count" DESC
+    LIMIT 20
+  `)
+  const rows = Array.isArray(result) ? result : (result as { rows?: unknown[] }).rows || []
+  return rows as { normalized: string; question: string; count: number }[]
 })
 
 export const getPublishedPageBySlug = cache(async function getPublishedPageBySlug(slug: string): Promise<PageQueryResult | null> {

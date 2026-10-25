@@ -1222,6 +1222,7 @@ export function ModuleLightboxOverlay({
   const photoZoomY = useMotionValue(0)
   const photoZoomScale = useMotionValue(1)
   const dragState = useRef<DragState | null>(null)
+  const removeMouseDragListenersRef = useRef<(() => void) | null>(null)
   const photoZoomTargetRef = useRef<HTMLDivElement | null>(null)
   const photoPointersRef = useRef(new Map<number, PhotoPointerPosition>())
   const photoGestureRef = useRef<PhotoGestureState | null>(null)
@@ -1726,9 +1727,14 @@ export function ModuleLightboxOverlay({
       }
     }
 
-    const handleWindowMouseUp = (mouseEvent: globalThis.MouseEvent) => {
+    const removeWindowListeners = () => {
       window.removeEventListener('mousemove', handleWindowMouseMove)
       window.removeEventListener('mouseup', handleWindowMouseUp)
+      if (removeMouseDragListenersRef.current === removeWindowListeners) removeMouseDragListenersRef.current = null
+    }
+
+    const handleWindowMouseUp = (mouseEvent: globalThis.MouseEvent) => {
+      removeWindowListeners()
 
       const currentState = dragState.current
       if (!currentState || currentState !== state) return
@@ -1742,9 +1748,14 @@ export function ModuleLightboxOverlay({
       )
     }
 
+    removeMouseDragListenersRef.current?.()
+    removeMouseDragListenersRef.current = removeWindowListeners
     window.addEventListener('mousemove', handleWindowMouseMove)
     window.addEventListener('mouseup', handleWindowMouseUp)
   }, [activeSlide, completeDrag, dragX, dragY, onClosing, setActivePhoneSurfaceBackgroundProgress])
+
+  // Closing mid-drag (Escape, navigation) must not leave window listeners behind.
+  useEffect(() => () => removeMouseDragListenersRef.current?.(), [])
 
   const startPhotoPinchGesture = useCallback((element: HTMLDivElement) => {
     const points = Array.from(photoPointersRef.current.values())

@@ -79,6 +79,8 @@ export function VideoPlayer({
   }, [])
 
   const updateProgress = useCallback(() => {
+    // Progress is only shown by the controls; skip the re-renders without them.
+    if (!controls) return
     const video = videoRef.current
     if (!video || !Number.isFinite(video.duration) || video.duration <= 0) {
       setProgress(0)
@@ -91,10 +93,10 @@ export function VideoPlayer({
     setCurrentTime(video.currentTime)
     setProgress(nextProgress)
     smoothProgress.set(nextProgress)
-  }, [smoothProgress])
+  }, [controls, smoothProgress])
 
   useAnimationFrame(() => {
-    if (!isPlaying) return
+    if (!isPlaying || !controls) return
 
     const video = videoRef.current
     if (!video || !Number.isFinite(video.duration) || video.duration <= 0) return
