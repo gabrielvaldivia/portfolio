@@ -1,6 +1,7 @@
 import { lexicalEditor, UploadFeature } from '@payloadcms/richtext-lexical'
 import type { CollectionConfig } from 'payload'
 import { NoteLinkedImagesFeature } from '../components/admin/noteLinkedImages/feature.server'
+import { isCmsUser } from '../lib/cmsAccess'
 import { queuePublishedNoteNewsletter } from '../lib/noteNewsletter'
 import { generateNotePreviewURL } from '../lib/notePreview'
 import { prepareNotePublication } from '../lib/notePublishing'
@@ -38,7 +39,7 @@ export const Notes: CollectionConfig = {
   },
   access: {
     read: ({ req }) => (
-      req.user
+      isCmsUser({ req })
         ? true
         : { _status: { equals: 'published' } }
     ),
@@ -47,7 +48,7 @@ export const Notes: CollectionConfig = {
     path: '/:id/cancel-schedule',
     method: 'post',
     handler: async (req) => {
-      if (!req.user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+      if (!isCmsUser({ req })) return Response.json({ error: 'Unauthorized' }, { status: 401 })
       const id = Number(req.routeParams?.id)
       if (!Number.isSafeInteger(id) || id < 1) return Response.json({ error: 'Invalid note' }, { status: 400 })
       const doc = await req.payload.update({ collection: 'notes', id, data: { _status: 'draft' },

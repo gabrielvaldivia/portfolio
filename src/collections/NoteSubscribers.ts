@@ -1,6 +1,5 @@
 import type { CollectionConfig } from 'payload'
-
-const isAuthenticated: NonNullable<CollectionConfig['access']>['read'] = ({ req }) => Boolean(req.user)
+import { isCmsUser as isAuthenticated } from '../lib/cmsAccess'
 
 export const NoteSubscribers: CollectionConfig = {
   slug: 'note-subscribers',

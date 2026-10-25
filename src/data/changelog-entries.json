@@ -1,5 +1,12 @@
 [
  {
+  "date": "2026-10-25",
+  "title": "Tighter editing access",
+  "changes": [
+   "Only signed-in editors can change site content or read private records, so keys issued to connected tools can no longer reach the content API directly."
+  ]
+ },
+ {
   "date": "2026-10-20",
   "title": "Accurate note publishing confirmations",
   "changes": [

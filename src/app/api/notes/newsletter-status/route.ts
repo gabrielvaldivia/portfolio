@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     const payload = await getPayload()
     if (isPayloadUnavailable(payload)) throw new Error('Database unavailable')
     const { user } = await payload.auth({ headers: request.headers })
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401, headers })
+    if (user?.collection !== 'users') return Response.json({ error: 'Unauthorized' }, { status: 401, headers })
     const value = new URL(request.url).searchParams.get('noteId')
     const noteID = Number(value)
     if (!value || !Number.isSafeInteger(noteID) || noteID < 1) return Response.json({ error: 'Invalid note' }, { status: 400, headers })

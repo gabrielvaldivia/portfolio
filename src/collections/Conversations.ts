@@ -1,6 +1,5 @@
 import type { CollectionConfig } from 'payload'
-
-const isAuthenticated = ({ req }: { req: { user?: unknown } }) => Boolean(req.user)
+import { isCmsUser as isAuthenticated } from '../lib/cmsAccess'
 
 export const Conversations: CollectionConfig = {
   slug: 'conversations',
