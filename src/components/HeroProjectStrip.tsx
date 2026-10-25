@@ -190,7 +190,7 @@ export function HeroProjectStrip({ projects }: { projects: Project[] }) {
                     </div>
                   ) : null}
                 </div>
-                <span aria-hidden="true" className="pointer-events-none absolute right-5 top-5 flex size-11 items-center justify-center rounded-full bg-white text-black opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 tablet:right-8 tablet:top-8 tablet:size-12">
+                <span aria-hidden="true" className="pointer-events-none absolute right-5 top-5 flex size-11 items-center justify-center rounded-full bg-white text-text-on-light opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 tablet:right-8 tablet:top-8 tablet:size-12">
                   <svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
                 </span>
               </Link>

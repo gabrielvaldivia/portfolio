@@ -136,7 +136,7 @@ export function SprayPaintPortrait({
             </Dialog.Description>
             <Dialog.Close
               aria-label="Close fullscreen portrait"
-              className="absolute right-[max(16px,env(safe-area-inset-right))] top-[max(16px,env(safe-area-inset-top))] z-40 flex size-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="absolute right-[max(16px,env(safe-area-inset-right))] top-[max(16px,env(safe-area-inset-top))] z-40 flex size-11 items-center justify-center rounded-full bg-white/10 text-text-on-media-strong transition-colors hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                 <path d="m6 6 12 12M6 18 18 6" />

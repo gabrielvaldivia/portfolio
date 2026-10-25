@@ -59,7 +59,8 @@ export function PhotosListView({ BeforeList, BeforeListTable }: PhotosListViewPr
                   prefetch={false}
                 >
                   <span className="photos-ios-tile__media" aria-hidden="true">
-                    {thumbnailURL ? <img alt="" src={thumbnailURL} /> : null}
+                    {/* Photos have no resized renditions, so only fetch originals near the viewport. */}
+                    {thumbnailURL ? <img alt="" decoding="async" loading="lazy" src={thumbnailURL} /> : null}
                   </span>
                 </Link>
               )

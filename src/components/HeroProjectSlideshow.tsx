@@ -341,7 +341,7 @@ function MobileHeroSlide({
             {project.testimonial ? (
               <div className="mt-2 flex flex-col gap-4">
                 <Testimonial quote={project.testimonial.quote} name={project.testimonial.name} variant="hero" />
-                <span className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-medium text-black">
+                <span className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-medium text-text-on-light">
                   View work
                   <svg aria-hidden="true" className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path d="M5 12h14m-7-7 7 7-7 7" />

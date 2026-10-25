@@ -12,23 +12,19 @@ function slugifyFilename(filename: string): string {
 
 async function getUniquePhotoSlug({ req, slug }: { req: any; slug: string }): Promise<string> {
   const baseSlug = slug || 'photo'
-  let candidate = baseSlug
+  // Camera filenames repeat across cards, so check a batch of suffixes in one query.
+  const candidates = [baseSlug, ...Array.from({ length: 99 }, (_, index) => `${baseSlug}-${index + 2}`)]
+  const existing = await req.payload.find({
+    collection: 'photos',
+    depth: 0,
+    overrideAccess: true,
+    pagination: false,
+    select: { slug: true },
+    where: { slug: { in: candidates } },
+  })
+  const taken = new Set(existing.docs.map((doc: { slug?: string }) => doc.slug))
 
-  for (let suffix = 2; suffix < 1000; suffix += 1) {
-    const existing = await req.payload.find({
-      collection: 'photos',
-      depth: 0,
-      limit: 1,
-      overrideAccess: true,
-      pagination: false,
-      where: { slug: { equals: candidate } },
-    })
-
-    if (!existing.docs.length) return candidate
-    candidate = `${baseSlug}-${suffix}`
-  }
-
-  return `${baseSlug}-${Date.now()}`
+  return candidates.find((candidate) => !taken.has(candidate)) || `${baseSlug}-${Date.now()}`
 }
 
 function applyExtractedExif(data: Record<string, any>, extracted: ExtractedPhotoExif) {

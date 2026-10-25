@@ -492,6 +492,7 @@ export function MediaMasonryListView(props: ListViewClientProps) {
   const [copyURLLabel, setCopyURLLabel] = useState('Copy URL')
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
   const isLoadingMoreRef = useRef(false)
+  const loadMoreControllerRef = useRef<AbortController | null>(null)
   const hasCreatePermission =
     allowCreate !== undefined ? allowCreate && hasCreatePermissionFromProps : hasCreatePermissionFromProps
   const isUploadCollection = Boolean(collectionConfig?.upload)
@@ -665,6 +666,9 @@ export function MediaMasonryListView(props: ListViewClientProps) {
   ])
 
   useEffect(() => {
+    // A page requested for the previous search or sort must not merge into this one.
+    loadMoreControllerRef.current?.abort()
+    loadMoreControllerRef.current = null
     setMedia(initialMedia)
     setHasNextPage(Boolean(data?.hasNextPage))
     setNextPage(typeof data?.nextPage === 'number' ? data.nextPage : null)
@@ -711,6 +715,8 @@ export function MediaMasonryListView(props: ListViewClientProps) {
     isLoadingMoreRef.current = true
     setIsLoadingMore(true)
     setLoadMoreError(null)
+    const controller = new AbortController()
+    loadMoreControllerRef.current = controller
 
     try {
       const limit = Number(data?.limit || query?.limit || 100)
@@ -723,6 +729,7 @@ export function MediaMasonryListView(props: ListViewClientProps) {
       const response = await fetch(`${apiPath}${queryString}`, {
         credentials: 'same-origin',
         headers: { 'Accept-Language': i18n.language },
+        signal: controller.signal,
       })
 
       if (!response.ok) {
@@ -730,16 +737,21 @@ export function MediaMasonryListView(props: ListViewClientProps) {
       }
 
       const nextData = (await response.json()) as MediaAPIResponse
+      if (controller.signal.aborted) return
       const nextDocs = (nextData.docs || []).filter(Boolean)
 
       setMedia((currentDocs) => mergeMediaDocs(currentDocs, nextDocs))
       setHasNextPage(Boolean(nextData.hasNextPage))
       setNextPage(typeof nextData.nextPage === 'number' ? nextData.nextPage : null)
     } catch (error) {
+      if (controller.signal.aborted) return
       setLoadMoreError(error instanceof Error ? error.message : 'Media lazy load failed')
     } finally {
-      isLoadingMoreRef.current = false
-      setIsLoadingMore(false)
+      if (loadMoreControllerRef.current === controller) {
+        loadMoreControllerRef.current = null
+        isLoadingMoreRef.current = false
+        setIsLoadingMore(false)
+      }
     }
   }, [
     adminRoute,

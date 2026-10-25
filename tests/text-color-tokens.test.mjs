@@ -92,7 +92,7 @@ test('activity event types have distinct semantic icon colors', () => {
   assert.match(icon, /eventType === 'chat'.*<MessageCircle.*text-text-chat/)
   assert.equal(icon.match(/fill="currentColor"/g)?.length, 2)
   const icons = readFileSync('src/components/Icons.tsx', 'utf8')
-  const highlighter = icons.slice(icons.indexOf('export function HighlighterFilledIcon('), icons.indexOf('export function EmailIcon('))
+  const highlighter = icons.slice(icons.indexOf('export function HighlighterFilledIcon('), icons.indexOf('function EmailIcon('))
   assert.match(highlighter, /fill="currentColor"/)
   assert.equal(highlighter.match(/<path /g)?.length, 3)
 })

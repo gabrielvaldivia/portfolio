@@ -11,6 +11,7 @@ import {
   useListQuery,
   useStepNav,
 } from '@payloadcms/ui'
+import { useRouter } from 'next/navigation'
 import { formatAdminURL } from 'payload/shared'
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 
@@ -50,6 +51,7 @@ export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListVi
   const { permissions } = useAuth()
   const { data } = useListQuery()
   const { setStepNav } = useStepNav()
+  const router = useRouter()
   const queriedPages = useMemo(
     () => sortPagesByOrder(((data?.docs || []) as NavPage[]).filter(Boolean)),
     [data?.docs],
@@ -113,8 +115,9 @@ export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListVi
       }
     }
 
+    // Only pages that moved need saving; each save also refreshes the site cache.
     const orderedPages = persistedItems.flatMap((item, index) => (
-      'id' in item ? [{ ...item, order: index }] : []
+      'id' in item && Number(item.order) !== index ? [{ ...item, order: index }] : []
     ))
     const responses = await Promise.all(
       orderedPages.map((page) => {
@@ -163,11 +166,13 @@ export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListVi
       toast.success('Navigation order updated')
     } catch (error) {
       setNavigationItems(previousItems)
+      // Some pages may have saved before the failure; show what the server has.
+      router.refresh()
       toast.error(error instanceof Error ? error.message : 'Could not save the navigation order')
     } finally {
       setSavingOrder(false)
     }
-  }, [navigationItems, saveNavigationOrder, savingOrder])
+  }, [navigationItems, router, saveNavigationOrder, savingOrder])
 
   const navigationIDs = navigationItems.map(getSortableID)
   const hasUnpersistedCollections = navigationItems.some((item) => !('id' in item))

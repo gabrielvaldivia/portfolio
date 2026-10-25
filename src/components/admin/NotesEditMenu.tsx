@@ -58,9 +58,12 @@ export function NotesPublishButton() {
     observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden'] })
     document.querySelectorAll<HTMLButtonElement>(TAB_SELECTOR)[views.indexOf('metadata')]?.click()
     const frame = requestAnimationFrame(focusDate)
+    // Stop watching every editor mutation if the field never appears.
+    const giveUp = setTimeout(() => observer.disconnect(), 5_000)
     return () => {
       observer.disconnect()
       cancelAnimationFrame(frame)
+      clearTimeout(giveUp)
     }
   }, [pickerRequest])
 
