@@ -89,7 +89,8 @@ export async function SubscriberMetrics({ payload }: BeforeListTableServerProps)
 
   // Rebuild weekly history from confirmation and unsubscribe dates; pending has no history to rebuild.
   // Imported subscribers have no confirmation date, so they count as subscribed from the start.
-  const spans = confirmed.docs.map((doc) => ({
+  // Generated Payload types are not committed, so CI sees selected fields as unknown.
+  const spans = (confirmed.docs as { confirmedAt?: string | null; unsubscribedAt?: string | null }[]).map((doc) => ({
     start: doc.confirmedAt ? Date.parse(doc.confirmedAt) : -Infinity,
     end: doc.unsubscribedAt ? Date.parse(doc.unsubscribedAt) : Infinity,
   }))
