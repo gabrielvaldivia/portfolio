@@ -1,9 +1,9 @@
 [
  {
   "date": "2026-10-25",
-  "title": "Tighter editing access",
+  "title": "Tighter editing access and fairer limits",
   "changes": [
-   "Only signed-in editors can change site content or read private records, so keys issued to connected tools can no longer reach the content API directly."
+   "Only signed-in editors can change site content or read private records. Chat, contact, and newsletter limits now count only requests that go through, so one visitor's burst can't use up everyone's daily allowance."
   ]
  },
  {

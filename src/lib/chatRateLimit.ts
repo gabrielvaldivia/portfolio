@@ -1,4 +1,5 @@
 import { createHash } from 'crypto'
+import type { SQL } from 'drizzle-orm'
 import { sql } from '@payloadcms/db-postgres'
 import { getPayload } from './payload'
 import { getPayloadSecret } from './payloadSecret'
@@ -50,9 +51,9 @@ function getSubscriptionDailyRequestLimit() {
 
 function getClientIdentity(headers: Headers) {
   const forwarded = headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-  const ip = forwarded || headers.get('x-real-ip')?.trim() || 'unknown'
-  const userAgent = headers.get('user-agent')?.slice(0, 240) || 'unknown'
-  return `${ip}:${userAgent}`
+  // The user agent is client-controlled, so including it would let one client
+  // rotate it for a fresh hourly window.
+  return forwarded || headers.get('x-real-ip')?.trim() || 'unknown'
 }
 
 function readCounts(result: unknown) {
@@ -65,6 +66,58 @@ function readCounts(result: unknown) {
     window: Number(row?.window_count) || 0,
     daily: Number(row?.daily_count) || 0,
   }
+}
+
+type RateLimitDB = { execute: (query: SQL) => Promise<unknown> }
+
+export async function countRateLimitRequest(
+  db: RateLimitDB,
+  {
+    hourlyKeyHash,
+    dailyKeyHash,
+    windowStartedAt,
+    dayStartedAt,
+    limit,
+  }: {
+    hourlyKeyHash: string
+    dailyKeyHash: string
+    windowStartedAt: Date
+    dayStartedAt: Date
+    limit: number
+  },
+) {
+  const result = await db.execute(sql`
+    WITH "cleanup" AS (
+      DELETE FROM "chat_rate_limits"
+      WHERE "window_started_at" < now() - interval '3 days'
+    ),
+    "window_counter" AS (
+      INSERT INTO "chat_rate_limits" ("key_hash", "window_started_at", "request_count")
+      VALUES (${hourlyKeyHash}, ${windowStartedAt}, 1)
+      ON CONFLICT ("key_hash")
+      DO UPDATE SET "request_count" = "chat_rate_limits"."request_count" + 1
+      RETURNING "request_count"
+    ),
+    -- The daily budget is shared by every visitor, so only requests that pass
+    -- their own window spend it. Refused bursts cannot lock everyone else out.
+    "daily_counter" AS (
+      INSERT INTO "chat_rate_limits" ("key_hash", "window_started_at", "request_count")
+      SELECT ${dailyKeyHash}, ${dayStartedAt}, 1
+      FROM "window_counter"
+      WHERE "window_counter"."request_count" <= ${limit}
+      ON CONFLICT ("key_hash")
+      DO UPDATE SET "request_count" = "chat_rate_limits"."request_count" + 1
+      RETURNING "request_count"
+    )
+    SELECT
+      (SELECT "request_count" FROM "window_counter") AS "window_count",
+      COALESCE(
+        (SELECT "request_count" FROM "daily_counter"),
+        (SELECT "request_count" FROM "chat_rate_limits" WHERE "key_hash" = ${dailyKeyHash}),
+        0
+      ) AS "daily_count";
+  `)
+  return readCounts(result)
 }
 
 async function checkPersistentRateLimit({
@@ -95,34 +148,12 @@ async function checkPersistentRateLimit({
     .update(`${secret}:${keyNamespace}global-daily:${dayStartMs}`)
     .digest('hex')
   const payload = await getPayload()
-
-  const result = await payload.db.drizzle.execute(sql`
-    WITH "cleanup" AS (
-      DELETE FROM "chat_rate_limits"
-      WHERE "window_started_at" < now() - interval '3 days'
-    ),
-    "daily_counter" AS (
-      INSERT INTO "chat_rate_limits" ("key_hash", "window_started_at", "request_count")
-      VALUES (${dailyKeyHash}, ${dayStartedAt}, 1)
-      ON CONFLICT ("key_hash")
-      DO UPDATE SET "request_count" = "chat_rate_limits"."request_count" + 1
-      RETURNING "request_count"
-    ),
-    "window_counter" AS (
-      INSERT INTO "chat_rate_limits" ("key_hash", "window_started_at", "request_count")
-      VALUES (${hourlyKeyHash}, ${windowStartedAt}, 1)
-      ON CONFLICT ("key_hash")
-      DO UPDATE SET "request_count" = "chat_rate_limits"."request_count" + 1
-      RETURNING "request_count"
-    )
-    SELECT
-      (SELECT "request_count" FROM "window_counter") AS "window_count",
-      (SELECT "request_count" FROM "daily_counter") AS "daily_count";
-  `)
-
-  const counts = readCounts(result)
+  const counts = await countRateLimitRequest(payload.db.drizzle, {
+    hourlyKeyHash, dailyKeyHash, windowStartedAt, dayStartedAt, limit,
+  })
   const windowAllowed = counts.window > 0 && counts.window <= limit
-  const dailyAllowed = counts.daily > 0 && counts.daily <= dailyLimit
+  // A refused window never reaches the daily counter, so the daily count is only a reading.
+  const dailyAllowed = windowAllowed ? counts.daily > 0 && counts.daily <= dailyLimit : counts.daily < dailyLimit
   const windowRetrySeconds = Math.max(Math.ceil((windowStartMs + windowMs - Date.now()) / 1_000), 1)
   const dayRetrySeconds = Math.max(Math.ceil((dayStartMs + 24 * HOUR_MS - Date.now()) / 1_000), 1)
 
