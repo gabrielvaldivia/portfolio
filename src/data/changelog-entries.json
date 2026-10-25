@@ -3,7 +3,7 @@
   "date": "2026-10-25",
   "title": "Portfolio editing, access, and speed",
   "changes": [
-   "AI clients sign in with the admin account, with setup steps on the account page and a working Allow step. The subscribers page shows counts and cancelations with 12-week trends. 45 unused uploads were cleared, and rate limits no longer let one burst block everyone."
+   "AI clients sign in with the admin account, with setup steps on the account page. The subscribers page shows counts and cancelations with 12-week trends. Admin lists keep bulk actions clear of Create New and link untitled drafts. Rate limits no longer let one burst block everyone."
   ]
  },
  {

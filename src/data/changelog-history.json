@@ -1,6 +1,11 @@
 {
-  "throughCommit": "c3d3e84baf6f2ad8f4bd6927a8270d45e2117ce2",
+  "throughCommit": "7494114c81ec4ae7e67b45506d193290e1cc37d1",
   "commits": [
+    {
+      "hash": "7494114c81ec4ae7e67b45506d193290e1cc37d1",
+      "date": "2026-10-25",
+      "subject": "Show subscriber metrics with trends on the subscribers page"
+    },
     {
       "hash": "c3d3e84baf6f2ad8f4bd6927a8270d45e2117ce2",
       "date": "2026-10-25",
