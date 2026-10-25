@@ -1,6 +1,3 @@
-import * as migration_20261002_120000_queue_note_newsletters from './20261002_120000_queue_note_newsletters';
-import * as migration_20260918_020000_schedule_notes from './20260918_020000_schedule_notes';
-import * as migration_20260922_223000_queue_engagement_notifications from './20260922_223000_queue_engagement_notifications';
 import * as migration_20260616_053500_add_client_details_active from './20260616_053500_add_client_details_active';
 import * as migration_20260707_000000_add_module_likes from './20260707_000000_add_module_likes';
 import * as migration_20260708_000000_add_module_like_events from './20260708_000000_add_module_like_events';
@@ -24,6 +21,10 @@ import * as migration_20260906_160000_add_note_views from './20260906_160000_add
 import * as migration_20260906_180000_add_highlight_locations from './20260906_180000_add_highlight_locations';
 import * as migration_20260907_120000_add_highlight_moderation from './20260907_120000_add_highlight_moderation';
 import * as migration_20260907_200000_add_hero_slide_pills from './20260907_200000_add_hero_slide_pills';
+import * as migration_20260918_020000_schedule_notes from './20260918_020000_schedule_notes';
+import * as migration_20260922_223000_queue_engagement_notifications from './20260922_223000_queue_engagement_notifications';
+import * as migration_20261002_120000_queue_note_newsletters from './20261002_120000_queue_note_newsletters';
+import * as migration_20261025_163021 from './20261025_163021';
 
 export const migrations = [
   {
@@ -155,5 +156,10 @@ export const migrations = [
     up: migration_20261002_120000_queue_note_newsletters.up,
     down: migration_20261002_120000_queue_note_newsletters.down,
     name: '20261002_120000_queue_note_newsletters',
+  },
+  {
+    up: migration_20261025_163021.up,
+    down: migration_20261025_163021.down,
+    name: '20261025_163021'
   },
 ];

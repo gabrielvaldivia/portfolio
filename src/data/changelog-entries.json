@@ -1,9 +1,9 @@
 [
  {
   "date": "2026-10-25",
-  "title": "Tighter access, faster pages",
+  "title": "Portfolio editing, access, and speed",
   "changes": [
-   "Only signed-in editors can change content, and rate limits no longer let one burst block everyone. Pages are cached, lighter, and share their own titles. Subscription links ask first and stay out of analytics, and the photo viewer now keeps keyboard focus inside."
+   "AI clients can edit portfolio content with explicit note publishing, and 45 unused uploads were cleared. Only signed-in editors can change content, rate limits no longer let one burst block everyone, and pages are cached, lighter, and share their own titles."
   ]
  },
  {

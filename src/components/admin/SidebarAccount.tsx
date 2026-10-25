@@ -63,5 +63,7 @@ export function SidebarAccount({ payload, permissions, user }: ServerProps) {
     },
   ]
 
-  return <SidebarAccountClient accountLabel="Account" email={user?.email} items={items} />
+  const email = user && 'email' in user ? user.email : undefined
+
+  return <SidebarAccountClient accountLabel="Account" email={email} items={items} />
 }
