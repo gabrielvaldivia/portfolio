@@ -41,6 +41,17 @@ async function scheduleContentRevalidation(req: PayloadRequest, options: Revalid
   }
 }
 
+/**
+ * Draft saves and Payload's Unpublish action both reach afterChange as a draft
+ * over a published note. Only Unpublish changes the saved document.
+ */
+async function isSavedNoteDraft(req: PayloadRequest, id: unknown) {
+  if (!req.payload || (typeof id !== 'number' && typeof id !== 'string')) return false
+  const saved = await req.payload.findByID({ collection: 'notes', id, draft: false, depth: 0,
+    overrideAccess: true, req, select: { _status: true } })
+  return saved?._status !== 'published'
+}
+
 export function withContentRevalidation(
   collection: CollectionConfig,
   schedule: ScheduleRevalidation = scheduleContentRevalidation,
@@ -58,7 +69,9 @@ export function withContentRevalidation(
             // Drafts can change scheduling and which photos belong in the gallery,
             // while leaving the public note and its pages unchanged.
             if (context.skipNoteNewsletter) return doc
-            if (doc._status !== 'published' && (!context.cancelNoteSchedule || previousDoc?._status !== 'published')) {
+            if (doc._status !== 'published' && !(previousDoc?._status === 'published' && (
+              context.cancelNoteSchedule || await isSavedNoteDraft(req, doc.id)
+            ))) {
               await schedule(req, draftContent)
               return doc
             }

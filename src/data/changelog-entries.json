@@ -1,9 +1,9 @@
 [
  {
   "date": "2026-10-25",
-  "title": "Tighter editing access and fairer limits",
+  "title": "Tighter access, fairer limits",
   "changes": [
-   "Only signed-in editors can change site content or read private records. Chat, contact, and newsletter limits now count only requests that go through, so one visitor's burst can't use up everyone's daily allowance."
+   "Only signed-in editors can change site content or read private records. Chat, contact, and signup limits count only requests that go through, so one burst can't use everyone's allowance. Unpublished notes now leave the site right away."
   ]
  },
  {

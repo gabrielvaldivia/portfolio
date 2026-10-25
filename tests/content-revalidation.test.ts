@@ -71,3 +71,15 @@ test('subscriber, account and conversation activity never invalidates the public
     assert.equal(withContentRevalidation(config, () => assert.fail('unexpected invalidation')), config)
   }
 })
+
+test('unpublishing a note refreshes public pages while draft saves over it do not', async () => {
+  const refreshes: boolean[] = []
+  const notes = withContentRevalidation({ slug: 'notes', fields: [] }, (_req, options) => { refreshes.push(options.pages) })
+  const change = notes.hooks!.afterChange!.at(-1)!
+  const savedStatus = (status: string) => ({ payload: { findByID: async () => ({ _status: status }) } })
+  const draft = { id: 1, _status: 'draft' }
+  const previousDoc = { id: 1, _status: 'published' }
+  await change({ doc: draft, previousDoc, context: {}, req: savedStatus('draft') } as any)
+  await change({ doc: draft, previousDoc, context: {}, req: savedStatus('published') } as any)
+  assert.deepEqual(refreshes, [true, false])
+})
