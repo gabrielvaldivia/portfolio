@@ -1223,6 +1223,8 @@ export function ModuleLightboxOverlay({
   const photoZoomScale = useMotionValue(1)
   const dragState = useRef<DragState | null>(null)
   const removeMouseDragListenersRef = useRef<(() => void) | null>(null)
+  const lightboxRootRef = useRef<HTMLDivElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
   const photoZoomTargetRef = useRef<HTMLDivElement | null>(null)
   const photoPointersRef = useRef(new Map<number, PhotoPointerPosition>())
   const photoGestureRef = useRef<PhotoGestureState | null>(null)
@@ -2239,8 +2241,30 @@ export function ModuleLightboxOverlay({
     }
   }, [close, infoPopoverOpen, lightboxMounted, navigate])
 
+  // Behave as a modal: focus moves in, the page behind is inert, and focus
+  // returns to whatever opened the lightbox.
+  useEffect(() => {
+    const root = lightboxRootRef.current
+    if (!open || !root) return
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const background = Array.from(document.body.children)
+      .filter((element): element is HTMLElement => element instanceof HTMLElement && element !== root && !element.inert)
+    background.forEach((element) => { element.inert = true })
+    ;(closeButtonRef.current || root).focus({ preventScroll: true })
+    return () => {
+      background.forEach((element) => { element.inert = false })
+      previousFocus?.focus({ preventScroll: true })
+    }
+    // The portal renders a commit after `open` flips, so wait for it as well.
+  }, [lightboxMounted, mounted, open])
+
   const lightbox = lightboxMounted ? (
     <div
+      ref={lightboxRootRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Media viewer"
+      tabIndex={-1}
       className={cn(
         'fixed inset-0 z-[100010] overflow-hidden text-text-strong',
         open ? '' : 'pointer-events-none',
@@ -2273,6 +2297,7 @@ export function ModuleLightboxOverlay({
         <>
           <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-end p-3 tablet:p-5 desktop:p-10">
             <button
+              ref={closeButtonRef}
               type="button"
               aria-label="Close lightbox"
               className="pointer-events-auto flex size-10 items-center justify-center rounded-full bg-floating backdrop-blur-[40px] transition-colors hover:bg-hover"
