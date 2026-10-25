@@ -74,12 +74,14 @@ test('the Allow form is accepted from this site and rejected from others', async
     method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', ...headers }, body: 'client_id=unknown&decision=allow',
   }))
   // Browsers send `Origin: null` under a no-referrer policy; Sec-Fetch-Site still identifies the page.
-  for (const headers of [{ Origin: 'https://portfolio.example' }, { Origin: 'null', 'Sec-Fetch-Site': 'same-origin' }]) {
+  const fromThisSite: Record<string, string>[] = [{ Origin: 'https://portfolio.example' }, { Origin: 'null', 'Sec-Fetch-Site': 'same-origin' }]
+  for (const headers of fromThisSite) {
     const html = await (await submit(headers)).text()
     assert.doesNotMatch(html, /did not come from this site/)
     assert.match(html, /Unknown client/)
   }
-  for (const headers of [{ Origin: 'https://evil.example' }, { Origin: 'null', 'Sec-Fetch-Site': 'cross-site' }, {}]) {
+  const fromElsewhere: Record<string, string>[] = [{ Origin: 'https://evil.example' }, { Origin: 'null', 'Sec-Fetch-Site': 'cross-site' }, {}]
+  for (const headers of fromElsewhere) {
     assert.match(await (await submit(headers)).text(), /did not come from this site/)
   }
 })
