@@ -3,7 +3,9 @@ import { test } from 'node:test'
 import { unstable_getResponseFromNextConfig } from 'next/experimental/testing/server'
 import nextConfig from '../next.config'
 
-const publicPolicy = "frame-ancestors 'self' https://campground-gv.vercel.app http://localhost:3158;"
+const publicPolicy = process.env.NODE_ENV === 'production'
+  ? "frame-ancestors 'self' https://campground-gv.vercel.app;"
+  : "frame-ancestors 'self' https://campground-gv.vercel.app http://localhost:3158;"
 
 async function responseFor(path: string, host = 'www.gabrielvaldivia.com') {
   return unstable_getResponseFromNextConfig({ url: `https://${host}${path}`, nextConfig })

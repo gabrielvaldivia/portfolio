@@ -49,7 +49,8 @@ const nextConfig: NextConfig = {
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           {
             key: 'Content-Security-Policy',
-            value: "frame-ancestors 'self' https://campground-gv.vercel.app http://localhost:3158;",
+            // Campground can embed public pages; its local dev server only outside production.
+            value: `frame-ancestors 'self' https://campground-gv.vercel.app${process.env.NODE_ENV === 'production' ? '' : ' http://localhost:3158'};`,
           },
         ],
       },

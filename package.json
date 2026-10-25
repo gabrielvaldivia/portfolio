@@ -32,6 +32,7 @@
     "check:changelog": "node scripts/changelog.mjs check"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1013.0",
     "@highlighters/core": "^2.0.0",
     "@hugeicons/core-free-icons": "^4.2.2",
     "@hugeicons/react": "^1.1.9",

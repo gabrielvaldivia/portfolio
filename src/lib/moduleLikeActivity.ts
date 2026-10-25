@@ -539,7 +539,7 @@ function indexPhotoTargets(index: Map<string, ActivityTarget>, photos: Photo[]) 
       block: {
         blockType: 'image',
         image: {
-          url: photo.src,
+          url: photo.displaySrc,
           width: photo.width,
           height: photo.height,
           alt: photo.alt,
@@ -553,7 +553,7 @@ function indexPhotoTargets(index: Map<string, ActivityTarget>, photos: Photo[]) 
       zoomablePhoto: true,
       thumbnail: {
         type: 'image',
-        url: photo.src,
+        url: photo.thumbnailSrc,
         alt: photo.alt || label,
         width: photo.width,
         height: photo.height,
@@ -617,7 +617,7 @@ const getCachedActivityTargets = unstable_cache(async function getCachedActivity
 
   // Next's persistent cache stores JSON; serialize Map entries explicitly.
   return Array.from(index.entries())
-}, ['activity-targets-v1'], { tags: ['activity-targets'], revalidate: 3600 })
+}, ['activity-targets-v2'], { tags: ['activity-targets'], revalidate: 3600 })
 
 const getActivityTargetIndex = cache(async () => new Map(await getCachedActivityTargets()))
 

@@ -2,6 +2,7 @@ import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import { getPayload, isPayloadUnavailable } from './payload'
 import { findGalleryPhotos } from './photoGallery'
+import { hasPhotoRenditions, photoRenditionURL } from './photoRenditions'
 import { normalizeSiteOrigin } from './structuredData'
 
 export const SITE_URL = normalizeSiteOrigin()
@@ -20,6 +21,10 @@ export type Photo = {
   slug: string
   /** Absolute URL of the original image in R2 */
   src: string
+  /** Web copy for gallery tiles and thumbnails; the original until one exists. */
+  thumbnailSrc: string
+  /** Web copy for the full-screen viewer; the original until one exists. */
+  displaySrc: string
   width: number
   height: number
   /** RFC 3339, from EXIF capture date (upload time fallback) */
@@ -32,6 +37,8 @@ const FALLBACK_PHOTOS: Photo[] = [
   {
     slug: 'dscf0017',
     src: 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/photos/DSCF0017-2000x1333.jpg',
+    thumbnailSrc: 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/photos/DSCF0017-2000x1333.jpg',
+    displaySrc: 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/photos/DSCF0017-2000x1333.jpg',
     width: 2000,
     height: 1333,
     datePublished: '2026-07-16T00:00:00Z',
@@ -52,12 +59,23 @@ export const getGalleryPhotoDocuments = cache(unstable_cache(async () => {
   return findGalleryPhotos(payload)
 }, ['gallery-photos-v1'], { tags: ['gallery-photos'], revalidate: 3600 }))
 
+/** Which originals already have web copies, rechecked when the gallery changes. */
+const getPhotosWithRenditions = unstable_cache(async (filenames: string[]) => {
+  const available = await Promise.all(filenames.map(async (filename) => (await hasPhotoRenditions(filename) ? filename : null)))
+  return available.filter((filename): filename is string => Boolean(filename))
+}, ['photo-renditions-v1'], { tags: ['gallery-photos'], revalidate: 3600 })
+
 export const getPhotos = cache(async (): Promise<Photo[]> => {
   const result = await getGalleryPhotoDocuments()
+  const filenames = result.docs.flatMap((doc) => (doc.filename ? [doc.filename] : [])).sort()
+  const withRenditions = new Set(await getPhotosWithRenditions(filenames).catch(() => []))
   const photos = result.docs
     .map((doc) => {
       const src = doc.url
       if (!src || !doc.slug) return null
+      const hasRenditions = Boolean(doc.filename && withRenditions.has(doc.filename))
+      const rendition = (name: 'grid' | 'display') =>
+        (hasRenditions && doc.filename && photoRenditionURL(doc.filename, name)) || src
 
       const width = doc.width ?? 0
       const height = doc.height ?? 0
@@ -69,6 +87,8 @@ export const getPhotos = cache(async (): Promise<Photo[]> => {
       return {
         slug: doc.slug,
         src,
+        thumbnailSrc: rendition('grid'),
+        displaySrc: rendition('display'),
         width,
         height,
         datePublished: new Date(doc.captureDate || doc.createdAt)

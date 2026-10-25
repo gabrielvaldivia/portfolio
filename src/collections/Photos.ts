@@ -1,3 +1,4 @@
+import { createPhotoRenditions } from '../lib/photoRenditions'
 import type { CollectionConfig } from 'payload'
 import { extractPhotoExif, type ExtractedPhotoExif } from '../lib/photoExif'
 import { normalizeCloudUploadBuffers } from '../lib/payloadUploadBuffers'
@@ -25,6 +26,22 @@ async function getUniquePhotoSlug({ req, slug }: { req: any; slug: string }): Pr
   const taken = new Set(existing.docs.map((doc: { slug?: string }) => doc.slug))
 
   return candidates.find((candidate) => !taken.has(candidate)) || `${baseSlug}-${Date.now()}`
+}
+
+async function fetchOriginal(url: unknown) {
+  if (typeof url !== 'string' || !/^https?:\/\//.test(url)) return null
+  const response = await fetch(url)
+  return response.ok ? Buffer.from(await response.arrayBuffer()) : null
+}
+
+/** Uses Next's after() in a request; CLI scripts and migrations run the work inline. */
+async function runAfterResponse(work: () => Promise<void>) {
+  try {
+    const { after } = await import('next/server')
+    after(work)
+  } catch {
+    await work()
+  }
 }
 
 function applyExtractedExif(data: Record<string, any>, extracted: ExtractedPhotoExif) {
@@ -84,6 +101,24 @@ export const Photos: CollectionConfig = {
       },
     ],
     afterChange: [
+      // Make web-sized copies after the response, so saving never waits on resizing.
+      async ({ doc, operation, previousDoc, req }) => {
+        const fileChanged = operation === 'create' || doc.filename !== previousDoc?.filename
+        if (!fileChanged || !doc.filename || req.context?.photoExifBackfill) return doc
+        const localFile = req.file?.data
+        await runAfterResponse(async () => {
+          try {
+            const original = localFile || await fetchOriginal(doc.url)
+            if (original && await createPhotoRenditions(original, doc.filename)) {
+              const { revalidateTag } = await import('next/cache')
+              revalidateTag('gallery-photos', { expire: 0 })
+            }
+          } catch (error) {
+            req.payload.logger.warn({ err: error, msg: `Photo renditions failed for ${doc.filename}` })
+          }
+        })
+        return doc
+      },
       // Admin-panel uploads go straight from the browser to R2 (clientUploads),
       // so the buffer never reaches the server — fetch the original back once
       async ({ doc, operation, req }) => {

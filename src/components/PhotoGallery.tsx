@@ -27,7 +27,7 @@ function getPhotoSlides(photos: Photo[]): ModuleLightboxSlide[] {
     type: 'module',
     block: {
       blockType: 'image',
-      image: { url: photo.src, width: photo.width, height: photo.height, alt: photo.alt },
+      image: { url: photo.displaySrc, width: photo.width, height: photo.height, alt: photo.alt },
       fit: 'contain',
     },
     label: 'Open photo fullscreen',
@@ -69,7 +69,7 @@ export async function PhotoGallery({ initialPhotoSlug }: { initialPhotoSlug?: st
                   className="overflow-hidden rounded-md border border-border bg-background-alt"
                 >
                   <Image
-                    src={photo.src}
+                    src={photo.thumbnailSrc}
                     alt={photo.alt}
                     width={photo.width}
                     height={photo.height}
