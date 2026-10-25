@@ -25,6 +25,7 @@ import * as migration_20260918_020000_schedule_notes from './20260918_020000_sch
 import * as migration_20260922_223000_queue_engagement_notifications from './20260922_223000_queue_engagement_notifications';
 import * as migration_20261002_120000_queue_note_newsletters from './20261002_120000_queue_note_newsletters';
 import * as migration_20261025_163021 from './20261025_163021';
+import * as migration_20261025_213255_add_note_view_like_totals from './20261025_213255_add_note_view_like_totals';
 
 export const migrations = [
   {
@@ -160,6 +161,11 @@ export const migrations = [
   {
     up: migration_20261025_163021.up,
     down: migration_20261025_163021.down,
-    name: '20261025_163021'
+    name: '20261025_163021',
+  },
+  {
+    up: migration_20261025_213255_add_note_view_like_totals.up,
+    down: migration_20261025_213255_add_note_view_like_totals.down,
+    name: '20261025_213255_add_note_view_like_totals'
   },
 ];

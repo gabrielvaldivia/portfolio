@@ -1,6 +1,11 @@
 {
-  "throughCommit": "7494114c81ec4ae7e67b45506d193290e1cc37d1",
+  "throughCommit": "5b2e9979b765ef069365a3e8b88b27e8ce9be1e5",
   "commits": [
+    {
+      "hash": "5b2e9979b765ef069365a3e8b88b27e8ce9be1e5",
+      "date": "2026-10-25",
+      "subject": "Keep bulk actions clear of Create New and link untitled list rows"
+    },
     {
       "hash": "7494114c81ec4ae7e67b45506d193290e1cc37d1",
       "date": "2026-10-25",

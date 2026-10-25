@@ -5,6 +5,7 @@ import { isCmsUser } from '../lib/cmsAccess'
 import { queuePublishedNoteNewsletter } from '../lib/noteNewsletter'
 import { generateNotePreviewURL } from '../lib/notePreview'
 import { prepareNotePublication } from '../lib/notePublishing'
+import { syncNoteStats } from '../lib/noteStats'
 
 function slugify(value: string) {
   return value
@@ -26,7 +27,7 @@ export const Notes: CollectionConfig = {
   admin: {
     group: 'Collections',
     useAsTitle: 'title',
-    defaultColumns: ['title', '_status', 'publishedAt', 'updatedAt'],
+    defaultColumns: ['title', '_status', 'publishedAt', 'views', 'likes'],
     preview: generateNotePreviewURL,
     components: {
       beforeListTable: ['./components/admin/NotesListSortControl#NotesListSortControl'],
@@ -57,6 +58,18 @@ export const Notes: CollectionConfig = {
     },
   }],
   hooks: {
+    beforeOperation: [
+      async ({ args, operation, req }) => {
+        // Refresh stored view and like totals before editors list notes, so sorting is current.
+        if (operation !== 'read' || 'id' in args || !isCmsUser({ req })) return args
+        try {
+          await syncNoteStats(req.payload.db.drizzle)
+        } catch (error) {
+          req.payload.logger.error({ err: error, msg: 'Unable to refresh note view and like totals' })
+        }
+        return args
+      },
+    ],
     beforeValidate: [
       ({ data, originalDoc }) => {
         if (!data) return data
@@ -95,6 +108,29 @@ export const Notes: CollectionConfig = {
     maxPerDoc: 50,
   },
   fields: [
+    // Totals copied from note_views and module_likes by syncNoteStats so the list can sort by them.
+    {
+      name: 'views',
+      type: 'number',
+      label: 'Views',
+      defaultValue: 0,
+      admin: {
+        condition: () => false,
+        readOnly: true,
+        components: { Cell: './components/admin/NoteStatsCell#CountCell' },
+      },
+    },
+    {
+      name: 'likes',
+      type: 'number',
+      label: 'Likes',
+      defaultValue: 0,
+      admin: {
+        condition: () => false,
+        readOnly: true,
+        components: { Cell: './components/admin/NoteStatsCell#CountCell' },
+      },
+    },
     {
       type: 'tabs',
       admin: {
@@ -156,6 +192,7 @@ export const Notes: CollectionConfig = {
               type: 'date',
               index: true,
               admin: {
+                components: { Cell: './components/admin/ShortDateCell#ShortDateCell' },
                 description: 'Choose a future date and time, then click Schedule. Leave blank to publish now. Times use your device’s time zone.',
                 date: {
                   pickerAppearance: 'dayAndTime',

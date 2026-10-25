@@ -24,8 +24,10 @@ import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { PagesEditMenuTabs as PagesEditMenuTabs_f53d9e879e971bb835b4c9dfd1fb5507 } from '../../../components/admin/PagesEditMenuTabs'
 import { NavPagesListView as NavPagesListView_be450e4073f3de8a897b9e5ad5fa514a } from '../../../components/admin/NavPagesListView'
+import { CountCell as CountCell_e755e4135daf158f1260d9a64b4ae50d } from '../../../components/admin/NoteStatsCell'
 import { NoteLinkedImagesFeatureClient as NoteLinkedImagesFeatureClient_5452c6b940874c466522fb36b3c7470b } from '../../../components/admin/noteLinkedImages/feature.client'
 import { NoteNewsletterStatus as NoteNewsletterStatus_c2841c202e3fa7f49f484fdd6eea2d65 } from '../../../components/admin/NoteNewsletterStatus'
+import { ShortDateCell as ShortDateCell_ad528dc535d1afc88473bdb6ffe4c56e } from '../../../components/admin/ShortDateCell'
 import { NoteHighlightModeration as NoteHighlightModeration_3b21a2595408a31658e0c31e4c884502 } from '../../../components/admin/NoteHighlightModeration'
 import { NotesListSortControl as NotesListSortControl_ad92151a2d9dda96388918ea9eee457f } from '../../../components/admin/NotesListSortControl'
 import { NotesEditMenu as NotesEditMenu_700407adcaec769c26df3a5ea9f889d5 } from '../../../components/admin/NotesEditMenu'
@@ -76,8 +78,10 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "./components/admin/PagesEditMenuTabs#PagesEditMenuTabs": PagesEditMenuTabs_f53d9e879e971bb835b4c9dfd1fb5507,
   "./components/admin/NavPagesListView#NavPagesListView": NavPagesListView_be450e4073f3de8a897b9e5ad5fa514a,
+  "./components/admin/NoteStatsCell#CountCell": CountCell_e755e4135daf158f1260d9a64b4ae50d,
   "./components/admin/noteLinkedImages/feature.client#NoteLinkedImagesFeatureClient": NoteLinkedImagesFeatureClient_5452c6b940874c466522fb36b3c7470b,
   "./components/admin/NoteNewsletterStatus#NoteNewsletterStatus": NoteNewsletterStatus_c2841c202e3fa7f49f484fdd6eea2d65,
+  "./components/admin/ShortDateCell#ShortDateCell": ShortDateCell_ad528dc535d1afc88473bdb6ffe4c56e,
   "./components/admin/NoteHighlightModeration#NoteHighlightModeration": NoteHighlightModeration_3b21a2595408a31658e0c31e4c884502,
   "./components/admin/NotesListSortControl#NotesListSortControl": NotesListSortControl_ad92151a2d9dda96388918ea9eee457f,
   "./components/admin/NotesEditMenu#NotesEditMenu": NotesEditMenu_700407adcaec769c26df3a5ea9f889d5,
