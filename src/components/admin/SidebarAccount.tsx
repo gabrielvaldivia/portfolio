@@ -43,20 +43,6 @@ export function SidebarAccount({ payload, permissions, user }: ServerProps) {
           },
         ]
       : []),
-    // The custom sidebar lists collections by hand, so MCP keys need their own entry.
-    ...(canReadCollection(permissions, 'payload-mcp-api-keys')
-      ? [
-          {
-            href: formatAdminURL({
-              adminRoute,
-              path: '/collections/payload-mcp-api-keys',
-            }),
-            icon: 'keys' as const,
-            id: 'mcp-api-keys',
-            label: 'MCP keys',
-          },
-        ]
-      : []),
     {
       href: formatAdminURL({
         adminRoute,

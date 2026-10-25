@@ -2,7 +2,7 @@ import { buildConfig } from 'payload'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { s3Storage } from '@payloadcms/storage-s3'
-import { mcpPlugin } from '@payloadcms/plugin-mcp'
+import { mcpPlugin, type MCPPluginConfig } from '@payloadcms/plugin-mcp'
 import sharp from 'sharp'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -26,6 +26,7 @@ import { getPayloadSecret } from './lib/payloadSecret'
 import { withContentRevalidation, withGlobalRevalidation } from './lib/contentRevalidation'
 import { withCmsUserAccess, withGlobalCmsUserAccess } from './lib/cmsAccess'
 import { portfolioMcpTools } from './lib/portfolioMcpTools'
+import { createMcpOAuthAuthenticator } from './lib/mcpOAuthServer'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -96,6 +97,57 @@ const joinURLParts = (...parts: Array<string | undefined>) =>
     .filter(Boolean)
     .join('/')
 
+const mcpCollections = {
+  pages: {
+    enabled: true,
+    description: 'Portfolio pages and their page-builder sections.',
+  },
+  notes: {
+    enabled: { find: true, create: false, update: false, delete: false },
+    description:
+      'Portfolio notes. Use createNoteDraft, updateNoteDraft, scheduleNote, and publishNote for safe draft and publishing workflows.',
+  },
+  projects: {
+    enabled: true,
+    description: 'Featured portfolio projects and their rich content blocks.',
+  },
+  'side-projects': {
+    enabled: true,
+    description: 'Side projects and their rich content blocks.',
+  },
+  clients: {
+    enabled: true,
+    description: 'Client profiles and related portfolio metadata.',
+  },
+  people: {
+    enabled: true,
+    description: 'People, collaborators, and testimonials.',
+  },
+  services: {
+    enabled: true,
+    description: 'Portfolio capabilities and service labels.',
+  },
+  photos: {
+    enabled: { find: true, create: false, update: true, delete: false },
+    description: 'Portfolio photo gallery entries. Use uploadPortfolioAsset to add a photo file.',
+  },
+  media: {
+    enabled: { find: true, create: false, update: true, delete: false },
+    description: 'Images and videos used by portfolio content. Use uploadPortfolioAsset to add a file.',
+  },
+} satisfies MCPPluginConfig['collections']
+
+const mcpGlobals = {
+  'site-settings': {
+    enabled: true,
+    description: 'Site identity, SEO defaults, icons, and scheduled overlay settings.',
+  },
+  timeline: {
+    enabled: true,
+    description: 'Timeline chapter titles and narrative content.',
+  },
+} satisfies MCPPluginConfig['globals']
+
 export default buildConfig({
   serverURL,
   admin: {
@@ -144,71 +196,15 @@ export default buildConfig({
   sharp,
   plugins: [
     mcpPlugin({
-      collections: {
-        pages: {
-          enabled: true,
-          description: 'Portfolio pages and their page-builder sections.',
-        },
-        notes: {
-          enabled: { find: true, create: false, update: false, delete: false },
-          description:
-            'Portfolio notes. Use createNoteDraft, updateNoteDraft, scheduleNote, and publishNote for safe draft and publishing workflows.',
-        },
-        projects: {
-          enabled: true,
-          description: 'Featured portfolio projects and their rich content blocks.',
-        },
-        'side-projects': {
-          enabled: true,
-          description: 'Side projects and their rich content blocks.',
-        },
-        clients: {
-          enabled: true,
-          description: 'Client profiles and related portfolio metadata.',
-        },
-        people: {
-          enabled: true,
-          description: 'People, collaborators, and testimonials.',
-        },
-        services: {
-          enabled: true,
-          description: 'Portfolio capabilities and service labels.',
-        },
-        photos: {
-          enabled: { find: true, create: false, update: true, delete: false },
-          description: 'Portfolio photo gallery entries. Use uploadPortfolioAsset to add a photo file.',
-        },
-        media: {
-          enabled: { find: true, create: false, update: true, delete: false },
-          description: 'Images and videos used by portfolio content. Use uploadPortfolioAsset to add a file.',
-        },
-      },
-      globals: {
-        'site-settings': {
-          enabled: true,
-          description: 'Site identity, SEO defaults, icons, and scheduled overlay settings.',
-        },
-        timeline: {
-          enabled: true,
-          description: 'Timeline chapter titles and narrative content.',
-        },
-      },
-      overrideApiKeyCollection: (collection) => {
-        for (const field of collection.fields) {
-          if (field.type !== 'collapsible') continue
-          for (const group of field.fields) {
-            if (
-              !('name' in group) ||
-              group.name !== 'payload-mcp-tool' ||
-              !('fields' in group)
-            ) continue
-            group.fields = group.fields.map((toolField) =>
-              toolField.type === 'checkbox' ? { ...toolField, defaultValue: false } : toolField,
-            )
-          }
-        }
-        return collection
-      },
+      collections: mcpCollections,
+      globals: mcpGlobals,
+      // Clients sign in with OAuth (see src/lib/mcpOAuth.ts); the plugin's key UI is unused.
+      overrideApiKeyCollection: (collection) => ({ ...collection, admin: { ...collection.admin, hidden: true } }),
+      overrideAuth: createMcpOAuthAuthenticator({
+        collections: mcpCollections,
+        globals: mcpGlobals,
+        toolNames: (portfolioMcpTools ?? []).map((tool) => tool.name),
+      }),
       mcp: {
         serverOptions: {
           serverInfo: { name: 'Gabriel Valdivia Portfolio', version: '1.0.0' },

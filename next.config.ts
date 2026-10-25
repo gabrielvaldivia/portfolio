@@ -1,6 +1,8 @@
 import { withPayload } from '@payloadcms/next/withPayload'
 import type { NextConfig } from 'next'
 
+const mcpResourceMetadataURL = `${(process.env.NEXT_PUBLIC_SERVER_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://www.gabrielvaldivia.com')).replace(/\/+$/, '')}/.well-known/oauth-protected-resource/api/mcp`
+
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['127.0.0.1'],
   poweredByHeader: false,
@@ -52,13 +54,23 @@ const nextConfig: NextConfig = {
         ],
       },
       // Campground can embed public pages; keep CMS, API, and draft previews same-origin.
-      ...['/admin/:path*', '/api/:path*', '/notes/preview/:path*'].map((source) => ({
+      ...['/admin/:path*', '/api/:path*', '/notes/preview/:path*', '/oauth/:path*'].map((source) => ({
         source,
         headers: [
           { key: 'Content-Security-Policy', value: "frame-ancestors 'self';" },
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
         ],
       })),
+      {
+        // MCP clients discover the OAuth sign-in from this header on a 401.
+        source: '/api/mcp',
+        headers: [
+          {
+            key: 'WWW-Authenticate',
+            value: `Bearer resource_metadata="${mcpResourceMetadataURL}"`,
+          },
+        ],
+      },
       {
         source: '/dive/:path*',
         headers: [

@@ -3,7 +3,7 @@
   "date": "2026-10-25",
   "title": "Portfolio editing, access, and speed",
   "changes": [
-   "AI clients can edit portfolio content using keys from the admin account menu, with explicit note publishing; 45 unused uploads were cleared. Only signed-in editors can change content, rate limits no longer let one burst block everyone, and pages are cached and lighter."
+   "AI clients connect to the portfolio by signing in with the admin account, no keys needed, and publish notes only when asked. 45 unused uploads were cleared. Only signed-in editors can change content, rate limits no longer let one burst block everyone, and pages are lighter."
   ]
  },
  {
