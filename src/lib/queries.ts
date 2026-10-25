@@ -2,6 +2,7 @@ import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import { sql } from '@payloadcms/db-postgres'
 import type { Where } from 'payload'
+import type { ResponsiveImageMedia } from './responsiveImage'
 import { getPayload } from './payload'
 import type { PageLike } from './pageMetadata'
 import { getPagePath, sortPagesByOrder, type OrderedPage } from './pageOrdering'
@@ -57,6 +58,15 @@ type PublishedNote = {
   updatedAt: string
 }
 
+// Generated Payload types are not committed, so selected fields need an explicit shape.
+export type ProjectCardDoc = {
+  id: number | string
+  title: string
+  slug: string
+  subtitle?: string
+  featuredImage?: ResponsiveImageMedia
+}
+
 /** Card fields only; case-study pages load the full project by slug. */
 export async function getProjects(options: GetProjectsOptions = {}) {
   const payload = await getPayload()
@@ -65,7 +75,7 @@ export async function getProjects(options: GetProjectsOptions = {}) {
     ...(options.slugs ? [{ slug: { in: options.slugs } }] : []),
   ]
 
-  return payload.find({
+  const result = await payload.find({
     collection: 'projects',
     sort: 'order',
     pagination: false,
@@ -73,6 +83,7 @@ export async function getProjects(options: GetProjectsOptions = {}) {
     depth: 1,
     select: { title: true, slug: true, subtitle: true, featuredImage: true },
   })
+  return { ...result, docs: result.docs as unknown as ProjectCardDoc[] }
 }
 
 export const getProjectBySlug = cache(async function getProjectBySlug(slug: string) {

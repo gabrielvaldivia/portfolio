@@ -3,7 +3,7 @@
   "date": "2026-10-25",
   "title": "Tighter access, faster pages",
   "changes": [
-   "Only signed-in editors can change content, and rate limits no longer let one burst block everyone. Pages are cached instead of rebuilt per visit, load lighter images and less data, and shares show each page's title. Editor photo, media, and nav views work more reliably."
+   "Only signed-in editors can change content, and rate limits no longer let one burst block everyone. Pages are cached instead of rebuilt per visit, load lighter images and less data, and shares show each page's own title. Editor photo, media, and nav views work more reliably."
   ]
  },
  {
