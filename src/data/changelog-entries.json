@@ -3,7 +3,7 @@
   "date": "2026-10-25",
   "title": "Portfolio editing, access, and speed",
   "changes": [
-   "AI clients sign in with the admin account, with setup steps on the account page. Admin lists show subscriber trends and sortable note views and likes, and link untitled drafts. A bot burst of fake likes was removed, and rate limits no longer let one burst block everyone."
+   "AI clients sign in with the admin account, with setup steps on the account page. Admin lists show responsive subscriber trends and sortable note views and likes, and link untitled drafts. Fake bot likes were removed, and rate limits no longer let one burst block everyone."
   ]
  },
  {
