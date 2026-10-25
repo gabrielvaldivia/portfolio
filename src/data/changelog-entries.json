@@ -3,7 +3,7 @@
   "date": "2026-10-25",
   "title": "Portfolio editing, access, and speed",
   "changes": [
-   "AI clients sign in with the admin account. Admin lists show subscriber trends and sortable note views and likes. Bot likes were removed, rate limits no longer let one burst block everyone, and the photo gallery loads about 30 times less data."
+   "AI clients sign in with the admin account. Admin lists show subscriber trends and sortable note views and likes. Bot likes were removed, rate limits no longer let one burst block everyone, the photo gallery loads 30x less data, and the timeline scrolls more smoothly."
   ]
  },
  {

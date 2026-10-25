@@ -590,6 +590,61 @@ export function TimelineExperience({
     : `Chapter ${contentChapterIndex - 1}`
   const nextChapterLabel = `Chapter ${contentChapterIndex + 1}`
 
+  // The scroll animation updates position every frame. Ticks only change with
+  // hover, and chapter text only with the chapter, so skip re-rendering them.
+  const tickElements = useMemo(() => railTicks.map((tick) => {
+    const distance = hoverProgress === null ? 1 : Math.abs(tick.position - hoverProgress)
+    const radius = 0.05
+    const influence = distance >= radius
+      ? 0
+      : Math.cos((distance / radius) * (Math.PI / 2)) ** 2
+    const baseWidth = tick.isChapter ? 14 : 6
+    const baseOpacity = tick.isChapter ? 0.72 : 0.28
+    const tickLength = baseWidth + influence * 14
+    const activeCompactIndex = Math.round((hoverProgress ?? 0) * CHAPTER_STARTS.length)
+    const compactDistance = hoverProgress === null || tick.compactIndex === null
+      ? Number.POSITIVE_INFINITY
+      : Math.abs(tick.compactIndex - activeCompactIndex)
+    const compactLength = compactDistance === 0
+      ? 28
+      : compactDistance === 1
+        ? 16
+        : compactDistance === 2
+          ? 10
+          : compactDistance === 3
+            ? 8
+            : 6
+    const compactOpacity = compactDistance === 0
+      ? 1
+      : compactDistance === 1
+        ? 0.62
+        : compactDistance === 2
+          ? 0.42
+          : 0.28
+
+    return (
+      <span
+        key={tick.id}
+        className={styles.tick}
+        data-chapter={tick.isChapter ? 'true' : 'false'}
+        style={{
+          '--tick-position': `${tick.position * 100}%`,
+          '--tick-compact-position': tick.compactIndex === null
+            ? '0px'
+            : `${tick.compactIndex * 10}px`,
+          '--tick-length': `${tickLength}px`,
+          '--tick-mobile-length': `${tickLength}px`,
+          '--tick-compact-length': `${compactLength}px`,
+          '--tick-compact-opacity': compactOpacity,
+          top: `${tick.position * 100}%`,
+          width: `${tickLength}px`,
+          opacity: baseOpacity + influence * (1 - baseOpacity),
+        } as React.CSSProperties}
+      />
+    )
+  }), [hoverProgress, railTicks])
+  const chapterBody = useMemo(() => <RichText data={contentRichText} />, [contentRichText])
+
   const getChapterTimestampRange = (chapterIndex: number) => {
     const start = CHAPTER_BOUNDARIES[chapterIndex]
     const boundaryEnd = CHAPTER_BOUNDARIES[chapterIndex + 1] ?? presentTimestamp
@@ -1739,57 +1794,7 @@ export function TimelineExperience({
           onPointerLeave={handlePointerLeave}
         >
           <div className={styles.ticks} aria-hidden="true">
-            {railTicks.map((tick) => {
-              const distance = hoverProgress === null ? 1 : Math.abs(tick.position - pillProgress)
-              const radius = 0.05
-              const influence = distance >= radius
-                ? 0
-                : Math.cos((distance / radius) * (Math.PI / 2)) ** 2
-              const baseWidth = tick.isChapter ? 14 : 6
-              const baseOpacity = tick.isChapter ? 0.72 : 0.28
-              const tickLength = baseWidth + influence * 14
-              const activeCompactIndex = Math.round(pillProgress * CHAPTER_STARTS.length)
-              const compactDistance = hoverProgress === null || tick.compactIndex === null
-                ? Number.POSITIVE_INFINITY
-                : Math.abs(tick.compactIndex - activeCompactIndex)
-              const compactLength = compactDistance === 0
-                ? 28
-                : compactDistance === 1
-                  ? 16
-                  : compactDistance === 2
-                    ? 10
-                    : compactDistance === 3
-                      ? 8
-                      : 6
-              const compactOpacity = compactDistance === 0
-                ? 1
-                : compactDistance === 1
-                  ? 0.62
-                  : compactDistance === 2
-                    ? 0.42
-                    : 0.28
-
-              return (
-                <span
-                  key={tick.id}
-                  className={styles.tick}
-                  data-chapter={tick.isChapter ? 'true' : 'false'}
-                  style={{
-                    '--tick-position': `${tick.position * 100}%`,
-                    '--tick-compact-position': tick.compactIndex === null
-                      ? '0px'
-                      : `${tick.compactIndex * 10}px`,
-                    '--tick-length': `${tickLength}px`,
-                    '--tick-mobile-length': `${tickLength}px`,
-                    '--tick-compact-length': `${compactLength}px`,
-                    '--tick-compact-opacity': compactOpacity,
-                    top: `${tick.position * 100}%`,
-                    width: `${tickLength}px`,
-                    opacity: baseOpacity + influence * (1 - baseOpacity),
-                  } as React.CSSProperties}
-                />
-              )
-            })}
+            {tickElements}
           </div>
 
           <span
@@ -1863,7 +1868,7 @@ export function TimelineExperience({
                   ref={chapterDescriptionRef}
                   className={`${styles.chapterDescription} longform-body`}
                 >
-                  <RichText data={contentRichText} />
+                  {chapterBody}
                 </div>
                 {contentChapterIndex < CHAPTER_BOUNDARIES.length - 1 && (
                   <div
