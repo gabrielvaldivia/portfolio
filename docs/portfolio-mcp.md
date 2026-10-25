@@ -5,7 +5,7 @@ The Payload MCP endpoint is available at `/api/mcp`. It uses Payload-managed bea
 ## Create a connection key
 
 1. Sign in to the Payload admin after the MCP-enabled deployment is running.
-2. Open **MCP → API Keys** and create a key with a recognizable label.
+2. Open the account menu at the bottom of the sidebar, choose **MCP keys** (or go to `/admin/collections/payload-mcp-api-keys`), and create a key with a recognizable label.
 3. Allow MCP traffic and grant only the capabilities this client needs. Enable collection read/create/update/delete permissions for the portfolio content you want it to manage, plus the custom note and media tools as needed.
 4. Copy the generated key when it is shown. Store it as a secret in the MCP client; it cannot be retrieved later.
 

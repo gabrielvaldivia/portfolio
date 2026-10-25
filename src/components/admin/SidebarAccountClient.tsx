@@ -1,13 +1,13 @@
 'use client'
 
-import { Logout03Icon, Setting06Icon, User03Icon, UserCircleIcon } from '@hugeicons/core-free-icons'
+import { Key01Icon, Logout03Icon, Setting06Icon, User03Icon, UserCircleIcon } from '@hugeicons/core-free-icons'
 import type { IconSvgElement } from '@hugeicons/react'
 import { Link } from '@payloadcms/ui'
 import { useEffect, useId, useRef, useState } from 'react'
 
 import { AdminHugeIcon } from './Hugeicons'
 
-type SidebarAccountMenuIcon = 'account' | 'logout' | 'settings' | 'users'
+type SidebarAccountMenuIcon = 'account' | 'keys' | 'logout' | 'settings' | 'users'
 
 export type SidebarAccountMenuItem = {
   href: string
@@ -26,6 +26,7 @@ const icons: Record<SidebarAccountMenuIcon, IconSvgElement> = {
   account: UserCircleIcon,
   logout: Logout03Icon,
   settings: Setting06Icon,
+  keys: Key01Icon,
   users: User03Icon,
 }
 
