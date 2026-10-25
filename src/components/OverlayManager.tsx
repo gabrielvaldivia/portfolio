@@ -39,6 +39,8 @@ function isActiveToday(schedule: OverlaySchedule): boolean {
   const start = toMMDD(schedule.startDate)
   const end = schedule.endDate ? toMMDD(schedule.endDate) : start
 
+  // Ranges like Dec 30 to Jan 2 wrap around the new year.
+  if (start > end) return todayMMDD >= start || todayMMDD <= end
   return todayMMDD >= start && todayMMDD <= end
 }
 

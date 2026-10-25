@@ -14,6 +14,7 @@ import {
   useConversationSummaries,
   type ConversationSummary,
 } from '@/lib/conversationSummaries'
+import { ChatStreamError, streamChat } from '@/lib/chatStream'
 import { useChatSidebar } from '@/lib/useChatSidebar'
 import {
   parseAssistantContent,
@@ -442,8 +443,6 @@ export function Chat({
     (id: number | null) => {
       setConversationIdRaw(id)
       if (typeof window === 'undefined') return
-      if (id !== null) sessionStorage.setItem('conversationId', String(id))
-      else sessionStorage.removeItem('conversationId')
       if (persistentSidebar) {
         const newPath = scopeHref(id !== null ? `/chat/${id}` : '/chat/new')
         if (window.location.pathname !== newPath) {
@@ -468,7 +467,7 @@ export function Chat({
   useEffect(() => {
     // Resolve the initial conversation id. On the dedicated /chat page
     // the URL is authoritative (via initialConversationId). Elsewhere,
-    // fall back to the ?chat= query param or sessionStorage.
+    // fall back to the ?chat= query param.
     const urlParams = new URLSearchParams(window.location.search)
     const chatParam = urlParams.get('chat')
     const savedId = persistentSidebar
@@ -562,6 +561,7 @@ export function Chat({
   }, [])
 
   useEffect(() => {
+    if (userScrolledUp.current) return
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages])
 
@@ -570,85 +570,62 @@ export function Chat({
     const el = scrollRef.current
     if (!el) return
     const observer = new MutationObserver(() => {
+      if (userScrolledUp.current) return
       el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
     })
     observer.observe(el, { childList: true, subtree: true })
     return () => observer.disconnect()
   }, [])
 
+  // Only the latest request may write to the visible conversation.
+  const streamRef = useRef<AbortController | null>(null)
+  const skipNextSave = useRef(false)
+  // Bumped whenever another conversation is shown, so late saves keep their own id.
+  const conversationGeneration = useRef(0)
+
+  function cancelStream() {
+    const controller = streamRef.current
+    if (!controller) return
+    streamRef.current = null
+    controller.abort()
+    // The abandoned exchange belongs to the conversation being left.
+    skipNextSave.current = true
+    setIsStreaming(false)
+  }
+
+  useEffect(() => () => streamRef.current?.abort(), [])
+
   async function sendMessage(text: string) {
     if (!text.trim() || isStreaming) return
     userScrolledUp.current = false
     const userMessage: Message = { role: 'user', content: text.trim() }
     const newMessages = [...messages, userMessage]
-    setMessages(newMessages)
+    setMessages([...newMessages, { role: 'assistant', content: '' }])
     setInput('')
     setIsStreaming(true)
 
-    const assistantMessage: Message = { role: 'assistant', content: '' }
-    setMessages([...newMessages, assistantMessage])
-
     const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 30000)
-    let errorMessage = "I'm having trouble answering right now. Please try again in a moment."
-
-    try {
-
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newMessages }),
-        signal: controller.signal,
-      })
-
-      if (!res.ok) {
-        if (res.status === 429) {
-          errorMessage = "I've reached the hourly chat limit. Please try again a little later."
-        }
-        throw new Error(`Chat request failed with ${res.status}`)
-      }
-
-      const reader = res.body?.getReader()
-      if (!reader) throw new Error('Chat response had no body')
-      const decoder = new TextDecoder()
-      let accumulated = ''
-      let buffer = ''
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split('\n')
-        buffer = lines.pop() || ''
-
-        for (const line of lines) {
-          if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-            try {
-              const data = JSON.parse(line.slice(6))
-              accumulated += data.text
-              setMessages((prev) => {
-                const updated = [...prev]
-                updated[updated.length - 1] = { role: 'assistant', content: accumulated }
-                return updated
-              })
-            } catch {
-              // skip malformed chunks
-            }
-          }
-        }
-      }
-
-      if (!accumulated.trim()) throw new Error('Chat response was empty')
-    } catch {
+    streamRef.current = controller
+    const setAnswer = (content: string) => {
+      if (streamRef.current !== controller) return
       setMessages((previous) => {
         const updated = [...previous]
-        updated[updated.length - 1] = { role: 'assistant', content: errorMessage }
+        updated[updated.length - 1] = { role: 'assistant', content }
         return updated
       })
+    }
+
+    try {
+      await streamChat(newMessages, { signal: controller.signal, onText: setAnswer })
+    } catch (error) {
+      setAnswer(error instanceof ChatStreamError && error.status === 429
+        ? "I've reached the hourly chat limit. Please try again a little later."
+        : "I'm having trouble answering right now. Please try again in a moment.")
     } finally {
-      clearTimeout(timeout)
-      setIsStreaming(false)
+      if (streamRef.current === controller) {
+        streamRef.current = null
+        setIsStreaming(false)
+      }
     }
   }
 
@@ -656,10 +633,15 @@ export function Chat({
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
     if (isStreaming) return
+    if (skipNextSave.current) {
+      skipNextSave.current = false
+      return
+    }
     if (messages.length < 2 || !messages.some((m) => m.role === 'user')) return
 
     // Debounce: wait 3 seconds before saving to batch rapid exchanges
     if (saveTimer.current) clearTimeout(saveTimer.current)
+    const generation = conversationGeneration.current
     saveTimer.current = setTimeout(() => {
       if (conversationId) {
         fetch(`/api/chat/conversations/${conversationId}`, {
@@ -679,7 +661,7 @@ export function Chat({
           .then((doc) => {
             if (doc.id) {
               cacheConversation(doc)
-              setConversationId(doc.id)
+              if (generation === conversationGeneration.current) setConversationId(doc.id)
             }
           })
           .catch(() => {})
@@ -688,6 +670,8 @@ export function Chat({
   }, [isStreaming])
 
   async function loadConversation(conv: ConversationSummary) {
+    cancelStream()
+    conversationGeneration.current += 1
     setAnimateBubbles(false)
     if (window.matchMedia('(max-width: 809px)').matches) setSidebarOpen(false)
 
@@ -706,6 +690,8 @@ export function Chat({
   }
 
   function startNewConversation() {
+    cancelStream()
+    conversationGeneration.current += 1
     const random = GREETINGS[Math.floor(Math.random() * GREETINGS.length)]
     setMessages([{ role: 'assistant', content: random }])
     setConversationId(null)

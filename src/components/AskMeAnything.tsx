@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { RotateCcw } from 'lucide-react'
+import { streamChat } from '@/lib/chatStream'
 import { cn } from '@/lib/cn'
 
 type FAQItem = {
@@ -80,12 +81,14 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
   const [followUpFocused, setFollowUpFocused] = useState(false)
   const [initialInputFocused, setInitialInputFocused] = useState(false)
   const conversationIdRef = useRef<number | string | null>(null)
+  const conversationGeneration = useRef(0)
   const initialInputRef = useRef<HTMLInputElement>(null)
   const followUpInputRef = useRef<HTMLInputElement>(null)
   const reduceMotion = useReducedMotion()
   const hasConversation = messages.length > 0
 
   async function persistConversation(nextMessages: Message[]) {
+    const generation = conversationGeneration.current
     try {
       if (conversationIdRef.current) {
         await fetch(`/api/chat/conversations/${conversationIdRef.current}`, {
@@ -106,11 +109,15 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
       })
       if (!response.ok) return
       const conversation = await response.json()
-      conversationIdRef.current = conversation.id || null
+      if (generation === conversationGeneration.current) conversationIdRef.current = conversation.id || null
     } catch {
       // Question ranking is non-critical and should never interrupt the chat.
     }
   }
+
+  // Restarting abandons the in-flight answer so it cannot restore the old chat.
+  const streamRef = useRef<AbortController | null>(null)
+  useEffect(() => () => streamRef.current?.abort(), [])
 
   async function askAI(question: string, history = messages) {
     const text = question.trim()
@@ -122,46 +129,23 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
     setError('')
     setIsLoading(true)
 
+    const controller = new AbortController()
+    streamRef.current = controller
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: nextMessages }),
-      })
-
-      if (!response.ok || !response.body) throw new Error('Unable to get a response')
-
-      const reader = response.body.getReader()
-      const decoder = new TextDecoder()
-      let buffer = ''
-      let answer = ''
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split('\n')
-        buffer = lines.pop() || ''
-
-        for (const line of lines) {
-          if (!line.startsWith('data: ') || line === 'data: [DONE]') continue
-          try {
-            answer += JSON.parse(line.slice(6)).text || ''
-          } catch {
-            // Ignore incomplete server-sent event data.
-          }
-        }
-      }
-
-      if (!answer.trim()) throw new Error('Empty response')
+      const answer = await streamChat(nextMessages, { signal: controller.signal })
+      if (streamRef.current !== controller) return
       const completedMessages: Message[] = [...nextMessages, { role: 'assistant', content: cleanResponse(answer) }]
       setMessages(completedMessages)
       void persistConversation(completedMessages)
       setFollowUpFocused(false)
     } catch {
+      if (streamRef.current !== controller) return
       setError('Something went wrong. Please try asking again.')
     } finally {
-      setIsLoading(false)
+      if (streamRef.current === controller) {
+        streamRef.current = null
+        setIsLoading(false)
+      }
     }
   }
 
@@ -186,6 +170,8 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
   }
 
   function clearConversation() {
+    streamRef.current?.abort()
+    streamRef.current = null
     setMessages([])
     setInput('')
     setError('')
@@ -193,6 +179,7 @@ export function AskMeAnything({ items, suggestedQuestions }: { items: FAQItem[];
     setFollowUpFocused(false)
     setInitialInputFocused(false)
     conversationIdRef.current = null
+    conversationGeneration.current += 1
   }
 
   useEffect(() => {

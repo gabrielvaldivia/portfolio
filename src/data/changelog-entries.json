@@ -1,9 +1,9 @@
 [
  {
   "date": "2026-10-25",
-  "title": "Tighter access, fairer limits",
+  "title": "Tighter access, steadier chat",
   "changes": [
-   "Only signed-in editors can change site content or read private records. Chat, contact, and signup limits count only requests that go through. Unpublished notes leave the site right away, and editor uploads keep their progress and fixes after updates."
+   "Only signed-in editors can change content, and rate limits count only requests that go through. Unpublished notes leave right away. Switching chats mid-answer no longer overwrites the other conversation, long answers stop timing out, and failed activity loads stop retrying."
   ]
  },
  {

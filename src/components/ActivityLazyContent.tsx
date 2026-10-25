@@ -581,7 +581,9 @@ function LoadMoreControl({
 
   useEffect(() => {
     const root = rootRef.current
-    if (!root || !hasMore || loading || typeof IntersectionObserver === 'undefined') return
+    // After a failure only the button retries, so a sentinel that stays in view
+    // cannot repeat the failing request in a loop.
+    if (!root || !hasMore || loading || error || typeof IntersectionObserver === 'undefined') return
 
     const observer = new IntersectionObserver((entries) => {
       if (!entries.some((entry) => entry.isIntersecting)) return
@@ -592,7 +594,7 @@ function LoadMoreControl({
     observer.observe(root)
 
     return () => observer.disconnect()
-  }, [hasMore, loading, onLoadMore])
+  }, [error, hasMore, loading, onLoadMore])
 
   if (!hasMore && !error) return null
 

@@ -45,6 +45,15 @@ const CONFETTI_FADE_DELAY = 2000
 const CONFETTI_FADE_DURATION = 1500
 
 export function BirthdayBalloons({ force = false }: { force?: boolean }) {
+  // Only show on March 23rd. Checked before the scene mounts so its hooks
+  // always run in the same order, even when the date changes mid-session.
+  const today = new Date()
+  const isBirthday = today.getMonth() === 2 && today.getDate() === 23
+  if (!isBirthday && !force) return null
+  return <BalloonScene />
+}
+
+function BalloonScene() {
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const balloonsRef = useRef<Balloon[]>([])
@@ -55,11 +64,6 @@ export function BirthdayBalloons({ force = false }: { force?: boolean }) {
   const [, setBalloonsReady] = useState(false)
   const [done, setDone] = useState(false)
   const tiltRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
-
-  // Only show on March 23rd
-  const today = new Date()
-  const isBirthday = today.getMonth() === 2 && today.getDate() === 23
-  if (!isBirthday && !force) return null
 
   const initBalloons = useCallback(() => {
     const w = window.innerWidth
