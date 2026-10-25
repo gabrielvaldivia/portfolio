@@ -148,6 +148,23 @@ test('provider account quota pauses every note until midnight UTC and preserves 
   assert.equal((await getNoteNewsletterStatus(db, 1)).sent, 2)
 })
 
+test('a recipient the provider rejects is held for review without stalling later recipients', async () => {
+  await subscribers(3)
+  await queuePublishedNoteNewsletter(note, payload)
+  const send = mock.method(globalThis, 'fetch', async (_url: unknown, options?: RequestInit) => {
+    const { to } = JSON.parse(String(options?.body))
+    return String(to).includes('reader-1@')
+      ? Response.json({ name: 'validation_error' }, { status: 422 })
+      : Response.json({ id: new Headers(options?.headers).get('Idempotency-Key') })
+  })
+  await run()
+  assert.equal(send.mock.callCount(), 3)
+  const status = await getNoteNewsletterStatus(db, 1)
+  assert.equal(status.sent, 2)
+  assert.equal(status.review, 1)
+  assert.equal(status.pending, 0)
+})
+
 test('no provider key leaves the queue intact; local and preview entries never enter the production queue', async () => {
   await subscribers(1)
   process.env.VERCEL_ENV = 'preview'

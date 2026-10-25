@@ -292,7 +292,10 @@ export const getRepeatedQuestions = cache(async function getRepeatedQuestions() 
   const payload = await getPayload()
   const result = await payload.db.drizzle.execute(sql`
     WITH "recent" AS (
-      SELECT "messages" FROM "conversations" ORDER BY "updated_at" DESC LIMIT 500
+      -- messages is an editable JSON field; skip rows that are not arrays.
+      SELECT "messages" FROM "conversations"
+      WHERE jsonb_typeof("messages"::jsonb) = 'array'
+      ORDER BY "updated_at" DESC LIMIT 500
     ),
     "asked" AS (
       SELECT

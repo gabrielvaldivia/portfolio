@@ -2,6 +2,7 @@ import { revalidatePath } from 'next/cache'
 import { getPayload, isPayloadUnavailable } from '@/lib/payload'
 import { publishScheduledNotes } from '@/lib/notePublishing'
 import { invalidateBackgroundWork, shouldRunBackgroundWork } from '@/lib/backgroundWork'
+import { hasCronAuthorization } from '@/lib/cronAuth'
 
 export const runtime = 'nodejs'
 export const revalidate = 0
@@ -10,7 +11,7 @@ export const maxDuration = 60
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET
   if (!secret) return Response.json({ error: 'Scheduler authentication is not configured' }, { status: 503 })
-  if (req.headers.get('authorization') !== `Bearer ${secret}`) {
+  if (!hasCronAuthorization(req.headers, secret)) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
   let ran = false

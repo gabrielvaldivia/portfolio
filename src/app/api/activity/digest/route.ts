@@ -8,6 +8,7 @@ import {
   type WeeklyActivityStats,
 } from '@/lib/weeklyActivityDigest'
 import { createWorkersAICompletion, isWorkersAIConfigured } from '@/lib/workersAI'
+import { hasCronAuthorization } from '@/lib/cronAuth'
 
 export const dynamic = 'force-dynamic'
 
@@ -92,12 +93,11 @@ function getSubject(stats: WeeklyActivityStats) {
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 
 export async function GET(req: Request) {
-  const authHeader = req.headers.get('authorization')
   const expected = process.env.CRON_SECRET
   if (!expected && process.env.NODE_ENV === 'production') {
     return Response.json({ error: 'Cron authentication is not configured' }, { status: 503 })
   }
-  if (expected && authHeader !== `Bearer ${expected}`) {
+  if (expected && !hasCronAuthorization(req.headers, expected)) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -128,6 +128,10 @@ export async function GET(req: Request) {
       html,
     }, { idempotencyKey: `activity-digest:${digestWeek}` })
 
+    // A rerun within 24 hours reuses this week's key; Resend refuses rather than resend.
+    if (sendResult.error?.name === 'invalid_idempotent_request' || sendResult.error?.name === 'concurrent_idempotent_requests') {
+      return Response.json({ ok: true, sent: false, reason: 'Digest already sent this week' })
+    }
     if (sendResult.error || !sendResult.data?.id) {
       console.error('Activity digest email failed:', sendResult.error?.name || 'missing email id')
       return Response.json({ error: 'Unable to send activity digest' }, { status: 502 })

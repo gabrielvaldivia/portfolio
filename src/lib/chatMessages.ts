@@ -37,9 +37,16 @@ export function normalizeConversationMessages(value: unknown): ChatMessage[] | n
 
 /** Saved turns are history: an update may only add messages after them. */
 export function extendsConversation(existing: unknown, next: ChatMessage[]) {
-  if (!Array.isArray(existing) || existing.length > next.length) return false
-  return existing.every((message, index) => (
-    message?.role === next[index].role && message?.content === next[index].content
+  if (!Array.isArray(existing)) return false
+  // Older chats were saved before messages were trimmed and empty replies were
+  // dropped; compare them the way clients send them back.
+  const saved = existing.flatMap((message) => {
+    const content = typeof message?.content === 'string' ? message.content.trim() : ''
+    return content ? [{ role: message.role, content }] : []
+  })
+  if (saved.length > next.length) return false
+  return saved.every((message, index) => (
+    message.role === next[index].role && message.content === next[index].content
   ))
 }
 

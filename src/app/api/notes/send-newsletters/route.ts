@@ -1,6 +1,7 @@
 import { getPayload, isPayloadUnavailable } from '@/lib/payload'
 import { processNoteNewsletterQueue } from '@/lib/noteNewsletterQueue'
 import { invalidateBackgroundWork, shouldRunBackgroundWork } from '@/lib/backgroundWork'
+import { hasCronAuthorization } from '@/lib/cronAuth'
 
 export const runtime = 'nodejs'
 export const revalidate = 0
@@ -10,7 +11,7 @@ export async function GET(request: Request) {
   const headers = { 'Cache-Control': 'no-store' }
   const secret = process.env.CRON_SECRET
   if (!secret) return Response.json({ error: 'Scheduler authentication is not configured' }, { status: 503, headers })
-  if (request.headers.get('authorization') !== `Bearer ${secret}`) return Response.json({ error: 'Unauthorized' }, { status: 401, headers })
+  if (!hasCronAuthorization(request.headers, secret)) return Response.json({ error: 'Unauthorized' }, { status: 401, headers })
   if (process.env.VERCEL_ENV !== 'production') return Response.json({ error: 'Newsletter delivery runs in production only' }, { status: 403, headers })
   let ran = false
   try {

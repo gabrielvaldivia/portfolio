@@ -1,6 +1,7 @@
 import { getPayload, isPayloadUnavailable } from '@/lib/payload'
 import { getSiteURL, verifySubscriptionToken } from '@/lib/noteSubscriptions'
 import { confirmNoteSubscription } from '@/lib/noteSubscriptionConfirmation'
+import { subscriptionActionPage } from '@/lib/subscriptionActionPage'
 import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
@@ -12,9 +13,24 @@ function redirect(status: 'confirmed' | 'invalid' | 'error') {
   })
 }
 
-export async function GET(request: Request) {
+function readToken(request: Request) {
   const token = new URL(request.url).searchParams.get('token') || ''
-  const verified = token.length <= 2048 ? verifySubscriptionToken(token, 'confirm') : null
+  return { token, verified: token.length <= 2048 ? verifySubscriptionToken(token, 'confirm') : null }
+}
+
+export async function GET(request: Request) {
+  const { token, verified } = readToken(request)
+  if (!verified) return redirect('invalid')
+  return subscriptionActionPage({
+    title: 'Confirm your subscription',
+    description: 'You’ll receive an email whenever Gabe publishes a new note.',
+    action: `/api/notes/subscribe/confirm?token=${encodeURIComponent(token)}`,
+    button: 'Confirm subscription',
+  })
+}
+
+export async function POST(request: Request) {
+  const { verified } = readToken(request)
   if (!verified) return redirect('invalid')
 
   try {

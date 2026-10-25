@@ -40,7 +40,7 @@ test('uses only coarse Vercel geography, decoding and bounding labels', () => {
 
 test('old highlights preserve their date and have an honest missing-location fallback', async () => {
   const [mark] = await loadPublicHighlights(db, 1, text, 'another-reader')
-  assert.deepEqual(mark.attributions, [{ location: null, createdAt: '2026-09-06T12:34:56.000Z', mine: false }])
+  assert.deepEqual(mark.attributions, [{ location: null, createdAt: '2026-09-06T12:34:00.000Z', mine: false }])
   assert.equal(getHighlightAttributionHeading(mark), 'Highlighted by someone')
   assert.equal(JSON.stringify(mark).includes('legacy-private-reader'), false)
 })

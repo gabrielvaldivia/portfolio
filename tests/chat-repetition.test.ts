@@ -27,4 +27,6 @@ test('conversation updates may only append to saved messages', async () => {
   assert.equal(extendsConversation(saved, next), true)
   assert.equal(extendsConversation(saved, [{ role: 'assistant', content: 'Rewritten' }, ...next.slice(1)]), false)
   assert.equal(extendsConversation(next, saved), false)
+  const legacy = [{ role: 'assistant', content: ' Hi ' }, { role: 'assistant', content: '' }, { role: 'user', content: 'Q' }]
+  assert.equal(extendsConversation(legacy, next), true)
 })

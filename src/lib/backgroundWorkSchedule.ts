@@ -13,7 +13,8 @@ export async function readBackgroundWorkSchedule(db: ScheduleDB, environment: st
       (SELECT min(scheduled_for) FROM notes
         WHERE _status = 'draft' AND scheduled_for IS NOT NULL) AS publishing,
       (SELECT min(next_attempt_at) FROM engagement_notifications
-        WHERE sent_at IS NULL AND environment = ${environment}) AS notifications,
+        WHERE sent_at IS NULL AND environment = ${environment}
+          AND created_at > now() - interval '23 hours') AS notifications,
       (SELECT min(GREATEST(
         d.next_attempt_at, r.lease_until, r.paused_until,
         CASE WHEN r.budget_day = (now() AT TIME ZONE 'UTC')::date

@@ -111,6 +111,7 @@ export async function processNoteNewsletterQueue(db: NewsletterDB, options: {
 
       let failure = 'network_error'
       let uncertain = true
+      let rejectedMessage = false
       let providerID: string | undefined
       try {
         const { replyTo, ...message } = delivery.message
@@ -125,6 +126,8 @@ export async function processNoteNewsletterQueue(db: NewsletterDB, options: {
         else {
           failure = typeof result.name === 'string' ? result.name.slice(0, 100) : 'provider_error'
           uncertain = response.status >= 500 || response.ok
+          // 400/422 reject this message (for example an invalid address), not the account.
+          rejectedMessage = response.status === 400 || response.status === 422
         }
       } catch {
         // A timeout may follow a successful send. Retry the exact saved message/key.
@@ -137,6 +140,16 @@ export async function processNoteNewsletterQueue(db: NewsletterDB, options: {
         `)
         sent++
         await pause(200)
+        continue
+      }
+
+      if (rejectedMessage) {
+        // Retrying cannot succeed, and as the oldest pending row it would stall
+        // every later delivery. Hold it for review and keep sending.
+        await db.execute(sql`
+          UPDATE note_newsletter_deliveries SET status = 'review', last_error = ${failure}
+          WHERE id = ${delivery.id}
+        `)
         continue
       }
 

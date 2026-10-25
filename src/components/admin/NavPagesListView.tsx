@@ -117,7 +117,7 @@ export function NavPagesListView({ BeforeList, BeforeListTable }: NavPagesListVi
 
     // Only pages that moved need saving; each save also refreshes the site cache.
     const orderedPages = persistedItems.flatMap((item, index) => (
-      'id' in item && Number(item.order) !== index ? [{ ...item, order: index }] : []
+      'id' in item && !(typeof item.order === 'number' && item.order === index) ? [{ ...item, order: index }] : []
     ))
     const responses = await Promise.all(
       orderedPages.map((page) => {

@@ -35,6 +35,8 @@ export async function GET() {
       html = convertLexicalToHTML({
         data: note.body as SerializedEditorState,
         disableContainer: true,
+        // Feed readers should not see "unknown node" for editor-only blocks.
+        converters: ({ defaultConverters }) => ({ ...defaultConverters, unknown: () => '' }),
       })
     } catch {
       html = `<p>${escapeXML(getNoteExcerpt(note, 1000))}</p>`

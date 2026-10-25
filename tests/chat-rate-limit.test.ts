@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { after, before, beforeEach, test } from 'node:test'
 import { PGlite } from '@electric-sql/pglite'
 import { drizzle } from 'drizzle-orm/pglite'
-import { countRateLimitRequest } from '../src/lib/chatRateLimit'
+import { countRateLimitRequest, ipv6Prefix64 } from '../src/lib/chatRateLimit'
 
 const client = new PGlite()
 const db = drizzle(client)
@@ -36,4 +36,11 @@ test('allowed requests count toward the daily budget', async () => {
   assert.deepEqual(await request('a'), { window: 1, daily: 1 })
   assert.deepEqual(await request('b'), { window: 1, daily: 2 })
   assert.deepEqual(await request('a'), { window: 2, daily: 3 })
+})
+
+test('IPv6 visitors are counted by their /64 prefix', () => {
+  assert.equal(ipv6Prefix64('2001:db8:85a3:42:1:2:3:4'), '2001:db8:85a3:42::/64')
+  assert.equal(ipv6Prefix64('2001:0db8:85a3:0042:ffff::1'), '2001:db8:85a3:42::/64')
+  assert.equal(ipv6Prefix64('2001:db8::1'), '2001:db8:0:0::/64')
+  assert.equal(ipv6Prefix64('2001:db8::'), ipv6Prefix64('2001:db8:0:0:9::'))
 })

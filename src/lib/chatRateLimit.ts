@@ -53,7 +53,19 @@ function getClientIdentity(headers: Headers) {
   const forwarded = headers.get('x-forwarded-for')?.split(',')[0]?.trim()
   // The user agent is client-controlled, so including it would let one client
   // rotate it for a fresh hourly window.
-  return forwarded || headers.get('x-real-ip')?.trim() || 'unknown'
+  const ip = forwarded || headers.get('x-real-ip')?.trim() || 'unknown'
+  // One IPv6 connection usually controls a whole /64, so count the prefix.
+  return ip.includes(':') ? ipv6Prefix64(ip) : ip
+}
+
+export function ipv6Prefix64(ip: string) {
+  const address = ip.toLowerCase().replace(/^\[|\]$/g, '').split('%')[0]
+  const [head, tail] = address.split('::')
+  const headGroups = head ? head.split(':') : []
+  const tailGroups = tail === undefined ? [] : tail ? tail.split(':') : []
+  const missing = tail === undefined ? 0 : Math.max(8 - headGroups.length - tailGroups.length, 0)
+  const groups = [...headGroups, ...Array(missing).fill('0'), ...tailGroups]
+  return `${groups.slice(0, 4).map((group) => group.replace(/^0+(?=.)/, '')).join(':')}::/64`
 }
 
 function readCounts(result: unknown) {
@@ -159,6 +171,7 @@ async function checkPersistentRateLimit({
 
   return {
     allowed: windowAllowed && dailyAllowed,
+    windowAllowed,
     limit,
     remaining: Math.max(limit - counts.window, 0),
     dailyLimit,
@@ -219,7 +232,9 @@ export function checkModuleLikeRateLimit(headers: Headers) {
   return checkPersistentRateLimit({
     headers,
     namespace: 'module-likes',
-    limit: 120,
+    // Each tap is a request and a visitor may tap a module 50 times; leave room
+    // for several modules and for visitors sharing one address.
+    limit: 1_000,
     dailyLimit: 100_000,
   })
 }

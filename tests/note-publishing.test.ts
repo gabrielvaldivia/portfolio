@@ -23,6 +23,7 @@ const past = '2020-04-01T14:30:00.000Z'
 type Doc = Record<string, any>
 let sent = 0
 let failUpdate = false
+let failOnlyId: number | null = null
 let payload: Payload
 const realFetch = globalThis.fetch
 const previousKey = process.env.RESEND_API_KEY
@@ -65,7 +66,7 @@ before(async () => {
     findByID,
     find: async () => ({ docs: [{ email: 'scheduler-test@example.test' }], hasNextPage: false }),
     update: async ({ id, data, context = {}, req }: any) => {
-      if (failUpdate) throw new Error('Simulated database failure')
+      if (failUpdate || id === failOnlyId) throw new Error('Simulated database failure')
       const original = await findByID({ id })
       req ||= { payload, context }
       req.context = { ...req.context, ...context }
@@ -180,6 +181,17 @@ test('a failed publication rolls back and stays scheduled for a later retry', as
   failUpdate = false
   assert.equal((await publishScheduledNotes(payload)).length, 1)
   assert.equal(sent, 0)
+})
+
+test('a note that fails to publish does not block later scheduled notes', async () => {
+  const insert = 'INSERT INTO notes (title,slug,scheduled_for,published_at) VALUES ($1,$2,$3,$3) RETURNING id'
+  const { rows: [blocked] } = await db.query<{ id: number }>(insert, ['Blocked note', 'blocked-note', '2020-01-01T00:00:00.000Z'])
+  const { rows: [later] } = await db.query<{ id: number }>(insert, ['Later note', 'later-note', past])
+  failOnlyId = blocked.id
+  await assert.rejects(publishScheduledNotes(payload), /Simulated database failure/)
+  assert.equal((await findByID({ id: blocked.id }))._status, 'draft')
+  assert.equal((await findByID({ id: later.id }))._status, 'published')
+  failOnlyId = null
 })
 
 test('schedule cancellation requires authentication', async () => {

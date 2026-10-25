@@ -37,17 +37,21 @@ export async function POST(request: NextRequest) {
   let stage = 'rate-limit'
   try {
     const rateLimit = await checkEngagementAccessRateLimit(request.headers)
-    if (!rateLimit.allowed) {
+    if (!rateLimit.windowAllowed) {
       return Response.json(
         { error: 'Too many attempts. Please try again later.' },
         { status: 429, headers: { 'Retry-After': String(rateLimit.retryAfterSeconds) } },
       )
     }
 
-    stage = 'save-email'
-    const payload = await getPayload()
-    await queueEngagementNotification(payload.db.drizzle, engagementNotification(email))
-    invalidateBackgroundWork()
+    // The shared daily budget limits notification email, not access: once it
+    // is spent, visitors still get in, and only the notification is skipped.
+    if (rateLimit.allowed) {
+      stage = 'save-email'
+      const payload = await getPayload()
+      await queueEngagementNotification(payload.db.drizzle, engagementNotification(email))
+      invalidateBackgroundWork()
+    }
 
     // The email is safely stored; provider quotas must not prevent opening the page.
     stage = 'access-cookie'

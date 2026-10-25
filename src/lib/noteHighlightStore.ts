@@ -73,13 +73,19 @@ export async function loadHighlightGroups(db: HighlightDB, noteId: number, text:
   return [...groups.values()].sort((a, b) => a.start - b.start || a.end - b.end)
 }
 
+function roundToMinute(iso: string) {
+  const time = Date.parse(iso)
+  return Number.isNaN(time) ? iso : new Date(Math.floor(time / 60_000) * 60_000).toISOString()
+}
+
 export async function loadPublicHighlights(db: HighlightDB, noteId: number, text: string, visitorHash: string) {
   const groups = await loadHighlightGroups(db, noteId, text, visitorHash)
   // Explicit allowlist: never send anonymous reader identities or ownership keys to clients.
   return groups.map(({ id, exact, prefix, suffix, start, end, count, mine, readers }): PublicHighlight =>
     ({ id, exact, prefix, suffix, start, end, count, mine,
+      // Minute precision is all the UI shows; exact times plus a city could single out a reader.
       attributions: [...readers.entries()].map(([reader, { location, createdAt }]) =>
-        ({ location, createdAt, mine: reader === visitorHash })).sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+        ({ location, createdAt: roundToMinute(createdAt), mine: reader === visitorHash })).sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
     }))
 }
 

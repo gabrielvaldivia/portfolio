@@ -37,6 +37,9 @@ export async function deliverNextEngagementNotification(db: QueueDB) {
     WITH next AS (
       SELECT idempotency_key FROM engagement_notifications
       WHERE sent_at IS NULL AND next_attempt_at <= now() AND environment = ${environment()}
+        -- Resend deduplicates for 24 hours; a later retry could send a duplicate,
+        -- so older failures stay saved with their last error instead.
+        AND created_at > now() - interval '23 hours'
       ORDER BY created_at
       LIMIT 1 FOR UPDATE SKIP LOCKED
     )

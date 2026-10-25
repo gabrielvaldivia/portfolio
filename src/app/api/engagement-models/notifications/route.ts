@@ -1,6 +1,7 @@
 import { deliverNextEngagementNotification } from '@/lib/engagementNotificationQueue'
 import { getPayload, isPayloadUnavailable } from '@/lib/payload'
 import { invalidateBackgroundWork, shouldRunBackgroundWork } from '@/lib/backgroundWork'
+import { hasCronAuthorization } from '@/lib/cronAuth'
 
 export const runtime = 'nodejs'
 export const revalidate = 0
@@ -9,7 +10,7 @@ export const maxDuration = 60
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET
   if (!secret) return Response.json({ error: 'Scheduler authentication is not configured' }, { status: 503 })
-  if (request.headers.get('authorization') !== `Bearer ${secret}`) {
+  if (!hasCronAuthorization(request.headers, secret)) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
   let ran = false

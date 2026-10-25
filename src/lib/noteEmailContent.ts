@@ -83,6 +83,8 @@ export function renderNoteEmailContent(body: unknown, siteURL: string) {
           : `<a href="${escapeHTML(url)}">${escapeHTML(String(media.filename || alt || 'Attachment'))}</a>`
       },
       horizontalrule: () => '<hr style="width:250px;max-width:100%;margin:1em auto;border:0;border-top:1px solid currentColor" />',
+      // Relationship blocks and other editor-only nodes have no email form; omit them.
+      unknown: () => '',
     }),
   }).replace(/<strong>/g, '<strong style="font-weight:600">')
 

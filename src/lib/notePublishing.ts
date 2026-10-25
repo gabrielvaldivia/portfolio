@@ -42,9 +42,14 @@ export const prepareNotePublication: CollectionBeforeChangeHook = async ({ data,
 export async function publishScheduledNotes(payload: Payload, now = new Date()) {
   const { sql } = await import('@payloadcms/db-postgres')
   const published: { id: number; slug: string }[] = []
+  // A note that fails is skipped for the rest of this run so it cannot block
+  // later notes; the first error is still reported once the others are done.
+  const failedIds: number[] = []
+  let firstError: unknown
   for (let count = 0; count < 20; count++) {
     const transactionID = await payload.db.beginTransaction()
     if (!transactionID) throw new Error('Scheduled publishing requires transactions')
+    let dueId: number | undefined
     try {
       const req = { payload, context: {}, transactionID } as PayloadRequest
       const db = payload.db.sessions?.[transactionID]?.db as PostgresAdapter['sessions'][string]['db'] | undefined
@@ -52,9 +57,11 @@ export async function publishScheduledNotes(payload: Payload, now = new Date()) 
       const result = await db.execute(sql`
         SELECT id, scheduled_for FROM notes
         WHERE _status = 'draft' AND scheduled_for <= ${now.toISOString()}::timestamptz
+          ${failedIds.length ? sql`AND id NOT IN (${sql.join(failedIds.map((id) => sql`${id}`), sql`, `)})` : sql``}
         ORDER BY scheduled_for, id LIMIT 1 FOR UPDATE SKIP LOCKED
       `)
       const due = result.rows[0] as { id: number; scheduled_for: string | Date } | undefined
+      dueId = due?.id
       if (!due) {
         await payload.db.commitTransaction(transactionID)
         break
@@ -66,8 +73,12 @@ export async function publishScheduledNotes(payload: Payload, now = new Date()) 
       published.push({ id: due.id, slug: note.slug })
     } catch (error) {
       await payload.db.rollbackTransaction(transactionID)
-      throw error
+      if (dueId === undefined) throw error
+      console.error('Scheduled note failed to publish:', dueId, error instanceof Error ? error.message : error)
+      failedIds.push(dueId)
+      firstError ??= error
     }
   }
+  if (firstError) throw firstError
   return published
 }

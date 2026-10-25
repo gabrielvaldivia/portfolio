@@ -1,5 +1,6 @@
 import { getPayload, isPayloadUnavailable } from '@/lib/payload'
 import { getSiteURL, verifySubscriptionToken } from '@/lib/noteSubscriptions'
+import { subscriptionActionPage } from '@/lib/subscriptionActionPage'
 import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
@@ -50,7 +51,12 @@ async function unsubscribe(request: Request) {
 export async function GET(request: Request) {
   const token = new URL(request.url).searchParams.get('token') || ''
   if (!readToken(request)) return redirect('status=invalid-unsubscribe')
-  return redirect(`status=unsubscribe&token=${encodeURIComponent(token)}`)
+  return subscriptionActionPage({
+    title: 'Unsubscribe from notes?',
+    description: 'You’ll stop receiving an email when Gabe publishes a new note.',
+    action: `/api/notes/unsubscribe?token=${encodeURIComponent(token)}`,
+    button: 'Unsubscribe',
+  })
 }
 
 export async function POST(request: Request) {
