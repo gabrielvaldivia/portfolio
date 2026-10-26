@@ -27,6 +27,9 @@ const MAX_PITCH = 0.6
 // Idle sway: about 10 degrees from side to side, one full cycle every 16 seconds.
 const SWAY_AMPLITUDE = THREE.MathUtils.degToRad(5)
 const SWAY_PERIOD_MS = 16000
+// Hovering tilts the tablet toward the pointer by up to this much.
+const HOVER_YAW = THREE.MathUtils.degToRad(8)
+const HOVER_PITCH = THREE.MathUtils.degToRad(5)
 
 type SceneOptions = {
   container: HTMLElement
@@ -285,15 +288,28 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
   const velocity = { yaw: 0 }
   let drag: { x: number; y: number; yaw: number; pitch: number; id: number } | null = null
   let lastInteraction = 0
+  // When the current sway began, so each sway starts from head-on rather than mid-swing.
+  let swayStart: number | null = null
+  // Mouse position over the stage, from -1 to 1 on each axis.
+  let hover: { x: number; y: number } | null = null
 
   const onPointerDown = (event: PointerEvent) => {
     drag = { x: event.clientX, y: event.clientY, yaw: target.yaw, pitch: target.pitch, id: event.pointerId }
     velocity.yaw = 0
+    swayStart = null
     renderer.domElement.setPointerCapture(event.pointerId)
     renderer.domElement.style.cursor = 'grabbing'
     requestRender()
   }
   const onPointerMove = (event: PointerEvent) => {
+    if (!drag && event.pointerType === 'mouse' && !reducedMotion) {
+      const rect = container.getBoundingClientRect()
+      hover = {
+        x: THREE.MathUtils.clamp(((event.clientX - rect.left) / rect.width) * 2 - 1, -1, 1),
+        y: THREE.MathUtils.clamp(((event.clientY - rect.top) / rect.height) * 2 - 1, -1, 1),
+      }
+      requestRender()
+    }
     if (!drag || event.pointerId !== drag.id) return
     const width = container.clientWidth || 1
     const previousYaw = target.yaw
@@ -310,11 +326,18 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
     renderer.domElement.style.cursor = 'grab'
     requestRender()
   }
+  const onPointerLeave = () => {
+    if (!hover) return
+    hover = null
+    swayStart = null
+    requestRender()
+  }
   const onDoubleClick = () => {
     target.yaw = REST_YAW
     target.pitch = REST_PITCH
     velocity.yaw = 0
     lastInteraction = 0
+    swayStart = null
     requestRender()
   }
 
@@ -322,6 +345,7 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
   renderer.domElement.addEventListener('pointermove', onPointerMove)
   renderer.domElement.addEventListener('pointerup', onPointerUp)
   renderer.domElement.addEventListener('pointercancel', onPointerUp)
+  renderer.domElement.addEventListener('pointerleave', onPointerLeave)
   renderer.domElement.addEventListener('dblclick', onDoubleClick)
 
   const tick = () => {
@@ -335,6 +359,7 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
         target.yaw += velocity.yaw
         velocity.yaw *= 0.92
         lastInteraction = now
+        swayStart = null
         settling = true
       } else if (now - lastInteraction > 2400) {
         // Unwind any full turns from dragging so it comes back the short way round.
@@ -343,10 +368,19 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
           target.yaw -= turns * Math.PI * 2
           pivot.rotation.y -= turns * Math.PI * 2
         }
-        const restYaw = reducedMotion ? REST_YAW : REST_YAW + SWAY_AMPLITUDE * Math.sin((now / SWAY_PERIOD_MS) * Math.PI * 2)
+        // Hovering turns it toward the pointer; otherwise it sways, starting from head-on.
+        let restYaw = REST_YAW
+        let restPitch = REST_PITCH
+        if (hover) {
+          restYaw += hover.x * HOVER_YAW
+          restPitch += hover.y * HOVER_PITCH
+        } else if (!reducedMotion) {
+          swayStart ??= now
+          restYaw += SWAY_AMPLITUDE * Math.sin(((now - swayStart) / SWAY_PERIOD_MS) * Math.PI * 2)
+        }
         target.yaw += (restYaw - target.yaw) * 0.04
-        target.pitch += (REST_PITCH - target.pitch) * 0.04
-        if (reducedMotion && Math.abs(restYaw - target.yaw) < 0.001 && Math.abs(REST_PITCH - target.pitch) < 0.001) {
+        target.pitch += (restPitch - target.pitch) * 0.04
+        if (reducedMotion && Math.abs(restYaw - target.yaw) < 0.001 && Math.abs(restPitch - target.pitch) < 0.001) {
           target.yaw = REST_YAW
           target.pitch = REST_PITCH
         } else settling = true
@@ -405,6 +439,7 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
 
       video = screen.video
       if (video && visible && !reducedMotion) video.play().catch(() => {})
+      swayStart = null
       fitCamera()
       requestRender()
       onReady()
@@ -422,6 +457,7 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
     renderer.domElement.removeEventListener('pointermove', onPointerMove)
     renderer.domElement.removeEventListener('pointerup', onPointerUp)
     renderer.domElement.removeEventListener('pointercancel', onPointerUp)
+    renderer.domElement.removeEventListener('pointerleave', onPointerLeave)
     renderer.domElement.removeEventListener('dblclick', onDoubleClick)
     if (video) {
       video.pause()
