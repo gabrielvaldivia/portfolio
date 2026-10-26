@@ -5,27 +5,50 @@ import { LazyVideo } from '@/components/LazyVideo'
 import type { KaleCaseColor } from '@/components/kaleScene'
 import { cn } from '@/lib/cn'
 
+// Checked once per page, releasing the test context straight away: browsers (iOS
+// especially) cap how many WebGL contexts a page may hold.
+let webGLSupport: boolean | null = null
 function supportsWebGL() {
+  if (webGLSupport !== null) return webGLSupport
   try {
     const canvas = document.createElement('canvas')
-    return Boolean(canvas.getContext('webgl2') || canvas.getContext('webgl'))
+    const context = canvas.getContext('webgl2') || canvas.getContext('webgl')
+    context?.getExtension('WEBGL_lose_context')?.loseContext()
+    webGLSupport = Boolean(context)
   } catch {
-    return false
+    webGLSupport = false
   }
+  return webGLSupport
+}
+
+export type KaleScreenSource = { url: string; width: number }
+
+// The smallest image that stays sharp on the screen, which spans about 70% of the stage.
+function pickScreenSource(src: string, sources: KaleScreenSource[] | undefined, stageWidth: number, compact: boolean) {
+  if (!sources?.length) return src
+  const needed = stageWidth * Math.min(window.devicePixelRatio, compact ? 1.5 : 2) * 0.7
+  const sorted = [...sources].sort((a, b) => a.width - b.width)
+  return (sorted.find((source) => source.width >= needed) || sorted[sorted.length - 1]).url
 }
 
 export function KaleDevice({
   src,
+  sources,
   isVideo,
   alt,
   caseColor = 'chalk',
 }: {
   src: string
+  sources?: KaleScreenSource[]
   isVideo: boolean
   alt?: string
   caseColor?: KaleCaseColor
 }) {
   const stageRef = useRef<HTMLDivElement>(null)
+  // A new array arrives on each render; restart the scene only when the URLs change.
+  const sourcesRef = useRef(sources)
+  sourcesRef.current = sources
+  const sourcesKey = sources?.map((source) => source.url).join('|') ?? ''
   const [status, setStatus] = useState<'idle' | 'ready' | 'failed'>('idle')
 
   useEffect(() => {
@@ -44,16 +67,18 @@ export function KaleDevice({
       observer.disconnect()
       import('@/components/kaleScene').then(({ createKaleScene }) => {
         if (cancelled) return
+        const compact = window.matchMedia('(max-width: 809px), (pointer: coarse)').matches
+        const screenSrc = isVideo ? src : pickScreenSource(src, sourcesRef.current, stage.clientWidth, compact)
         dispose = createKaleScene({
           container: stage,
-          media: { src, isVideo },
+          media: { src: screenSrc, isVideo },
           caseColor,
           reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
           onReady: () => setStatus('ready'),
           onError: () => setStatus('failed'),
         })
       }).catch(() => setStatus('failed'))
-    }, { rootMargin: '400px 0px' })
+    }, { rootMargin: '800px 0px' })
     observer.observe(stage)
 
     return () => {
@@ -61,7 +86,7 @@ export function KaleDevice({
       observer.disconnect()
       dispose?.()
     }
-  }, [src, isVideo, caseColor])
+  }, [src, sourcesKey, isVideo, caseColor])
 
   const ready = status === 'ready'
 

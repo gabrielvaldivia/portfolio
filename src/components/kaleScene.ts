@@ -21,6 +21,7 @@ export type KaleCaseColor = keyof typeof KALE_CASE_COLORS
 
 const CAP_COLOR = '#ff6a39'
 const INTERNAL_COLOR = '#88877e'
+const VIDEO_TIMEOUT_MS = 20000
 const SCREEN_WIDTH = 234
 const SCREEN_HEIGHT = 146
 const REST_YAW = 0
@@ -276,19 +277,39 @@ function loadScreenTexture(media: SceneOptions['media']) {
   if (media.isVideo) {
     const video = document.createElement('video')
     video.crossOrigin = 'anonymous'
-    video.src = src
     video.loop = true
+    // iOS only autoplays inline video that is muted by attribute, and loads no data until
+    // playback starts, so start playing straight away instead of waiting for data.
     video.muted = true
+    video.defaultMuted = true
     video.playsInline = true
+    video.setAttribute('muted', '')
+    video.setAttribute('playsinline', '')
     video.preload = 'auto'
+    video.src = src
     return new Promise<{ texture: THREE.VideoTexture; video: HTMLVideoElement }>((resolve, reject) => {
-      video.addEventListener('loadeddata', () => {
+      let settled = false
+      const timeout = window.setTimeout(() => fail(new Error(`Timed out loading ${media.src}`)), VIDEO_TIMEOUT_MS)
+      const ready = () => {
+        if (settled || !video.videoWidth) return
+        settled = true
+        window.clearTimeout(timeout)
         const texture = new THREE.VideoTexture(video)
         texture.colorSpace = THREE.SRGBColorSpace
         coverTexture(texture, video.videoWidth, video.videoHeight)
         resolve({ texture, video })
-      }, { once: true })
-      video.addEventListener('error', () => reject(new Error(`Could not load ${media.src}`)), { once: true })
+      }
+      function fail(error: Error) {
+        if (settled) return
+        settled = true
+        window.clearTimeout(timeout)
+        video.removeAttribute('src')
+        video.load()
+        reject(error)
+      }
+      for (const event of ['loadeddata', 'canplay', 'playing']) video.addEventListener(event, ready)
+      video.addEventListener('error', () => fail(new Error(`Could not load ${media.src}`)), { once: true })
+      video.play().catch(() => {})
     })
   }
 
@@ -302,14 +323,40 @@ function loadScreenTexture(media: SceneOptions['media']) {
   })
 }
 
+// Every Kale block on a page shares one download and decode of the model and logo; each
+// scene clones the model, sharing its geometry.
+let sharedAssets: Promise<{ model: THREE.Group; logo: SVGResult }> | null = null
+function loadSharedAssets() {
+  if (!sharedAssets) {
+    const loader = new GLTFLoader()
+    loader.setMeshoptDecoder(MeshoptDecoder)
+    sharedAssets = Promise.all([loader.loadAsync(KALE_MODEL_URL), new SVGLoader().loadAsync(KALE_LOGO_URL)])
+      .then(([gltf, logo]) => {
+        gltf.scene.traverse((object) => { object.userData.sharedGeometry = true })
+        return { model: gltf.scene, logo }
+      })
+      .catch((error) => {
+        sharedAssets = null
+        throw error
+      })
+  }
+  return sharedAssets
+}
+
+// Phones and small screens get a lighter render: fewer pixels and a smaller shadow map.
+function isCompactDevice() {
+  return window.matchMedia('(max-width: 809px), (pointer: coarse)').matches
+}
+
 export function createKaleScene({ container, media, caseColor, reducedMotion, onReady, onError }: SceneOptions) {
   let disposed = false
   let frame = 0
   let visible = true
   let video: HTMLVideoElement | null = null
 
+  const compact = isCompactDevice()
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'low-power' })
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, compact ? 1.5 : 2))
   renderer.outputColorSpace = THREE.SRGBColorSpace
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.shadowMap.enabled = true
@@ -332,7 +379,7 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
   const key = new THREE.DirectionalLight('#ffffff', 2.1)
   key.position.set(-180, 420, 520)
   key.castShadow = true
-  key.shadow.mapSize.set(1024, 1024)
+  key.shadow.mapSize.set(compact ? 512 : 1024, compact ? 512 : 1024)
   key.shadow.camera.left = -260
   key.shadow.camera.right = 260
   key.shadow.camera.top = 260
@@ -521,16 +568,14 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
   }, { threshold: 0.1 })
   visibilityObserver.observe(container)
 
-  const loader = new GLTFLoader()
-  loader.setMeshoptDecoder(MeshoptDecoder)
-
-  Promise.all([loader.loadAsync(KALE_MODEL_URL), loadScreenTexture(media), new SVGLoader().loadAsync(KALE_LOGO_URL)])
-    .then(([gltf, screen, logo]) => {
+  Promise.all([loadSharedAssets(), loadScreenTexture(media)])
+    .then(([{ model: sharedModel, logo }, screen]) => {
       if (disposed) {
         screen.texture.dispose()
+        screen.video?.pause()
         return
       }
-      const model = gltf.scene
+      const model = sharedModel.clone(true)
       model.position.set(0, -104, 13)
       model.traverse((object) => {
         if (!(object instanceof THREE.Mesh)) return
@@ -574,7 +619,8 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
     }
     scene.traverse((object) => {
       if (!(object instanceof THREE.Mesh)) return
-      object.geometry.dispose()
+      // Geometry shared with other Kale blocks on the page stays loaded.
+      if (!object.userData.sharedGeometry) object.geometry.dispose()
       const materials = Array.isArray(object.material) ? object.material : [object.material]
       materials.forEach((material) => {
         if ('map' in material && material.map instanceof THREE.Texture) material.map.dispose()

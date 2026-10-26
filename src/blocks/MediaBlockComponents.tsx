@@ -415,6 +415,17 @@ function DC1Block({ id: blockId, video, rows, _containedInLightbox, _mode = 'pag
   )
 }
 
+// The CMS's resized copies of the screen image (plus the original), for the 3D screen texture.
+function kaleScreenSources(image: any) {
+  if (!image?.url) return undefined
+  const sized = ['medium', 'large', 'xlarge']
+    .map((name) => image.sizes?.[name])
+    .filter((size: any) => size?.url && size?.width)
+    .map((size: any) => ({ url: size.url as string, width: Number(size.width) }))
+  if (image.width) sized.push({ url: image.url as string, width: Number(image.width) })
+  return sized.length ? sized : undefined
+}
+
 function KaleBlock({ id: blockId, video, image, rows, caseColor }: { id?: string; video?: any; image?: any; rows?: string; caseColor?: 'chalk' | 'periwinkle' | 'sage' } & ModuleRenderProps) {
   const src = video?.url || image?.url
   if (!src) return null
@@ -430,7 +441,7 @@ function KaleBlock({ id: blockId, video, image, rows, caseColor }: { id?: string
         }
       ` }} />
       <div id={id} className="relative mx-auto">
-        <KaleDevice src={src} isVideo={Boolean(video?.url)} alt={image?.alt || video?.alt} caseColor={caseColor} />
+        <KaleDevice src={src} sources={video?.url ? undefined : kaleScreenSources(image)} isVideo={Boolean(video?.url)} alt={image?.alt || video?.alt} caseColor={caseColor} />
       </div>
     </>
   )

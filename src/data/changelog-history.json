@@ -1,6 +1,11 @@
 {
-  "throughCommit": "51c9b4f1a260b03f786adc32f731d89c5281b1ba",
+  "throughCommit": "49ec955fdb4fee6acfc209351de69b581ad4ffbe",
   "commits": [
+    {
+      "hash": "49ec955fdb4fee6acfc209351de69b581ad4ffbe",
+      "date": "2026-10-26",
+      "subject": "Let filled images fill rows stretched by taller neighbors"
+    },
     {
       "hash": "51c9b4f1a260b03f786adc32f731d89c5281b1ba",
       "date": "2026-10-26",
