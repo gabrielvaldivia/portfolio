@@ -2,12 +2,14 @@ import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
+import { SVGLoader, type SVGResult } from 'three/examples/jsm/loaders/SVGLoader.js'
 
 // Geometry and finishes follow the Kale website's tablet viewer (units are millimetres).
 // The GLB holds only the case, using its closed "plain" covers (the stand-pocket covers are
 // stripped); the tablet, bezel and screen are built here.
 
 export const KALE_MODEL_URL = '/models/kale-case.glb'
+const KALE_LOGO_URL = '/models/kale-logo.svg'
 
 export const KALE_CASE_COLORS = {
   chalk: '#f2ebe7',
@@ -155,6 +157,87 @@ function addCameraCover(parent: THREE.Object3D, caseMaterial: THREE.Material) {
 
   cover.add(lensRing, slider)
   parent.add(cover)
+}
+
+function disc(radius: number, hole: number, depth: number) {
+  const shape = new THREE.Shape().absarc(0, 0, radius, 0, Math.PI * 2, false)
+  if (hole) shape.holes.push(new THREE.Path().absarc(0, 0, hole, 0, Math.PI * 2, true))
+  return new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 64 })
+}
+
+// Matching threaded end caps for both ends of the tube, each with a screwdriver slot.
+function addEndCaps(parent: THREE.Object3D, caseMaterial: THREE.Material, capMaterial: THREE.Material) {
+  for (const side of [-1, 1]) {
+    const cap = new THREE.Group()
+    cap.position.set(side * 130.6, 20.75, -20.75)
+    cap.rotation.y = (side * Math.PI) / 2
+
+    const lip = new THREE.Mesh(disc(15.05, 14.15, 0.8), caseMaterial)
+    lip.position.z = -0.3
+    const receiver = new THREE.Mesh(disc(15.02, 14.02, 9), caseMaterial)
+    receiver.position.z = -9
+    const stem = new THREE.Mesh(disc(12.8, 0, 8.1), capMaterial)
+    stem.position.z = -8.1
+    const slotFloor = new THREE.Mesh(disc(13.55, 0, 0.35), capMaterial)
+    slotFloor.position.z = 0.1
+
+    const face = new THREE.Shape().absarc(0, 0, 13.65, 0, Math.PI * 2, false)
+    const slot = new THREE.Path()
+    slot.moveTo(-0.45, -9.55)
+    slot.lineTo(-0.45, 9.55)
+    slot.absarc(0, 9.55, 0.45, Math.PI, 0, true)
+    slot.lineTo(0.45, -9.55)
+    slot.absarc(0, -9.55, 0.45, 0, -Math.PI, true)
+    slot.closePath()
+    face.holes.push(slot)
+    const faceMesh = new THREE.Mesh(
+      new THREE.ExtrudeGeometry(face, {
+        depth: 1.05,
+        bevelEnabled: true,
+        bevelThickness: 0.3,
+        bevelSize: 0.35,
+        bevelSegments: 4,
+        curveSegments: 64,
+      }),
+      capMaterial,
+    )
+    faceMesh.position.z = 0.75
+
+    for (const mesh of [lip, receiver, stem, slotFloor, faceMesh]) {
+      mesh.castShadow = true
+      mesh.receiveShadow = true
+      cap.add(mesh)
+    }
+    parent.add(cap)
+  }
+}
+
+// The Kale wordmark on the back, sized and placed like the website's recessed logo.
+// A slightly darker inlay stands in for the recess so the cover needs no runtime cut.
+function addRearLogo(parent: THREE.Object3D, svg: SVGResult, caseColor: string) {
+  const shapes = svg.paths.flatMap((path) => SVGLoader.createShapes(path))
+  const geometry = new THREE.ShapeGeometry(shapes, 32)
+  geometry.computeBoundingBox()
+  const box = geometry.boundingBox!
+  const size = box.getSize(new THREE.Vector3())
+  const center = box.getCenter(new THREE.Vector3())
+  // Fit within 152 x 72mm, then scale to 60% as the website does by default.
+  const scale = Math.min(152 / size.x, 72 / size.y) * 0.6
+  geometry.translate(-center.x, -center.y, 0)
+
+  const material = new THREE.MeshStandardMaterial({
+    color: new THREE.Color(caseColor).multiplyScalar(0.86),
+    roughness: 0.75,
+    polygonOffset: true,
+    polygonOffsetFactor: -2,
+  })
+  const logo = new THREE.Mesh(geometry, material)
+  // SVG y points down, so flip it; turning to face the back keeps the text reading left to right.
+  logo.scale.set(scale, -scale, 1)
+  logo.rotation.y = Math.PI
+  logo.position.set(0, 107, -13.72)
+  logo.receiveShadow = true
+  parent.add(logo)
 }
 
 // Crops the media to the screen the way `object-fit: cover` would.
@@ -416,8 +499,8 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
   const loader = new GLTFLoader()
   loader.setMeshoptDecoder(MeshoptDecoder)
 
-  Promise.all([loader.loadAsync(KALE_MODEL_URL), loadScreenTexture(media)])
-    .then(([gltf, screen]) => {
+  Promise.all([loader.loadAsync(KALE_MODEL_URL), loadScreenTexture(media), new SVGLoader().loadAsync(KALE_LOGO_URL)])
+    .then(([gltf, screen, logo]) => {
       if (disposed) {
         screen.texture.dispose()
         return
@@ -426,15 +509,15 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
       model.position.set(0, -104, 13)
       model.traverse((object) => {
         if (!(object instanceof THREE.Mesh)) return
-        object.material = object.name.endsWith('-cap')
-          ? capMaterial
-          : caseMeshes.has(object.name) ? caseMaterial : internalMaterial
+        object.material = caseMeshes.has(object.name) ? caseMaterial : internalMaterial
         object.castShadow = !object.name.includes('internal')
         object.receiveShadow = true
       })
       screen.texture.anisotropy = renderer.capabilities.getMaxAnisotropy()
       addTablet(model, screen.texture)
       addCameraCover(model, caseMaterial)
+      addEndCaps(model, caseMaterial, capMaterial)
+      addRearLogo(model, logo, KALE_CASE_COLORS[caseColor])
       pivot.add(model)
 
       video = screen.video
