@@ -1,6 +1,11 @@
 {
-  "throughCommit": "98214b2b425546927f583ce08444187b942f7c60",
+  "throughCommit": "51c9b4f1a260b03f786adc32f731d89c5281b1ba",
   "commits": [
+    {
+      "hash": "51c9b4f1a260b03f786adc32f731d89c5281b1ba",
+      "date": "2026-10-26",
+      "subject": "Show the iPhone 15 notch and status bar toggles side by side"
+    },
     {
       "hash": "98214b2b425546927f583ce08444187b942f7c60",
       "date": "2026-10-26",

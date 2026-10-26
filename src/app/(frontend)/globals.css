@@ -183,6 +183,20 @@ html[data-credits-playing='true']::-webkit-scrollbar {
     aspect-ratio: unset !important;
     height: var(--row-height);
   }
+  /* Let images grow with a row stretched by a taller neighbour, so Fill crops into it. */
+  [data-lightbox-surface-state='source'] > [data-module-image-root] {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  [data-lightbox-surface-state='source'] > [data-module-image-root] > [data-module-image-frame] {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+  }
+  [data-lightbox-surface-state='source'] [data-module-image-content] {
+    flex: 1 1 auto;
+  }
 }
 
 .dark-only {
