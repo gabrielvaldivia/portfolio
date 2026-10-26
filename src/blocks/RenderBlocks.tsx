@@ -142,6 +142,7 @@ export function RenderBlocks({ blocks, likeNamespace }: { blocks?: any[]; likeNa
         const usesMovableSurface = shouldUseMovableSurface(block.blockType)
         const opensOnlyFromVideoControl = (block.blockType === 'video' || block.blockType === 'fullWidthVideo') && Boolean(block.controls)
         const isDC1Block = block.blockType === 'dc1'
+        const isKaleBlock = block.blockType === 'kale'
         const moduleBackgroundClass = isFramedBlock ? 'bg-background-alt' : ''
         const likeTargetId = likeNamespace && isLikeableModuleBlock(block.blockType)
           ? getModuleLikeTargetId(likeNamespace, block, i)
@@ -164,7 +165,7 @@ export function RenderBlocks({ blocks, likeNamespace }: { blocks?: any[]; likeNa
               colSpan[cols] || 'desktop:col-span-6',
               rows !== '1' ? (rowSpan[rows] || '') : '',
               !usesMovableSurface ? moduleBackgroundClass : '',
-              isFramedBlock && !usesMovableSurface ? 'p-5 tablet:p-8 desktop:p-10' : '',
+              isFramedBlock && !usesMovableSurface ? (isKaleBlock ? 'p-1 tablet:p-8 desktop:p-10' : 'p-5 tablet:p-8 desktop:p-10') : '',
               isDC1Block && !usesMovableSurface ? 'py-6 tablet:py-10 desktop:py-12' : '',
               likeTargetId && !usesMovableSurface ? 'group/module relative' : '',
             )}

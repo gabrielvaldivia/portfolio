@@ -1,6 +1,11 @@
 {
-  "throughCommit": "49ec955fdb4fee6acfc209351de69b581ad4ffbe",
+  "throughCommit": "f31a08e3d348d365699d2d7ce96780108c92557e",
   "commits": [
+    {
+      "hash": "f31a08e3d348d365699d2d7ce96780108c92557e",
+      "date": "2026-10-26",
+      "subject": "Load every Kale tablet on iPhones and lighten them on phones"
+    },
     {
       "hash": "49ec955fdb4fee6acfc209351de69b581ad4ffbe",
       "date": "2026-10-26",

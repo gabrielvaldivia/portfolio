@@ -410,16 +410,17 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
     renderer.setSize(width, height, false)
     camera.aspect = width / height
     // Keep the whole case (about 300mm across once turned) in frame at any aspect ratio.
+    // Phones have no sway or hover tilt to leave room for, so the case fills more of the stage.
     const halfFov = THREE.MathUtils.degToRad(camera.fov / 2)
-    const fitHeight = 290 / (2 * Math.tan(halfFov))
-    const fitWidth = 350 / (2 * Math.tan(halfFov) * camera.aspect)
+    const fitHeight = (compact ? 240 : 290) / (2 * Math.tan(halfFov))
+    const fitWidth = (compact ? 290 : 350) / (2 * Math.tan(halfFov) * camera.aspect)
     camera.position.set(0, 18, Math.max(fitHeight, fitWidth))
     camera.lookAt(0, -6, 0)
     camera.updateProjectionMatrix()
     requestRender()
   }
 
-  // Drag spins the case; when idle it eases back to head-on and sways gently.
+  // Drag spins the case; when idle it eases back to head-on and, except on phones, sways gently.
   const target = { yaw: REST_YAW, pitch: REST_PITCH }
   const velocity = { yaw: 0 } // radians per millisecond
   let drag: { x: number; y: number; yaw: number; pitch: number; id: number } | null = null
@@ -445,7 +446,7 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
   }
   const onPointerMove = (event: PointerEvent) => {
     if (event.pointerType === 'mouse') mouseOutside = false
-    if (!drag && event.pointerType === 'mouse' && !reducedMotion) {
+    if (!drag && event.pointerType === 'mouse' && !reducedMotion && !compact) {
       const rect = container.getBoundingClientRect()
       hover = {
         x: THREE.MathUtils.clamp(((event.clientX - rect.left) / rect.width) * 2 - 1, -1, 1),
@@ -529,13 +530,14 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
         if (hover) {
           restYaw += hover.x * HOVER_YAW
           restPitch += hover.y * HOVER_PITCH
-        } else if (!reducedMotion) {
+        } else if (!reducedMotion && !compact) {
           swayStart ??= now
           restYaw += SWAY_AMPLITUDE * Math.sin(((now - swayStart) / SWAY_PERIOD_MS) * Math.PI * 2)
         }
         target.yaw += (restYaw - target.yaw) * 0.04
         target.pitch += (restPitch - target.pitch) * 0.04
-        if (reducedMotion && Math.abs(restYaw - target.yaw) < 0.001 && Math.abs(restPitch - target.pitch) < 0.001) {
+        // Without the sway, stop drawing once it has settled.
+        if ((reducedMotion || compact) && !hover && Math.abs(restYaw - target.yaw) < 0.001 && Math.abs(restPitch - target.pitch) < 0.001) {
           target.yaw = REST_YAW
           target.pitch = REST_PITCH
         } else settling = true
