@@ -1,9 +1,9 @@
 [
  {
   "date": "2026-10-26",
-  "title": "Drag to reorder projects",
+  "title": "Drag-to-reorder projects and inline image drops",
   "changes": [
-   "The admin Projects list is now a simple drag-to-reorder list in the same order as the work page, without the year, hide, and order columns or outer dividers. New projects start at the top."
+   "The admin Projects list is a simple drag-to-reorder list in work page order, with new projects at the top. Dropping an image onto a CMS image field uploads it in place again and attaches it when done, instead of flashing a side sheet."
   ]
  },
  {
