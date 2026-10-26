@@ -1,6 +1,11 @@
 {
-  "throughCommit": "72dedfb0cf9355db89f7d544a5f6fc8100e8a9bd",
+  "throughCommit": "724bab97a7d0fa017e718ea3b1bee47dd9fec437",
   "commits": [
+    {
+      "hash": "724bab97a7d0fa017e718ea3b1bee47dd9fec437",
+      "date": "2026-10-26",
+      "subject": "Add the Kale logo to the tablet's back and match both end caps"
+    },
     {
       "hash": "72dedfb0cf9355db89f7d544a5f6fc8100e8a9bd",
       "date": "2026-10-26",

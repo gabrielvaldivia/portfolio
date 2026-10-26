@@ -29,6 +29,12 @@ const MAX_PITCH = 0.6
 // Idle sway: about 10 degrees from side to side, one full cycle every 16 seconds.
 const SWAY_AMPLITUDE = THREE.MathUtils.degToRad(5)
 const SWAY_PERIOD_MS = 16000
+// A throw keeps spinning, losing this share of its speed each millisecond (about 92% per second).
+const SPIN_FRICTION = 0.9975
+const MAX_SPIN = 0.04 // radians per millisecond
+// After a drag it waits this long before settling, or briefly once the mouse has left.
+const SETTLE_DELAY_MS = 2400
+const SETTLE_DELAY_AFTER_LEAVE_MS = 300
 // Hovering tilts the tablet toward the pointer by up to this much.
 const HOVER_YAW = THREE.MathUtils.degToRad(8)
 const HOVER_PITCH = THREE.MathUtils.degToRad(5)
@@ -368,8 +374,12 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
 
   // Drag spins the case; when idle it eases back to head-on and sways gently.
   const target = { yaw: REST_YAW, pitch: REST_PITCH }
-  const velocity = { yaw: 0 }
+  const velocity = { yaw: 0 } // radians per millisecond
   let drag: { x: number; y: number; yaw: number; pitch: number; id: number } | null = null
+  // Recent drag positions, used to measure how fast it was thrown.
+  let dragSamples: { time: number; yaw: number }[] = []
+  let mouseOutside = false
+  let lastTick = 0
   let lastInteraction = 0
   // When the current sway began, so each sway starts from head-on rather than mid-swing.
   let swayStart: number | null = null
@@ -378,13 +388,16 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
 
   const onPointerDown = (event: PointerEvent) => {
     drag = { x: event.clientX, y: event.clientY, yaw: target.yaw, pitch: target.pitch, id: event.pointerId }
+    dragSamples = [{ time: performance.now(), yaw: target.yaw }]
     velocity.yaw = 0
+    mouseOutside = false
     swayStart = null
     renderer.domElement.setPointerCapture(event.pointerId)
     renderer.domElement.style.cursor = 'grabbing'
     requestRender()
   }
   const onPointerMove = (event: PointerEvent) => {
+    if (event.pointerType === 'mouse') mouseOutside = false
     if (!drag && event.pointerType === 'mouse' && !reducedMotion) {
       const rect = container.getBoundingClientRect()
       hover = {
@@ -395,22 +408,32 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
     }
     if (!drag || event.pointerId !== drag.id) return
     const width = container.clientWidth || 1
-    const previousYaw = target.yaw
     target.yaw = drag.yaw + ((event.clientX - drag.x) / width) * Math.PI * 2
     target.pitch = THREE.MathUtils.clamp(drag.pitch + ((event.clientY - drag.y) / width) * Math.PI, -MAX_PITCH, MAX_PITCH)
-    velocity.yaw = target.yaw - previousYaw
+    const sampledAt = performance.now()
+    dragSamples.push({ time: sampledAt, yaw: target.yaw })
+    // Keep ~100ms of samples, but always at least two so slow devices still measure a speed.
+    while (dragSamples.length > 2 && sampledAt - dragSamples[1].time > 100) dragSamples.shift()
     lastInteraction = performance.now()
     requestRender()
   }
   const onPointerUp = (event: PointerEvent) => {
     if (!drag || event.pointerId !== drag.id) return
     drag = null
+    // Throw speed over the last ~100ms, unless the pointer had come to rest before letting go.
+    const first = dragSamples[0]
+    const last = dragSamples[dragSamples.length - 1]
+    const elapsed = last && first ? last.time - first.time : 0
+    velocity.yaw = !reducedMotion && elapsed > 0 && performance.now() - last.time < 60
+      ? THREE.MathUtils.clamp((last.yaw - first.yaw) / elapsed, -MAX_SPIN, MAX_SPIN)
+      : 0
+    dragSamples = []
     lastInteraction = performance.now()
     renderer.domElement.style.cursor = 'grab'
     requestRender()
   }
-  const onPointerLeave = () => {
-    if (!hover) return
+  const onPointerLeave = (event: PointerEvent) => {
+    if (event.pointerType === 'mouse') mouseOutside = true
     hover = null
     swayStart = null
     requestRender()
@@ -435,16 +458,18 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
     frame = 0
     if (disposed) return
     const now = performance.now()
+    const dt = lastTick ? Math.min(now - lastTick, 50) : 16
+    lastTick = now
     let settling = false
 
     if (!drag) {
-      if (Math.abs(velocity.yaw) > 0.0005) {
-        target.yaw += velocity.yaw
-        velocity.yaw *= 0.92
+      if (Math.abs(velocity.yaw) > 0.0003) {
+        target.yaw += velocity.yaw * dt
+        velocity.yaw *= Math.pow(SPIN_FRICTION, dt)
         lastInteraction = now
         swayStart = null
         settling = true
-      } else if (now - lastInteraction > 2400) {
+      } else if (now - lastInteraction > (mouseOutside ? SETTLE_DELAY_AFTER_LEAVE_MS : SETTLE_DELAY_MS)) {
         // Unwind any full turns from dragging so it comes back the short way round.
         const turns = Math.round((target.yaw - REST_YAW) / (Math.PI * 2))
         if (turns) {
