@@ -1,6 +1,31 @@
 {
-  "throughCommit": "5b2e9979b765ef069365a3e8b88b27e8ce9be1e5",
+  "throughCommit": "c491d358fab51d3c9b98a81e989dba2e03ea77ce",
   "commits": [
+    {
+      "hash": "c491d358fab51d3c9b98a81e989dba2e03ea77ce",
+      "date": "2026-10-25",
+      "subject": "Skip re-rendering timeline ticks and chapter text every frame"
+    },
+    {
+      "hash": "30e3e50bf3bde6b2286c9902fd0bd9ffe9c9c025",
+      "date": "2026-10-25",
+      "subject": "Serve web-sized photos instead of camera originals"
+    },
+    {
+      "hash": "69ebd07287c56a05176c0f429e31886270664ed3",
+      "date": "2026-10-25",
+      "subject": "Type subscriber metric dates so the build typechecks"
+    },
+    {
+      "hash": "0bc88af1441ea9fead08074022f1d20a98f59d51",
+      "date": "2026-10-25",
+      "subject": "Fit subscriber metrics side by side on narrow screens"
+    },
+    {
+      "hash": "438fe1dfceef52342b549171a97aaf91cc53b4b4",
+      "date": "2026-10-25",
+      "subject": "Add sortable views and likes to the admin notes list"
+    },
     {
       "hash": "5b2e9979b765ef069365a3e8b88b27e8ce9be1e5",
       "date": "2026-10-25",

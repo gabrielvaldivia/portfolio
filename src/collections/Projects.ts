@@ -295,11 +295,37 @@ export const contentBlocks = [BrowserBlock, DC1Block, ImageBlock, iPhone5Block, 
 
 export const Projects: CollectionConfig = {
   slug: 'projects',
+  defaultSort: 'order',
   admin: {
+    components: {
+      views: {
+        list: {
+          Component: './components/admin/ProjectsListView#ProjectsListView',
+        },
+      },
+    },
     pagination: { defaultLimit: 100 },
     group: 'Collections',
     useAsTitle: 'title',
-    defaultColumns: ['title', 'year', 'hide', 'order'],
+    defaultColumns: ['title'],
+  },
+  hooks: {
+    beforeChange: [
+      // New projects (including duplicates) start at the top of the work page.
+      async ({ data, operation, req }) => {
+        if (operation !== 'create') return data
+        const { docs } = await req.payload.find({
+          collection: 'projects',
+          sort: 'order',
+          limit: 1,
+          depth: 0,
+          select: { order: true },
+          req,
+        })
+        const topOrder = docs[0]?.order
+        return { ...data, order: typeof topOrder === 'number' ? topOrder - 1 : 0 }
+      },
+    ],
   },
   access: {
     read: () => true,
@@ -317,7 +343,8 @@ export const Projects: CollectionConfig = {
       name: 'order',
       type: 'number',
       defaultValue: 0,
-      admin: { position: 'sidebar' },
+      // Set by dragging rows in the Projects list.
+      admin: { hidden: true },
     },
     {
       name: 'client',
