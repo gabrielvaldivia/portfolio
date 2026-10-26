@@ -1,6 +1,16 @@
 {
-  "throughCommit": "724bab97a7d0fa017e718ea3b1bee47dd9fec437",
+  "throughCommit": "98214b2b425546927f583ce08444187b942f7c60",
   "commits": [
+    {
+      "hash": "98214b2b425546927f583ce08444187b942f7c60",
+      "date": "2026-10-26",
+      "subject": "Add an optional status bar to the iPhone 15 block"
+    },
+    {
+      "hash": "fd844c827c6ceb4e80bbc4555ae6f5472449e6ed",
+      "date": "2026-10-26",
+      "subject": "Spin the Kale tablet with momentum and reset it when the mouse leaves"
+    },
     {
       "hash": "724bab97a7d0fa017e718ea3b1bee47dd9fec437",
       "date": "2026-10-26",
