@@ -1,6 +1,11 @@
 {
-  "throughCommit": "c491d358fab51d3c9b98a81e989dba2e03ea77ce",
+  "throughCommit": "23036453a8c62fa1b37620a80eba22d5d9564845",
   "commits": [
+    {
+      "hash": "23036453a8c62fa1b37620a80eba22d5d9564845",
+      "date": "2026-10-26",
+      "subject": "Drag to reorder projects in the admin"
+    },
     {
       "hash": "c491d358fab51d3c9b98a81e989dba2e03ea77ce",
       "date": "2026-10-25",

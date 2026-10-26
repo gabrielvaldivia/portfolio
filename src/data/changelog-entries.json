@@ -3,7 +3,7 @@
   "date": "2026-10-26",
   "title": "Drag to reorder projects",
   "changes": [
-   "The admin Projects list is now a simple drag-to-reorder list in the same order as the work page, without the year, hide, and order columns. New projects start at the top."
+   "The admin Projects list is now a simple drag-to-reorder list in the same order as the work page, without the year, hide, and order columns or outer dividers. New projects start at the top."
   ]
  },
  {

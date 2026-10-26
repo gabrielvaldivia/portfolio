@@ -3581,6 +3581,15 @@ html[data-theme="dark"] .media-masonry-viewer__footer-delete:focus-visible {
   border-top: 0.5px solid var(--cms-border-secondary);
 }
 
+/* Projects shows dividers only between rows. */
+.collection-list--projects .nav-pages-list-view__sortable > .nav-pages-list-view__item:first-child {
+  border-top: 0;
+}
+
+.collection-list--projects .nav-pages-list-view__sortable > .nav-pages-list-view__item:last-child {
+  border-bottom: 0;
+}
+
 .nav-pages-list-view__item--dragging {
   position: relative;
   z-index: 1;
