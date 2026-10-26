@@ -1,6 +1,16 @@
 {
-  "throughCommit": "39d98ed5c0048554ddb3a1a7b95d15f7092dca52",
+  "throughCommit": "7327554eb976d722981b198ab01018d2feb50f8f",
   "commits": [
+    {
+      "hash": "7327554eb976d722981b198ab01018d2feb50f8f",
+      "date": "2026-10-26",
+      "subject": "Redraw the Kale block icon to match the device"
+    },
+    {
+      "hash": "2e396ae0c9c09639a7239ea88a4ea33a858000df",
+      "date": "2026-10-26",
+      "subject": "Add interactive 3D Kale tablet content block"
+    },
     {
       "hash": "39d98ed5c0048554ddb3a1a7b95d15f7092dca52",
       "date": "2026-10-26",

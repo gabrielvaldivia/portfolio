@@ -4,7 +4,8 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
 
 // Geometry and finishes follow the Kale website's tablet viewer (units are millimetres).
-// The GLB holds only the case; the tablet, bezel and screen are built here.
+// The GLB holds only the case, using its closed "plain" covers (the stand-pocket covers are
+// stripped); the tablet, bezel and screen are built here.
 
 export const KALE_MODEL_URL = '/models/kale-case.glb'
 
@@ -20,9 +21,12 @@ const CAP_COLOR = '#ff6a39'
 const INTERNAL_COLOR = '#88877e'
 const SCREEN_WIDTH = 234
 const SCREEN_HEIGHT = 146
-const REST_YAW = -0.42
-const REST_PITCH = 0.16
+const REST_YAW = 0
+const REST_PITCH = 0
 const MAX_PITCH = 0.6
+// Idle sway: about 10 degrees from side to side, one full cycle every 16 seconds.
+const SWAY_AMPLITUDE = THREE.MathUtils.degToRad(5)
+const SWAY_PERIOD_MS = 16000
 
 type SceneOptions = {
   container: HTMLElement
@@ -103,6 +107,51 @@ function addTablet(parent: THREE.Object3D, screenTexture: THREE.Texture) {
     mesh.receiveShadow = true
   }
   parent.add(chassis, gasket, bezel, screen, frontCamera, rearCamera)
+}
+
+// The sliding privacy cover over the rear camera, left open so the lens shows.
+function addCameraCover(parent: THREE.Object3D, caseMaterial: THREE.Material) {
+  const cover = new THREE.Group()
+  cover.position.set(-110.325 + 11.5, 186.975, -13.36)
+  cover.rotation.y = Math.PI
+
+  const trim = new THREE.MeshPhysicalMaterial({ color: '#e7e8e6', metalness: 1, roughness: 0.38 })
+  const backing = new THREE.MeshStandardMaterial({ color: '#7e807d', metalness: 0.2, roughness: 0.6 })
+  const lensHole = () => new THREE.Path().absarc(11.5, 0, 7.4, 0, Math.PI * 2, true)
+
+  const layer = (width: number, height: number, depth: number, material: THREE.Material, z: number, rim = false) => {
+    const shape = roundedRect(width, height, height / 2)
+    shape.holes.push(rim ? roundedRect(width - 1.4, height - 1.4, (height - 1.4) / 2) : lensHole())
+    const mesh = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 32 }), material)
+    mesh.position.z = z
+    mesh.castShadow = true
+    mesh.receiveShadow = true
+    cover.add(mesh)
+  }
+  layer(43, 20.5, 0.16, backing, 0)
+  layer(42, 19.5, 0.25, trim, 0.16)
+  layer(42, 19.5, 0.35, trim, 0.4, true)
+
+  const lensRing = new THREE.Mesh(new THREE.RingGeometry(6.1, 7.4, 64), trim)
+  lensRing.position.set(11.5, 0, 0.43)
+
+  const slider = new THREE.Mesh(
+    new THREE.ExtrudeGeometry(roundedRect(26, 18, 9), {
+      depth: 0.65,
+      bevelEnabled: true,
+      bevelThickness: 0.2,
+      bevelSize: 0.22,
+      bevelSegments: 3,
+      curveSegments: 32,
+    }),
+    caseMaterial,
+  )
+  slider.position.set(-7.8, 0, 0.7)
+  slider.castShadow = true
+  slider.receiveShadow = true
+
+  cover.add(lensRing, slider)
+  parent.add(cover)
 }
 
 // Crops the media to the screen the way `object-fit: cover` would.
@@ -214,7 +263,7 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
   const caseMaterial = new THREE.MeshPhysicalMaterial({ color: KALE_CASE_COLORS[caseColor], roughness: 0.62, clearcoat: 0.08 })
   const capMaterial = new THREE.MeshPhysicalMaterial({ color: CAP_COLOR, roughness: 0.48 })
   const internalMaterial = new THREE.MeshStandardMaterial({ color: INTERNAL_COLOR, roughness: 0.7 })
-  const caseMeshes = new Set(['main-cover', 'back-cover', 'back-internal-cover'])
+  const caseMeshes = new Set(['plain-main-cover', 'plain-back-cover', 'back-internal-cover'])
 
   const fitCamera = () => {
     const { width, height } = container.getBoundingClientRect()
@@ -231,7 +280,7 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
     requestRender()
   }
 
-  // Drag spins the case; when idle it eases back to its resting three-quarter view.
+  // Drag spins the case; when idle it eases back to head-on and sways gently.
   const target = { yaw: REST_YAW, pitch: REST_PITCH }
   const velocity = { yaw: 0 }
   let drag: { x: number; y: number; yaw: number; pitch: number; id: number } | null = null
@@ -288,12 +337,16 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
         lastInteraction = now
         settling = true
       } else if (now - lastInteraction > 2400) {
-        // Return along the shortest way round to the resting view.
+        // Unwind any full turns from dragging so it comes back the short way round.
         const turns = Math.round((target.yaw - REST_YAW) / (Math.PI * 2))
-        const restYaw = REST_YAW + turns * Math.PI * 2
-        target.yaw += (restYaw - target.yaw) * 0.06
-        target.pitch += (REST_PITCH - target.pitch) * 0.06
-        if (Math.abs(restYaw - target.yaw) < 0.001 && Math.abs(REST_PITCH - target.pitch) < 0.001) {
+        if (turns) {
+          target.yaw -= turns * Math.PI * 2
+          pivot.rotation.y -= turns * Math.PI * 2
+        }
+        const restYaw = reducedMotion ? REST_YAW : REST_YAW + SWAY_AMPLITUDE * Math.sin((now / SWAY_PERIOD_MS) * Math.PI * 2)
+        target.yaw += (restYaw - target.yaw) * 0.04
+        target.pitch += (REST_PITCH - target.pitch) * 0.04
+        if (reducedMotion && Math.abs(restYaw - target.yaw) < 0.001 && Math.abs(REST_PITCH - target.pitch) < 0.001) {
           target.yaw = REST_YAW
           target.pitch = REST_PITCH
         } else settling = true
@@ -347,6 +400,7 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
       })
       screen.texture.anisotropy = renderer.capabilities.getMaxAnisotropy()
       addTablet(model, screen.texture)
+      addCameraCover(model, caseMaterial)
       pivot.add(model)
 
       video = screen.video

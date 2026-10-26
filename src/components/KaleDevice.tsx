@@ -67,24 +67,21 @@ export function KaleDevice({
 
   return (
     <div className="relative h-full w-full">
-      <div
-        aria-hidden={!ready}
-        className={cn(
-          'absolute inset-0 flex items-center justify-center transition-opacity duration-500',
-          ready ? 'pointer-events-none opacity-0' : 'opacity-100',
-        )}
-      >
-        <div className="relative w-[78%] overflow-hidden rounded-[3%/4.6%] bg-[#111513] p-[2.2%] shadow-lg" style={{ aspectRatio: '255 / 166' }}>
-          <div className="relative h-full w-full overflow-hidden rounded-[1%/1.6%]">
-            {isVideo ? (
-              <LazyVideo src={src} className="h-full w-full object-cover" />
-            ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={src} alt={alt || ''} className="w-full object-cover" style={{ height: '100%' }} />
-            )}
+      {/* The flat screen only stands in when the 3D tablet can't render. */}
+      {status === 'failed' && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="relative w-[78%] overflow-hidden rounded-[3%/4.6%] bg-[#111513] p-[2.2%] shadow-lg" style={{ aspectRatio: '255 / 166' }}>
+            <div className="relative h-full w-full overflow-hidden rounded-[1%/1.6%]">
+              {isVideo ? (
+                <LazyVideo src={src} className="h-full w-full object-cover" />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={src} alt={alt || ''} className="w-full object-cover" style={{ height: '100%' }} />
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
       <div
         ref={stageRef}
         role="img"
