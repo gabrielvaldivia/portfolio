@@ -235,6 +235,27 @@ const DC1Block: Block = {
   ],
 }
 
+const KaleBlock: Block = {
+  slug: 'kale',
+  labels: { singular: 'Kale', plural: 'Kale Blocks' },
+  imageURL: '/block-icons/kale.svg',
+  fields: [
+    imageLayoutFields,
+    { name: 'video', type: 'upload', relationTo: 'media' },
+    { name: 'image', type: 'upload', relationTo: 'media' },
+    {
+      name: 'caseColor',
+      type: 'select',
+      defaultValue: 'chalk',
+      options: [
+        { label: 'Chalk', value: 'chalk' },
+        { label: 'Periwinkle', value: 'periwinkle' },
+        { label: 'Sage', value: 'sage' },
+      ],
+    },
+  ],
+}
+
 const iPhone15Block: Block = {
   slug: 'iphone15',
   labels: { singular: 'iPhone 15', plural: 'iPhone 15 Blocks' },
@@ -291,7 +312,7 @@ const iPhoneXBlock: Block = {
   ],
 }
 
-export const contentBlocks = [BrowserBlock, DC1Block, ImageBlock, iPhone5Block, iPhone6Block, iPhoneXBlock, iPhone13MiniBlock, iPhone15Block, TextBlock, VideoBlock]
+export const contentBlocks = [BrowserBlock, DC1Block, ImageBlock, KaleBlock, iPhone5Block, iPhone6Block, iPhoneXBlock, iPhone13MiniBlock, iPhone15Block, TextBlock, VideoBlock]
 
 export const Projects: CollectionConfig = {
   slug: 'projects',

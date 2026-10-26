@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import { KaleDevice } from '@/components/KaleDevice'
 import { LazyVideo } from '@/components/LazyVideo'
 import { LightboxVideo } from '@/components/LightboxVideo'
 import { LazyModuleLikeButton } from '@/components/LazyModuleLikeButton'
@@ -413,6 +414,27 @@ function DC1Block({ id: blockId, video, rows, _containedInLightbox, _mode = 'pag
   )
 }
 
+function KaleBlock({ id: blockId, video, image, rows, caseColor }: { id?: string; video?: any; image?: any; rows?: string; caseColor?: 'chalk' | 'periwinkle' | 'sage' } & ModuleRenderProps) {
+  const src = video?.url || image?.url
+  if (!src) return null
+  const rowHeight = getRowHeight(rows)
+  const id = `kale-${blockId || 'x'}`
+  const aspectRatio = 4 / 3
+  return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        #${id} { aspect-ratio: 4 / 3; width: 100%; }
+        @media (min-width: 1280px) {
+          #${id} { ${framedDesktopSizeStyle(false, rowHeight, aspectRatio)} }
+        }
+      ` }} />
+      <div id={id} className="relative mx-auto">
+        <KaleDevice src={src} isVideo={Boolean(video?.url)} alt={image?.alt || video?.alt} caseColor={caseColor} />
+      </div>
+    </>
+  )
+}
+
 function iPhone15Block({ id: blockId, video, image, rows, showNotch, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string; showNotch?: boolean | string | number } & ModuleRenderProps) {
   const src = video?.url || image?.url
   if (!src) return null
@@ -604,7 +626,11 @@ export const mediaBlockComponents: Record<string, React.ComponentType<any>> = {
   deviceMockup: ({ image, ...props }: any) => <ImageBlockComponent image={image} {...props} />,
 }
 
-export const framedBlockTypes = ['browser', 'dc1', 'iphone15', 'iphone13mini', 'iphone5', 'iphone6', 'iphonex']
+export const framedBlockTypes = ['browser', 'dc1', 'kale', 'iphone15', 'iphone13mini', 'iphone5', 'iphone6', 'iphonex']
 export const phoneFrameBlockTypes = ['dc1', 'iphone15', 'iphone13mini', 'iphone5', 'iphone6', 'iphonex']
 export const internalLikeButtonBlockTypes = ['image', 'video', 'fullWidthImage', 'fullWidthVideo']
+// Kale renders its own interactive 3D stage, so dragging it shouldn't open the lightbox.
+export const interactiveBlockComponents: Record<string, React.ComponentType<any>> = {
+  kale: KaleBlock,
+}
 export const lightboxableBlockTypes = Object.keys(mediaBlockComponents)

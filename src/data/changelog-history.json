@@ -1,6 +1,11 @@
 {
-  "throughCommit": "382558cb51c113d8d79a9d3460ec3fb5e8f94930",
+  "throughCommit": "39d98ed5c0048554ddb3a1a7b95d15f7092dca52",
   "commits": [
+    {
+      "hash": "39d98ed5c0048554ddb3a1a7b95d15f7092dca52",
+      "date": "2026-10-26",
+      "subject": "Restore inline image uploads for dropped files in the CMS"
+    },
     {
       "hash": "382558cb51c113d8d79a9d3460ec3fb5e8f94930",
       "date": "2026-10-26",

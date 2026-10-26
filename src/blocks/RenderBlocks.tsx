@@ -3,6 +3,7 @@ import { ModuleLightboxProvider, ModuleLightboxTrigger, type ModuleLightboxSlide
 import {
   ModuleLikeOverlay,
   framedBlockTypes,
+  interactiveBlockComponents,
   internalLikeButtonBlockTypes,
   lightboxableBlockTypes,
   mediaBlockComponents,
@@ -35,6 +36,7 @@ function TextBlock({ title, content, columns }: { title?: string; content: any; 
 
 const blockComponents: Record<string, React.ComponentType<any>> = {
   ...mediaBlockComponents,
+  ...interactiveBlockComponents,
   text: TextBlock,
   sectionHeader: (props: any) => <TextBlock title={props.title} content={props.description} columns={props.columns} />,
   textContent: (props: any) => <TextBlock content={props.content} columns={props.columns} />,

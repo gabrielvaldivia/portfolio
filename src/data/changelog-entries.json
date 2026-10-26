@@ -1,9 +1,9 @@
 [
  {
   "date": "2026-10-26",
-  "title": "Drag-to-reorder projects and inline image drops",
+  "title": "3D Kale tablet showcase and admin project ordering",
   "changes": [
-   "The admin Projects list is a simple drag-to-reorder list in work page order, with new projects at the top. Dropping an image onto a CMS image field uploads it in place again and attaches it when done, instead of flashing a side sheet."
+   "Case studies can show work on a 3D Kale tablet that visitors drag to turn, with videos or images on screen and chalk, periwinkle, or sage cases. In the admin, projects drag to reorder, and dropped images upload in place again."
   ]
  },
  {
@@ -169,7 +169,7 @@
  },
  {
   "date": "2026-09-10",
-  "title": "Your highlights, and everyone else\u2019s",
+  "title": "Your highlights, and everyone else’s",
   "changes": [
    "Separated personal and community highlights with independent visibility controls. Added hover fills and reader attribution, refined the highlight popover, and brought trackpad swipes to the desktop slideshow. Recommendation arrows now stay beside their titles."
   ]

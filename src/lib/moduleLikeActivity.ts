@@ -486,7 +486,7 @@ function getBlockNoun(blockType: string) {
   if (blockType === 'browser') return 'browser'
   if (blockType === 'video' || blockType === 'fullWidthVideo') return 'video'
   if (blockType === 'image' || blockType === 'fullWidthImage') return 'image'
-  if (blockType.startsWith('iphone') || blockType === 'dc1' || blockType === 'deviceMockup') return 'prototype'
+  if (blockType.startsWith('iphone') || blockType === 'dc1' || blockType === 'kale' || blockType === 'deviceMockup') return 'prototype'
   return 'module'
 }
 
