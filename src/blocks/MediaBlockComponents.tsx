@@ -319,6 +319,7 @@ function BrowserBlockComponent({
 const DC1_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/DC1.png'
 const IPHONE15_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/iphone-15.png'
 const IPHONE15_NOTCH_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/iphone-15-notch.png'
+const IPHONE15_STATUS_BAR_URL = '/frames/iphone-15-status-bar.png'
 const IPHONE13MINI_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/iphone-13-mini.png'
 const IPHONE5_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/iphone5.png'
 const IPHONE6_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/iphone6-frame.png'
@@ -435,7 +436,7 @@ function KaleBlock({ id: blockId, video, image, rows, caseColor }: { id?: string
   )
 }
 
-function iPhone15Block({ id: blockId, video, image, rows, showNotch, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string; showNotch?: boolean | string | number } & ModuleRenderProps) {
+function iPhone15Block({ id: blockId, video, image, rows, showNotch, showStatusBar, _containedInLightbox, _mode = 'page' }: { id?: string; video: any; image?: any; rows?: string; showNotch?: boolean | string | number; showStatusBar?: boolean | string | number } & ModuleRenderProps) {
   const src = video?.url || image?.url
   if (!src) return null
   const isVideo = !!video?.url
@@ -471,6 +472,15 @@ function iPhone15Block({ id: blockId, video, image, rows, showNotch, _containedI
             }}
           >
             <FramedVideoOrImage src={src} isVideo={isVideo} alt={image?.alt} media={image} mode={_mode} />
+            {isChecked(showStatusBar) && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={IPHONE15_STATUS_BAR_URL}
+                alt=""
+                className="pointer-events-none absolute inset-x-0 top-0 z-10 w-full"
+                style={{ height: 'auto' }}
+              />
+            )}
           </div>
           <DeviceFrameImage src={frameUrl} />
         </div>

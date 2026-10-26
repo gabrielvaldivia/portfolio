@@ -265,6 +265,7 @@ const iPhone15Block: Block = {
     { name: 'video', type: 'upload', relationTo: 'media' },
     { name: 'image', type: 'upload', relationTo: 'media' },
     { name: 'showNotch', type: 'checkbox', defaultValue: false },
+    { name: 'showStatusBar', label: 'Show Status Bar', type: 'checkbox', defaultValue: false },
   ],
 }
 
