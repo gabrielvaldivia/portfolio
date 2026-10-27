@@ -22,6 +22,9 @@ export type KaleCaseColor = keyof typeof KALE_CASE_COLORS
 const CAP_COLOR = '#ff6a39'
 const INTERNAL_COLOR = '#88877e'
 const VIDEO_TIMEOUT_MS = 20000
+// Pointer travel, in pixels, past which a press counts as a drag rather than a click.
+// Fingers drift more than a mouse during a tap.
+const DRAG_CLICK_TOLERANCE = { mouse: 6, touch: 12 }
 const SCREEN_WIDTH = 234
 const SCREEN_HEIGHT = 146
 const REST_YAW = 0
@@ -423,7 +426,7 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
   // Drag spins the case; when idle it eases back to head-on and, except on phones, sways gently.
   const target = { yaw: REST_YAW, pitch: REST_PITCH }
   const velocity = { yaw: 0 } // radians per millisecond
-  let drag: { x: number; y: number; yaw: number; pitch: number; id: number } | null = null
+  let drag: { x: number; y: number; yaw: number; pitch: number; id: number; moved: boolean } | null = null
   // Recent drag positions, used to measure how fast it was thrown.
   let dragSamples: { time: number; yaw: number }[] = []
   let mouseOutside = false
@@ -435,7 +438,7 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
   let hover: { x: number; y: number } | null = null
 
   const onPointerDown = (event: PointerEvent) => {
-    drag = { x: event.clientX, y: event.clientY, yaw: target.yaw, pitch: target.pitch, id: event.pointerId }
+    drag = { x: event.clientX, y: event.clientY, yaw: target.yaw, pitch: target.pitch, id: event.pointerId, moved: false }
     dragSamples = [{ time: performance.now(), yaw: target.yaw }]
     velocity.yaw = 0
     mouseOutside = false
@@ -455,6 +458,8 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
       requestRender()
     }
     if (!drag || event.pointerId !== drag.id) return
+    const tolerance = event.pointerType === 'mouse' ? DRAG_CLICK_TOLERANCE.mouse : DRAG_CLICK_TOLERANCE.touch
+    if (Math.hypot(event.clientX - drag.x, event.clientY - drag.y) > tolerance) drag.moved = true
     const width = container.clientWidth || 1
     target.yaw = drag.yaw + ((event.clientX - drag.x) / width) * Math.PI * 2
     target.pitch = THREE.MathUtils.clamp(drag.pitch + ((event.clientY - drag.y) / width) * Math.PI, -MAX_PITCH, MAX_PITCH)
@@ -467,6 +472,11 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
   }
   const onPointerUp = (event: PointerEvent) => {
     if (!drag || event.pointerId !== drag.id) return
+    // A drag ends in a click; mark the canvas so that click doesn't open the lightbox.
+    if (drag.moved) {
+      renderer.domElement.setAttribute('data-lightbox-ignore', '')
+      window.setTimeout(() => renderer.domElement.removeAttribute('data-lightbox-ignore'), 350)
+    }
     drag = null
     // Throw speed over the last ~100ms, unless the pointer had come to rest before letting go.
     const first = dragSamples[0]

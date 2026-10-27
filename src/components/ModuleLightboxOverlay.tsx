@@ -159,6 +159,7 @@ const INTRINSIC_LIGHTBOX_ASPECT_RATIOS: Record<string, number> = {
   iphone5: 762 / 1597,
   iphone6: 990 / 1934,
   iphonex: 1405 / 2796,
+  kale: 4 / 3,
 }
 
 const ZOOM_ENTRY_TIMING: KeyframeAnimationOptions = {
@@ -1590,7 +1591,7 @@ export function ModuleLightboxOverlay({
 
   const handlePointerDown = useCallback((event: PointerEvent<HTMLDivElement>) => {
     const target = event.target
-    if (target instanceof Element && target.closest('button,a,input,textarea,select,summary')) return
+    if (target instanceof Element && target.closest('button,a,input,textarea,select,summary,[data-lightbox-interactive]')) return
 
     setDragOwnerId(activeSlide?.id ?? null)
     event.currentTarget.setPointerCapture(event.pointerId)
@@ -1670,7 +1671,7 @@ export function ModuleLightboxOverlay({
     if (dragState.current || event.button !== 0) return
 
     const target = event.target
-    if (target instanceof Element && target.closest('button,a,input,textarea,select,summary')) return
+    if (target instanceof Element && target.closest('button,a,input,textarea,select,summary,[data-lightbox-interactive]')) return
     if (!(target instanceof Element && target.closest('video'))) event.preventDefault()
 
     const state: DragState = {
@@ -1835,7 +1836,7 @@ export function ModuleLightboxOverlay({
     if (event.pointerType === 'mouse' && event.button !== 0) return
 
     const target = event.target
-    if (target instanceof Element && target.closest('button,a,input,textarea,select,summary')) return
+    if (target instanceof Element && target.closest('button,a,input,textarea,select,summary,[data-lightbox-interactive]')) return
 
     photoPointersRef.current.set(event.pointerId, {
       pointerId: event.pointerId,
@@ -2096,7 +2097,7 @@ export function ModuleLightboxOverlay({
     if (!activeSlideIsZoomablePhoto) return
 
     const target = event.target
-    if (target instanceof Element && target.closest('button,a,input,textarea,select,summary')) return
+    if (target instanceof Element && target.closest('button,a,input,textarea,select,summary,[data-lightbox-interactive]')) return
 
     const currentZoom = getCurrentPhotoZoom()
     const shouldZoom = event.ctrlKey

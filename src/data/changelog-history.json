@@ -1,6 +1,11 @@
 {
-  "throughCommit": "f31a08e3d348d365699d2d7ce96780108c92557e",
+  "throughCommit": "1173e6632830b5dfce307c3414a691ce30b87a86",
   "commits": [
+    {
+      "hash": "1173e6632830b5dfce307c3414a691ce30b87a86",
+      "date": "2026-10-26",
+      "subject": "Show the Kale tablet larger and still on phones"
+    },
     {
       "hash": "f31a08e3d348d365699d2d7ce96780108c92557e",
       "date": "2026-10-26",

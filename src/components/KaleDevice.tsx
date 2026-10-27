@@ -109,6 +109,8 @@ export function KaleDevice({
       )}
       <div
         ref={stageRef}
+        // Dragging spins the tablet, so the lightbox shouldn't treat it as a swipe.
+        data-lightbox-interactive=""
         role="img"
         aria-label={alt ? `${alt}, shown on a Kale tablet. Drag to turn it around.` : 'Kale tablet. Drag to turn it around.'}
         className={cn('absolute inset-0 transition-opacity duration-500', ready ? 'opacity-100' : 'opacity-0')}

@@ -439,6 +439,7 @@ function KaleBlock({ id: blockId, video, image, rows, caseColor }: { id?: string
         @media (min-width: 1280px) {
           #${id} { ${framedDesktopSizeStyle(false, rowHeight, aspectRatio)} }
         }
+        ${phoneOverlaySizeStyle(id)}
       ` }} />
       <div id={id} className="relative mx-auto">
         <KaleDevice src={src} sources={video?.url ? undefined : kaleScreenSources(image)} isVideo={Boolean(video?.url)} alt={image?.alt || video?.alt} caseColor={caseColor} />
@@ -642,6 +643,7 @@ export const mediaBlockComponents: Record<string, React.ComponentType<any>> = {
   iphone5: iPhone5Block,
   iphone6: iPhone6Block,
   iphonex: iPhoneXBlock,
+  kale: KaleBlock,
   fullWidthImage: ({ image, border, ...props }: any) => <ImageBlockComponent image={image} border={border} {...props} />,
   fullWidthVideo: VideoBlockComponent,
   deviceMockup: ({ image, ...props }: any) => <ImageBlockComponent image={image} {...props} />,
@@ -650,8 +652,4 @@ export const mediaBlockComponents: Record<string, React.ComponentType<any>> = {
 export const framedBlockTypes = ['browser', 'dc1', 'kale', 'iphone15', 'iphone13mini', 'iphone5', 'iphone6', 'iphonex']
 export const phoneFrameBlockTypes = ['dc1', 'iphone15', 'iphone13mini', 'iphone5', 'iphone6', 'iphonex']
 export const internalLikeButtonBlockTypes = ['image', 'video', 'fullWidthImage', 'fullWidthVideo']
-// Kale renders its own interactive 3D stage, so dragging it shouldn't open the lightbox.
-export const interactiveBlockComponents: Record<string, React.ComponentType<any>> = {
-  kale: KaleBlock,
-}
 export const lightboxableBlockTypes = Object.keys(mediaBlockComponents)

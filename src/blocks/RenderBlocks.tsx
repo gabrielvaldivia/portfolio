@@ -3,7 +3,6 @@ import { ModuleLightboxProvider, ModuleLightboxTrigger, type ModuleLightboxSlide
 import {
   ModuleLikeOverlay,
   framedBlockTypes,
-  interactiveBlockComponents,
   internalLikeButtonBlockTypes,
   lightboxableBlockTypes,
   mediaBlockComponents,
@@ -36,7 +35,6 @@ function TextBlock({ title, content, columns }: { title?: string; content: any; 
 
 const blockComponents: Record<string, React.ComponentType<any>> = {
   ...mediaBlockComponents,
-  ...interactiveBlockComponents,
   text: TextBlock,
   sectionHeader: (props: any) => <TextBlock title={props.title} content={props.description} columns={props.columns} />,
   textContent: (props: any) => <TextBlock content={props.content} columns={props.columns} />,
@@ -92,6 +90,7 @@ function shouldPreserveAspectDuringZoom(blockType?: string) {
 
 function shouldUseMovableSurface(blockType?: string) {
   return phoneFrameBlockTypes.includes(blockType || '')
+    || blockType === 'kale'
     || blockType === 'browser'
     || blockType === 'image'
     || blockType === 'fullWidthImage'
@@ -179,7 +178,7 @@ export function RenderBlocks({ blocks, likeNamespace }: { blocks?: any[]; likeNa
                   surfaceClassName={cn(
                     'relative',
                     isFramedBlock ? moduleBackgroundClass : '',
-                    isFramedBlock ? 'flex items-center justify-center p-5 tablet:p-8 desktop:p-10' : '',
+                    isFramedBlock ? cn('flex items-center justify-center', isKaleBlock ? 'p-1 tablet:p-8 desktop:p-10' : 'p-5 tablet:p-8 desktop:p-10') : '',
                     isDC1Block ? 'py-6 tablet:py-10 desktop:py-12' : '',
                     likeTargetId ? 'group/module' : '',
                   )}
