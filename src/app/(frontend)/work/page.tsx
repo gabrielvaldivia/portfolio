@@ -1,10 +1,11 @@
-import { ProjectCard } from '@/components/ProjectCard'
+import { WorkProjectGrid } from '@/components/WorkProjectGrid'
 import { FitText } from '@/components/FitText'
 import { buildPageMetadata } from '@/lib/pageMetadata'
 import { withSiteSocialDefaults } from '@/lib/pageMetadataDefaults'
 import { getPageBySlug, getProjects } from '@/lib/queries'
 import type { Metadata } from 'next'
 import { JsonLd } from '@/components/JsonLd'
+import { getProjectWorkTags } from '@/lib/workTags'
 import { absoluteSiteUrl, buildSiteStructuredData, websiteReference } from '@/lib/structuredData'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -52,19 +53,16 @@ export default async function WorkPage() {
               <FitText className="font-heading" maxSize={120}>Work</FitText>
             </div>
           </div>
-          <div className="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-4">
-            {projects.map((project: any, index: number) => (
-              <ProjectCard
-                key={project.id}
-                priority={index < 3}
-                title={project.title}
-                slug={project.slug}
-                subtitle={project.subtitle}
-                featuredImage={project.featuredImage}
-                emphasizeHover
-              />
-            ))}
-          </div>
+          <WorkProjectGrid
+            projects={projects.map((project) => ({
+              id: project.id,
+              title: project.title,
+              slug: project.slug,
+              subtitle: project.subtitle,
+              featuredImage: project.featuredImage,
+              tags: getProjectWorkTags(project),
+            }))}
+          />
       </section>
     </>
   )

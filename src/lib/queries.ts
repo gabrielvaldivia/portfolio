@@ -65,6 +65,7 @@ export type ProjectCardDoc = {
   slug: string
   subtitle?: string
   featuredImage?: ResponsiveImageMedia
+  client?: { tags?: string[] | null } | number | null
 }
 
 /** Card fields only; case-study pages load the full project by slug. */
@@ -81,7 +82,9 @@ export async function getProjects(options: GetProjectsOptions = {}) {
     pagination: false,
     where: filters.length ? { and: filters } : {},
     depth: 1,
-    select: { title: true, slug: true, subtitle: true, featuredImage: true },
+    select: { title: true, slug: true, subtitle: true, featuredImage: true, client: true },
+    // Only the client's tags, for filtering on /work.
+    populate: { clients: { tags: true } },
   })
   return { ...result, docs: result.docs as unknown as ProjectCardDoc[] }
 }

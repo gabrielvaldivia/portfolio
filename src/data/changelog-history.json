@@ -1,6 +1,11 @@
 {
-  "throughCommit": "1173e6632830b5dfce307c3414a691ce30b87a86",
+  "throughCommit": "318dc482db90924d391cd27d674dae5f98f84341",
   "commits": [
+    {
+      "hash": "318dc482db90924d391cd27d674dae5f98f84341",
+      "date": "2026-10-26",
+      "subject": "Open the Kale module fullscreen on click or tap"
+    },
     {
       "hash": "1173e6632830b5dfce307c3414a691ce30b87a86",
       "date": "2026-10-26",
