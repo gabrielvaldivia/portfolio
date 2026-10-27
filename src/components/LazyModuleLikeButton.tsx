@@ -54,10 +54,10 @@ export function ModuleLikeButtonShell({
         disabled
         aria-label={`Like this ${noun}. ${initialCount} total likes.`}
         className={cn(
-          'touch-manipulation select-none items-center gap-1.5 rounded-full font-medium text-text-body transition-colors duration-150',
+          'touch-manipulation select-none items-center gap-1.5 rounded-full font-medium transition-colors duration-150',
           variant === 'pill'
-            ? 'inline-grid h-11 min-w-11 grid-cols-[18px_minmax(1ch,auto)] justify-center px-3 text-sm hover:bg-background-alt hover:text-text-strong'
-            : 'inline-flex h-8 bg-black/20 hover:bg-black/30 backdrop-blur-md px-2.5 text-caption',
+            ? 'inline-grid h-11 min-w-11 grid-cols-[18px_minmax(1ch,auto)] justify-center px-3 text-sm text-text-body hover:bg-background-alt hover:text-text-strong'
+            : 'inline-flex h-8 bg-black/20 hover:bg-black/30 dark:hover:bg-white/15 backdrop-blur-md px-2.5 text-caption text-white',
           'disabled:cursor-default',
           variant !== 'pill' && 'disabled:opacity-70',
         )}

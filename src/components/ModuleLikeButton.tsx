@@ -760,13 +760,15 @@ export function ModuleLikeButton({
         disabled={isLoading}
         aria-label={`Like this ${noun}. Hold for a super like worth ${SUPER_MODULE_LIKE_AMOUNT} likes. ${data.count} total likes. You have liked it ${data.userLikes} times.`}
         className={cn(
-          'touch-manipulation select-none items-center gap-1.5 rounded-full font-medium text-text-body transition-colors duration-150',
+          'touch-manipulation select-none items-center gap-1.5 rounded-full font-medium transition-colors duration-150',
           variant === 'pill'
             ? 'inline-grid h-11 min-w-11 grid-cols-[18px_minmax(1ch,auto)] justify-center px-3 text-sm hover:bg-background-alt'
-            : 'inline-flex h-8 bg-black/20 hover:bg-black/30 backdrop-blur-md px-2.5 text-caption',
-          'hover:text-text-strong focus-visible:ring-2 focus-visible:ring-content/30 disabled:cursor-default',
+            : 'inline-flex h-8 bg-black/20 hover:bg-black/30 dark:hover:bg-white/15 backdrop-blur-md px-2.5 text-caption',
+          'focus-visible:ring-2 focus-visible:ring-content/30 disabled:cursor-default',
           variant !== 'pill' && 'disabled:opacity-70',
-          isHeartActive && 'text-text-like hover:text-text-like-hover',
+          isHeartActive
+            ? 'text-text-like hover:text-text-like-hover'
+            : variant === 'pill' ? 'text-text-body hover:text-text-strong' : 'text-white',
         )}
         style={heartColor ? { color: heartColor } : undefined}
         animate={{
