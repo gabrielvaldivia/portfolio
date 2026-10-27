@@ -141,7 +141,6 @@ const SWIPE_TRANSITION: Transition = {
 const ZOOM_DURATION_MS = 560
 const SOURCE_REVEAL_PROGRESS = 0.65
 const BACKDROP_FADE_DELAY_SECONDS = 0.1
-const PHOTO_LIGHTBOX_VERTICAL_OFFSET = 132
 const PHOTO_MAX_SCALE = 6
 const PHOTO_ZOOM_EPSILON = 0.01
 const PHOTO_TAP_MOVE_TOLERANCE = 12
@@ -253,7 +252,7 @@ function getPhotoAspectRatio(slide: ModuleLightboxSlide) {
 }
 
 function getConstrainedPhotoLightboxWidth(aspectRatio: number) {
-  return `min(100%, calc((100dvh - ${PHOTO_LIGHTBOX_VERTICAL_OFFSET}px) * ${aspectRatio}))`
+  return `min(100%, calc(100dvh * ${aspectRatio}))`
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -508,8 +507,8 @@ function getPaddedSurfaceAspectRatio(contentAspectRatio: number, surface?: Movab
 function getLightboxScaleForSourceRect(sourceRect: LightboxRect) {
   if (typeof window === 'undefined') return 1
 
-  const maxWidth = window.innerWidth - 32
-  const maxHeight = window.innerHeight - 96
+  const maxWidth = window.innerWidth
+  const maxHeight = window.innerHeight
   return Math.min(maxWidth / sourceRect.width, maxHeight / sourceRect.height)
 }
 
@@ -689,9 +688,9 @@ function ModuleSlide({
       : displayAspectRatio
       ? {
         aspectRatio: displayAspectRatio,
-        width: `min(calc(100dvw - 48px), calc((100dvh - 96px) * ${displayAspectRatio}))`,
+        width: `min(100dvw, calc(100dvh * ${displayAspectRatio}))`,
       }
-      : { width: 'calc(100dvw - 48px)', height: 'calc(100dvh - 96px)' }
+      : { width: '100dvw', height: '100dvh' }
 
     return (
       <div
@@ -709,7 +708,7 @@ function ModuleSlide({
         className="mx-auto flex items-center justify-center"
         style={{
           aspectRatio: intrinsicFrameAspectRatio,
-          width: `min(calc(100dvw - 32px), calc((100dvh - 72px) * ${intrinsicFrameAspectRatio}))`,
+          width: `min(100dvw, calc(100dvh * ${intrinsicFrameAspectRatio}))`,
         }}
       >
         {component}
@@ -742,7 +741,7 @@ function ModuleSlide({
         style={{
           ...scaledPaddingStyle,
           aspectRatio: sourceAspectRatio,
-          width: `min(calc(100dvw - 32px), calc((100dvh - 128px) * ${sourceAspectRatio}))`,
+          width: `min(100dvw, calc(100dvh * ${sourceAspectRatio}))`,
         }}
       >
         <div className="flex h-full w-full items-center justify-center" style={{ containerType: 'size' }}>
@@ -1135,10 +1134,10 @@ function ModuleLightboxSlideView({
           movableSurface
             ? 'w-full'
             : activeSlideIsFramed
-            ? 'w-fit max-w-[calc(100dvw-32px)]'
+            ? 'w-fit max-w-dvw'
             : activeSlideUsesMeasuredAspect
-              ? 'w-[calc(100dvw-32px)] max-w-[1440px]'
-              : 'w-full max-w-[min(1440px,100%)]',
+              ? 'w-dvw'
+              : 'w-full',
         )}
         style={{
           ...activeDragStyle,

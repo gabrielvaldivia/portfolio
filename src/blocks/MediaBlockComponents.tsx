@@ -36,7 +36,6 @@ const paddingClasses: Record<string, string> = {
 
 const ROW_HEIGHT = 200
 const ROW_GAP = 40
-const VIDEO_LIGHTBOX_VERTICAL_OFFSET = 72
 const BROWSER_REFERENCE_WIDTH = 1280
 
 // The block grid only has columns at desktop width; below that every block is full width.
@@ -60,8 +59,8 @@ function isChecked(value: unknown) {
   return value === true || value === 'true' || value === 1
 }
 
-function getConstrainedWidth(aspectRatio: number, verticalOffset = 132) {
-  return `min(100%, calc((100dvh - ${verticalOffset}px) * ${aspectRatio}))`
+function getConstrainedWidth(aspectRatio: number) {
+  return `min(100%, calc(100dvh * ${aspectRatio}))`
 }
 
 function phoneOverlaySizeStyle(id: string) {
@@ -198,17 +197,17 @@ function VideoBlockComponent({
     return (
       <div
         className={cn(
-          'mx-auto flex max-h-[calc(100dvh-72px)] w-full items-center justify-center',
-          lightboxAspectRatio ? '' : 'max-w-[min(1440px,calc(100dvw-32px))]',
+          'mx-auto flex max-h-dvh w-full items-center justify-center',
+          lightboxAspectRatio ? '' : 'max-w-dvw',
         )}
-        style={lightboxAspectRatio ? { width: getConstrainedWidth(lightboxAspectRatio, VIDEO_LIGHTBOX_VERTICAL_OFFSET) } : undefined}
+        style={lightboxAspectRatio ? { width: getConstrainedWidth(lightboxAspectRatio) } : undefined}
       >
         <LightboxVideo
           src={src}
           active={_active}
           aspectRatio={lightboxAspectRatio}
           className={cn(
-            lightboxAspectRatio ? 'h-auto max-h-[calc(100dvh-72px)] w-full max-w-full' : 'h-auto max-h-[calc(100dvh-72px)] w-auto max-w-full',
+            lightboxAspectRatio ? 'h-auto max-h-dvh w-full max-w-full' : 'h-auto max-h-dvh w-auto max-w-full',
             fit === 'cover' ? 'object-cover' : 'object-contain',
           )}
         />
@@ -326,12 +325,9 @@ const IPHONE6_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/i
 const IPHONEX_FRAME_URL = 'https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/iphonex.png'
 
 function lightboxFrameSizeStyle(aspectRatio: number) {
-  const verticalMargin = 72
-  const horizontalMargin = 32
   const widthFromViewportHeight = (aspectRatio * 100).toFixed(4)
-  const widthMarginOffset = (aspectRatio * verticalMargin).toFixed(2)
 
-  return `width: min(calc(100dvw - ${horizontalMargin}px), calc(${widthFromViewportHeight}dvh - ${widthMarginOffset}px)); height: auto; max-width: 100%;`
+  return `width: min(100dvw, ${widthFromViewportHeight}dvh); height: auto; max-width: 100%;`
 }
 
 function framedLightboxSizeStyle(aspectRatio: number, contained: boolean) {

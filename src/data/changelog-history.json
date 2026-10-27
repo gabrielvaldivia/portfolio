@@ -1,6 +1,16 @@
 {
-  "throughCommit": "3c816865ea0b90f4fa0c9c4f1b82d22ef6ee1ee2",
+  "throughCommit": "c9a280d38ed2b519ba9a93c1537bd668f6c87403",
   "commits": [
+    {
+      "hash": "c9a280d38ed2b519ba9a93c1537bd668f6c87403",
+      "date": "2026-10-26",
+      "subject": "Let fullscreen modules fill the screen edge to edge"
+    },
+    {
+      "hash": "a5c2be308191bfd1ec1a91d8ff9de4fd4fdac537",
+      "date": "2026-10-26",
+      "subject": "Give the image like button white text and a brighter dark-mode hover"
+    },
     {
       "hash": "3c816865ea0b90f4fa0c9c4f1b82d22ef6ee1ee2",
       "date": "2026-10-26",
