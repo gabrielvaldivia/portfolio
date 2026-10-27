@@ -763,7 +763,7 @@ export function ModuleLikeButton({
           'touch-manipulation select-none items-center gap-1.5 rounded-full font-medium text-text-body transition-colors duration-150',
           variant === 'pill'
             ? 'inline-grid h-11 min-w-11 grid-cols-[18px_minmax(1ch,auto)] justify-center px-3 text-sm hover:bg-background-alt'
-            : 'inline-flex h-8 bg-elevated px-2.5 text-caption shadow-sm outline outline-1 outline-offset-0 outline-gray-400/40',
+            : 'inline-flex h-8 bg-black/20 hover:bg-black/30 backdrop-blur-md px-2.5 text-caption',
           'hover:text-text-strong focus-visible:ring-2 focus-visible:ring-content/30 disabled:cursor-default',
           variant !== 'pill' && 'disabled:opacity-70',
           isHeartActive && 'text-text-like hover:text-text-like-hover',

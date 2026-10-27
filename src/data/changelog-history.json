@@ -1,6 +1,11 @@
 {
-  "throughCommit": "96ce2c9eb9c3f8ee5b077a40b8ae6756f5ae492d",
+  "throughCommit": "6dffc8141a164ac1b1cf89e2f9944ba7a39a2679",
   "commits": [
+    {
+      "hash": "6dffc8141a164ac1b1cf89e2f9944ba7a39a2679",
+      "date": "2026-10-26",
+      "subject": "Edit Work tags per project and call projects \"Work\" in the admin"
+    },
     {
       "hash": "96ce2c9eb9c3f8ee5b077a40b8ae6756f5ae492d",
       "date": "2026-10-26",
