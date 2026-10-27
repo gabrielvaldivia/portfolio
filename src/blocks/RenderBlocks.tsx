@@ -164,7 +164,7 @@ export function RenderBlocks({ blocks, likeNamespace }: { blocks?: any[]; likeNa
               colSpan[cols] || 'desktop:col-span-6',
               rows !== '1' ? (rowSpan[rows] || '') : '',
               !usesMovableSurface ? moduleBackgroundClass : '',
-              isFramedBlock && !usesMovableSurface ? (isKaleBlock ? 'p-1 tablet:p-8 desktop:p-10' : 'p-5 tablet:p-8 desktop:p-10') : '',
+              isFramedBlock && !usesMovableSurface ? (isKaleBlock ? 'p-1' : 'p-5 tablet:p-8 desktop:p-10') : '',
               isDC1Block && !usesMovableSurface ? 'py-6 tablet:py-10 desktop:py-12' : '',
               likeTargetId && !usesMovableSurface ? 'group/module relative' : '',
             )}
@@ -178,7 +178,7 @@ export function RenderBlocks({ blocks, likeNamespace }: { blocks?: any[]; likeNa
                   surfaceClassName={cn(
                     'relative',
                     isFramedBlock ? moduleBackgroundClass : '',
-                    isFramedBlock ? cn('flex items-center justify-center', isKaleBlock ? 'p-1 tablet:p-8 desktop:p-10' : 'p-5 tablet:p-8 desktop:p-10') : '',
+                    isFramedBlock ? cn('flex items-center justify-center', isKaleBlock ? 'p-1' : 'p-5 tablet:p-8 desktop:p-10') : '',
                     isDC1Block ? 'py-6 tablet:py-10 desktop:py-12' : '',
                     likeTargetId ? 'group/module' : '',
                   )}

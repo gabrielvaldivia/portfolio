@@ -377,7 +377,8 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
   scene.environment = environment
   scene.environmentIntensity = 0.55
 
-  const camera = new THREE.PerspectiveCamera(26, 1, 10, 4000)
+  // A long lens keeps the near end from ballooning when the case is turned sideways.
+  const camera = new THREE.PerspectiveCamera(18, 1, 10, 4000)
 
   const key = new THREE.DirectionalLight('#ffffff', 2.1)
   key.position.set(-180, 420, 520)
@@ -398,7 +399,9 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
   scene.add(floor)
 
   // Pivot sits at the centre of the case so drags spin it in place.
+  // Tilting happens around the case's own long side, so it never stands on end and leaves the frame.
   const pivot = new THREE.Group()
+  pivot.rotation.order = 'YXZ'
   pivot.rotation.set(REST_PITCH, REST_YAW, 0)
   scene.add(pivot)
 
@@ -412,11 +415,11 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
     if (!width || !height) return
     renderer.setSize(width, height, false)
     camera.aspect = width / height
-    // Keep the whole case (about 300mm across once turned) in frame at any aspect ratio.
+    // Keep the whole case in frame at any aspect ratio, whichever way it's turned.
     // Phones have no sway or hover tilt to leave room for, so the case fills more of the stage.
     const halfFov = THREE.MathUtils.degToRad(camera.fov / 2)
-    const fitHeight = (compact ? 240 : 290) / (2 * Math.tan(halfFov))
-    const fitWidth = (compact ? 290 : 350) / (2 * Math.tan(halfFov) * camera.aspect)
+    const fitHeight = (compact ? 240 : 262) / (2 * Math.tan(halfFov))
+    const fitWidth = (compact ? 290 : 317) / (2 * Math.tan(halfFov) * camera.aspect)
     camera.position.set(0, 18, Math.max(fitHeight, fitWidth))
     camera.lookAt(0, -6, 0)
     camera.updateProjectionMatrix()
