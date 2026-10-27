@@ -8,12 +8,12 @@ test('tag slugs are URL-safe', () => {
   assert.equal(workTagSlug('!!'), '')
 })
 
-test('reads client tags, trimming and deduplicating', () => {
-  assert.deepEqual(getProjectWorkTags({ client: { tags: [' AI ', 'ai', 'Consumer', '', 3] } }), [
+test('reads project tags, trimming and deduplicating', () => {
+  assert.deepEqual(getProjectWorkTags({ tags: [' AI ', 'ai', 'Consumer', '', 3] }), [
     { slug: 'ai', label: 'AI' },
     { slug: 'consumer', label: 'Consumer' },
   ])
-  assert.deepEqual(getProjectWorkTags({ client: 7 }), [])
+  assert.deepEqual(getProjectWorkTags({ tags: null }), [])
   assert.deepEqual(getProjectWorkTags({}), [])
 })
 

@@ -322,6 +322,8 @@ export const contentBlocks = [BrowserBlock, DC1Block, ImageBlock, KaleBlock, iPh
 
 export const Projects: CollectionConfig = {
   slug: 'projects',
+  // Shown as "Work" in the admin, matching the site; the slug stays `projects`.
+  labels: { singular: 'Project', plural: 'Work' },
   defaultSort: 'order',
   admin: {
     components: {
@@ -334,7 +336,7 @@ export const Projects: CollectionConfig = {
     pagination: { defaultLimit: 100 },
     group: 'Collections',
     useAsTitle: 'title',
-    defaultColumns: ['title'],
+    defaultColumns: ['title', 'tags'],
   },
   hooks: {
     beforeChange: [
@@ -416,6 +418,15 @@ export const Projects: CollectionConfig = {
               type: 'relationship',
               relationTo: 'services',
               hasMany: true,
+            },
+            {
+              name: 'tags',
+              type: 'text',
+              hasMany: true,
+              admin: {
+                description: 'Used to filter projects on the Work page.',
+                placeholder: 'Add a tag',
+              },
             },
             { name: 'year', type: 'text' },
           ],

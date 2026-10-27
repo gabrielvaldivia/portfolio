@@ -1,6 +1,11 @@
 {
-  "throughCommit": "318dc482db90924d391cd27d674dae5f98f84341",
+  "throughCommit": "96ce2c9eb9c3f8ee5b077a40b8ae6756f5ae492d",
   "commits": [
+    {
+      "hash": "96ce2c9eb9c3f8ee5b077a40b8ae6756f5ae492d",
+      "date": "2026-10-26",
+      "subject": "Filter the Work page by client industry tag"
+    },
     {
       "hash": "318dc482db90924d391cd27d674dae5f98f84341",
       "date": "2026-10-26",

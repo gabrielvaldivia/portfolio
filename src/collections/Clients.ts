@@ -29,7 +29,7 @@ export const Clients: CollectionConfig = {
     { name: 'active', type: 'checkbox', defaultValue: false, label: 'Active Client' },
     {
       type: 'collapsible',
-      label: 'Projects',
+      label: 'Work',
       admin: { initCollapsed: false },
       fields: [
         {

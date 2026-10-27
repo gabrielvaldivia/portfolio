@@ -63,7 +63,7 @@ export function ProjectsListView({
   }, [queriedProjects])
 
   useEffect(() => {
-    setStepNav([{ label: 'Projects' }])
+    setStepNav([{ label: 'Work' }])
   }, [setStepNav])
 
   // A sort saved from the old table view would otherwise override the site order.

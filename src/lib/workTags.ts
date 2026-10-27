@@ -5,12 +5,9 @@ export function workTagSlug(label: string): string {
   return label.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 }
 
-/** A project's client industry tags, trimmed and deduplicated by slug. */
-export function getProjectWorkTags(project: { client?: unknown }): WorkTag[] {
-  const client = project.client && typeof project.client === 'object' && 'tags' in project.client
-    ? project.client
-    : null
-  const values = Array.isArray(client?.tags) ? client.tags : []
+/** A project's tags (edited per project in the admin), trimmed and deduplicated by slug. */
+export function getProjectWorkTags(project: { tags?: unknown }): WorkTag[] {
+  const values = Array.isArray(project.tags) ? project.tags : []
   const tags: WorkTag[] = []
   const seen = new Set<string>()
   for (const value of values) {

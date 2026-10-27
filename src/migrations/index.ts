@@ -28,6 +28,7 @@ import * as migration_20261025_163021 from './20261025_163021';
 import * as migration_20261025_213255_add_note_view_like_totals from './20261025_213255_add_note_view_like_totals';
 import * as migration_20261026_120000_add_kale_module from './20261026_120000_add_kale_module';
 import * as migration_20261026_150000_add_iphone15_status_bar from './20261026_150000_add_iphone15_status_bar';
+import * as migration_20261026_220000_add_project_tags from './20261026_220000_add_project_tags';
 
 export const migrations = [
   {
@@ -179,5 +180,10 @@ export const migrations = [
     up: migration_20261026_150000_add_iphone15_status_bar.up,
     down: migration_20261026_150000_add_iphone15_status_bar.down,
     name: '20261026_150000_add_iphone15_status_bar',
+  },
+  {
+    up: migration_20261026_220000_add_project_tags.up,
+    down: migration_20261026_220000_add_project_tags.down,
+    name: '20261026_220000_add_project_tags',
   },
 ];
