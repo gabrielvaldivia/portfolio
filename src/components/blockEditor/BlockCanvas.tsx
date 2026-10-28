@@ -5,7 +5,6 @@ import { Copy, GripVertical, Share2, Trash2 } from 'lucide-react'
 import { blockComponents, staticModuleClassNames } from '@/blocks/RenderBlocks'
 import { cn } from '@/lib/cn'
 import {
-  BLOCK_DRAG_TYPE,
   BLOCK_EDITOR_SOURCE,
   GRID_COLUMNS,
   columnsForWidth,
@@ -138,8 +137,7 @@ export function BlockCanvas() {
   useEffect(() => {
     if (readOnly) return
     const accepts = (event: DragEvent) => {
-      const types = Array.from(event.dataTransfer?.types || [])
-      return types.includes('Files') || types.includes(BLOCK_DRAG_TYPE)
+      return Array.from(event.dataTransfer?.types || []).includes('Files')
     }
     const onDragOver = (event: DragEvent) => {
       if (!accepts(event)) return
@@ -156,8 +154,6 @@ export function BlockCanvas() {
       const target = targetAt(event.clientX, event.clientY)
       setDropTarget(null)
       const index = target?.index ?? blocks.length
-      const blockType = event.dataTransfer.getData(BLOCK_DRAG_TYPE)
-      if (blockType) return send({ type: 'insert', index, blockType })
       const files = Array.from(event.dataTransfer.files).filter((file) => /^(image|video)\//.test(file.type))
       if (files.length) send({ type: 'files', index, files })
     }
@@ -341,7 +337,7 @@ export function BlockCanvas() {
           className="text-text-muted"
           style={{ border: `${2 * ui}px dashed currentColor`, opacity: 0.6, minHeight: 280, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 * ui }}
         >
-          Drop images or videos here, or add a module above
+          Drop images or videos here, or use Add module
         </div>
       )}
 

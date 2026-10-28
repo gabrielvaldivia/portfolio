@@ -1,11 +1,10 @@
 'use client'
 
-import { BlocksField, useField, useForm, useFormFields, useUploadHandlers } from '@payloadcms/ui'
+import { BlocksDrawer, BlocksField, Button, DrawerToggler, useDrawerSlug, useField, useForm, useFormFields, useUploadHandlers } from '@payloadcms/ui'
 import type { BlocksFieldClientComponent, ClientBlock } from 'payload'
 import { reduceFieldsToValues } from 'payload/shared'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  BLOCK_DRAG_TYPE,
   BLOCK_EDITOR_SOURCE,
   CANVAS_WIDTH,
   blockForFile,
@@ -29,11 +28,6 @@ function valueAtPath(data: unknown, path: string): unknown {
   return path.split('.').reduce<unknown>((value, key) => (value && typeof value === 'object' ? (value as Record<string, unknown>)[key] : undefined), data)
 }
 
-function blockLabel(block: ClientBlock) {
-  const singular = block.labels?.singular
-  return typeof singular === 'string' ? singular : block.slug
-}
-
 function readStoredMode() {
   try {
     return window.localStorage.getItem(MODE_STORAGE_KEY) === 'list' ? 'list' : 'visual'
@@ -46,6 +40,7 @@ export const VisualBlocksField: BlocksFieldClientComponent = (props) => {
   const { field, readOnly: readOnlyProp } = props
   const { addFieldRow, dispatchFields, moveFieldRow, removeFieldRow, setModified } = useForm()
   const { getUploadHandler } = useUploadHandlers()
+  const drawerSlug = useDrawerSlug('visual-blocks-drawer')
   const { path, rows = [], disabled } = useField({ hasRows: true, potentiallyStalePath: props.path })
   const fields = useFormFields(([formFields]) => formFields)
   const readOnly = Boolean(readOnlyProp || disabled)
@@ -210,9 +205,6 @@ export const VisualBlocksField: BlocksFieldClientComponent = (props) => {
         setModified(true)
         setSelected(message.index + 1)
         break
-      case 'insert':
-        insertBlock(message.index, message.blockType)
-        break
       case 'files':
         void insertFiles(message.index, message.files)
         break
@@ -269,38 +261,22 @@ export const VisualBlocksField: BlocksFieldClientComponent = (props) => {
       <div className="visual-blocks__toolbar">
         <ModeToggle mode={mode} onChange={chooseMode} />
         {!readOnly && (
-          <div className="visual-blocks__palette" aria-label="Add a module">
-            {blockTypes.map((block) => (
-              <button
-                key={block.slug}
-                type="button"
-                draggable
-                className="visual-blocks__palette-item"
-                title={`Add ${blockLabel(block)} — or drag it into the page`}
-                onClick={() => insertBlock(insertionIndex, block.slug)}
-                onDragStart={(event) => {
-                  event.dataTransfer.setData(BLOCK_DRAG_TYPE, block.slug)
-                  event.dataTransfer.effectAllowed = 'copy'
-                }}
-              >
-                {block.imageURL && <img src={block.imageURL} alt="" />}
-                <span>{blockLabel(block)}</span>
-              </button>
-            ))}
-            <label className="visual-blocks__palette-item visual-blocks__upload" title="Upload images or videos as new modules">
-              <span>Upload…</span>
-              <input
-                type="file"
-                accept="image/*,video/*"
-                multiple
-                onChange={(event) => {
-                  const files = Array.from(event.target.files || [])
-                  event.target.value = ''
-                  if (files.length) void insertFiles(insertionIndex, files)
-                }}
-              />
-            </label>
-          </div>
+          <>
+            <DrawerToggler slug={drawerSlug} className="visual-blocks__add">
+              <Button buttonStyle="icon-label" el="span" icon="plus" iconPosition="left" iconStyle="with-border">
+                Add module
+              </Button>
+            </DrawerToggler>
+            <BlocksDrawer
+              addRow={(index, blockType) => {
+                if (blockType) insertBlock(index, blockType)
+              }}
+              addRowIndex={insertionIndex}
+              blocks={blockTypes}
+              drawerSlug={drawerSlug}
+              labels={{ singular: 'Module', plural: 'Modules' }}
+            />
+          </>
         )}
         <div className="visual-blocks__status">
           {uploading > 0 && <span>Uploading {uploading}…</span>}

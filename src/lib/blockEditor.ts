@@ -13,8 +13,6 @@ export const GRID_GAP = 40
 export const ROW_HEIGHT = 200
 export const MAX_ROWS = 6
 
-export const BLOCK_DRAG_TYPE = 'application/x-portfolio-block-type'
-
 /** Text modules grow with their copy, so only media modules take a fixed height. */
 export const fixedHeightBlockTypes = ['image', 'video', 'browser', 'dc1', 'kale', 'iphone15', 'iphone13mini', 'iphone5', 'iphone6', 'iphonex']
 
@@ -41,7 +39,6 @@ export type CanvasMessage = { source: typeof BLOCK_EDITOR_SOURCE } & (
   | { type: 'resize'; index: number; columns: string; rows: string }
   | { type: 'remove'; index: number }
   | { type: 'duplicate'; index: number }
-  | { type: 'insert'; index: number; blockType: string }
   | { type: 'files'; index: number; files: File[] }
   | { type: 'shareImage'; index: number }
 )
