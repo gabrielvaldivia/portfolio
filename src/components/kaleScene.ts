@@ -410,9 +410,11 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
   const internalMaterial = new THREE.MeshStandardMaterial({ color: INTERNAL_COLOR, roughness: 0.7 })
   const caseMeshes = new Set(['plain-main-cover', 'plain-back-cover', 'back-internal-cover'])
 
+  let fitted = { width: 0, height: 0 }
   const fitCamera = () => {
     const { width, height } = container.getBoundingClientRect()
     if (!width || !height) return
+    fitted = { width, height }
     renderer.setSize(width, height, false)
     camera.aspect = width / height
     // Keep the whole case in frame at any aspect ratio, whichever way it's turned.
@@ -573,6 +575,35 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
   const resizeObserver = new ResizeObserver(fitCamera)
   resizeObserver.observe(container)
 
+  // The lightbox enlarges the module with a CSS transform, which ResizeObserver never sees,
+  // so the canvas would stay at its inline resolution and blur. When the module moves in or
+  // out of the lightbox, or the window resizes, refit once the on-screen size settles.
+  let settleFrame = 0
+  const refitWhenSettled = () => {
+    cancelAnimationFrame(settleFrame)
+    const startedAt = performance.now()
+    let last = { width: 0, height: 0 }
+    let stableSince = startedAt
+    const check = (now: number) => {
+      if (disposed) return
+      const { width, height } = container.getBoundingClientRect()
+      if (Math.abs(width - last.width) > 0.5 || Math.abs(height - last.height) > 0.5) {
+        last = { width, height }
+        stableSince = now
+      }
+      if (now - stableSince >= 150) {
+        if (Math.abs(width - fitted.width) > 0.5 || Math.abs(height - fitted.height) > 0.5) fitCamera()
+        return
+      }
+      if (now - startedAt < 2000) settleFrame = requestAnimationFrame(check)
+    }
+    settleFrame = requestAnimationFrame(check)
+  }
+  const lightboxSurface = container.closest('[data-lightbox-surface-state]')
+  const surfaceObserver = new MutationObserver(refitWhenSettled)
+  if (lightboxSurface) surfaceObserver.observe(lightboxSurface, { attributes: true, attributeFilter: ['data-lightbox-surface-state'] })
+  window.addEventListener('resize', refitWhenSettled)
+
   const visibilityObserver = new IntersectionObserver(([entry]) => {
     visible = entry.isIntersecting
     if (video) {
@@ -619,7 +650,10 @@ export function createKaleScene({ container, media, caseColor, reducedMotion, on
   return () => {
     disposed = true
     if (frame) cancelAnimationFrame(frame)
+    cancelAnimationFrame(settleFrame)
     resizeObserver.disconnect()
+    surfaceObserver.disconnect()
+    window.removeEventListener('resize', refitWhenSettled)
     visibilityObserver.disconnect()
     renderer.domElement.removeEventListener('pointerdown', onPointerDown)
     renderer.domElement.removeEventListener('pointermove', onPointerMove)

@@ -3,7 +3,7 @@
   "date": "2026-10-28",
   "title": "Visual project editor, share previews, and video volume",
   "changes": [
-   "Shared Work and Playground links preview with each project's hero image, title, and summary, or a starred image. Projects are edited on a live page preview with drag to reorder and resize. Videos with controls gain a mute button and volume slider."
+   "Shared Work and Playground links preview with each project's hero image, title, and summary, or a starred image. Projects are edited on a live preview with drag to reorder and resize. Videos gain a mute button and volume slider, and the 3D Kale tablet stays sharp when expanded."
   ]
  },
  {
