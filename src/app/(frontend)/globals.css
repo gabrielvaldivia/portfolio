@@ -15,6 +15,46 @@ html[data-credits-playing='true']::-webkit-scrollbar {
   opacity: 1;
 }
 
+.video-volume-slider {
+  appearance: none;
+  background: transparent;
+}
+
+.video-volume-slider::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 9999px;
+  background: linear-gradient(to right, #fff var(--video-volume, 100%), rgb(255 255 255 / 0.35) var(--video-volume, 100%));
+}
+
+.video-volume-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  margin-top: -3.5px;
+  border-radius: 9999px;
+  background: #fff;
+}
+
+.video-volume-slider::-moz-range-track {
+  height: 3px;
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 0.35);
+}
+
+.video-volume-slider::-moz-range-progress {
+  height: 3px;
+  border-radius: 9999px;
+  background: #fff;
+}
+
+.video-volume-slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: 0;
+  border-radius: 9999px;
+  background: #fff;
+}
+
 [data-lightbox-surface-state='overlay'] .video-open-lightbox-button {
   display: none;
 }
