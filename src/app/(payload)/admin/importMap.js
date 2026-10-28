@@ -34,6 +34,8 @@ import { NotesEditMenu as NotesEditMenu_700407adcaec769c26df3a5ea9f889d5 } from 
 import { NotesPreviewButton as NotesPreviewButton_b022fd236acda21bba3b8bf7dd74efb2 } from '../../../components/admin/NotesPreviewButton'
 import { NotesPublishButton as NotesPublishButton_700407adcaec769c26df3a5ea9f889d5 } from '../../../components/admin/NotesEditMenu'
 import { SubscriberMetrics as SubscriberMetrics_250e8e0178af6135d064edcf304cfc48 } from '../../../components/admin/SubscriberMetrics'
+import { VisualBlocksField as VisualBlocksField_334887cd3dd9e4705996313cb6c3842e } from '../../../components/admin/VisualBlocksField'
+import { ShareImageField as ShareImageField_49a3f0b9583b3d4e71335d40dab91321 } from '../../../components/admin/ShareImageField'
 import { ProjectsListView as ProjectsListView_772fdc37b48b88ab436f590733e04fa2 } from '../../../components/admin/ProjectsListView'
 import { PhotosListUploadStatus as PhotosListUploadStatus_96d485995b7b3edb90cf326c4478039d } from '../../../components/admin/PhotosListActions'
 import { MediaSaveButton as MediaSaveButton_85a09aeff9bc9d675c907495712c757d } from '../../../components/admin/MediaSaveButton'
@@ -89,6 +91,8 @@ export const importMap = {
   "./components/admin/NotesPreviewButton#NotesPreviewButton": NotesPreviewButton_b022fd236acda21bba3b8bf7dd74efb2,
   "./components/admin/NotesEditMenu#NotesPublishButton": NotesPublishButton_700407adcaec769c26df3a5ea9f889d5,
   "./components/admin/SubscriberMetrics#SubscriberMetrics": SubscriberMetrics_250e8e0178af6135d064edcf304cfc48,
+  "./components/admin/VisualBlocksField#VisualBlocksField": VisualBlocksField_334887cd3dd9e4705996313cb6c3842e,
+  "./components/admin/ShareImageField#ShareImageField": ShareImageField_49a3f0b9583b3d4e71335d40dab91321,
   "./components/admin/ProjectsListView#ProjectsListView": ProjectsListView_772fdc37b48b88ab436f590733e04fa2,
   "./components/admin/PhotosListActions#PhotosListUploadStatus": PhotosListUploadStatus_96d485995b7b3edb90cf326c4478039d,
   "./components/admin/MediaSaveButton#MediaSaveButton": MediaSaveButton_85a09aeff9bc9d675c907495712c757d,

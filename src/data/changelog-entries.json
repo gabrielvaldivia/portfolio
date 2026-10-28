@@ -1,9 +1,9 @@
 [
  {
   "date": "2026-10-28",
-  "title": "Project share previews",
+  "title": "Visual project editor and share previews",
   "changes": [
-   "Shared Work and Playground links now preview with each project's hero image, cropped to fit link cards, plus the project's own title and a short summary. Playground projects get rich previews for the first time."
+   "Shared Work and Playground links preview with each project's hero image, title, and summary, or any project image picked as the share image. Project content is now edited on a live page preview: drop in images, drag modules to reorder, and drag edges to resize."
   ]
  },
  {

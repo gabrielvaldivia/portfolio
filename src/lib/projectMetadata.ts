@@ -35,14 +35,17 @@ function toShareImage(media: ProjectMedia): ProjectShareImage {
   }
 }
 
+/** Index of the first content block with a shareable image — usually the hero. */
+export function firstContentImageIndex(content: unknown) {
+  if (!Array.isArray(content)) return -1
+  return content.findIndex((block) => Boolean(asMedia((block as { image?: unknown } | null)?.image)))
+}
+
 /** The first image in a project's content blocks — usually its hero. */
 export function firstContentImage(content: unknown): ProjectShareImage | undefined {
-  if (!Array.isArray(content)) return undefined
-  for (const block of content) {
-    const media = asMedia((block as { image?: unknown } | null)?.image)
-    if (media) return toShareImage(media)
-  }
-  return undefined
+  const index = firstContentImageIndex(content)
+  const media = index >= 0 ? asMedia((content as { image?: unknown }[])[index].image) : undefined
+  return media ? toShareImage(media) : undefined
 }
 
 type ProjectLike = {

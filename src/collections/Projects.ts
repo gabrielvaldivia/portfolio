@@ -437,7 +437,10 @@ export const Projects: CollectionConfig = {
             {
               name: 'content',
               type: 'blocks',
-              admin: { initCollapsed: true },
+              admin: {
+                initCollapsed: true,
+                components: { Field: './components/admin/VisualBlocksField#VisualBlocksField' },
+              },
               blocks: contentBlocks,
             },
           ],
@@ -451,7 +454,12 @@ export const Projects: CollectionConfig = {
               fields: [
                 { name: 'title', type: 'text' },
                 { name: 'description', type: 'textarea' },
-                { name: 'image', type: 'upload', relationTo: 'media' },
+                {
+                  name: 'image',
+                  type: 'upload',
+                  relationTo: 'media',
+                  admin: { components: { Field: './components/admin/ShareImageField#ShareImageField' } },
+                },
               ],
             },
           ],

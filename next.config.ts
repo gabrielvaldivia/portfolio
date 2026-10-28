@@ -54,8 +54,8 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      // Campground can embed public pages; keep CMS, API, and draft previews same-origin.
-      ...['/admin/:path*', '/api/:path*', '/notes/preview/:path*', '/oauth/:path*'].map((source) => ({
+      // Campground can embed public pages; keep CMS, API, draft previews, and the admin's content canvas same-origin.
+      ...['/admin/:path*', '/api/:path*', '/notes/preview/:path*', '/oauth/:path*', '/block-canvas'].map((source) => ({
         source,
         headers: [
           { key: 'Content-Security-Policy', value: "frame-ancestors 'self';" },

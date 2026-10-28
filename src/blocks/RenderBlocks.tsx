@@ -33,7 +33,7 @@ function TextBlock({ title, content, columns }: { title?: string; content: any; 
   )
 }
 
-const blockComponents: Record<string, React.ComponentType<any>> = {
+export const blockComponents: Record<string, React.ComponentType<any>> = {
   ...mediaBlockComponents,
   text: TextBlock,
   sectionHeader: (props: any) => <TextBlock title={props.title} content={props.description} columns={props.columns} />,
@@ -58,6 +58,22 @@ const rowSpan: Record<string, string> = {
   '4': 'desktop:row-span-4',
   '5': 'desktop:row-span-5',
   '6': 'desktop:row-span-6',
+}
+
+/** Layout classes for a module rendered outside the lightbox, as the admin's visual editor shows it. */
+export function staticModuleClassNames(block: any) {
+  const isFramedBlock = framedBlockTypes.includes(block.blockType)
+  const rows = block.rows || '1'
+  return {
+    cell: cn(
+      colSpan[block.columns || '6'] || 'desktop:col-span-6',
+      rows !== '1' ? (rowSpan[rows] || '') : '',
+      isFramedBlock ? 'bg-background-alt' : '',
+      isFramedBlock ? (block.blockType === 'kale' ? 'p-1' : 'p-5 tablet:p-8 desktop:p-10') : '',
+      block.blockType === 'dc1' ? 'py-6 tablet:py-10 desktop:py-12' : '',
+    ),
+    content: isFramedBlock ? 'h-full flex items-center justify-center' : '',
+  }
 }
 
 function isProjectLightboxNamespace(namespace?: string) {

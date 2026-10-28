@@ -24,7 +24,7 @@ test('public pages allow only the approved frame ancestors on either hostname', 
 })
 
 test('CMS, APIs, and draft previews retain same-origin framing restrictions', async () => {
-  for (const path of ['/admin', '/admin/login', '/admin/collections/notes', '/api', '/api/notes/subscribe', '/notes/preview', '/notes/preview/example']) {
+  for (const path of ['/admin', '/admin/login', '/admin/collections/notes', '/api', '/api/notes/subscribe', '/notes/preview', '/notes/preview/example', '/block-canvas']) {
     const { headers } = await responseFor(path)
     assert.equal(headers.get('content-security-policy'), "frame-ancestors 'self';", path)
     assert.equal(headers.get('x-frame-options'), 'SAMEORIGIN', path)

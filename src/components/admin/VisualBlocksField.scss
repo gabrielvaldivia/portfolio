@@ -1,0 +1,168 @@
+.visual-blocks {
+  margin-bottom: 24px;
+
+  &__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-bottom: 12px;
+  }
+
+  &__modes {
+    display: inline-flex;
+    padding: 2px;
+    border-radius: 8px;
+    background: var(--theme-elevation-100);
+
+    button {
+      padding: 4px 10px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--theme-elevation-600);
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+
+      &[aria-pressed='true'] {
+        background: var(--theme-elevation-0);
+        color: var(--theme-text);
+        box-shadow: 0 1px 2px rgb(0 0 0 / 0.1);
+      }
+    }
+  }
+
+  &__palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex: 1 1 auto;
+  }
+
+  &__palette-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px 4px 6px;
+    border: 1px solid var(--theme-elevation-150);
+    border-radius: 999px;
+    background: var(--theme-elevation-0);
+    color: var(--theme-text);
+    font: inherit;
+    font-size: 13px;
+    cursor: grab;
+
+    &:hover { border-color: var(--theme-elevation-400); }
+
+    img {
+      width: 18px;
+      height: 18px;
+      object-fit: contain;
+    }
+  }
+
+  &__upload {
+    padding-left: 10px;
+    cursor: pointer;
+
+    input { display: none; }
+  }
+
+  &__status {
+    display: flex;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--theme-elevation-600);
+  }
+
+  &__error { color: var(--theme-error-500); }
+
+  &__expand {
+    margin-left: auto;
+    padding: 4px 12px;
+    border: 1px solid var(--theme-elevation-150);
+    border-radius: 6px;
+    background: var(--theme-elevation-0);
+    color: var(--theme-text);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__stage {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border: 1px solid var(--theme-elevation-150);
+    border-radius: 8px;
+    background: var(--theme-bg);
+  }
+
+  &__frame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border: 0;
+    transform-origin: top left;
+  }
+
+  &__hint {
+    margin: 8px 0 0;
+    font-size: 12px;
+    color: var(--theme-elevation-500);
+  }
+
+  &__empty {
+    margin: 0;
+    padding: 16px;
+    border: 1px dashed var(--theme-elevation-150);
+    border-radius: 8px;
+    color: var(--theme-elevation-500);
+    font-size: 13px;
+  }
+
+  // Only the selected module's row shows here, already expanded.
+  &__settings {
+    .blocks-field__header,
+    .blocks-field__drawer-toggler {
+      display: none;
+    }
+  }
+
+  &--expanded {
+    position: fixed;
+    // Leaves the document header, and its Save button, in view.
+    inset: var(--app-header-height, 56px) 0 0;
+    // Above the admin nav, below Payload's drawers (50).
+    z-index: 45;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 16px 20px;
+    background: var(--theme-bg);
+
+    .visual-blocks__body {
+      flex: 1 1 auto;
+      flex-direction: row;
+      min-height: 0;
+    }
+
+    .visual-blocks__stage-scroll {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow-y: auto;
+    }
+
+    .visual-blocks__settings {
+      flex: 0 0 380px;
+      overflow-y: auto;
+    }
+  }
+}

@@ -66,7 +66,10 @@ export const SideProjects: CollectionConfig = {
             {
               name: 'content',
               type: 'blocks',
-              admin: { initCollapsed: true },
+              admin: {
+                initCollapsed: true,
+                components: { Field: './components/admin/VisualBlocksField#VisualBlocksField' },
+              },
               blocks: contentBlocks,
             },
           ],
