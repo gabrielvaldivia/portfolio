@@ -496,7 +496,7 @@ export function ModuleLightboxTrigger({
         aria-hidden={hiddenAsLightboxSource || undefined}
         className={cn(
           'relative block w-full touch-manipulation outline-none transition-opacity duration-150',
-          openOnClick ? 'cursor-zoom-in focus-visible:ring-2 focus-visible:ring-content/50 focus-visible:ring-offset-4 focus-visible:ring-offset-background' : '',
+          openOnClick ? 'cursor-zoom-in focus-visible:not-data-focus-restored:ring-2 focus-visible:ring-content/50 focus-visible:ring-offset-4 focus-visible:ring-offset-background' : '',
           !movableSurface && hiddenAsLightboxSource ? 'invisible opacity-0' : 'opacity-100',
           className,
         )}

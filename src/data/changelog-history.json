@@ -1,6 +1,41 @@
 {
-  "throughCommit": "b533901645e3f4ccb3f7737bde12bee7e11b48a6",
+  "throughCommit": "005df99d9281e89e4fc2672566ddd5769dc9741e",
   "commits": [
+    {
+      "hash": "005df99d9281e89e4fc2672566ddd5769dc9741e",
+      "date": "2026-10-28",
+      "subject": "Keep the 3D Kale tablet sharp when expanded"
+    },
+    {
+      "hash": "3e99e873097fd92b45f3c7cbf485e51b71ae165b",
+      "date": "2026-10-28",
+      "subject": "Add mute and volume controls to video modules"
+    },
+    {
+      "hash": "978931233437a59b2c3859512d29fea9192525fe",
+      "date": "2026-10-28",
+      "subject": "Star a module to make its image the share image"
+    },
+    {
+      "hash": "66cde8c298ce3938b6b3a24f328d51e5f69c6ba6",
+      "date": "2026-10-28",
+      "subject": "Remove the share button from editor modules"
+    },
+    {
+      "hash": "46e6f13b034b98880d6a927747dd141b95d7e568",
+      "date": "2026-10-28",
+      "subject": "Replace the module pills with a single Add module button"
+    },
+    {
+      "hash": "57fadc8b95658171051121b64f360d883a6d0d86",
+      "date": "2026-10-28",
+      "subject": "Edit project content on a live page preview and pick the share image"
+    },
+    {
+      "hash": "6321482a27b3323a73a39187206969cc06996fcb",
+      "date": "2026-10-28",
+      "subject": "Preview project links with their hero image"
+    },
     {
       "hash": "b533901645e3f4ccb3f7737bde12bee7e11b48a6",
       "date": "2026-10-26",

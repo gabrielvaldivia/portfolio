@@ -2253,7 +2253,11 @@ export function ModuleLightboxOverlay({
     ;(closeButtonRef.current || root).focus({ preventScroll: true })
     return () => {
       background.forEach((element) => { element.inert = false })
-      previousFocus?.focus({ preventScroll: true })
+      if (!previousFocus) return
+      // Hand focus back without a ring; it reappears once the visitor tabs away and back.
+      previousFocus.dataset.focusRestored = ''
+      previousFocus.addEventListener('blur', () => { delete previousFocus.dataset.focusRestored }, { once: true })
+      previousFocus.focus({ preventScroll: true, focusVisible: false } as FocusOptions)
     }
     // The portal renders a commit after `open` flips, so wait for it as well.
   }, [lightboxMounted, mounted, open])
