@@ -1,7 +1,7 @@
 'use client'
 
 import { Component, useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
-import { Copy, GripVertical, Share2, Trash2 } from 'lucide-react'
+import { Copy, GripVertical, Trash2 } from 'lucide-react'
 import { blockComponents, staticModuleClassNames } from '@/blocks/RenderBlocks'
 import { cn } from '@/lib/cn'
 import {
@@ -295,9 +295,6 @@ export function BlockCanvas() {
               {selected && !readOnly && (
                 <div style={chrome({ top: 0, right: 0, transform: `scale(${ui})`, transformOrigin: 'top right', display: 'flex', gap: 4, padding: 6 })}>
                   <ToolButton label="Drag to move" onPointerDown={(event) => startModulePointer(event, i)}><GripVertical size={16} /></ToolButton>
-                  {state?.canSetShareImage && block.blockType !== 'text' && block.image ? (
-                    <ToolButton label="Use as share image" onClick={() => send({ type: 'shareImage', index: i })}><Share2 size={16} /></ToolButton>
-                  ) : null}
                   <ToolButton label="Duplicate" onClick={() => send({ type: 'duplicate', index: i })}><Copy size={16} /></ToolButton>
                   <ToolButton label="Remove" onClick={() => send({ type: 'remove', index: i })}><Trash2 size={16} /></ToolButton>
                 </div>

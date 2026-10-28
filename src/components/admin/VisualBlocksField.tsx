@@ -71,8 +71,7 @@ export const VisualBlocksField: BlocksFieldClientComponent = (props) => {
     return (Array.isArray(value) ? value : []) as CanvasBlock[]
   }, [fields, path])
 
-  const hasShareImageField = SHARE_IMAGE_PATH in fields
-  const shareImageId = hasShareImageField ? mediaId(fields[SHARE_IMAGE_PATH]?.value) : null
+  const shareImageId = mediaId(fields[SHARE_IMAGE_PATH]?.value)
 
   // The form keeps uploads as IDs; fetch the documents so the canvas can draw them.
   const { docs: media, remember: rememberMedia } = useMediaDocs(unresolvedMediaIds(blocks, {}))
@@ -114,10 +113,9 @@ export const VisualBlocksField: BlocksFieldClientComponent = (props) => {
       shareImage,
       scale,
       readOnly,
-      canSetShareImage: hasShareImageField,
     }
     target.postMessage(message, window.location.origin)
-  }, [canvasLoads, hasShareImageField, previewBlocks, readOnly, scale, selected, shareImage])
+  }, [canvasLoads, previewBlocks, readOnly, scale, selected, shareImage])
 
   // Open only the selected module's settings.
   const selectedRowID = selected !== null ? rows[selected]?.id : undefined
@@ -208,15 +206,6 @@ export const VisualBlocksField: BlocksFieldClientComponent = (props) => {
       case 'files':
         void insertFiles(message.index, message.files)
         break
-      case 'shareImage': {
-        const value = blocks[message.index]?.image
-        const id = value && typeof value === 'object' ? (value as { id?: unknown }).id : value
-        if (hasShareImageField && id !== undefined && id !== null) {
-          dispatchFields({ type: 'UPDATE', path: SHARE_IMAGE_PATH, value: id })
-          setModified(true)
-        }
-        break
-      }
     }
   }
 

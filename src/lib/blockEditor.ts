@@ -27,8 +27,6 @@ export type ParentMessage = {
   shareImage: { index: number; auto: boolean } | null
   scale: number
   readOnly: boolean
-  /** Whether this collection has an SEO image the editor can point at a module. */
-  canSetShareImage: boolean
 }
 
 export type CanvasMessage = { source: typeof BLOCK_EDITOR_SOURCE } & (
@@ -40,7 +38,6 @@ export type CanvasMessage = { source: typeof BLOCK_EDITOR_SOURCE } & (
   | { type: 'remove'; index: number }
   | { type: 'duplicate'; index: number }
   | { type: 'files'; index: number; files: File[] }
-  | { type: 'shareImage'; index: number }
 )
 
 export function isBlockEditorMessage(data: unknown): data is { source: typeof BLOCK_EDITOR_SOURCE; type: string } {
