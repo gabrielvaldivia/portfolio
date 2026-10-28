@@ -1,6 +1,16 @@
 {
-  "throughCommit": "c9a280d38ed2b519ba9a93c1537bd668f6c87403",
+  "throughCommit": "b533901645e3f4ccb3f7737bde12bee7e11b48a6",
   "commits": [
+    {
+      "hash": "b533901645e3f4ccb3f7737bde12bee7e11b48a6",
+      "date": "2026-10-26",
+      "subject": "Keep the Kale tablet in frame however it's turned, and show it larger"
+    },
+    {
+      "hash": "32efa8bd729a4a693c8d190e5e09c42ec1c22a44",
+      "date": "2026-10-26",
+      "subject": "Let fullscreen modules fill the screen edge to edge"
+    },
     {
       "hash": "c9a280d38ed2b519ba9a93c1537bd668f6c87403",
       "date": "2026-10-26",

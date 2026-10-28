@@ -7,6 +7,8 @@ import { getSideProjectBySlug, getSideProjectSlugs } from '@/lib/queries'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { FitText } from '@/components/FitText'
+import { buildProjectMetadata } from '@/lib/projectMetadata'
+import { withSiteSocialDefaults } from '@/lib/pageMetadataDefaults'
 
 export const revalidate = 3600
 
@@ -24,11 +26,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const project = await getSideProjectBySlug(slug)
   if (!project) return {}
   const canonicalPath = `/playground/${encodeURIComponent(slug)}`
-  return {
-    title: `${project.title} — Gabriel Valdivia`,
-    description: project.description || '',
-    alternates: { canonical: canonicalPath },
-  }
+  return withSiteSocialDefaults(buildProjectMetadata({
+    ...project,
+    description: project.description || project.richDescription,
+  }, { canonicalPath }))
 }
 
 

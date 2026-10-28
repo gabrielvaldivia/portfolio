@@ -8,6 +8,8 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { FitText } from '@/components/FitText'
 import { JsonLd } from '@/components/JsonLd'
+import { buildProjectMetadata, projectShareImage } from '@/lib/projectMetadata'
+import { withSiteSocialDefaults } from '@/lib/pageMetadataDefaults'
 import { entityName, lexicalToPlainText } from '@/lib/agentMarkdown'
 import {
   absoluteSiteUrl,
@@ -32,32 +34,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const project = await getProjectBySlug(slug)
   if (!project) return {}
-  const title = `${project.meta?.title || project.title} — Gabriel Valdivia`
-  const description = project.meta?.description || project.subtitle || ''
-  const metaImage = typeof project.meta?.image === 'object' ? project.meta?.image : undefined
-  const featuredImage = typeof project.featuredImage === 'object' ? project.featuredImage : undefined
-  const ogImage = metaImage?.url || featuredImage?.url
   const canonicalPath = `/work/${encodeURIComponent(slug)}`
-  return {
-    title,
-    description,
-    alternates: {
-      canonical: canonicalPath,
-      types: { 'text/markdown': `${canonicalPath}/index.md` },
-    },
-    openGraph: {
-      title,
-      description,
-      url: canonicalPath,
-      ...(ogImage ? { images: [{ url: ogImage }] } : {}),
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      ...(ogImage ? { images: [ogImage] } : {}),
-    },
-  }
+  return withSiteSocialDefaults(buildProjectMetadata(project, {
+    canonicalPath,
+    markdownPath: `${canonicalPath}/index.md`,
+  }))
 }
 
 function MetaRow({ label, children, baseline }: { label: string; children: React.ReactNode; baseline?: boolean }) {
@@ -78,11 +59,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
   const services = (project.services || []) as any[]
   const canonicalPath = `/work/${encodeURIComponent(slug)}`
   const description = project.meta?.description || project.subtitle || lexicalToPlainText(project.description)
-  const projectImage = typeof project.meta?.image === 'object' && project.meta.image?.url
-    ? project.meta.image.url
-    : typeof project.featuredImage === 'object' && project.featuredImage?.url
-      ? project.featuredImage.url
-      : undefined
+  const projectImage = projectShareImage(project)?.url
   const contributors = compactJsonLdValues(team.map((person) => {
     const name = entityName(person)
     return name ? { '@type': 'Person', name } : null

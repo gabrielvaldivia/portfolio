@@ -1,5 +1,12 @@
 [
  {
+  "date": "2026-10-28",
+  "title": "Project share previews",
+  "changes": [
+   "Shared Work and Playground links now preview with each project's hero image, cropped to fit link cards, plus the project's own title and a short summary. Playground projects get rich previews for the first time."
+  ]
+ },
+ {
   "date": "2026-10-26",
   "title": "3D Kale tablet, Work filters, and project ordering",
   "changes": [
