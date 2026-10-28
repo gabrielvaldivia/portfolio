@@ -17,7 +17,6 @@ import {
   type MediaDoc,
   type ParentMessage,
 } from '@/lib/blockEditor'
-import { firstContentImageIndex } from '@/lib/projectMetadata'
 import { useMediaDocs } from './useMediaDocs'
 import './VisualBlocksField.scss'
 
@@ -78,14 +77,11 @@ export const VisualBlocksField: BlocksFieldClientComponent = (props) => {
 
   const previewBlocks = useMemo(() => withResolvedMedia(blocks, media), [blocks, media])
 
-  const shareImage = useMemo<ParentMessage['shareImage']>(() => {
-    if (shareImageId) {
-      const index = blocks.findIndex((block) => mediaId(block.image) === shareImageId)
-      return index >= 0 ? { index, auto: false } : null
-    }
-    const index = firstContentImageIndex(previewBlocks)
-    return index >= 0 ? { index, auto: true } : null
-  }, [blocks, previewBlocks, shareImageId])
+  const canStar = SHARE_IMAGE_PATH in fields
+  const starred = useMemo(() => {
+    const index = shareImageId ? blocks.findIndex((block) => mediaId(block.image) === shareImageId) : -1
+    return index >= 0 ? index : null
+  }, [blocks, shareImageId])
 
   useEffect(() => {
     if (selected !== null && selected >= blocks.length) setSelected(blocks.length ? blocks.length - 1 : null)
@@ -110,12 +106,13 @@ export const VisualBlocksField: BlocksFieldClientComponent = (props) => {
       type: 'state',
       blocks: previewBlocks,
       selected,
-      shareImage,
+      starred,
+      canStar,
       scale,
       readOnly,
     }
     target.postMessage(message, window.location.origin)
-  }, [canvasLoads, previewBlocks, readOnly, scale, selected, shareImage])
+  }, [canStar, canvasLoads, previewBlocks, readOnly, scale, selected, starred])
 
   // Open only the selected module's settings.
   const selectedRowID = selected !== null ? rows[selected]?.id : undefined
@@ -206,6 +203,15 @@ export const VisualBlocksField: BlocksFieldClientComponent = (props) => {
       case 'files':
         void insertFiles(message.index, message.files)
         break
+      case 'star': {
+        // Starring picks the share image; unstarring goes back to the automatic first image.
+        const value = blocks[message.index]?.image
+        const id = value && typeof value === 'object' ? (value as { id?: unknown }).id : value
+        if (!canStar || id === undefined || id === null) break
+        dispatchFields({ type: 'UPDATE', path: SHARE_IMAGE_PATH, value: starred === message.index ? null : id })
+        setModified(true)
+        break
+      }
     }
   }
 

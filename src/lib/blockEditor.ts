@@ -23,8 +23,10 @@ export type ParentMessage = {
   type: 'state'
   blocks: CanvasBlock[]
   selected: number | null
-  /** The module whose image link previews use; `auto` when it's the default first image. */
-  shareImage: { index: number; auto: boolean } | null
+  /** The module starred as the share image, when one is picked instead of the automatic first image. */
+  starred: number | null
+  /** Whether this collection has a share image a module can be starred as. */
+  canStar: boolean
   scale: number
   readOnly: boolean
 }
@@ -38,6 +40,7 @@ export type CanvasMessage = { source: typeof BLOCK_EDITOR_SOURCE } & (
   | { type: 'remove'; index: number }
   | { type: 'duplicate'; index: number }
   | { type: 'files'; index: number; files: File[] }
+  | { type: 'star'; index: number }
 )
 
 export function isBlockEditorMessage(data: unknown): data is { source: typeof BLOCK_EDITOR_SOURCE; type: string } {

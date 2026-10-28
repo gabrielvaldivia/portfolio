@@ -1,7 +1,7 @@
 'use client'
 
 import { Component, useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
-import { Copy, GripVertical, Trash2 } from 'lucide-react'
+import { Copy, GripVertical, Star, Trash2 } from 'lucide-react'
 import { blockComponents, staticModuleClassNames } from '@/blocks/RenderBlocks'
 import { cn } from '@/lib/cn'
 import {
@@ -250,7 +250,8 @@ export function BlockCanvas() {
           const classes = staticModuleClassNames(shown)
           const selected = state?.selected === i
           const active = selected || hovered === i
-          const isShareImage = state?.shareImage?.index === i
+          const isStarred = state?.starred === i
+          const canStar = Boolean(state?.canStar && (block.image as { url?: string } | null)?.url)
           const canResizeHeight = fixedHeightBlockTypes.includes(block.blockType)
           const columns = String(shown.columns || '6')
           const rows = String(shown.rows || 'wrap')
@@ -285,18 +286,24 @@ export function BlockCanvas() {
                 onPointerDown={(event) => startModulePointer(event, i)}
               />
 
-              {(active || isShareImage) && (
+              {active && (
                 <div style={chrome({ top: 0, left: 0, transform: `scale(${ui})`, transformOrigin: 'top left', display: 'flex', gap: 4, padding: 6, pointerEvents: 'none' })}>
                   {active && <Chip background={ACCENT}>{label} · {sizeLabel}</Chip>}
-                  {isShareImage && <Chip background="#111">{state?.shareImage?.auto ? 'Share image (auto)' : 'Share image'}</Chip>}
                 </div>
               )}
 
               {selected && !readOnly && (
                 <div style={chrome({ top: 0, right: 0, transform: `scale(${ui})`, transformOrigin: 'top right', display: 'flex', gap: 4, padding: 6 })}>
                   <ToolButton label="Drag to move" onPointerDown={(event) => startModulePointer(event, i)}><GripVertical size={16} /></ToolButton>
+                  {canStar && <StarButton on={isStarred} onClick={() => send({ type: 'star', index: i })} />}
                   <ToolButton label="Duplicate" onClick={() => send({ type: 'duplicate', index: i })}><Copy size={16} /></ToolButton>
                   <ToolButton label="Remove" onClick={() => send({ type: 'remove', index: i })}><Trash2 size={16} /></ToolButton>
+                </div>
+              )}
+
+              {isStarred && (!selected || readOnly) && (
+                <div style={chrome({ top: 0, right: 0, transform: `scale(${ui})`, transformOrigin: 'top right', padding: 6 })}>
+                  <StarButton on disabled={readOnly} onClick={() => send({ type: 'star', index: i })} />
                 </div>
               )}
 
@@ -363,9 +370,20 @@ function Chip({ children, background }: { children: ReactNode; background: strin
   )
 }
 
-function ToolButton({ label, children, onClick, onPointerDown }: {
+const STAR = '#f5a623'
+
+function StarButton({ on, disabled, onClick }: { on: boolean; disabled?: boolean; onClick: () => void }) {
+  return (
+    <ToolButton label={on ? 'Share image — tap to use the automatic image' : 'Use as share image'} disabled={disabled} onClick={onClick}>
+      <Star size={16} color={on ? STAR : 'currentColor'} fill={on ? STAR : 'none'} />
+    </ToolButton>
+  )
+}
+
+function ToolButton({ label, children, disabled, onClick, onPointerDown }: {
   label: string
   children: ReactNode
+  disabled?: boolean
   onClick?: () => void
   onPointerDown?: (event: ReactPointerEvent<HTMLButtonElement>) => void
 }) {
@@ -374,6 +392,7 @@ function ToolButton({ label, children, onClick, onPointerDown }: {
       type="button"
       title={label}
       aria-label={label}
+      disabled={disabled}
       onClick={onClick}
       onPointerDown={(event) => {
         event.stopPropagation()

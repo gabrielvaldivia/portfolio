@@ -3,7 +3,7 @@
   "date": "2026-10-28",
   "title": "Visual project editor and share previews",
   "changes": [
-   "Shared Work and Playground links preview with each project's hero image, title, and summary, or a project image picked in SEO settings. Project content is edited on a live page preview: add modules from one picker, drop in images, drag to reorder, and drag edges to resize."
+   "Shared Work and Playground links preview with each project's hero image, title, and summary, or any project image starred as the share image. Project content is edited on a live page preview: add modules from one picker, drop in images, drag to reorder, and drag edges to resize."
   ]
  },
  {
