@@ -57,9 +57,11 @@ export type LikedWorkMarqueeItem = {
 function WorkMedia({
   thumbnail,
   className,
+  imageLoading,
 }: {
   thumbnail: LikedWorkThumbnail
   className: string
+  imageLoading: 'eager' | 'lazy'
 }) {
   if (thumbnail.type === 'video') {
     return (
@@ -79,12 +81,19 @@ function WorkMedia({
         ? { width: thumbnail.width, height: thumbnail.height }
         : { fill: true })}
       sizes="(max-width: 809px) 384px, (max-width: 1279px) 512px, 560px"
+      loading={imageLoading}
       className={className}
     />
   )
 }
 
-function WorkThumbnail({ thumbnail }: { thumbnail: LikedWorkThumbnail }) {
+function WorkThumbnail({
+  thumbnail,
+  imageLoading,
+}: {
+  thumbnail: LikedWorkThumbnail
+  imageLoading: 'eager' | 'lazy'
+}) {
   const cropFromTop = Boolean(thumbnail.browser || thumbnail.cropFromTop)
   const mediaClassName = cn(
     'block',
@@ -116,7 +125,7 @@ function WorkThumbnail({ thumbnail }: { thumbnail: LikedWorkThumbnail }) {
             <div className="w-5 shrink-0 tablet:w-6" />
           </div>
           <div className="relative min-h-0 flex-1 overflow-hidden bg-background">
-            <WorkMedia thumbnail={thumbnail} className={mediaClassName} />
+            <WorkMedia thumbnail={thumbnail} className={mediaClassName} imageLoading={imageLoading} />
           </div>
         </div>
       </div>
@@ -134,7 +143,7 @@ function WorkThumbnail({ thumbnail }: { thumbnail: LikedWorkThumbnail }) {
             className="absolute z-0 overflow-hidden bg-black"
             style={thumbnail.frame.screen}
           >
-            <WorkMedia thumbnail={thumbnail} className={mediaClassName} />
+            <WorkMedia thumbnail={thumbnail} className={mediaClassName} imageLoading={imageLoading} />
           </div>
           <Image
             src={thumbnail.frame.url}
@@ -142,6 +151,7 @@ function WorkThumbnail({ thumbnail }: { thumbnail: LikedWorkThumbnail }) {
             fill
             unoptimized
             sizes="(max-width: 809px) 384px, (max-width: 1279px) 512px, 560px"
+            loading={imageLoading}
             quality={90}
             className="pointer-events-none z-10 object-contain"
           />
@@ -183,7 +193,7 @@ function WorkThumbnail({ thumbnail }: { thumbnail: LikedWorkThumbnail }) {
           ),
         )}
       >
-        <WorkMedia thumbnail={thumbnail} className={mediaClassName} />
+        <WorkMedia thumbnail={thumbnail} className={mediaClassName} imageLoading={imageLoading} />
       </div>
     </div>
   )
@@ -193,15 +203,21 @@ function WorkCard({
   item,
   duplicate = false,
   reduceMotion = false,
+  imageLoading,
 }: {
   item: LikedWorkMarqueeItem
   duplicate?: boolean
   reduceMotion?: boolean
+  imageLoading: 'eager' | 'lazy'
 }) {
   return (
     <motion.div
-      className="group relative h-[216px] shrink-0 rounded-xl hover:z-10 focus-within:z-10 tablet:h-[288px] tablet:rounded-2xl desktop:h-[315px]"
-      style={{ aspectRatio: item.aspectRatio }}
+      className="group relative shrink-0 rounded-xl hover:z-10 focus-within:z-10 tablet:rounded-2xl"
+      // An explicit width keeps video metadata from widening the flex slot in WebKit.
+      style={{
+        height: 'var(--liked-work-card-height)',
+        width: `calc(var(--liked-work-card-height) * ${item.aspectRatio})`,
+      }}
       whileHover={reduceMotion ? undefined : { scale: 1.012 }}
       transition={{ type: 'spring', stiffness: 500, damping: 22, mass: 0.35 }}
     >
@@ -212,7 +228,7 @@ function WorkCard({
         draggable={false}
         className="block size-full cursor-inherit rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content tablet:rounded-2xl"
       >
-        <WorkThumbnail thumbnail={item.thumbnail} />
+        <WorkThumbnail thumbnail={item.thumbnail} imageLoading={imageLoading} />
       </Link>
       <div className="pointer-events-none absolute bottom-3 left-3 z-20 hidden opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 desktop:block">
         <LazyModuleLikeButton
@@ -487,6 +503,9 @@ export function LikedWorkMarquee({ items }: { items: LikedWorkMarqueeItem[] }) {
                 item={item}
                 duplicate={duplicate}
                 reduceMotion={Boolean(prefersReducedMotion)}
+                // The animated window is bounded; load its images before they
+                // enter the clipped viewport instead of relying on native lazy loading.
+                imageLoading={renderAllItems ? 'lazy' : 'eager'}
               />
             </div>
           )

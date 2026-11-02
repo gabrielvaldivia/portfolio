@@ -1,5 +1,12 @@
 [
  {
+  "date": "2026-11-01",
+  "title": "Reliable mobile work marquee",
+  "changes": [
+   "The homepage Work marquee loads upcoming images ahead of time so mobile visitors can see the work beyond the first video. Cards also keep consistent sizes as media loads."
+  ]
+ },
+ {
   "date": "2026-10-28",
   "title": "Visual project editor, share previews, and video volume",
   "changes": [

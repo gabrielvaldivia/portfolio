@@ -1,6 +1,11 @@
 {
-  "throughCommit": "005df99d9281e89e4fc2672566ddd5769dc9741e",
+  "throughCommit": "50cf9a292f6854b412e27d0ace1bed1bd07074be",
   "commits": [
+    {
+      "hash": "50cf9a292f6854b412e27d0ace1bed1bd07074be",
+      "date": "2026-10-28",
+      "subject": "Return focus without an outline when closing fullscreen"
+    },
     {
       "hash": "005df99d9281e89e4fc2672566ddd5769dc9741e",
       "date": "2026-10-28",

@@ -719,6 +719,7 @@ p {
 
 .liked-work-marquee {
   --liked-work-marquee-gap: 20px;
+  --liked-work-card-height: 216px;
 }
 
 .liked-work-marquee-track {
@@ -730,6 +731,13 @@ p {
 @media (min-width: 810px) {
   .liked-work-marquee {
     --liked-work-marquee-gap: 24px;
+    --liked-work-card-height: 288px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .liked-work-marquee {
+    --liked-work-card-height: 315px;
   }
 }
 
