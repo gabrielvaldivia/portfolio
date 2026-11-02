@@ -1,6 +1,11 @@
 {
-  "throughCommit": "50cf9a292f6854b412e27d0ace1bed1bd07074be",
+  "throughCommit": "e3c474d013b60ca0773fd0c0ae58bfd1f4561da9",
   "commits": [
+    {
+      "hash": "e3c474d013b60ca0773fd0c0ae58bfd1f4561da9",
+      "date": "2026-11-01",
+      "subject": "Load marquee images ahead of mobile animation"
+    },
     {
       "hash": "50cf9a292f6854b412e27d0ace1bed1bd07074be",
       "date": "2026-10-28",

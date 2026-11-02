@@ -204,11 +204,13 @@ function WorkCard({
   duplicate = false,
   reduceMotion = false,
   imageLoading,
+  loadMedia,
 }: {
   item: LikedWorkMarqueeItem
   duplicate?: boolean
   reduceMotion?: boolean
   imageLoading: 'eager' | 'lazy'
+  loadMedia: boolean
 }) {
   return (
     <motion.div
@@ -228,7 +230,7 @@ function WorkCard({
         draggable={false}
         className="block size-full cursor-inherit rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content tablet:rounded-2xl"
       >
-        <WorkThumbnail thumbnail={item.thumbnail} imageLoading={imageLoading} />
+        {loadMedia && <WorkThumbnail thumbnail={item.thumbnail} imageLoading={imageLoading} />}
       </Link>
       <div className="pointer-events-none absolute bottom-3 left-3 z-20 hidden opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 desktop:block">
         <LazyModuleLikeButton
@@ -260,6 +262,9 @@ export function LikedWorkMarquee({ items }: { items: LikedWorkMarqueeItem[] }) {
   const loopDistanceRef = useRef(0)
   const windowStartRef = useRef(0)
   const isInView = useInView(marqueeRef, { amount: 0.1 })
+  // Reserve the card layout immediately, but let the hero and portrait load
+  // before requesting this section's media. Keep it mounted after the first visit.
+  const shouldLoadMedia = useInView(marqueeRef, { margin: '400px 0px', once: true })
   const prefersReducedMotion = useReducedMotion()
   const [isDragging, setIsDragging] = useState(false)
   const [keyboardExpanded, setKeyboardExpanded] = useState(false)
@@ -503,6 +508,7 @@ export function LikedWorkMarquee({ items }: { items: LikedWorkMarqueeItem[] }) {
                 item={item}
                 duplicate={duplicate}
                 reduceMotion={Boolean(prefersReducedMotion)}
+                loadMedia={shouldLoadMedia || keyboardExpanded}
                 // The animated window is bounded; load its images before they
                 // enter the clipped viewport instead of relying on native lazy loading.
                 imageLoading={renderAllItems ? 'lazy' : 'eager'}

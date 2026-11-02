@@ -3,7 +3,7 @@
   "date": "2026-11-01",
   "title": "Reliable mobile work marquee",
   "changes": [
-   "The homepage Work marquee loads upcoming images ahead of time so mobile visitors can see the work beyond the first video. Cards also keep consistent sizes as media loads."
+   "The homepage Work marquee loads reliably on mobile, with stable card sizes. Its images load as you approach the Work section, keeping the hero carousel and About photo from competing with offscreen downloads."
   ]
  },
  {
