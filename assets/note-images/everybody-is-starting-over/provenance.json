@@ -1,0 +1,30 @@
+{
+  "recoveredOn": "2026-11-07",
+  "article": "https://www.gabrielvaldivia.com/notes/everybody-is-starting-over",
+  "originals": [
+    {
+      "file": "image-12.png",
+      "bytes": 816812,
+      "sha256": "897a394cfe05881f57c58f28d4843c430bc23522f71578b3fc2729241ab161b8",
+      "archiveSha1": "NJIMBMAKVGGBOK3F24DMHKWD4AWETOPA",
+      "source": "https://web.archive.org/web/20261022130617id_/https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/image-12.png",
+      "mediaId": 663
+    },
+    {
+      "file": "image-13.png",
+      "bytes": 755356,
+      "sha256": "95b834c5df0b61e597572a24c7ebd83b966c526fb6bc3d02aba65aca1b4a3f57",
+      "archiveSha1": "SLIUM5DMMJJ7Y2SIN32XN2SH4WOJ2FSW",
+      "source": "https://web.archive.org/web/20261022130617id_/https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/image-13.png",
+      "mediaId": 664
+    },
+    {
+      "file": "image-14.png",
+      "bytes": 714882,
+      "sha256": "56bee415b0c21e6d2051bd166e6166facd10e30d4f2dfd091807a2ed71731cf8",
+      "archiveSha1": "7JST7PUMMOHOQYXGV3ZDXOTVFVYZN64T",
+      "source": "https://web.archive.org/web/20261022130617id_/https://pub-0c00865d02c1476494008dbb74525b2a.r2.dev/image-14.png",
+      "mediaId": 665
+    }
+  ]
+}

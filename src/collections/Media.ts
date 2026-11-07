@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { normalizeCloudUploadBuffers } from '../lib/payloadUploadBuffers'
+import { protectNoteMedia } from '../lib/protectNoteMedia'
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -7,6 +8,7 @@ export const Media: CollectionConfig = {
     read: () => true,
   },
   hooks: {
+    beforeDelete: [protectNoteMedia],
     beforeChange: [
       ({ data }) => {
         if (!data.alt && data.filename) {

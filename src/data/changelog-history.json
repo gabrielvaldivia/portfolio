@@ -1,6 +1,11 @@
 {
-  "throughCommit": "e3c474d013b60ca0773fd0c0ae58bfd1f4561da9",
+  "throughCommit": "fe501a058495ed213f5451e7b36f3a5b21ec1392",
   "commits": [
+    {
+      "hash": "fe501a058495ed213f5451e7b36f3a5b21ec1392",
+      "date": "2026-11-01",
+      "subject": "Defer marquee media until the Work section approaches"
+    },
     {
       "hash": "e3c474d013b60ca0773fd0c0ae58bfd1f4561da9",
       "date": "2026-11-01",
