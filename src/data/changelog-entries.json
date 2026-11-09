@@ -3,7 +3,7 @@
   "date": "2026-11-09",
   "title": "A tighter Work marquee and cleaner email entry",
   "changes": [
-   "The Work marquee has closer thumbnail spacing and sideways trackpad scrolling. Website previews have smaller browser chrome and compact, centered address bars. Email signup boxes on Notes and individual notes no longer have a white border in dark mode."
+   "The Work marquee has closer spacing and sideways trackpad scrolling. Website previews have smaller browser chrome and compact, centered address bars. In dark mode, the signup box keeps its border on the Notes listing and is borderless on individual notes."
   ]
  },
  {
