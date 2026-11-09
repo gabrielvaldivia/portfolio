@@ -1,6 +1,11 @@
 {
-  "throughCommit": "3fcd1da03b1718755514470d73c4a28f9a788f6f",
+  "throughCommit": "80453606c935893927bd67cd33ab32f4826e6de4",
   "commits": [
+    {
+      "hash": "80453606c935893927bd67cd33ab32f4826e6de4",
+      "date": "2026-11-09",
+      "subject": "Tighten the Work marquee and add sideways scrolling"
+    },
     {
       "hash": "3fcd1da03b1718755514470d73c4a28f9a788f6f",
       "date": "2026-11-09",

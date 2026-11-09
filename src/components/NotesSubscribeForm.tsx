@@ -45,7 +45,7 @@ export function NotesSubscribeForm({ layout = 'wide' }: { layout?: 'wide' | 'sid
       aria-labelledby={`${id}-heading`}
       className={cn(
         '@container',
-        layout !== 'modal' && 'rounded-2xl border border-border bg-elevated p-6',
+        layout !== 'modal' && 'rounded-2xl border border-border bg-elevated p-6 dark:border-transparent',
         layout === 'wide' && 'mx-auto mt-16 max-w-[760px] tablet:p-8',
         layout === 'sidebar' && 'desktop:p-8 dark:bg-transparent',
       )}
