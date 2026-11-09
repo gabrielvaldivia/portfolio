@@ -109,20 +109,20 @@ function WorkThumbnail({
     return (
       <div className="flex size-full items-center justify-center overflow-hidden rounded-xl border border-border bg-background-alt p-4 tablet:rounded-2xl tablet:p-5" aria-hidden="true">
         <div className="flex size-full min-h-0 flex-col overflow-hidden rounded-lg border border-border bg-elevated shadow-sm tablet:rounded-xl">
-          <div className="flex h-8 shrink-0 items-center gap-2 border-b border-border bg-gray-200 px-2.5 tablet:h-10 tablet:px-3">
-            <div className="flex shrink-0 items-center gap-1.5">
-              <span className="size-1.5 rounded-full bg-red-400 tablet:size-2" />
-              <span className="size-1.5 rounded-full bg-yellow-400 tablet:size-2" />
-              <span className="size-1.5 rounded-full bg-green-400 tablet:size-2" />
+          <div className="flex h-5 shrink-0 items-center gap-1.5 border-b border-border bg-gray-200 px-1.5 tablet:h-6 tablet:px-2">
+            <div className="flex shrink-0 items-center gap-1">
+              <span className="size-1 rounded-full bg-red-400 tablet:size-1.25" />
+              <span className="size-1 rounded-full bg-yellow-400 tablet:size-1.25" />
+              <span className="size-1 rounded-full bg-green-400 tablet:size-1.25" />
             </div>
-            <div className="flex h-4 min-w-0 flex-1 items-center justify-center rounded-full bg-white/80 px-2 tablet:h-5">
+            <div className="flex h-2.5 min-w-0 flex-1 items-center justify-center rounded-full bg-white/80 px-1.5 tablet:h-3">
               {thumbnail.browser.address && (
-                <span className="truncate text-[8px] leading-none text-text-on-light-muted tablet:text-[9px]">
+                <span className="truncate text-[6px] leading-none text-text-on-light-muted tablet:text-[7px]">
                   {thumbnail.browser.address}
                 </span>
               )}
             </div>
-            <div className="w-5 shrink-0 tablet:w-6" />
+            <div className="w-4 shrink-0 tablet:w-5" />
           </div>
           <div className="relative min-h-0 flex-1 overflow-hidden bg-background">
             <WorkMedia thumbnail={thumbnail} className={mediaClassName} imageLoading={imageLoading} />

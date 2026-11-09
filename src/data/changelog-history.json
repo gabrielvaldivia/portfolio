@@ -1,6 +1,11 @@
 {
-  "throughCommit": "fe501a058495ed213f5451e7b36f3a5b21ec1392",
+  "throughCommit": "1632c4226c6606a612ebd55bcac8238718360abf",
   "commits": [
+    {
+      "hash": "1632c4226c6606a612ebd55bcac8238718360abf",
+      "date": "2026-11-07",
+      "subject": "Restore note illustrations and protect referenced media"
+    },
     {
       "hash": "fe501a058495ed213f5451e7b36f3a5b21ec1392",
       "date": "2026-11-01",

@@ -1,5 +1,12 @@
 [
  {
+  "date": "2026-11-09",
+  "title": "More room for website previews",
+  "changes": [
+   "Website cards in the homepage Work marquee now have smaller browser toolbars, address bars, and window controls, giving the website preview more room."
+  ]
+ },
+ {
   "date": "2026-11-07",
   "title": "Restored note illustrations",
   "changes": [
