@@ -1,9 +1,9 @@
 [
  {
   "date": "2026-11-09",
-  "title": "More room for website previews",
+  "title": "A tighter Work marquee",
   "changes": [
-   "Website cards in the homepage Work marquee now have smaller browser toolbars and window controls, with compact, centered 80 px address bars that stay narrow at every screen size."
+   "Thumbnails in the homepage Work marquee now sit closer together and scroll sideways with a trackpad or wheel. Website cards have smaller browser toolbars, compact centered 80 px address bars, and window controls, giving each preview more room."
   ]
  },
  {

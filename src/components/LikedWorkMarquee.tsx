@@ -366,6 +366,29 @@ export function LikedWorkMarquee({ items }: { items: LikedWorkMarqueeItem[] }) {
     x.set(nextPosition)
   }
 
+  // Re-attached each render so the listener always sees the current window.
+  useEffect(() => {
+    const marquee = marqueeRef.current
+    if (!marquee || renderAllItems) return
+
+    const onWheel = (event: WheelEvent) => {
+      const horizontal = event.deltaX || (event.shiftKey ? event.deltaY : 0)
+      // Leave vertical gestures alone so the page keeps scrolling over the marquee.
+      if (!horizontal || Math.abs(event.deltaY) > Math.abs(event.deltaX) && !event.shiftKey) return
+
+      event.preventDefault()
+      velocityRef.current = 0
+      coastingRef.current = false
+      const lineHeight = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? 16 : 1
+      setTrackPosition(x.get() - horizontal * lineHeight)
+    }
+
+    // React's wheel prop is passive, which would ignore preventDefault and
+    // let a horizontal swipe trigger the browser's back gesture.
+    marquee.addEventListener('wheel', onWheel, { passive: false })
+    return () => marquee.removeEventListener('wheel', onWheel)
+  })
+
   useAnimationFrame((_time, delta) => {
     if (!isInView || prefersReducedMotion || dragRef.current) return
 

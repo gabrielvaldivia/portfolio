@@ -1,6 +1,26 @@
 {
-  "throughCommit": "1632c4226c6606a612ebd55bcac8238718360abf",
+  "throughCommit": "3fcd1da03b1718755514470d73c4a28f9a788f6f",
   "commits": [
+    {
+      "hash": "3fcd1da03b1718755514470d73c4a28f9a788f6f",
+      "date": "2026-11-09",
+      "subject": "Tighten the Work marquee and add sideways scrolling"
+    },
+    {
+      "hash": "e71a38643d1936f76f55fe81caf6b13bc744fa16",
+      "date": "2026-11-09",
+      "subject": "Keep the marquee browser address bar compact at 80 pixels"
+    },
+    {
+      "hash": "cb5816bc74652659dc83d544f458485063e09525",
+      "date": "2026-11-09",
+      "subject": "Narrow and center the marquee browser address bar"
+    },
+    {
+      "hash": "4e948a9acc2996f8db2e49fbbe237b2e5fdf7327",
+      "date": "2026-11-09",
+      "subject": "Shrink browser chrome in the homepage work marquee"
+    },
     {
       "hash": "1632c4226c6606a612ebd55bcac8238718360abf",
       "date": "2026-11-07",
