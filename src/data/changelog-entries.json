@@ -1,5 +1,12 @@
 [
  {
+  "date": "2026-11-10",
+  "title": "Unclipped note previews",
+  "changes": [
+   "Note titles in social previews now have enough room for letters like g and y, keeping their tails fully visible. Updated preview image URLs let fresh shares pick up the corrected images."
+  ]
+ },
+ {
   "date": "2026-11-09",
   "title": "A tighter Work marquee and cleaner email entry",
   "changes": [

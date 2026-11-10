@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: NotePageProps): Promise<Metad
   const imageURL = new URL(`${canonical}/og`)
   imageURL.searchParams.set('v', note.updatedAt)
   // Bust immutable/social image caches when the shared design changes too.
-  imageURL.searchParams.set('design', 'centered-name-v1')
+  imageURL.searchParams.set('design', 'centered-name-v2')
 
   const metadata = buildPageMetadata(
     {
@@ -94,7 +94,7 @@ export default async function NotePage({ params }: NotePageProps) {
   const canonical = absoluteSiteUrl(canonicalPath)
   const imageURL = new URL(`${canonical}/og`)
   imageURL.searchParams.set('v', note.updatedAt)
-  imageURL.searchParams.set('design', 'centered-name-v1')
+  imageURL.searchParams.set('design', 'centered-name-v2')
   const structuredData = buildSiteStructuredData([{
     '@type': 'Article',
     '@id': `${canonical}#article`,

@@ -13,7 +13,7 @@ export const NOTE_OG_STYLE = {
   fontFamily: 'Inter Display',
   fontWeight: 400 as const,
   titleSize: 100,
-  titleLineHeight: 1.1,
+  titleLineHeight: 1.2,
   titleTracking: '-0.04em',
   bylineSize: 64,
   bylineLineHeight: 1.15,

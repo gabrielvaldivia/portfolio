@@ -8,6 +8,7 @@ import { SITE_TAGLINE } from '../src/lib/siteMetadata'
 
 test('note social images render valid 1200×630 PNGs with short, multiline, and long titles', async () => {
   for (const title of [
+    'Urgency is a skill',
     'A quilt for generations',
     'I built a second brain out of markdown files',
     'Sensible Design: making ethically personalized digital products',
@@ -75,7 +76,7 @@ test('new note slugs can render after deployment and have a dynamic image endpoi
   const page = await readFile(new URL('../src/app/(frontend)/notes/[slug]/page.tsx', import.meta.url), 'utf8')
   const route = await readFile(new URL('../src/app/(frontend)/notes/[slug]/og/route.tsx', import.meta.url), 'utf8')
   assert.match(page, /export const dynamicParams = true/)
-  assert.match(page, /imageURL.searchParams.set\('design', 'centered-name-v1'\)/)
+  assert.match(page, /imageURL.searchParams.set\('design', 'centered-name-v2'\)/)
   assert.match(route, /getPublishedNoteTitleBySlug\(slug\)/)
   assert.match(route, /createNoteOpenGraphImage\(title\)/)
   assert.doesNotMatch(route, /generateStaticParams|dynamicParams = false/)
