@@ -1,6 +1,11 @@
 {
-  "throughCommit": "c1caf57d0dc4b93f11161ced4ee2a50c045c4a5f",
+  "throughCommit": "31f9e2dd83624f170d40947d399fd03b45a36489",
   "commits": [
+    {
+      "hash": "31f9e2dd83624f170d40947d399fd03b45a36489",
+      "date": "2026-11-11",
+      "subject": "Align and soften the close icon in the expanded menu"
+    },
     {
       "hash": "c1caf57d0dc4b93f11161ced4ee2a50c045c4a5f",
       "date": "2026-11-11",

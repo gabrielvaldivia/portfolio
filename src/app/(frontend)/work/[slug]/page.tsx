@@ -6,7 +6,7 @@ import { RichText } from '@/components/RichText'
 import { getProjectBySlug, getProjectSlugs } from '@/lib/queries'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { FitText } from '@/components/FitText'
+import { WorkTitle } from '@/components/WorkTitle'
 import { JsonLd } from '@/components/JsonLd'
 import { buildProjectMetadata, projectShareImage } from '@/lib/projectMetadata'
 import { withSiteSocialDefaults } from '@/lib/pageMetadataDefaults'
@@ -95,10 +95,8 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
         <Container>
           <div className="pb-20">
             <h1 className="text-[34px] tablet:hidden">{project.title}</h1>
-            <div className="hidden tablet:block" style={{ marginLeft: '-5px' }}>
-              <FitText className="font-heading">
-                {project.title}
-              </FitText>
+            <div className="hidden tablet:block">
+              <WorkTitle title={project.title} />
             </div>
           </div>
           <div className="flex flex-col gap-20">

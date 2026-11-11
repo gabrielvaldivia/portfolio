@@ -1,9 +1,9 @@
 [
  {
   "date": "2026-11-11",
-  "title": "A menu that grows from its button",
+  "title": "A menu that grows from its button, and titles that lean",
   "changes": [
-   "The round menu button now expands into the navigation menu itself. The close icon sits evenly inset in the panel's corner, centered on the first link and tinted like the other unselected pages, so the open menu reads as one tidy surface."
+   "The round menu button now expands into the navigation menu, with its close icon evenly inset and tinted like the other pages. On case studies, the large title reacts to the cursor: nearby letters lean the way you move, then wobble back into place."
   ]
  },
  {
