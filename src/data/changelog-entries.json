@@ -1,5 +1,12 @@
 [
  {
+  "date": "2026-11-11",
+  "title": "A menu that grows from its button",
+  "changes": [
+   "The round menu button now expands into the navigation menu itself, with the close icon tucked into the panel's corner, lined up with the first link and tinted like the other unselected pages."
+  ]
+ },
+ {
   "date": "2026-11-10",
   "title": "Unclipped note previews",
   "changes": [

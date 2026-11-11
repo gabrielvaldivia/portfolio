@@ -1,6 +1,21 @@
 {
-  "throughCommit": "80453606c935893927bd67cd33ab32f4826e6de4",
+  "throughCommit": "e7e3ad1f3ff5ea42f537cb87796ee7003baba3ae",
   "commits": [
+    {
+      "hash": "e7e3ad1f3ff5ea42f537cb87796ee7003baba3ae",
+      "date": "2026-11-10",
+      "subject": "Fix clipped descenders in note social previews"
+    },
+    {
+      "hash": "e56b9aab10d05ff9a455678bbcdb460e0a298fb5",
+      "date": "2026-11-09",
+      "subject": "Restore the dark-mode signup border on the Notes listing"
+    },
+    {
+      "hash": "e386d94d143898338a957acff7714e761efd47b4",
+      "date": "2026-11-09",
+      "subject": "Remove dark-mode borders from Notes signup boxes"
+    },
     {
       "hash": "80453606c935893927bd67cd33ab32f4826e6de4",
       "date": "2026-11-09",
