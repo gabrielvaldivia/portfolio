@@ -238,16 +238,17 @@ function MorphMenu({
         aria-expanded={open}
         tabIndex={visible ? 0 : -1}
         className={cn(
-          'peer absolute right-0 top-0 z-10 flex size-10 cursor-pointer items-center justify-center rounded-full transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content',
-          // Open, the X matches the deselected menu items.
-          open ? 'text-text-subtle hover:text-text-strong focus-visible:text-text-strong' : 'text-text-strong',
+          'group peer absolute right-0 top-0 z-10 flex size-10 cursor-pointer items-center justify-center rounded-full transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content',
+          'text-text-strong',
         )}
       >
-        {/* When expanded, drop the X onto the first item's text line. */}
-        <div
+                <div
           className={cn(
-            'w-4 h-3 relative flex flex-col justify-center items-center transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:duration-0',
-            open && 'translate-y-[6.5px]',
+            'w-4 h-3 relative flex flex-col justify-center items-center transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:duration-0',
+            // Open: nudge the X so its top and right insets match and it centers on
+            // the first item's lowercase letters. Fade the whole icon (not each line) so the crossing
+            // stays even, landing on the same tone as deselected items (40%).
+            open && '-translate-x-[4.5px] translate-y-[4.75px] opacity-40 group-hover:opacity-100 group-focus-visible:opacity-100',
           )}
         >
           <span
@@ -268,7 +269,7 @@ function MorphMenu({
         inert={open ? undefined : true}
         style={{ clipPath: open ? openMenuClip : closedMenuClip }}
         className={cn(
-          'absolute right-0 top-0 flex min-w-[200px] flex-col rounded-[20px] py-2 pl-4 pr-12 backdrop-blur-[40px] transition-[clip-path,background-color] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:duration-0',
+          'absolute right-0 top-0 flex min-w-[200px] flex-col rounded-[20px] pt-[4px] pb-2 pl-4 pr-12 backdrop-blur-[40px] transition-[clip-path,background-color] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:duration-0',
           open ? openMenuSurface : closedMenuSurface,
         )}
       >

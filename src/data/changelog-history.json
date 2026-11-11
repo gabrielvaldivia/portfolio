@@ -1,6 +1,11 @@
 {
-  "throughCommit": "e7e3ad1f3ff5ea42f537cb87796ee7003baba3ae",
+  "throughCommit": "c1caf57d0dc4b93f11161ced4ee2a50c045c4a5f",
   "commits": [
+    {
+      "hash": "c1caf57d0dc4b93f11161ced4ee2a50c045c4a5f",
+      "date": "2026-11-11",
+      "subject": "Expand the menu button into the navigation menu"
+    },
     {
       "hash": "e7e3ad1f3ff5ea42f537cb87796ee7003baba3ae",
       "date": "2026-11-10",

@@ -3,7 +3,7 @@
   "date": "2026-11-11",
   "title": "A menu that grows from its button",
   "changes": [
-   "The round menu button now expands into the navigation menu itself, with the close icon tucked into the panel's corner, lined up with the first link and tinted like the other unselected pages."
+   "The round menu button now expands into the navigation menu itself. The close icon sits evenly inset in the panel's corner, centered on the first link and tinted like the other unselected pages, so the open menu reads as one tidy surface."
   ]
  },
  {
