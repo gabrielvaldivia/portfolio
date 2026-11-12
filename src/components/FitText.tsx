@@ -2,11 +2,13 @@
 
 import { useRef, useEffect, useState } from 'react'
 
-export function FitText({ children, className = '', mobileSize = 34, maxSize }: {
+export function FitText({ children, className = '', mobileSize = 34, maxSize, fitOnMobile = false }: {
   children: React.ReactNode
   className?: string
   mobileSize?: number
   maxSize?: number
+  /** Fill the width on small screens too, instead of using `mobileSize`. */
+  fitOnMobile?: boolean
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const textRef = useRef<HTMLSpanElement>(null)
@@ -19,7 +21,7 @@ export function FitText({ children, className = '', mobileSize = 34, maxSize }: 
 
     const resize = () => {
       const isMobile = window.innerWidth < 810
-      if (isMobile) {
+      if (isMobile && !fitOnMobile) {
         text.style.fontSize = `${mobileSize}px`
         return
       }
@@ -45,13 +47,13 @@ export function FitText({ children, className = '', mobileSize = 34, maxSize }: 
     const observer = new ResizeObserver(resize)
     observer.observe(container)
     return () => observer.disconnect()
-  }, [children, mobileSize, maxSize])
+  }, [children, mobileSize, maxSize, fitOnMobile])
 
   return (
     <div ref={containerRef} className={`overflow-visible ${className}`} style={{ visibility: ready ? 'visible' : 'hidden' }}>
       <span
         ref={textRef}
-        className="block whitespace-normal tablet:whitespace-nowrap"
+        className={`block ${fitOnMobile ? 'whitespace-nowrap' : 'whitespace-normal tablet:whitespace-nowrap'}`}
         style={{ lineHeight: 1.15, letterSpacing: '-0.04em', fontWeight: 400 }}
       >
         {children}

@@ -94,8 +94,9 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
       <article>
         <Container>
           <div className="pb-20">
-            <h1 className="text-[34px] tablet:hidden">{project.title}</h1>
-            <div className="hidden tablet:block">
+            {/* The fitted title is drawn by a client component; keep a real heading for assistive tech. */}
+            <h1 className="sr-only">{project.title}</h1>
+            <div aria-hidden>
               <WorkTitle title={project.title} />
             </div>
           </div>

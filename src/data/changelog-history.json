@@ -1,6 +1,11 @@
 {
-  "throughCommit": "31f9e2dd83624f170d40947d399fd03b45a36489",
+  "throughCommit": "8a0c74c31498996029cd8bae96d91026d5cf6889",
   "commits": [
+    {
+      "hash": "8a0c74c31498996029cd8bae96d91026d5cf6889",
+      "date": "2026-11-11",
+      "subject": "Add the Smear hover effect to work page titles"
+    },
     {
       "hash": "31f9e2dd83624f170d40947d399fd03b45a36489",
       "date": "2026-11-11",

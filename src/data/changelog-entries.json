@@ -1,5 +1,12 @@
 [
  {
+  "date": "2026-11-12",
+  "title": "Full-width case study titles on mobile",
+  "changes": [
+   "Case study titles now fill the screen width on phones too, matching the large, edge-to-edge headline on desktop instead of a smaller fixed size."
+  ]
+ },
+ {
   "date": "2026-11-11",
   "title": "A menu that grows from its button, and titles that lean",
   "changes": [
