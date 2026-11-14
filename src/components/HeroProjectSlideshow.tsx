@@ -313,24 +313,22 @@ function MobileHeroSlide({
           ) : null}
         </div>
 
-        <Link
-          href={`/work/${project.slug}`}
-          aria-label={`View ${project.title} project`}
-          className="absolute inset-0 z-0"
-        />
-
-        <Link
-          href={`/work/${project.slug}`}
-          className="hero-mobile-caption z-10 col-start-1 row-start-2 row-end-4 mx-5 grid grid-rows-subgrid rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-        >
+        {/* Taps elsewhere on the slide turn the page (see observeLoopingHeroCarousel),
+            so only the call to action opens the project. */}
+        <div className="hero-mobile-caption z-10 col-start-1 row-start-2 row-end-4 mx-5 grid grid-rows-subgrid">
           <div className="flex items-center justify-between gap-5">
             <h2 className="hero-project-title text-balance">{project.title}</h2>
             {!project.testimonial ? (
-              <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white">
-                <svg className="size-6 text-text-on-light" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+              <Link
+                href={`/work/${project.slug}`}
+                aria-label={`View ${project.title} project`}
+                // The pseudo-element widens the tap target so near misses don't turn the page.
+                className="relative flex size-10 shrink-0 items-center justify-center rounded-full bg-white before:absolute before:-inset-1 before:rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >
+                <svg aria-hidden="true" className="size-6 text-text-on-light" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
                   <path d="M6 16h20M18 8l8 8-8 8" />
                 </svg>
-              </span>
+              </Link>
             ) : null}
           </div>
           <div className="hero-mobile-details flex flex-col gap-2 pt-2" style={{ paddingBottom: MOBILE_CONTENT_BOTTOM }}>
@@ -341,16 +339,19 @@ function MobileHeroSlide({
             {project.testimonial ? (
               <div className="mt-2 flex flex-col gap-4">
                 <Testimonial quote={project.testimonial.quote} name={project.testimonial.name} variant="hero" />
-                <span className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-medium text-text-on-light">
+                <Link
+                  href={`/work/${project.slug}`}
+                  className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-medium text-text-on-light focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                >
                   View work
                   <svg aria-hidden="true" className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path d="M5 12h14m-7-7 7 7-7 7" />
                   </svg>
-                </span>
+                </Link>
               </div>
             ) : null}
           </div>
-        </Link>
+        </div>
       </div>
     </div>
   )

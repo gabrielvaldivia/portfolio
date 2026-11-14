@@ -1,6 +1,11 @@
 {
-  "throughCommit": "8a0c74c31498996029cd8bae96d91026d5cf6889",
+  "throughCommit": "0889dd1f7193f9729cb2d12d78ce4a4942c32783",
   "commits": [
+    {
+      "hash": "0889dd1f7193f9729cb2d12d78ce4a4942c32783",
+      "date": "2026-11-12",
+      "subject": "Fill the width with work page titles on mobile"
+    },
     {
       "hash": "8a0c74c31498996029cd8bae96d91026d5cf6889",
       "date": "2026-11-11",

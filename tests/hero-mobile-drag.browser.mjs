@@ -34,12 +34,20 @@ try {
     assert.equal(new URL(page.url()).pathname, '/', 'drag does not open a project')
     assert.ok(Math.abs(await page.evaluate(() => scrollY) - pageY) < 2, 'drag does not scroll the page vertically')
   }
-  const activeLink = page.locator('.hero-mobile-slide[aria-hidden="false"] a[aria-label^="View "]')
+  const beforeClicks = await selected()
+  await page.mouse.click(300, 350)
+  await page.waitForTimeout(350)
+  assert.equal(await selected(), (beforeClicks + 1) % count, 'clicking the right half shows the next slide')
+  await page.mouse.click(90, 350)
+  await page.waitForTimeout(350)
+  assert.equal(await selected(), beforeClicks, 'clicking the left half shows the previous slide')
+  assert.equal(new URL(page.url()).pathname, '/', 'page-turn clicks do not open a project')
+  const activeLink = page.locator('.hero-mobile-slide[aria-hidden="false"] a[href^="/work/"]')
   const href = await activeLink.getAttribute('href')
-  await page.mouse.click(190, 350)
+  await activeLink.click()
   await page.waitForURL(url => url.pathname === href)
   assert.deepEqual(errors, [], 'no browser errors')
-  console.log('PASS: mobile pointer dragging both ways, looping, no accidental navigation, and ordinary project clicks')
+  console.log('PASS: mobile pointer dragging both ways, looping, click-to-turn halves, and the project button')
 } finally {
   await browser.close()
 }

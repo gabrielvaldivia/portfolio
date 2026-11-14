@@ -1,5 +1,12 @@
 [
  {
+  "date": "2026-11-14",
+  "title": "Tap to flip through featured work",
+  "changes": [
+   "On phones, the homepage carousel now flips like stories: tap the right half for the next project and the left half for the previous one, looping at either end. The View work button still opens the project."
+  ]
+ },
+ {
   "date": "2026-11-12",
   "title": "Full-width case study titles on mobile",
   "changes": [
