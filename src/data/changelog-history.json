@@ -1,6 +1,11 @@
 {
-  "throughCommit": "f92498bb39d58b484fd0d81804a685d568ecfa87",
+  "throughCommit": "02ddc9eb85e2d148515090d26bacb33e92ef636b",
   "commits": [
+    {
+      "hash": "02ddc9eb85e2d148515090d26bacb33e92ef636b",
+      "date": "2026-11-14",
+      "subject": "Turn mobile hero slides like a cube, add a media aura, whiten the menu"
+    },
     {
       "hash": "f92498bb39d58b484fd0d81804a685d568ecfa87",
       "date": "2026-11-14",

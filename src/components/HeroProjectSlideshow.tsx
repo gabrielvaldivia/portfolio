@@ -355,13 +355,13 @@ function MobileHeroSlide({
       data-project-id={project.id}
     >
       <div
-        className="hero-mobile-surface relative grid size-full grid-cols-1 grid-rows-[minmax(0,1fr)_auto_auto] overflow-hidden"
+        className="hero-mobile-surface relative grid size-full grid-cols-1 grid-rows-[minmax(0,1fr)_auto_auto_auto] overflow-hidden"
         style={{ backgroundColor: `rgb(${gradientColor})` }}
       >
         {media?.url ? (
           <div
             aria-hidden="true"
-            className="hero-mobile-aura pointer-events-none relative col-start-1 row-start-1 row-end-3 min-h-0"
+            className="hero-mobile-aura pointer-events-none relative col-start-1 row-start-1 row-end-4 min-h-0"
             style={MOBILE_AURA_STYLE}
           >
             {isVideoMedia(media) ? (
@@ -382,10 +382,11 @@ function MobileHeroSlide({
           </div>
         ) : null}
 
-        {/* The media shares the title's bottom grid line; captions and
-            testimonials determine the solid-color area without JS sizing. */}
+        {/* The media runs behind the title, description and pills, fading out
+            at the testimonial's top edge (or below the pills without one).
+            Grid lines size the solid-color area without JS. */}
         <div
-          className="hero-mobile-media pointer-events-none relative col-start-1 row-start-1 row-end-3 min-h-0 overflow-hidden"
+          className="hero-mobile-media pointer-events-none relative col-start-1 row-start-1 row-end-4 min-h-0 overflow-hidden"
           style={{ maskImage: MOBILE_IMAGE_MASK, WebkitMaskImage: MOBILE_IMAGE_MASK }}
         >
           {media?.url ? (
@@ -423,7 +424,7 @@ function MobileHeroSlide({
 
         {/* Taps elsewhere on the slide turn the page (see observeLoopingHeroCarousel),
             so only the call to action opens the project. */}
-        <div className="hero-mobile-caption z-10 col-start-1 row-start-2 row-end-4 mx-5 grid grid-rows-subgrid">
+        <div className="hero-mobile-caption z-10 col-start-1 row-start-2 row-end-5 mx-5 grid grid-rows-subgrid">
           <div className="flex items-center justify-between gap-5">
             <h2 className="hero-project-title text-balance">{project.title}</h2>
             {!project.testimonial ? (
@@ -439,13 +440,16 @@ function MobileHeroSlide({
               </Link>
             ) : null}
           </div>
-          <div className="hero-mobile-details flex flex-col gap-2 pt-2" style={{ paddingBottom: MOBILE_CONTENT_BOTTOM }}>
+          <div className={cn('hero-mobile-details flex flex-col gap-2 pt-2', project.testimonial && 'pb-4')}>
             {project.subtitle ? (
               <p className="max-w-2xl text-body text-pretty text-text-on-media-muted">{project.subtitle}</p>
             ) : null}
             <HeroProjectPills pills={project.pills} />
+          </div>
+          {/* Always rendered: it also holds the bottom inset. */}
+          <div className="hero-mobile-footer" style={{ paddingBottom: MOBILE_CONTENT_BOTTOM }}>
             {project.testimonial ? (
-              <div className="mt-2 flex flex-col gap-4">
+              <div className="flex flex-col gap-4">
                 <Testimonial quote={project.testimonial.quote} name={project.testimonial.name} variant="hero" />
                 <Link
                   href={`/work/${project.slug}`}
