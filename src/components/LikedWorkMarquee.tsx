@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import Link from '@/components/SiteLink'
+import Link from 'next/link'
 import {
   motion,
   useAnimationFrame,

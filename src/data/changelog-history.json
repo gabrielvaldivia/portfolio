@@ -1,6 +1,11 @@
 {
-  "throughCommit": "a466eb6c397b6e521ec420cd795c33ffdc479d5f",
+  "throughCommit": "6a75b4cd13ba8fcf7778ae9306bbd2d04b8429a7",
   "commits": [
+    {
+      "hash": "6a75b4cd13ba8fcf7778ae9306bbd2d04b8429a7",
+      "date": "2026-11-14",
+      "subject": "Show mobile hero progress lines only once the carousel fills the screen"
+    },
     {
       "hash": "a466eb6c397b6e521ec420cd795c33ffdc479d5f",
       "date": "2026-11-14",

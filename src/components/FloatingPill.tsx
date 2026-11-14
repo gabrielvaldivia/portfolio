@@ -1,6 +1,5 @@
 'use client'
 
-import { SiteAnchor } from '@/components/SiteLink'
 
 import { useState, useEffect } from 'react'
 
@@ -36,14 +35,14 @@ export function FloatingPill({
         {text}
       </span>
       {buttonLabel && buttonLink && (
-        <SiteAnchor
+        <a
           href={buttonLink}
           target="_blank"
           rel="noopener noreferrer"
           className="text-sm font-medium text-text-strong bg-content/10 hover:bg-content/20 transition-colors rounded-full px-4 py-1.5 shrink-0"
         >
           {buttonLabel}
-        </SiteAnchor>
+        </a>
       )}
       <button
         onClick={() => { setDismissed(true); onDismiss?.() }}

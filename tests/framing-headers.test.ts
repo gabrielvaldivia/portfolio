@@ -13,7 +13,7 @@ async function responseFor(path: string, host = 'www.gabrielvaldivia.com') {
 
 test('public pages allow only the approved frame ancestors on either hostname', async () => {
   for (const host of ['gabrielvaldivia.com', 'www.gabrielvaldivia.com']) {
-    for (const path of ['/', '/about', '/work', '/work/dex', '/notes', '/notes/example', '/photos/example', '/playground/example', '/dive/work/dex', '/missing-page']) {
+    for (const path of ['/', '/about', '/work', '/work/dex', '/notes', '/notes/example', '/photos/example', '/playground/example', '/missing-page']) {
       const { headers } = await responseFor(path, host)
       assert.equal(headers.get('content-security-policy'), publicPolicy, `${host}${path}`)
       assert.equal(headers.has('x-frame-options'), false, `${host}${path}`)
@@ -35,9 +35,9 @@ test('existing page-specific security policies are preserved', async () => {
   const home = await responseFor('/')
   assert.equal(home.headers.get('permissions-policy'), 'camera=(), geolocation=(), microphone=(), payment=(), usb=()')
 
-  const dive = await responseFor('/dive/work/dex')
-  assert.equal(dive.headers.get('permissions-policy'), 'camera=(self), geolocation=(), microphone=(self), payment=(), usb=()')
-  assert.equal(dive.headers.get('x-robots-tag'), 'noindex, nofollow')
+  // The Dive Club review copy is gone, along with its camera and microphone access.
+  const formerReview = await responseFor('/dive/work/dex')
+  assert.equal(formerReview.headers.get('permissions-policy'), 'camera=(), geolocation=(), microphone=(), payment=(), usb=()')
 
   const preview = await responseFor('/notes/preview/example')
   assert.equal(preview.headers.get('referrer-policy'), 'no-referrer')

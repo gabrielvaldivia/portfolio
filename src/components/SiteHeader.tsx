@@ -1,7 +1,7 @@
 'use client'
 
-import Link from '@/components/SiteLink'
-import { useSitePathname as usePathname } from '@/components/ReviewNavigation'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 function SiteHeaderFrame() {
   return (

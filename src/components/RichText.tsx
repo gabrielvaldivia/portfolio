@@ -1,5 +1,4 @@
 
-import { SiteAnchor } from '@/components/SiteLink'
 import { RichText as PayloadRichText } from '@payloadcms/richtext-lexical/react'
 import Image from 'next/image'
 import { getLinkedImage } from '@/lib/richTextImages'
@@ -77,13 +76,13 @@ export function RichText({ data, renderLinkedImages = false }: { data: any; rend
             }
 
             return (
-              <SiteAnchor
+              <a
                 href={url}
                 target={fields?.newTab ? '_blank' : undefined}
                 rel={fields?.newTab ? 'noopener noreferrer' : undefined}
               >
                 {nodesToJSX({ nodes: node.children as any[] })}
-              </SiteAnchor>
+              </a>
             )
           },
         })}

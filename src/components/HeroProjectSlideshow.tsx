@@ -1,6 +1,6 @@
 'use client'
 
-import Link from '@/components/SiteLink'
+import Link from 'next/link'
 import {
   AnimatePresence,
   animate,

@@ -9,9 +9,8 @@ import { getFooterSocialLinks, getNavigationPages, getSiteSettings } from '@/lib
 import { normalizeSocialLink } from '@/lib/socialLinks'
 import { SITE_ORIGIN } from '@/lib/siteMetadata'
 
-import { ReviewNavigation } from '@/components/ReviewNavigation'
 
-export async function PortfolioLayout({ children, review = false }: { children: React.ReactNode; review?: boolean }) {
+export async function PortfolioLayout({ children }: { children: React.ReactNode }) {
   const [settings, footerLinks, navigationPages] = await Promise.all([
     getSiteSettings(),
     getFooterSocialLinks(),
@@ -44,7 +43,6 @@ export async function PortfolioLayout({ children, review = false }: { children: 
   return (
     <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
-        {review && <script src="https://inflight.co/widget.js" data-org="aius9qpt" data-path="/dive" async />}
         <link rel="describedby" href="/llms.txt" />
         <link
           rel="alternate"
@@ -60,7 +58,7 @@ export async function PortfolioLayout({ children, review = false }: { children: 
         )}
       </head>
       <body className="bg-background text-text-strong">
-        {review ? <ReviewNavigation>{content}</ReviewNavigation> : content}
+        {content}
       </body>
     </html>
   )

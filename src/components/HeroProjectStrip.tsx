@@ -1,6 +1,6 @@
 'use client'
 
-import Link from '@/components/SiteLink'
+import Link from 'next/link'
 import { animate, useInView, useReducedMotion, type AnimationPlaybackControls } from 'motion/react'
 import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent } from 'react'
 import { PayloadImage } from '@/components/PayloadImage'

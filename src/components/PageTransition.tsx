@@ -1,6 +1,6 @@
 'use client'
 
-import { useSitePathname as usePathname } from '@/components/ReviewNavigation'
+import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 export function PageTransition({ children }: { children: React.ReactNode }) {

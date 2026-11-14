@@ -1,6 +1,5 @@
 'use client'
 
-import { SiteAnchor } from '@/components/SiteLink'
 
 import { useState } from 'react'
 import { Avatar } from '@/components/Avatar'
@@ -76,9 +75,9 @@ export function PeopleGrid({ people }: { people: Person[] }) {
           return (
             <div key={person.id} className="py-4 break-inside-avoid">
               {href ? (
-                <SiteAnchor href={href} target="_blank" rel="noopener noreferrer" className="hover:opacity-60 transition-opacity">
+                <a href={href} target="_blank" rel="noopener noreferrer" className="hover:opacity-60 transition-opacity">
                   {content}
-                </SiteAnchor>
+                </a>
               ) : (
                 content
               )}

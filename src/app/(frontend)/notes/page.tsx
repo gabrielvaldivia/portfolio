@@ -6,7 +6,7 @@ import { buildPageMetadata } from '@/lib/pageMetadata'
 import { withSiteSocialDefaults } from '@/lib/pageMetadataDefaults'
 import { getPublishedNoteList } from '@/lib/queries'
 import type { Metadata } from 'next'
-import Link from '@/components/SiteLink'
+import Link from 'next/link'
 import { JsonLd } from '@/components/JsonLd'
 import { absoluteSiteUrl, buildSiteStructuredData, websiteReference } from '@/lib/structuredData'
 

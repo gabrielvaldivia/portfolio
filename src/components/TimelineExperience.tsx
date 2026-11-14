@@ -1,6 +1,5 @@
 'use client'
 
-import { SiteAnchor } from '@/components/SiteLink'
 
 import { Calendar04Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
@@ -2106,7 +2105,7 @@ export function TimelineExperience({
                 <span className={styles.contextHeading}>News</span>
                 <p className={styles.note}>
                   {worldContext ? (
-                    <SiteAnchor
+                    <a
                       className={styles.newsLink}
                       href={worldContext.href}
                       target="_blank"
@@ -2116,7 +2115,7 @@ export function TimelineExperience({
                       <HoverArrow
                         className={styles.newsLinkIcon}
                       />
-                    </SiteAnchor>
+                    </a>
                   ) : 'The story of this year is still being written.'}
                 </p>
               </div>
@@ -2180,7 +2179,7 @@ export function TimelineExperience({
                 <dt>News</dt>
                 <dd>
                   {previewWorldContext ? (
-                    <SiteAnchor
+                    <a
                       className={styles.newsLink}
                       href={previewWorldContext.href}
                       target="_blank"
@@ -2190,7 +2189,7 @@ export function TimelineExperience({
                       <HoverArrow
                         className={styles.newsLinkIcon}
                       />
-                    </SiteAnchor>
+                    </a>
                   ) : 'The story of this year is still being written.'}
                 </dd>
               </div>
