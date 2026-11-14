@@ -6,62 +6,90 @@
  * so together they read as a rotating cube. Scrolling sometimes reaches the
  * screen a frame before these styles do; because the hinge itself scrolls
  * natively, that lag only changes the angle, never where a slide sits.
+ *
+ * Each slide is a scroll-snap target and stays untransformed: Safari derives
+ * snap positions from transformed boxes, so turning the slide itself creates
+ * false snap points mid-turn where the carousel can come to rest. Only the
+ * slide's `.hero-mobile-face` child turns, and its `.hero-mobile-shade`
+ * darkens. Faces near the viewport keep their compositing layers between
+ * turns, so a turn only changes transforms and opacity, never layout or paint.
  */
 export function observeHeroCubeTransition(carousel: HTMLElement, count: number) {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
   let width = carousel.clientWidth
+  // The last styles written to each face, to skip writes that change nothing.
+  const applied = new WeakMap<HTMLElement, string>()
 
-  const flatten = (slide: HTMLElement, visible: boolean) => {
-    slide.style.removeProperty('transform')
-    slide.style.removeProperty('transform-origin')
-    slide.style.removeProperty('backface-visibility')
-    slide.style.removeProperty('-webkit-backface-visibility')
-    slide.style.removeProperty('--hero-cube-shade')
-    if (visible) slide.style.removeProperty('visibility')
-    else slide.style.visibility = 'hidden'
+  const partsOf = (slide: Element) => {
+    const face = slide.firstElementChild
+    if (!(face instanceof HTMLElement) || !face.classList.contains('hero-mobile-face')) return null
+    const shade = face.lastElementChild
+    return { face, shade: shade instanceof HTMLElement && shade.classList.contains('hero-mobile-shade') ? shade : null }
+  }
+
+  const write = (
+    { face, shade }: { face: HTMLElement; shade: HTMLElement | null },
+    key: string,
+    layer: boolean,
+    transform = '',
+    origin = '',
+    darkness = '',
+  ) => {
+    if (applied.get(face) === key) return
+    applied.set(face, key)
+    face.style.willChange = layer ? 'transform' : ''
+    face.style.transform = transform
+    face.style.transformOrigin = origin
+    if (!shade) return
+    shade.style.willChange = layer ? 'opacity' : ''
+    shade.style.opacity = darkness
   }
 
   const update = () => {
     const slides = carousel.children
-    if (reducedMotion.matches || !width) {
-      for (const slide of slides) flatten(slide as HTMLElement, true)
-      return
-    }
-
-    const position = carousel.scrollLeft / width
+    const enabled = !reducedMotion.matches && width > 0
+    const position = enabled ? carousel.scrollLeft / width : 0
     // Looping adds a copy of the last slide before the first and of the first after the last.
     const looping = count > 1 && slides.length === count + 2
     // A shallower perspective exaggerates the turn; this matches its depth on phones.
-    const perspective = width * 2.2
+    const perspective = Math.round(width * 2.2)
+
     for (let index = 0; index < slides.length; index++) {
-      const slide = slides[index] as HTMLElement
-      // -1 is one slide to the left of the viewport, 1 one slide to the right.
-      let offset = index - position
-      // Near the loop seam, style each copy like its twin at the other end. The
-      // loop can jump between them after this frame's styles are set; matching
-      // styles mean that jump never shows a hidden slide.
-      if (looping && index <= 1 && position >= count) offset += count
-      else if (looping && index >= count && position <= 1) offset -= count
-      const distance = Math.abs(offset)
-      if (distance < 0.001 || distance >= 1) {
-        // Settled slides stay untransformed; the rest are behind the cube.
-        flatten(slide, distance < 1)
+      const parts = partsOf(slides[index])
+      if (!parts) continue
+      if (!enabled) {
+        write(parts, 'off', false)
         continue
       }
 
-      const angle = offset * 90
-      // Look from the middle of the viewport, expressed in this slide's own coordinates.
-      const origin = width / 2 - offset * width
+      // -1 is one slide to the left of the viewport, 1 one slide to the right.
+      let offset = index - position
+      // Between the copies at each end, style each copy like its twin. The loop
+      // can jump between them before these styles update; matching styles
+      // mean that jump never shows a flat slide in the middle of a turn.
+      if (looping && index <= 1 && position > count) offset += count
+      else if (looping && index >= count && position < 1) offset -= count
+      const distance = Math.abs(offset)
+
+      if (distance > 1.0005) {
+        write(parts, 'far', false)
+        continue
+      }
+      if (distance < 0.0005 || distance > 0.9995) {
+        // Settled or about to turn in: flat, with its layer kept ready.
+        write(parts, 'ready', true)
+        continue
+      }
+
+      const angle = Math.round(offset * 9000) / 100
+      // Look from the middle of the viewport, expressed in this face's own coordinates.
+      const origin = Math.round((width / 2 - offset * width) * 10) / 10
       // The incoming face hinges on its left edge, the outgoing one on its right.
-      const hinge = (offset > 0 ? 0 : width) - origin
-      slide.style.visibility = ''
-      slide.style.transformOrigin = `${origin}px 50%`
-      slide.style.transform = `perspective(${perspective}px) translateX(${hinge}px) rotateY(${angle}deg) translateX(${-hinge}px)`
-      // Hide a face once it turns away from the viewer, as on a real cube.
-      slide.style.setProperty('backface-visibility', 'hidden')
-      slide.style.setProperty('-webkit-backface-visibility', 'hidden')
+      const hinge = Math.round(((offset > 0 ? 0 : width) - origin) * 10) / 10
+      const transform = `perspective(${perspective}px) translateX(${hinge}px) rotateY(${angle}deg) translateX(${-hinge}px)`
       // Faces darken as they turn away from the light.
-      slide.style.setProperty('--hero-cube-shade', ((1 - Math.cos(angle * Math.PI / 180)) * 0.7).toFixed(3))
+      const darkness = ((1 - Math.cos(angle * Math.PI / 180)) * 0.7).toFixed(3)
+      write(parts, transform, true, transform, `${origin}px 50%`, darkness)
     }
   }
 
@@ -81,6 +109,12 @@ export function observeHeroCubeTransition(carousel: HTMLElement, count: number) 
     resizeObserver.disconnect()
     carousel.removeEventListener('scroll', update)
     reducedMotion.removeEventListener('change', update)
-    for (const slide of carousel.children) flatten(slide as HTMLElement, true)
+    for (const slide of carousel.children) {
+      const parts = partsOf(slide)
+      if (parts) {
+        applied.delete(parts.face)
+        write(parts, 'off', false)
+      }
+    }
   }
 }

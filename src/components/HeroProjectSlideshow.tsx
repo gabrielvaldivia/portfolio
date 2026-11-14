@@ -14,6 +14,8 @@ import {
 } from 'motion/react'
 import {
   type PointerEvent as ReactPointerEvent,
+  memo,
+  startTransition,
   useCallback,
   useEffect,
   useId,
@@ -90,13 +92,15 @@ const MOBILE_AURA_MASK = smoothFadeMask(62)
 const MOBILE_AURA_STYLE = {
   transform: 'scale(1.35)',
   transformOrigin: '50% 0',
-  filter: 'blur(64px) saturate(1.25)',
   opacity: 0.9,
   maskImage: MOBILE_AURA_MASK,
   WebkitMaskImage: MOBILE_AURA_MASK,
 } as const
-const VIDEO_AURA_WIDTH = 48
-const VIDEO_AURA_FRAME_MS = 1000 / 12
+// Widths the media passes through on its way into the aura canvas. Halving
+// averages each region; doubling back smooths the tiny result into a glow.
+// Painted once, this replaces a live CSS blur that slides had to recompute
+// while turning.
+const AURA_WIDTHS = [128, 64, 32, 16, 8, 4, 8, 16, 32, 64]
 
 function SilentBackgroundVideo({ src, label, playing = true, load = true, onLoadedData, onError, onVideoElement }: {
   src: string
@@ -166,57 +170,53 @@ function SilentBackgroundVideo({ src, label, playing = true, load = true, onLoad
   )
 }
 
-/** Mirror a playing video into a tiny canvas; CSS scales and blurs it into an aura. */
-function VideoAura({ video, playing }: { video: HTMLVideoElement | null; playing: boolean }) {
+function paintSoftAura(canvas: HTMLCanvasElement, source: HTMLImageElement | HTMLVideoElement) {
+  const isVideo = source instanceof HTMLVideoElement
+  const sourceWidth = isVideo ? source.videoWidth : source.naturalWidth
+  const sourceHeight = isVideo ? source.videoHeight : source.naturalHeight
+  const ready = isVideo ? source.readyState >= 2 : source.complete
+  if (!ready || !sourceWidth || !sourceHeight || !canvas.clientWidth || !canvas.clientHeight) return
+
+  // Crop like object-cover so the glow lines up with the media above it.
+  const aspect = canvas.clientWidth / canvas.clientHeight
+  let cropWidth = sourceWidth
+  let cropHeight = sourceHeight
+  if (sourceWidth / sourceHeight > aspect) cropWidth = sourceHeight * aspect
+  else cropHeight = sourceWidth / aspect
+
+  let from: CanvasImageSource = source
+  let area = [(sourceWidth - cropWidth) / 2, (sourceHeight - cropHeight) / 2, cropWidth, cropHeight]
+  for (let step = 0; step < AURA_WIDTHS.length; step++) {
+    const target = step === AURA_WIDTHS.length - 1 ? canvas : document.createElement('canvas')
+    const width = AURA_WIDTHS[step]
+    const height = Math.max(1, Math.round(width / aspect))
+    target.width = width
+    target.height = height
+    const context = target.getContext('2d')
+    if (!context) return
+    context.imageSmoothingQuality = 'high'
+    if (target === canvas && 'filter' in context) context.filter = 'saturate(1.25)'
+    context.drawImage(from, area[0], area[1], area[2], area[3], 0, 0, width, height)
+    from = target
+    area = [0, 0, width, height]
+  }
+}
+
+/** A soft, pre-blurred copy of the slide's image or video frame. */
+function MediaAura({ source }: { source: HTMLImageElement | HTMLVideoElement | null }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
     const canvas = canvasRef.current
-    const context = canvas?.getContext('2d')
-    if (!video || !canvas || !context) return
-
-    let animationFrame: number | null = null
-    let videoFrame: number | null = null
-    let lastDraw = -Infinity
-    const draw = () => {
-      const { videoWidth, videoHeight } = video
-      if (video.readyState < 2 || !videoWidth || !videoHeight || !canvas.clientWidth || !canvas.clientHeight) return
-      // Crop like object-cover so the glow lines up with the video above it.
-      const boxAspect = canvas.clientWidth / canvas.clientHeight
-      const height = Math.max(1, Math.round(VIDEO_AURA_WIDTH / boxAspect))
-      if (canvas.width !== VIDEO_AURA_WIDTH) canvas.width = VIDEO_AURA_WIDTH
-      if (canvas.height !== height) canvas.height = height
-      let sourceWidth = videoWidth
-      let sourceHeight = videoHeight
-      if (videoWidth / videoHeight > boxAspect) sourceWidth = videoHeight * boxAspect
-      else sourceHeight = videoWidth / boxAspect
-      context.drawImage(video, (videoWidth - sourceWidth) / 2, (videoHeight - sourceHeight) / 2, sourceWidth, sourceHeight, 0, 0, canvas.width, canvas.height)
-    }
-    const schedule = () => {
-      if ('requestVideoFrameCallback' in video) videoFrame = video.requestVideoFrameCallback(tick)
-      else animationFrame = requestAnimationFrame(tick)
-    }
-    // The blur hides motion detail, so a dozen updates a second is plenty.
-    const tick = (now: number) => {
-      if (now - lastDraw >= VIDEO_AURA_FRAME_MS) {
-        lastDraw = now
-        draw()
-      }
-      schedule()
-    }
-
-    draw()
-    video.addEventListener('loadeddata', draw)
-    video.addEventListener('seeked', draw)
-    if (playing) schedule()
-
-    return () => {
-      video.removeEventListener('loadeddata', draw)
-      video.removeEventListener('seeked', draw)
-      if (animationFrame !== null) cancelAnimationFrame(animationFrame)
-      if (videoFrame !== null && 'cancelVideoFrameCallback' in video) video.cancelVideoFrameCallback(videoFrame)
-    }
-  }, [playing, video])
+    if (!source || !canvas) return
+    // Videos paint their first frame only; redrawing frames costs main-thread
+    // time on every update, and the glow barely changes.
+    const event = source instanceof HTMLVideoElement ? 'loadeddata' : 'load'
+    const paint = () => paintSoftAura(canvas, source)
+    paint()
+    source.addEventListener(event, paint)
+    return () => source.removeEventListener(event, paint)
+  }, [source])
 
   return <canvas ref={canvasRef} className="absolute inset-0 size-full" />
 }
@@ -306,7 +306,8 @@ function isNearbySlide(index: number, activeIndex: number, count: number) {
   return Math.min(distance, count - distance) <= 1
 }
 
-function MobileHeroSlide({
+// Memoized: when the selected slide changes, only slides whose props change re-render.
+const MobileHeroSlide = memo(function MobileHeroSlide({
   project,
   active,
   nearby,
@@ -328,7 +329,7 @@ function MobileHeroSlide({
   const media = mediaOverride
     ? { ...project.featuredImage, ...mediaOverride, sizes: null }
     : project.featuredImage
-  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null)
+  const [auraSource, setAuraSource] = useState<HTMLImageElement | HTMLVideoElement | null>(null)
   const [sampledColor, setSampledColor] = useState('24 24 24')
   const [canSampleColor, setCanSampleColor] = useState(true)
   const gradientColor = hexToRgbChannels(project.gradientColor) ?? sampledColor
@@ -354,126 +355,115 @@ function MobileHeroSlide({
       className={cn(clone ? 'hero-mobile-loop-slide' : 'hero-mobile-slide', 'relative h-full w-full shrink-0 snap-start snap-always text-text-on-media-strong')}
       data-project-id={project.id}
     >
-      <div
-        className="hero-mobile-surface relative grid size-full grid-cols-1 grid-rows-[minmax(0,1fr)_auto_auto_auto] overflow-hidden"
-        style={{ backgroundColor: `rgb(${gradientColor})` }}
-      >
-        {media?.url ? (
-          <div
-            aria-hidden="true"
-            className="hero-mobile-aura pointer-events-none relative col-start-1 row-start-1 row-end-4 min-h-0"
-            style={MOBILE_AURA_STYLE}
-          >
-            {isVideoMedia(media) ? (
-              <VideoAura video={videoElement} playing={active} />
-            ) : (
-              <PayloadImage
-                key={needsColorSample ? 'sample' : 'display'}
-                media={media}
-                alt=""
-                fill
-                className="object-cover"
-                // Match the sharp image so the browser reuses the same file.
-                sizes="180vh"
-                loading={priority || active ? 'eager' : undefined}
-                crossOrigin={needsColorSample ? 'anonymous' : undefined}
-              />
-            )}
-          </div>
-        ) : null}
-
-        {/* The media runs behind the title, description and pills, fading out
-            at the testimonial's top edge (or below the pills without one).
-            Grid lines size the solid-color area without JS. */}
+      {/* observeHeroCubeTransition turns this face; the slide above is the
+          scroll-snap target and must stay untransformed. */}
+      <div className="hero-mobile-face relative size-full backface-hidden">
         <div
-          className="hero-mobile-media pointer-events-none relative col-start-1 row-start-1 row-end-4 min-h-0 overflow-hidden"
-          style={{ maskImage: MOBILE_IMAGE_MASK, WebkitMaskImage: MOBILE_IMAGE_MASK }}
+          className="hero-mobile-surface relative grid size-full grid-cols-1 grid-rows-[minmax(0,1fr)_auto_auto_auto] overflow-hidden"
+          style={{ backgroundColor: `rgb(${gradientColor})` }}
         >
           {media?.url ? (
-            isVideoMedia(media) ? (
-              <SilentBackgroundVideo
-                key={needsColorSample ? 'sample' : 'display'}
-                src={media.url}
-                label={media.alt || `${project.title} project video`}
-                playing={active}
-                load={shouldLoadVideo}
-                onLoadedData={needsColorSample ? updateMediaColor : undefined}
-                onError={() => setCanSampleColor(false)}
-                onVideoElement={setVideoElement}
-              />
-            ) : (
-              <PayloadImage
-                key={needsColorSample ? 'sample' : 'display'}
-                media={media}
-                alt={media.alt || ''}
-                fill
-                className="object-cover"
-                // The image is 16:9 and object-cover crops it into a portrait
-                // viewport. Describe that pre-crop width so Retina screens
-                // select enough pixels for the visible height, not just 100vw.
-                sizes="180vh"
-                loading={priority || active ? 'eager' : undefined}
-                fetchPriority={priority || active ? 'high' : undefined}
-                crossOrigin={needsColorSample ? 'anonymous' : undefined}
-                onLoad={(event) => updateMediaColor(event.currentTarget)}
-                onError={() => setCanSampleColor(false)}
-              />
-            )
+            <div
+              aria-hidden="true"
+              className="hero-mobile-aura pointer-events-none relative col-start-1 row-start-1 row-end-4 min-h-0"
+              style={MOBILE_AURA_STYLE}
+            >
+              <MediaAura source={auraSource} />
+            </div>
           ) : null}
-        </div>
 
-        {/* Taps elsewhere on the slide turn the page (see observeLoopingHeroCarousel),
-            so only the call to action opens the project. */}
-        <div className="hero-mobile-caption z-10 col-start-1 row-start-2 row-end-5 mx-5 grid grid-rows-subgrid">
-          <div className="flex items-center justify-between gap-5">
-            <h2 className="hero-project-title text-balance">{project.title}</h2>
-            {!project.testimonial ? (
-              <Link
-                href={`/work/${project.slug}`}
-                aria-label={`View ${project.title} project`}
-                // The pseudo-element widens the tap target so near misses don't turn the page.
-                className="relative flex size-10 shrink-0 items-center justify-center rounded-full bg-white before:absolute before:-inset-1 before:rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >
-                <svg aria-hidden="true" className="size-6 text-text-on-light" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
-                  <path d="M6 16h20M18 8l8 8-8 8" />
-                </svg>
-              </Link>
+          {/* The media runs behind the title, description and pills, fading out
+              at the testimonial's top edge (or below the pills without one).
+              Grid lines size the solid-color area without JS. */}
+          <div
+            className="hero-mobile-media pointer-events-none relative col-start-1 row-start-1 row-end-4 min-h-0 overflow-hidden"
+            style={{ maskImage: MOBILE_IMAGE_MASK, WebkitMaskImage: MOBILE_IMAGE_MASK }}
+          >
+            {media?.url ? (
+              isVideoMedia(media) ? (
+                <SilentBackgroundVideo
+                  key={needsColorSample ? 'sample' : 'display'}
+                  src={media.url}
+                  label={media.alt || `${project.title} project video`}
+                  playing={active}
+                  load={shouldLoadVideo}
+                  onLoadedData={needsColorSample ? updateMediaColor : undefined}
+                  onError={() => setCanSampleColor(false)}
+                  onVideoElement={setAuraSource}
+                />
+              ) : (
+                <PayloadImage
+                  key={needsColorSample ? 'sample' : 'display'}
+                  media={media}
+                  alt={media.alt || ''}
+                  fill
+                  className="object-cover"
+                  // The image is 16:9 and object-cover crops it into a portrait
+                  // viewport. Describe that pre-crop width so Retina screens
+                  // select enough pixels for the visible height, not just 100vw.
+                  sizes="180vh"
+                  loading={priority || active ? 'eager' : undefined}
+                  fetchPriority={priority || active ? 'high' : undefined}
+                  crossOrigin={needsColorSample ? 'anonymous' : undefined}
+                  onLoad={(event) => {
+                    updateMediaColor(event.currentTarget)
+                    setAuraSource(event.currentTarget)
+                  }}
+                  onError={() => setCanSampleColor(false)}
+                />
+              )
             ) : null}
           </div>
-          <div className={cn('hero-mobile-details flex flex-col gap-2 pt-2', project.testimonial && 'pb-4')}>
-            {project.subtitle ? (
-              <p className="max-w-2xl text-body text-pretty text-text-on-media-muted">{project.subtitle}</p>
-            ) : null}
-            <HeroProjectPills pills={project.pills} />
-          </div>
-          {/* Always rendered: it also holds the bottom inset. */}
-          <div className="hero-mobile-footer" style={{ paddingBottom: MOBILE_CONTENT_BOTTOM }}>
-            {project.testimonial ? (
-              <div className="flex flex-col gap-4">
-                <Testimonial quote={project.testimonial.quote} name={project.testimonial.name} variant="hero" />
+
+          {/* Taps elsewhere on the slide turn the page (see observeLoopingHeroCarousel),
+              so only the call to action opens the project. */}
+          <div className="hero-mobile-caption z-10 col-start-1 row-start-2 row-end-5 mx-5 grid grid-rows-subgrid">
+            <div className="flex items-center justify-between gap-5">
+              <h2 className="hero-project-title text-balance">{project.title}</h2>
+              {!project.testimonial ? (
                 <Link
                   href={`/work/${project.slug}`}
-                  className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-medium text-text-on-light focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  aria-label={`View ${project.title} project`}
+                  // The pseudo-element widens the tap target so near misses don't turn the page.
+                  className="relative flex size-10 shrink-0 items-center justify-center rounded-full bg-white before:absolute before:-inset-1 before:rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
-                  View work
-                  <svg aria-hidden="true" className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M5 12h14m-7-7 7 7-7 7" />
+                  <svg aria-hidden="true" className="size-6 text-text-on-light" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+                    <path d="M6 16h20M18 8l8 8-8 8" />
                   </svg>
                 </Link>
-              </div>
-            ) : null}
+              ) : null}
+            </div>
+            <div className={cn('hero-mobile-details flex flex-col gap-2 pt-2', project.testimonial && 'pb-4')}>
+              {project.subtitle ? (
+                <p className="max-w-2xl text-body text-pretty text-text-on-media-muted">{project.subtitle}</p>
+              ) : null}
+              <HeroProjectPills pills={project.pills} />
+            </div>
+            {/* Always rendered: it also holds the bottom inset. */}
+            <div className="hero-mobile-footer" style={{ paddingBottom: MOBILE_CONTENT_BOTTOM }}>
+              {project.testimonial ? (
+                <div className="flex flex-col gap-4">
+                  <Testimonial quote={project.testimonial.quote} name={project.testimonial.name} variant="hero" />
+                  <Link
+                    href={`/work/${project.slug}`}
+                    className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-medium text-text-on-light focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  >
+                    View work
+                    <svg aria-hidden="true" className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M5 12h14m-7-7 7 7-7 7" />
+                    </svg>
+                  </Link>
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
+        {/* Darkened by observeHeroCubeTransition as the face turns away. */}
+        <div aria-hidden="true" className="hero-mobile-shade pointer-events-none absolute inset-0 z-30 bg-black opacity-0" />
       </div>
-      {/* Set by observeHeroCubeTransition as the slide turns away. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-30 bg-black"
-        style={{ opacity: 'var(--hero-cube-shade, 0)' }}
-      />
     </div>
   )
-}
+})
 
 export function HeroProjectSlideshow({ projects: initialProjects }: Props) {
   // This slideshow only mounts on the client (mobile), so shuffling before the
@@ -493,7 +483,8 @@ export function HeroProjectSlideshow({ projects: initialProjects }: Props) {
   const mobileViewportProbeRef = useRef<HTMLDivElement>(null)
   const isInView = useInView(regionRef, { amount: 0.25 })
   const prefersReducedMotion = useReducedMotion()
-  const [isMobileViewport, setIsMobileViewport] = useState(false)
+  // Client-only component (see HomeHeroProjects), so the first render can read the viewport.
+  const [isMobileViewport, setIsMobileViewport] = useState(() => window.matchMedia('(max-width: 809px)').matches)
   const [isMobileHeroVisible, setIsMobileHeroVisible] = useState(false)
   const [isMobileAutoplayPaused, setIsMobileAutoplayPaused] = useState(false)
   const progress = useMotionValue(0)
@@ -753,7 +744,15 @@ export function HeroProjectSlideshow({ projects: initialProjects }: Props) {
 
     const selected = carousel.querySelector<HTMLElement>('.hero-mobile-slide[aria-hidden="false"]')
     const initialIndex = Math.max(0, projects.findIndex(project => project.id === selected?.dataset.projectId))
-    const stopLooping = observeLoopingHeroCarousel(carousel, projects.length, initialIndex, setActiveIndex, () => setIsMobileAutoplayPaused(true))
+    const stopLooping = observeLoopingHeroCarousel(
+      carousel,
+      projects.length,
+      initialIndex,
+      // Rendering the newly selected slide can take longer than a frame on a
+      // phone; as a transition, React splits it up instead of dropping frames.
+      index => startTransition(() => setActiveIndex(index)),
+      () => setIsMobileAutoplayPaused(true),
+    )
     // Start after the loop aligns the selected slide, so the first frame is flat.
     const stopCube = observeHeroCubeTransition(carousel, projects.length)
     return () => {
@@ -976,8 +975,10 @@ export function HeroProjectSlideshow({ projects: initialProjects }: Props) {
             if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setIsFocusPaused(false)
           }}
         >
+      {/* Desktop only: on phones this hidden layer would load the active
+          project's media again on every slide change. */}
       <AnimatePresence initial={false} mode="sync">
-        {activeMedia?.url ? (
+        {activeMedia?.url && !isMobileViewport ? (
           <motion.div
             key={activeProject.id}
             className="absolute inset-0 hidden tablet:block"
@@ -1072,6 +1073,7 @@ export function HeroProjectSlideshow({ projects: initialProjects }: Props) {
         </>
       ) : null}
 
+      {isMobileViewport ? null : (
       <div
         role="group"
         aria-label={`${activeIndex + 1} of ${projects.length}: ${activeProject.title}`}
@@ -1125,6 +1127,7 @@ export function HeroProjectSlideshow({ projects: initialProjects }: Props) {
           </AnimatePresence>
         </div>
       </div>
+      )}
 
         </motion.section>
 

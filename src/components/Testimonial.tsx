@@ -41,7 +41,7 @@ export function Testimonial({ quote, name, company, companyLogo, photo, linkedIn
     <div
       className={cn(
         isHero
-          ? 'flex flex-col gap-4 rounded-[20px] bg-white/10 p-5 backdrop-blur-[40px] tablet:rounded-[24px] tablet:bg-black/20 tablet:p-6'
+          ? 'flex flex-col gap-4 rounded-[20px] bg-white/10 p-5 tablet:rounded-[24px] tablet:bg-black/20 tablet:p-6 tablet:backdrop-blur-[40px]'
           : 'flex h-full flex-col rounded-[20px] bg-background-alt p-6 tablet:rounded-[30px] tablet:p-8 desktop:rounded-[40px] desktop:p-10',
       )}
     >

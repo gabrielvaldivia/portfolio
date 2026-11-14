@@ -1,6 +1,7 @@
 /**
  * Loop horizontal drags continuously, keeping native scrolling for other input.
  * A tap outside links and buttons turns the page: left half back, right half forward.
+ * The selected slide is reported once it has landed, so a turn runs without React work.
  */
 export function observeLoopingHeroCarousel(
   carousel: HTMLElement,
@@ -12,6 +13,10 @@ export function observeLoopingHeroCarousel(
   const offset = count > 1 ? 1 : 0
   let width = carousel.clientWidth
   let currentIndex = initialIndex
+  let reportedIndex = initialIndex
+  // Corrections made in a row because the scroll stopped between slides.
+  let settleCorrections = 0
+  let lastScrollAt = 0
   let interacting = false
   let pointerId: number | null = null
   let suppressClick = false
@@ -42,14 +47,33 @@ export function observeLoopingHeroCarousel(
   const settle = () => {
     if (interacting || !width) return
     const page = carousel.scrollLeft / width
-    if (Math.abs(page - Math.round(page)) < 0.01) tapTargetPage = null
-    if (!offset) return
+    const nearest = Math.round(page)
+    if (Math.abs(page - nearest) >= 0.01) {
+      // A jump reports scrollend even while a smooth scroll it started is
+      // still moving; only correct a scroll that has really stopped.
+      if (performance.now() - lastScrollAt < 150) {
+        scheduleSettle()
+        return
+      }
+      // Never rest between slides, whatever stopped the scroll there. Jump on
+      // a third try so a browser that keeps stopping short cannot loop.
+      settleCorrections += 1
+      if (settleCorrections > 2) {
+        carousel.scrollTo({ left: Math.max(0, Math.min(count - 1 + offset * 2, nearest)) * width, behavior: 'instant' })
+      } else scrollToPage(nearest)
+      return
+    }
+    settleCorrections = 0
+    tapTargetPage = null
     // Only jump once a duplicate is fully in place. Its matching real slide
     // looks identical, so the next swipe can continue in either direction.
-    if (Math.abs(page) < 0.01 || Math.abs(page - count - 1) < 0.01) {
+    if (offset && (Math.abs(page) < 0.01 || Math.abs(page - count - 1) < 0.01)) {
       currentIndex = page < 1 ? count - 1 : 0
-      onIndexChange(currentIndex)
       alignSelectedSlide()
+    }
+    if (currentIndex !== reportedIndex) {
+      reportedIndex = currentIndex
+      onIndexChange(currentIndex)
     }
   }
   const scheduleSettle = () => {
@@ -58,13 +82,10 @@ export function observeLoopingHeroCarousel(
     settleTimeout = setTimeout(settle, 180)
   }
   const handleScroll = () => {
+    lastScrollAt = performance.now()
     if (!width) return
     const page = Math.round(carousel.scrollLeft / width)
-    const index = ((page - offset) % count + count) % count
-    if (index !== currentIndex) {
-      currentIndex = index
-      onIndexChange(index)
-    }
+    currentIndex = ((page - offset) % count + count) % count
     scheduleSettle()
   }
   const handleScrollEnd = (event: Event) => {
@@ -74,6 +95,7 @@ export function observeLoopingHeroCarousel(
     clearTimeout(settleTimeout)
     interacting = true
     suppressClick = false
+    settleCorrections = 0
     const left = carousel.scrollLeft
     gesture = {
       x,

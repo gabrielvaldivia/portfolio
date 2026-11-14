@@ -30,17 +30,18 @@ try {
   assert.equal(await underNav(page), true, 'the full-screen hero turns the menu icon white')
   assert.equal(await page.locator('.mobile-site-nav .site-menu-toggle').evaluate(el => getComputedStyle(el).color), 'rgb(255, 255, 255)')
 
-  // Every frame, the slides the scroll position shows must be visible, through
-  // rapid taps and swipes across both loop seams.
+  // Every frame, through rapid taps and slow swipes across both loop seams:
+  // faces turn, while the slides (the scroll-snap targets) never transform.
+  // Safari derives snap points from transformed boxes, so a transformed slide
+  // creates false snap points where the carousel can rest mid-turn.
   await page.evaluate(() => {
     const track = document.querySelector('.hero-mobile-carousel')
-    window.__cube = { frames: 0, turning: 0, blank: [] }
+    window.__cube = { frames: 0, turning: 0, snapTransformed: 0, hidden: 0 }
     const check = () => {
-      const position = track.scrollLeft / track.clientWidth
       const slides = [...track.children]
-      const shown = [Math.floor(position + 0.001), Math.ceil(position - 0.001)]
-      if (shown.some(index => slides[index]?.style.visibility === 'hidden')) window.__cube.blank.push(position)
-      if (slides.some(slide => slide.style.transform)) window.__cube.turning++
+      if (slides.some(slide => slide.style.transform || getComputedStyle(slide).transform !== 'none')) window.__cube.snapTransformed++
+      if (slides.some(slide => slide.style.visibility === 'hidden' || slide.firstElementChild?.style.visibility === 'hidden')) window.__cube.hidden++
+      if (slides.some(slide => slide.querySelector(':scope > .hero-mobile-face')?.style.transform)) window.__cube.turning++
       window.__cube.frames++
       requestAnimationFrame(check)
     }
@@ -51,14 +52,22 @@ try {
     await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y: 300 }] })
     await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
   }
-  const swipe = async direction => {
+  const swipe = async (direction, distance = 280, steps = 10) => {
     const x = direction === 1 ? 340 : 45
     await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y: 300 }] })
-    for (let step = 1; step <= 10; step++) {
-      await touch.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x - direction * 280 * step / 10, y: 300 }] })
+    for (let step = 1; step <= steps; step++) {
+      await touch.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x - direction * distance * step / steps, y: 300 }] })
       await page.waitForTimeout(16)
     }
     await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+  }
+  const restsOnSlide = async label => {
+    await page.waitForTimeout(900)
+    const state = await carousel.evaluate(track => ({
+      position: track.scrollLeft / track.clientWidth,
+      turned: [...track.querySelectorAll('.hero-mobile-face')].filter(face => face.style.transform).length,
+    }))
+    assert.ok(Math.abs(state.position - Math.round(state.position)) < 0.01 && state.turned === 0, `${label}: ${JSON.stringify(state)}`)
   }
   const count = await page.locator('.hero-mobile-pagination button').count()
   for (let step = 0; step <= count; step++) {
@@ -74,12 +83,21 @@ try {
     for (let step = 0; step <= count; step++) await swipe(direction)
     await page.waitForTimeout(800)
   }
+  // Slow drags released anywhere from just short of halfway to most of the way.
+  for (const distance of [120, 175, 195, 215, 260]) {
+    await swipe(1, distance, 40)
+    await restsOnSlide(`a slow ${distance}px drag comes to rest on a whole slide, flat`)
+  }
   await touch.detach()
   const cube = await page.evaluate(() => window.__cube)
-  assert.ok(cube.turning > 20, `slides turn in 3D between pages: ${JSON.stringify(cube)}`)
-  assert.deepEqual(cube.blank, [], 'no frame hides a slide the viewport shows, including loop jumps')
-  const active = page.locator('.hero-mobile-slide[aria-hidden="false"]')
-  assert.equal(await active.evaluate(el => el.style.transform), '', 'the settled slide is flat')
+  assert.ok(cube.turning > 20, `faces turn in 3D between pages: ${JSON.stringify(cube)}`)
+  assert.equal(cube.snapTransformed, 0, 'scroll-snap slides are never transformed')
+  assert.equal(cube.hidden, 0, 'no slide is hidden, so a late style update can never show a gap')
+
+  // Whatever stops a scroll between slides, the carousel finishes the turn.
+  await page.addStyleTag({ content: '.hero-mobile-carousel { scroll-snap-type: none !important }' })
+  await carousel.evaluate(track => track.scrollTo({ left: track.scrollLeft + track.clientWidth * 0.45, behavior: 'instant' }))
+  await restsOnSlide('a scroll stopped mid-turn settles on a whole slide')
   assert.deepEqual(errors, [], 'no browser runtime errors')
   await page.close()
 
@@ -87,10 +105,10 @@ try {
   await reduced.page.locator('.hero-mobile-carousel').evaluate(el => el.scrollIntoView({ behavior: 'instant', block: 'start' }))
   await reduced.page.locator('.hero-mobile-pagination button').nth(1).click()
   await reduced.page.waitForTimeout(400)
-  const transformed = await reduced.page.locator('.hero-mobile-carousel > *').evaluateAll(slides => slides.filter(slide => slide.style.transform || slide.style.visibility === 'hidden').length)
+  const transformed = await reduced.page.locator('.hero-mobile-face').evaluateAll(faces => faces.filter(face => face.style.transform).length)
   assert.equal(transformed, 0, 'reduced motion keeps flat slides')
   assert.deepEqual(reduced.errors, [], 'no browser runtime errors with reduced motion')
-  console.log('PASS: cube turns without blank frames, flat at rest and with reduced motion, white menu over the hero')
+  console.log('PASS: faces turn while snap targets stay flat, slow drags and stopped scrolls rest on a slide, reduced motion stays flat, white menu over the hero')
 } finally {
   await browser.close()
 }

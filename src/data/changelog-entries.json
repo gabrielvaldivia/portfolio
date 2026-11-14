@@ -3,7 +3,7 @@
   "date": "2026-11-14",
   "title": "Story-style flips through featured work",
   "changes": [
-   "On phones, the homepage carousel now flips like stories: tap either half to go back or forward, and slides turn like faces of a cube. Images reach down behind the text and glow into their background, and the menu icon turns white over the full-screen carousel."
+   "On phones, the homepage carousel now flips like stories: tap either half to go back or forward, and slides turn smoothly like faces of a cube, always landing on a project. Images reach down behind the text and glow into their background; the menu turns white over it."
   ]
  },
  {
