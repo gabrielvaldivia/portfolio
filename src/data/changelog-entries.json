@@ -1,9 +1,9 @@
 [
  {
   "date": "2026-11-14",
-  "title": "Tap to flip through featured work",
+  "title": "Story-style flips through featured work",
   "changes": [
-   "On phones, the homepage carousel now flips like stories: tap the right half for the next project and the left half for the previous one, looping at either end. The View work button still opens the project."
+   "On phones, the homepage carousel now flips like stories: tap either half to go back or forward, and slides turn like faces of a cube. Each image glows into its background through a soft blurred aura, and the menu icon turns white over the full-screen carousel."
   ]
  },
  {

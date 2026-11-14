@@ -1,6 +1,11 @@
 {
-  "throughCommit": "0889dd1f7193f9729cb2d12d78ce4a4942c32783",
+  "throughCommit": "f92498bb39d58b484fd0d81804a685d568ecfa87",
   "commits": [
+    {
+      "hash": "f92498bb39d58b484fd0d81804a685d568ecfa87",
+      "date": "2026-11-14",
+      "subject": "Tap either half of the mobile hero carousel to change slides"
+    },
     {
       "hash": "0889dd1f7193f9729cb2d12d78ce4a4942c32783",
       "date": "2026-11-12",

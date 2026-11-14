@@ -30,6 +30,7 @@ import type { ResponsiveImageMedia } from '@/lib/responsiveImage'
 import { observeMobileHeroViewport } from '@/lib/observeMobileHeroViewport'
 import { observeMobileHeroPagination } from '@/lib/observeMobileHeroPagination'
 import { observeLoopingHeroCarousel } from '@/lib/observeLoopingHeroCarousel'
+import { observeHeroCubeTransition } from '@/lib/observeHeroCubeTransition'
 import { cn } from '@/lib/cn'
 
 type HeroTestimonial = {
@@ -74,9 +75,30 @@ const MOBILE_HERO_MEDIA_OVERRIDES: Record<string, ResponsiveImageMedia> = {
   },
 }
 // Smoothstep alpha stops: a gentle fade with flat tangents at both ends.
-const MOBILE_IMAGE_MASK = 'linear-gradient(to bottom, #000 60%, rgb(0 0 0 / .972) 64%, rgb(0 0 0 / .896) 68%, rgb(0 0 0 / .784) 72%, rgb(0 0 0 / .648) 76%, rgb(0 0 0 / .5) 80%, rgb(0 0 0 / .352) 84%, rgb(0 0 0 / .216) 88%, rgb(0 0 0 / .104) 92%, rgb(0 0 0 / .028) 96%, transparent 100%)'
+function smoothFadeMask(start: number) {
+  const stops = Array.from({ length: 9 }, (_, index) => {
+    const progress = (index + 1) / 10
+    const alpha = 1 - progress * progress * (3 - 2 * progress)
+    return `rgb(0 0 0 / ${Number(alpha.toFixed(3))}) ${Number((start + (100 - start) * progress).toFixed(2))}%`
+  })
+  return `linear-gradient(to bottom, #000 ${start}%, ${stops.join(', ')}, transparent 100%)`
+}
+const MOBILE_IMAGE_MASK = smoothFadeMask(60)
+// A heavily blurred copy of the media glows from behind it, carrying its
+// colors past the image's fade before giving way to the solid background.
+const MOBILE_AURA_MASK = smoothFadeMask(62)
+const MOBILE_AURA_STYLE = {
+  transform: 'scale(1.35)',
+  transformOrigin: '50% 0',
+  filter: 'blur(64px) saturate(1.25)',
+  opacity: 0.9,
+  maskImage: MOBILE_AURA_MASK,
+  WebkitMaskImage: MOBILE_AURA_MASK,
+} as const
+const VIDEO_AURA_WIDTH = 48
+const VIDEO_AURA_FRAME_MS = 1000 / 12
 
-function SilentBackgroundVideo({ src, label, playing = true, load = true, onLoadedData, onError }: {
+function SilentBackgroundVideo({ src, label, playing = true, load = true, onLoadedData, onError, onVideoElement }: {
   src: string
   label: string
   playing?: boolean
@@ -84,8 +106,13 @@ function SilentBackgroundVideo({ src, label, playing = true, load = true, onLoad
   load?: boolean
   onLoadedData?: (video: HTMLVideoElement) => void
   onError?: () => void
+  onVideoElement?: (video: HTMLVideoElement | null) => void
 }) {
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+  const setVideoElement = useCallback((video: HTMLVideoElement | null) => {
+    videoRef.current = video
+    onVideoElement?.(video)
+  }, [onVideoElement])
 
   useEffect(() => {
     const video = videoRef.current
@@ -117,7 +144,7 @@ function SilentBackgroundVideo({ src, label, playing = true, load = true, onLoad
 
   return (
     <video
-      ref={videoRef}
+      ref={setVideoElement}
       aria-label={label}
       autoPlay={playing}
       loop
@@ -137,6 +164,61 @@ function SilentBackgroundVideo({ src, label, playing = true, load = true, onLoad
       }}
     />
   )
+}
+
+/** Mirror a playing video into a tiny canvas; CSS scales and blurs it into an aura. */
+function VideoAura({ video, playing }: { video: HTMLVideoElement | null; playing: boolean }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    const context = canvas?.getContext('2d')
+    if (!video || !canvas || !context) return
+
+    let animationFrame: number | null = null
+    let videoFrame: number | null = null
+    let lastDraw = -Infinity
+    const draw = () => {
+      const { videoWidth, videoHeight } = video
+      if (video.readyState < 2 || !videoWidth || !videoHeight || !canvas.clientWidth || !canvas.clientHeight) return
+      // Crop like object-cover so the glow lines up with the video above it.
+      const boxAspect = canvas.clientWidth / canvas.clientHeight
+      const height = Math.max(1, Math.round(VIDEO_AURA_WIDTH / boxAspect))
+      if (canvas.width !== VIDEO_AURA_WIDTH) canvas.width = VIDEO_AURA_WIDTH
+      if (canvas.height !== height) canvas.height = height
+      let sourceWidth = videoWidth
+      let sourceHeight = videoHeight
+      if (videoWidth / videoHeight > boxAspect) sourceWidth = videoHeight * boxAspect
+      else sourceHeight = videoWidth / boxAspect
+      context.drawImage(video, (videoWidth - sourceWidth) / 2, (videoHeight - sourceHeight) / 2, sourceWidth, sourceHeight, 0, 0, canvas.width, canvas.height)
+    }
+    const schedule = () => {
+      if ('requestVideoFrameCallback' in video) videoFrame = video.requestVideoFrameCallback(tick)
+      else animationFrame = requestAnimationFrame(tick)
+    }
+    // The blur hides motion detail, so a dozen updates a second is plenty.
+    const tick = (now: number) => {
+      if (now - lastDraw >= VIDEO_AURA_FRAME_MS) {
+        lastDraw = now
+        draw()
+      }
+      schedule()
+    }
+
+    draw()
+    video.addEventListener('loadeddata', draw)
+    video.addEventListener('seeked', draw)
+    if (playing) schedule()
+
+    return () => {
+      video.removeEventListener('loadeddata', draw)
+      video.removeEventListener('seeked', draw)
+      if (animationFrame !== null) cancelAnimationFrame(animationFrame)
+      if (videoFrame !== null && 'cancelVideoFrameCallback' in video) video.cancelVideoFrameCallback(videoFrame)
+    }
+  }, [playing, video])
+
+  return <canvas ref={canvasRef} className="absolute inset-0 size-full" />
 }
 
 function samplePredominantMediaColor(image: HTMLImageElement | HTMLVideoElement) {
@@ -246,6 +328,7 @@ function MobileHeroSlide({
   const media = mediaOverride
     ? { ...project.featuredImage, ...mediaOverride, sizes: null }
     : project.featuredImage
+  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null)
   const [sampledColor, setSampledColor] = useState('24 24 24')
   const [canSampleColor, setCanSampleColor] = useState(true)
   const gradientColor = hexToRgbChannels(project.gradientColor) ?? sampledColor
@@ -275,6 +358,30 @@ function MobileHeroSlide({
         className="hero-mobile-surface relative grid size-full grid-cols-1 grid-rows-[minmax(0,1fr)_auto_auto] overflow-hidden"
         style={{ backgroundColor: `rgb(${gradientColor})` }}
       >
+        {media?.url ? (
+          <div
+            aria-hidden="true"
+            className="hero-mobile-aura pointer-events-none relative col-start-1 row-start-1 row-end-3 min-h-0"
+            style={MOBILE_AURA_STYLE}
+          >
+            {isVideoMedia(media) ? (
+              <VideoAura video={videoElement} playing={active} />
+            ) : (
+              <PayloadImage
+                key={needsColorSample ? 'sample' : 'display'}
+                media={media}
+                alt=""
+                fill
+                className="object-cover"
+                // Match the sharp image so the browser reuses the same file.
+                sizes="180vh"
+                loading={priority || active ? 'eager' : undefined}
+                crossOrigin={needsColorSample ? 'anonymous' : undefined}
+              />
+            )}
+          </div>
+        ) : null}
+
         {/* The media shares the title's bottom grid line; captions and
             testimonials determine the solid-color area without JS sizing. */}
         <div
@@ -291,6 +398,7 @@ function MobileHeroSlide({
                 load={shouldLoadVideo}
                 onLoadedData={needsColorSample ? updateMediaColor : undefined}
                 onError={() => setCanSampleColor(false)}
+                onVideoElement={setVideoElement}
               />
             ) : (
               <PayloadImage
@@ -353,6 +461,12 @@ function MobileHeroSlide({
           </div>
         </div>
       </div>
+      {/* Set by observeHeroCubeTransition as the slide turns away. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-30 bg-black"
+        style={{ opacity: 'var(--hero-cube-shade, 0)' }}
+      />
     </div>
   )
 }
@@ -635,7 +749,13 @@ export function HeroProjectSlideshow({ projects: initialProjects }: Props) {
 
     const selected = carousel.querySelector<HTMLElement>('.hero-mobile-slide[aria-hidden="false"]')
     const initialIndex = Math.max(0, projects.findIndex(project => project.id === selected?.dataset.projectId))
-    return observeLoopingHeroCarousel(carousel, projects.length, initialIndex, setActiveIndex, () => setIsMobileAutoplayPaused(true))
+    const stopLooping = observeLoopingHeroCarousel(carousel, projects.length, initialIndex, setActiveIndex, () => setIsMobileAutoplayPaused(true))
+    // Start after the loop aligns the selected slide, so the first frame is flat.
+    const stopCube = observeHeroCubeTransition(carousel, projects.length)
+    return () => {
+      stopCube()
+      stopLooping()
+    }
   }, [isMobileViewport, projects])
 
   useEffect(() => {
@@ -644,6 +764,38 @@ export function HeroProjectSlideshow({ projects: initialProjects }: Props) {
     if (!region) return
     return observeMobileHeroPagination(region)
   }, [isMobileViewport, projects.length])
+
+  useEffect(() => {
+    if (!isMobileViewport) return
+    const region = regionRef.current
+    if (!region) return
+    const root = document.documentElement
+    let frame: number | null = null
+    // Flag when the fully expanded carousel sits behind the mobile menu
+    // button, so the button can switch to its on-media color.
+    const update = () => {
+      frame = null
+      const toggle = document.querySelector('.mobile-site-nav .site-menu-toggle')?.getBoundingClientRect()
+      const toggleCenter = toggle ? toggle.top + toggle.height / 2 : 36
+      const bounds = region.getBoundingClientRect()
+      const expanded = prefersReducedMotion || window.scrollY >= expansionDistance.get() - 0.5
+      root.toggleAttribute('data-hero-under-nav', expanded && bounds.top <= toggleCenter && bounds.bottom >= toggleCenter)
+    }
+    const scheduleUpdate = () => {
+      if (frame === null) frame = requestAnimationFrame(update)
+    }
+    update()
+    const unsubscribeDistance = expansionDistance.on('change', scheduleUpdate)
+    window.addEventListener('scroll', scheduleUpdate, { passive: true })
+    window.addEventListener('resize', scheduleUpdate)
+    return () => {
+      unsubscribeDistance()
+      window.removeEventListener('scroll', scheduleUpdate)
+      window.removeEventListener('resize', scheduleUpdate)
+      if (frame !== null) cancelAnimationFrame(frame)
+      root.removeAttribute('data-hero-under-nav')
+    }
+  }, [expansionDistance, isMobileViewport, prefersReducedMotion])
 
   useEffect(() => {
     progress.set(0)
@@ -739,7 +891,8 @@ export function HeroProjectSlideshow({ projects: initialProjects }: Props) {
             ref={mobileCarouselRef}
             tabIndex={0}
             aria-label="Scroll featured projects left or right"
-            className="hero-mobile-carousel flex w-full cursor-grab select-none snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-white"
+            // Black shows around the cube's receding faces, as in Instagram stories.
+            className="hero-mobile-carousel flex w-full cursor-grab select-none bg-black snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-white"
             style={{ height: MOBILE_SLIDE_HEIGHT, touchAction: 'pan-y pinch-zoom' }}
           >
             {isMobileViewport && projects.length > 1 ? (

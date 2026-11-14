@@ -521,6 +521,11 @@ h2 {
     scroll-snap-type: none;
   }
 
+  /* Set by HeroProjectSlideshow while the full-screen carousel is behind the menu. */
+  html[data-hero-under-nav] .mobile-site-nav .site-menu-toggle[aria-expanded='false'] {
+    color: var(--color-text-on-media-strong);
+  }
+
   .hero-intro-snap-point {
     scroll-margin-top: 94px;
   }

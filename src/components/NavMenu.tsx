@@ -238,7 +238,7 @@ function MorphMenu({
         aria-expanded={open}
         tabIndex={visible ? 0 : -1}
         className={cn(
-          'group peer absolute right-0 top-0 z-10 flex size-10 cursor-pointer items-center justify-center rounded-full transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content',
+          'site-menu-toggle group peer absolute right-0 top-0 z-10 flex size-10 cursor-pointer items-center justify-center rounded-full transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content',
           'text-text-strong',
         )}
       >
