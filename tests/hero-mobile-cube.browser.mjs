@@ -126,6 +126,8 @@ try {
 
   const reduced = await open({ reducedMotion: 'reduce' })
   await reduced.page.locator('.hero-mobile-carousel').evaluate(el => el.scrollIntoView({ behavior: 'instant', block: 'start' }))
+  // The progress lines appear once the carousel fills the screen; click them only then.
+  await reduced.page.locator('.hero-mobile-pagination').waitFor({ state: 'visible' })
   await reduced.page.locator('.hero-mobile-pagination button').nth(1).click()
   await reduced.page.waitForTimeout(400)
   const transformed = await reduced.page.locator('.hero-mobile-face').evaluateAll(faces => faces.filter(face => face.style.transform).length)

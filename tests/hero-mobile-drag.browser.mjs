@@ -15,11 +15,19 @@ try {
   await carousel.waitFor({ state: 'visible' })
   await page.waitForFunction(() => document.querySelector('.hero-project-scroll-region')?.style.getPropertyValue('--hero-mobile-height'))
   await carousel.evaluate(el => el.scrollIntoView({ block: 'start', behavior: 'instant' }))
+  // The progress lines appear once the carousel fills the screen; click them only then.
+  await page.locator('.hero-mobile-pagination').waitFor({ state: 'visible' })
   const buttons = page.locator('.hero-mobile-pagination button')
-  await buttons.first().click()
-  await page.waitForTimeout(300)
   const count = await buttons.count()
   const selected = () => buttons.evaluateAll(els => els.findIndex(el => el.getAttribute('aria-current') === 'true'))
+  // A slide counts as selected once it has landed; wait for that instead of a fixed time.
+  const landsOn = index => page.waitForFunction(index => {
+    const track = document.querySelector('.hero-mobile-carousel')
+    return Math.abs(track.scrollLeft - (index + 1) * track.clientWidth) < 2
+      && document.querySelectorAll('.hero-mobile-pagination button')[index].getAttribute('aria-current') === 'true'
+  }, index, { timeout: 5000 }).catch(() => {})
+  await buttons.first().click()
+  await landsOn(0)
   const pageY = await page.evaluate(() => scrollY)
   for (const direction of [1, -1, -1, 1]) {
     const before = await selected()
@@ -29,17 +37,17 @@ try {
     await page.mouse.down()
     await page.mouse.move(to, 350, { steps: 18 })
     await page.mouse.up()
-    await page.waitForTimeout(800)
+    await landsOn((before + direction + count) % count)
     assert.equal(await selected(), (before + direction + count) % count, 'drag changes slides in both directions and across the loop')
     assert.equal(new URL(page.url()).pathname, '/', 'drag does not open a project')
     assert.ok(Math.abs(await page.evaluate(() => scrollY) - pageY) < 2, 'drag does not scroll the page vertically')
   }
   const beforeClicks = await selected()
   await page.mouse.click(300, 350)
-  await page.waitForTimeout(800)
+  await landsOn((beforeClicks + 1) % count)
   assert.equal(await selected(), (beforeClicks + 1) % count, 'clicking the right half shows the next slide')
   await page.mouse.click(90, 350)
-  await page.waitForTimeout(800)
+  await landsOn(beforeClicks)
   assert.equal(await selected(), beforeClicks, 'clicking the left half shows the previous slide')
   assert.equal(new URL(page.url()).pathname, '/', 'page-turn clicks do not open a project')
   const activeLink = page.locator('.hero-mobile-slide[aria-hidden="false"] a[href^="/work/"]')

@@ -71,10 +71,21 @@ export function observeLoopingHeroCarousel(
     const distance = Math.abs(to - from) / width
     const duration = Math.min(650, 160 + 260 * Math.sqrt(distance))
     const start = performance.now()
+    let expectedLeft = from
     const step = (now: number) => {
+      // Something else scrolled the carousel (another script, assistive
+      // technology): let that win, and settle once it stops.
+      if (Math.abs(carousel.scrollLeft - expectedLeft) > 1) {
+        animationFrame = null
+        targetPage = null
+        scheduleSettle()
+        return
+      }
       const progress = Math.min(1, Math.max(0, (now - start) / duration))
       // Ease out, like a cube that was pushed and comes to rest.
-      setLeft(from + (to - from) * (1 - (1 - progress) ** 3))
+      expectedLeft = from + (to - from) * (1 - (1 - progress) ** 3)
+      setLeft(expectedLeft)
+      expectedLeft = carousel.scrollLeft
       onFrame?.()
       if (progress < 1) {
         animationFrame = requestAnimationFrame(step)

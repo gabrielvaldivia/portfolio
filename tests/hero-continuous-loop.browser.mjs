@@ -41,6 +41,8 @@ try {
     await page.waitForTimeout(200)
   }
   await carousel.evaluate(el => el.scrollIntoView({ behavior: 'instant', block: 'start' }))
+  // The progress lines appear once the carousel fills the screen; click them only then.
+  await page.locator('.hero-mobile-pagination').waitFor({ state: 'visible' })
   await page.waitForTimeout(300)
   const heroY = await page.evaluate(() => scrollY)
   for (const direction of [1, -1]) {

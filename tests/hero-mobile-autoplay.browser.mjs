@@ -24,7 +24,7 @@ try {
       && document.querySelectorAll('.hero-mobile-pagination button')[index].getAttribute('aria-current') === 'true'
   }, index, { timeout: 8500 })
   assert.equal(await page.evaluate(() => scrollY), 0, 'starts at the homepage intro')
-  assert.equal(await page.locator('.hero-mobile-pagination').isVisible(), true, 'pagination lines are visible at the intro')
+  assert.equal(await page.locator('.hero-mobile-pagination').isVisible(), false, 'pagination lines wait until the carousel is full screen')
   let selected = await currentIndex()
   selected = (selected + 1) % count
   await checkSelected(selected)
@@ -32,6 +32,7 @@ try {
   console.log('PASS: mobile autoplay and pagination work at the top of the homepage')
   await carousel.evaluate(el => el.scrollIntoView({ behavior: 'instant', block: 'start' }))
   await page.waitForTimeout(500)
+  assert.equal(await page.locator('.hero-mobile-pagination').isVisible(), true, 'pagination lines appear once the carousel is full screen')
   const heroY = await page.evaluate(() => scrollY)
   selected = await currentIndex()
   for (let step = 0; step < count + 1; step++) {

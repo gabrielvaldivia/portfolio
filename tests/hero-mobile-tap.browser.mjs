@@ -16,6 +16,8 @@ try {
   await page.addStyleTag({ content: '[data-agentation-root], nextjs-portal { display: none !important; }' })
   const carousel = page.locator('.hero-mobile-carousel')
   await carousel.evaluate(el => el.scrollIntoView({ behavior: 'instant', block: 'start' }))
+  // The progress lines appear once the carousel fills the screen; click them only then.
+  await page.locator('.hero-mobile-pagination').waitFor({ state: 'visible' })
   await page.waitForTimeout(300)
   const buttons = page.locator('.hero-mobile-pagination button')
   const count = await buttons.count()

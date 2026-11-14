@@ -1,6 +1,11 @@
 {
-  "throughCommit": "3477181663f999841f44251f74650cb3ed5d1ec3",
+  "throughCommit": "a466eb6c397b6e521ec420cd795c33ffdc479d5f",
   "commits": [
+    {
+      "hash": "a466eb6c397b6e521ec420cd795c33ffdc479d5f",
+      "date": "2026-11-14",
+      "subject": "Drive mobile carousel motion in JS; remove the aura and lower image"
+    },
     {
       "hash": "3477181663f999841f44251f74650cb3ed5d1ec3",
       "date": "2026-11-14",

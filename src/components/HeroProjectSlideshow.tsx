@@ -389,6 +389,8 @@ export function HeroProjectSlideshow({ projects: initialProjects }: Props) {
   // Client-only component (see HomeHeroProjects), so the first render can read the viewport.
   const [isMobileViewport, setIsMobileViewport] = useState(() => window.matchMedia('(max-width: 809px)').matches)
   const [isMobileHeroVisible, setIsMobileHeroVisible] = useState(false)
+  // Fully expanded and mostly on screen: the progress lines wait for this.
+  const [isMobileHeroFullScreen, setIsMobileHeroFullScreen] = useState(false)
   const [isMobileAutoplayPaused, setIsMobileAutoplayPaused] = useState(false)
   const progress = useMotionValue(0)
   const insetScale = useMotionValue(1)
@@ -676,14 +678,18 @@ export function HeroProjectSlideshow({ projects: initialProjects }: Props) {
     const root = document.documentElement
     let frame: number | null = null
     // Flag when the fully expanded carousel sits behind the mobile menu
-    // button, so the button can switch to its on-media color.
+    // button, so the button can switch to its on-media color and the
+    // progress lines can appear. React re-renders only when this flips.
     const update = () => {
       frame = null
       const toggle = document.querySelector('.mobile-site-nav .site-menu-toggle')?.getBoundingClientRect()
       const toggleCenter = toggle ? toggle.top + toggle.height / 2 : 36
       const bounds = region.getBoundingClientRect()
       const expanded = prefersReducedMotion || window.scrollY >= expansionDistance.get() - 0.5
-      root.toggleAttribute('data-hero-under-nav', expanded && bounds.top <= toggleCenter && bounds.bottom >= toggleCenter)
+      const underNav = expanded && bounds.top <= toggleCenter && bounds.bottom >= toggleCenter
+      root.toggleAttribute('data-hero-under-nav', underNav)
+      // The lines sit at the carousel's top: show them only while most of it is on screen.
+      setIsMobileHeroFullScreen(underNav && bounds.top > -bounds.height / 2)
     }
     const scheduleUpdate = () => {
       if (frame === null) frame = requestAnimationFrame(update)
@@ -698,6 +704,7 @@ export function HeroProjectSlideshow({ projects: initialProjects }: Props) {
       window.removeEventListener('resize', scheduleUpdate)
       if (frame !== null) cancelAnimationFrame(frame)
       root.removeAttribute('data-hero-under-nav')
+      setIsMobileHeroFullScreen(false)
     }
   }, [expansionDistance, isMobileViewport, prefersReducedMotion])
 
@@ -834,9 +841,13 @@ export function HeroProjectSlideshow({ projects: initialProjects }: Props) {
             <div
               role="group"
               aria-label="Project pagination"
-              aria-hidden={!isMobileHeroVisible}
-              inert={!isMobileHeroVisible}
-              className={cn('hero-mobile-pagination absolute z-20 flex gap-1', !isMobileHeroVisible && 'invisible')}
+              aria-hidden={!isMobileHeroFullScreen}
+              inert={!isMobileHeroFullScreen}
+              // Hidden until the carousel fills the screen; fades in as it lands.
+              className={cn(
+                'hero-mobile-pagination absolute z-20 flex gap-1 transition-[opacity,visibility] duration-200 motion-reduce:duration-0',
+                !isMobileHeroFullScreen && 'invisible opacity-0',
+              )}
               // Inset the visible line by 20px, accounting for its 32px tap target.
               style={{ top: 'calc(max(1.25rem, env(safe-area-inset-top)) - 0.9375rem)', left: 'max(1.25rem, env(safe-area-inset-left))' }}
             >
