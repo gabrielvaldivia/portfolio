@@ -7,12 +7,12 @@
  * screen a frame before these styles do; because the hinge itself scrolls
  * natively, that lag only changes the angle, never where a slide sits.
  *
- * Each slide is a scroll-snap target and stays untransformed: Safari derives
- * snap positions from transformed boxes, so turning the slide itself creates
- * false snap points mid-turn where the carousel can come to rest. Only the
- * slide's `.hero-mobile-face` child turns, and its `.hero-mobile-shade`
- * darkens. Faces near the viewport keep their compositing layers between
- * turns, so a turn only changes transforms and opacity, never layout or paint.
+ * Each slide stays untransformed, so its box always matches its scroll
+ * position; only the slide's `.hero-mobile-face` child turns, and its
+ * `.hero-mobile-shade` darkens. Faces near the viewport keep their
+ * compositing layers between turns, so a turn only changes transforms and
+ * opacity, never layout or paint. Call `update` right after moving the
+ * carousel in an animation frame, so faces turn in that same frame.
  */
 export function observeHeroCubeTransition(carousel: HTMLElement, count: number) {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -105,16 +105,19 @@ export function observeHeroCubeTransition(carousel: HTMLElement, count: number) 
   carousel.addEventListener('scroll', update, { passive: true })
   reducedMotion.addEventListener('change', update)
 
-  return () => {
-    resizeObserver.disconnect()
-    carousel.removeEventListener('scroll', update)
-    reducedMotion.removeEventListener('change', update)
-    for (const slide of carousel.children) {
-      const parts = partsOf(slide)
-      if (parts) {
-        applied.delete(parts.face)
-        write(parts, 'off', false)
+  return {
+    update,
+    stop() {
+      resizeObserver.disconnect()
+      carousel.removeEventListener('scroll', update)
+      reducedMotion.removeEventListener('change', update)
+      for (const slide of carousel.children) {
+        const parts = partsOf(slide)
+        if (parts) {
+          applied.delete(parts.face)
+          write(parts, 'off', false)
+        }
       }
-    }
+    },
   }
 }

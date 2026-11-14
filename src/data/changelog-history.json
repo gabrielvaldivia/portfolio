@@ -1,6 +1,11 @@
 {
-  "throughCommit": "2364d692554b7c9a15131156517be78cb2733230",
+  "throughCommit": "3477181663f999841f44251f74650cb3ed5d1ec3",
   "commits": [
+    {
+      "hash": "3477181663f999841f44251f74650cb3ed5d1ec3",
+      "date": "2026-11-14",
+      "subject": "Stop the mobile carousel resting mid-turn and drop frames during turns"
+    },
     {
       "hash": "2364d692554b7c9a15131156517be78cb2733230",
       "date": "2026-11-14",

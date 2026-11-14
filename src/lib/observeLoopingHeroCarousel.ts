@@ -1,7 +1,14 @@
 /**
- * Loop horizontal drags continuously, keeping native scrolling for other input.
- * A tap outside links and buttons turns the page: left half back, right half forward.
- * The selected slide is reported once it has landed, so a turn runs without React work.
+ * Loop a full-width horizontal carousel continuously.
+ *
+ * Every horizontal movement is driven here: drags follow the finger, and
+ * releases, taps (left half back, right half forward), arrow keys and
+ * `scrollToStep` animate scrollLeft frame by frame. The carousel has no CSS
+ * scroll snapping and never uses native smooth scrolling, because Safari on
+ * iPhone runs both in a separate process where they can stop short between
+ * slides. Whatever stops a scroll mid-turn, the carousel then finishes it.
+ * The selected slide is reported once it has landed, so a turn runs without
+ * React work.
  */
 export function observeLoopingHeroCarousel(
   carousel: HTMLElement,
@@ -9,19 +16,22 @@ export function observeLoopingHeroCarousel(
   initialIndex: number,
   onIndexChange: (index: number) => void,
   onManualNavigation: () => void,
+  /** Called right after each animation frame moves the carousel. */
+  onFrame?: () => void,
 ) {
   const offset = count > 1 ? 1 : 0
+  const lastPage = count - 1 + offset * 2
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
   let width = carousel.clientWidth
   let currentIndex = initialIndex
   let reportedIndex = initialIndex
-  // Corrections made in a row because the scroll stopped between slides.
-  let settleCorrections = 0
   let lastScrollAt = 0
   let interacting = false
   let pointerId: number | null = null
   let suppressClick = false
-  // Where the latest tap is heading, so rapid taps keep advancing mid-scroll.
-  let tapTargetPage: number | null = null
+  // Where the latest turn is heading, so rapid taps keep advancing mid-turn.
+  let targetPage: number | null = null
+  let animationFrame: number | null = null
   const originalCursor = carousel.style.cursor
   let gesture: {
     x: number
@@ -29,88 +39,116 @@ export function observeLoopingHeroCarousel(
     lastX: number
     startLeft: number
     scale: number
-    snapType: string
     axis: 'x' | 'y' | null
     tappable: boolean
   } | null = null
   let settleTimeout: ReturnType<typeof setTimeout> | undefined
 
-  const alignSelectedSlide = () => {
-    carousel.scrollTo({ left: (currentIndex + offset) * width, behavior: 'instant' })
+  const clampPage = (page: number) => Math.max(0, Math.min(lastPage, page))
+  const setLeft = (left: number) => carousel.scrollTo({ left, behavior: 'instant' })
+  const alignSelectedSlide = () => setLeft((currentIndex + offset) * width)
+  const stopAnimation = () => {
+    if (animationFrame !== null) cancelAnimationFrame(animationFrame)
+    animationFrame = null
   }
-  const scrollToPage = (page: number) => {
-    carousel.scrollTo({
-      left: Math.max(0, Math.min(count - 1 + offset * 2, page)) * width,
-      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
-    })
+  const scheduleSettle = () => {
+    clearTimeout(settleTimeout)
+    // Also covers browsers without scrollend.
+    settleTimeout = setTimeout(settle, 180)
   }
-  const settle = () => {
-    if (interacting || !width) return
+  const animateTo = (page: number) => {
+    stopAnimation()
+    clearTimeout(settleTimeout)
+    targetPage = clampPage(page)
+    const from = carousel.scrollLeft
+    const to = targetPage * width
+    if (reducedMotion.matches || Math.abs(to - from) < 0.5) {
+      setLeft(to)
+      onFrame?.()
+      settle()
+      return
+    }
+    const distance = Math.abs(to - from) / width
+    const duration = Math.min(650, 160 + 260 * Math.sqrt(distance))
+    const start = performance.now()
+    const step = (now: number) => {
+      const progress = Math.min(1, Math.max(0, (now - start) / duration))
+      // Ease out, like a cube that was pushed and comes to rest.
+      setLeft(from + (to - from) * (1 - (1 - progress) ** 3))
+      onFrame?.()
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(step)
+        return
+      }
+      animationFrame = null
+      settle()
+    }
+    animationFrame = requestAnimationFrame(step)
+  }
+  /** Turn one slide, continuing from any turn already under way. */
+  const turn = (direction: 1 | -1) => {
+    if (!offset || !width) return
+    let page = (targetPage ?? Math.round(carousel.scrollLeft / width)) + direction
+    const distance = count * width
+    // Past a duplicate, continue from its identical real slide.
+    if (page > lastPage && carousel.scrollLeft >= distance) {
+      stopAnimation()
+      setLeft(carousel.scrollLeft - distance)
+      page -= count
+    } else if (page < 0 && carousel.scrollLeft <= width) {
+      stopAnimation()
+      setLeft(carousel.scrollLeft + distance)
+      page += count
+    }
+    onManualNavigation()
+    animateTo(page)
+  }
+  function settle() {
+    if (interacting || animationFrame !== null || !width) return
     const page = carousel.scrollLeft / width
     const nearest = Math.round(page)
     if (Math.abs(page - nearest) >= 0.01) {
-      // A jump reports scrollend even while a smooth scroll it started is
-      // still moving; only correct a scroll that has really stopped.
-      if (performance.now() - lastScrollAt < 150) {
-        scheduleSettle()
-        return
-      }
-      // Never rest between slides, whatever stopped the scroll there. Jump on
-      // a third try so a browser that keeps stopping short cannot loop.
-      settleCorrections += 1
-      if (settleCorrections > 2) {
-        carousel.scrollTo({ left: Math.max(0, Math.min(count - 1 + offset * 2, nearest)) * width, behavior: 'instant' })
-      } else scrollToPage(nearest)
+      // Wheel or keyboard scrolling may still be moving; only finish a
+      // scroll that has stopped.
+      if (performance.now() - lastScrollAt < 150) scheduleSettle()
+      else animateTo(nearest)
       return
     }
-    settleCorrections = 0
-    tapTargetPage = null
+    targetPage = null
+    currentIndex = ((nearest - offset) % count + count) % count
     // Only jump once a duplicate is fully in place. Its matching real slide
     // looks identical, so the next swipe can continue in either direction.
-    if (offset && (Math.abs(page) < 0.01 || Math.abs(page - count - 1) < 0.01)) {
-      currentIndex = page < 1 ? count - 1 : 0
+    if (offset && (nearest === 0 || nearest === lastPage)) {
       alignSelectedSlide()
+      onFrame?.()
     }
     if (currentIndex !== reportedIndex) {
       reportedIndex = currentIndex
       onIndexChange(currentIndex)
     }
   }
-  const scheduleSettle = () => {
-    clearTimeout(settleTimeout)
-    // Also supports Safari versions without scrollend.
-    settleTimeout = setTimeout(settle, 180)
-  }
   const handleScroll = () => {
     lastScrollAt = performance.now()
-    if (!width) return
-    const page = Math.round(carousel.scrollLeft / width)
-    currentIndex = ((page - offset) % count + count) % count
-    scheduleSettle()
+    if (animationFrame === null && !interacting) scheduleSettle()
   }
   const handleScrollEnd = (event: Event) => {
     if (event.target === carousel) settle()
   }
   const startGesture = (x: number, y: number, target: EventTarget | null) => {
+    // Freeze any turn under way where it is; the finger takes over from there.
+    stopAnimation()
     clearTimeout(settleTimeout)
     interacting = true
     suppressClick = false
-    settleCorrections = 0
-    const left = carousel.scrollLeft
     gesture = {
       x,
       y,
       lastX: x,
-      startLeft: left,
+      startLeft: carousel.scrollLeft,
       scale: carousel.getBoundingClientRect().width / width || 1,
-      snapType: carousel.style.scrollSnapType,
       axis: null,
       tappable: !(target instanceof Element && target.closest('a, button')),
     }
-    // Stop the previous snap at its current position. Horizontal touch panning
-    // is handled below, so browser momentum cannot race a loop rebase.
-    carousel.style.scrollSnapType = 'none'
-    carousel.scrollTo({ left, behavior: 'instant' })
   }
   const moveGesture = (x: number, y: number) => {
     if (!gesture) return false
@@ -119,9 +157,8 @@ export function observeLoopingHeroCarousel(
     if (!gesture.axis) {
       if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 10) return false
       gesture.axis = Math.abs(deltaX) > Math.abs(deltaY) ? 'x' : 'y'
-      tapTargetPage = null
+      targetPage = null
       if (gesture.axis === 'x') onManualNavigation()
-      else carousel.style.scrollSnapType = gesture.snapType
     }
     if (gesture.axis !== 'x') return false
     suppressClick = true
@@ -135,7 +172,7 @@ export function observeLoopingHeroCarousel(
       left += shift
       gesture.startLeft += shift
     } else left = 0
-    carousel.scrollTo({ left, behavior: 'instant' })
+    setLeft(left)
     return true
   }
   const finishGesture = (canTap: boolean) => {
@@ -150,33 +187,17 @@ export function observeLoopingHeroCarousel(
           ? Math.max(page, Math.floor(completed.startLeft / width) + 1)
           : Math.min(page, Math.ceil(completed.startLeft / width) - 1)
       }
-      carousel.style.scrollSnapType = completed.snapType
-      scrollToPage(page)
-    } else if (completed) {
-      if (canTap && completed.tappable && !completed.axis && offset) {
-        const bounds = carousel.getBoundingClientRect()
-        const direction = completed.x - bounds.left < bounds.width / 2 ? -1 : 1
-        let page = (tapTargetPage ?? Math.round(carousel.scrollLeft / width)) + direction
-        const distance = count * width
-        // Past a duplicate, continue from its identical real slide. Shift while
-        // snapping is still off so the browser can't snap the in-between position.
-        if (page > count + 1 && carousel.scrollLeft >= distance) {
-          carousel.scrollTo({ left: carousel.scrollLeft - distance, behavior: 'instant' })
-          page -= count
-        } else if (page < 0 && carousel.scrollLeft <= width) {
-          carousel.scrollTo({ left: carousel.scrollLeft + distance, behavior: 'instant' })
-          page += count
-        }
-        tapTargetPage = Math.max(0, Math.min(count + 1, page))
-        carousel.style.scrollSnapType = completed.snapType
-        onManualNavigation()
-        scrollToPage(tapTargetPage)
-      } else {
-        carousel.style.scrollSnapType = completed.snapType
-        tapTargetPage = null
-      }
+      animateTo(page)
+      return
     }
-    scheduleSettle()
+    if (completed && canTap && completed.tappable && !completed.axis && offset) {
+      const bounds = carousel.getBoundingClientRect()
+      turn(completed.x - bounds.left < bounds.width / 2 ? -1 : 1)
+      return
+    }
+    // A vertical scroll or a cancelled touch may have frozen a turn mid-way.
+    targetPage = null
+    settle()
   }
   const handleTouchStart = (event: TouchEvent) => {
     if (event.touches.length !== 1) {
@@ -184,6 +205,9 @@ export function observeLoopingHeroCarousel(
       if (gesture) gesture.tappable = false
       return
     }
+    // One finger down means any earlier touch has ended, even if its touchend
+    // never arrived; finish that gesture so it cannot hold the carousel.
+    if (gesture) finishGesture(false)
     if (!width) return
     startGesture(event.touches[0].clientX, event.touches[0].clientY, event.target)
   }
@@ -192,6 +216,10 @@ export function observeLoopingHeroCarousel(
       event.preventDefault()
     }
   }
+  const handleTouchEnd = (event: TouchEvent) => {
+    if (!event.touches.length) finishGesture(true)
+  }
+  const handleTouchCancel = () => finishGesture(false)
   const handlePointerDown = (event: PointerEvent) => {
     // Touch keeps the existing gesture path; pointers also support mobile previews.
     if (event.pointerType === 'touch' || !event.isPrimary || event.button !== 0 || !width) return
@@ -211,8 +239,6 @@ export function observeLoopingHeroCarousel(
     carousel.style.cursor = originalCursor
     if (carousel.hasPointerCapture(event.pointerId)) carousel.releasePointerCapture(event.pointerId)
   }
-  const handleTouchEnd = () => finishGesture(true)
-  const handleTouchCancel = () => finishGesture(false)
   const handleClick = (event: MouseEvent) => {
     if (!suppressClick || event.detail === 0) return
     event.preventDefault()
@@ -223,10 +249,21 @@ export function observeLoopingHeroCarousel(
     if (gesture) event.preventDefault()
   }
   const handleWheel = (event: WheelEvent) => {
-    if (!event.ctrlKey && Math.abs(event.deltaX) > Math.abs(event.deltaY)) onManualNavigation()
+    if (event.ctrlKey || Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return
+    // The wheel scrolls natively; settle finishes the turn once it stops.
+    stopAnimation()
+    targetPage = null
+    onManualNavigation()
   }
   const handleKeyDown = (event: KeyboardEvent) => {
-    if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) onManualNavigation()
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+      event.preventDefault()
+      turn(event.key === 'ArrowRight' ? 1 : -1)
+    } else if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault()
+      onManualNavigation()
+      animateTo(event.key === 'Home' ? offset : count - 1 + offset)
+    }
   }
 
   alignSelectedSlide()
@@ -234,6 +271,8 @@ export function observeLoopingHeroCarousel(
     const nextWidth = carousel.clientWidth
     if (!nextWidth || nextWidth === width) return
     width = nextWidth
+    stopAnimation()
+    targetPage = null
     alignSelectedSlide()
   })
   resizeObserver.observe(carousel)
@@ -253,28 +292,34 @@ export function observeLoopingHeroCarousel(
   carousel.addEventListener('wheel', handleWheel, { passive: true })
   carousel.addEventListener('keydown', handleKeyDown)
 
-  return () => {
-    clearTimeout(settleTimeout)
-    if (gesture) carousel.style.scrollSnapType = gesture.snapType
-    resizeObserver.disconnect()
-    carousel.removeEventListener('scroll', handleScroll)
-    carousel.removeEventListener('scrollend', handleScrollEnd)
-    carousel.removeEventListener('touchstart', handleTouchStart)
-    carousel.removeEventListener('touchmove', handleTouchMove)
-    carousel.removeEventListener('touchend', handleTouchEnd)
-    carousel.removeEventListener('touchcancel', handleTouchCancel)
-    const capturedPointerId = pointerId
-    pointerId = null
-    if (capturedPointerId !== null && carousel.hasPointerCapture(capturedPointerId)) carousel.releasePointerCapture(capturedPointerId)
-    carousel.style.cursor = originalCursor
-    carousel.removeEventListener('pointerdown', handlePointerDown)
-    window.removeEventListener('pointermove', handlePointerMove)
-    window.removeEventListener('pointerup', handlePointerEnd)
-    window.removeEventListener('pointercancel', handlePointerEnd)
-    carousel.removeEventListener('lostpointercapture', handlePointerEnd)
-    carousel.removeEventListener('click', handleClick, true)
-    carousel.removeEventListener('dragstart', handleDragStart)
-    carousel.removeEventListener('wheel', handleWheel)
-    carousel.removeEventListener('keydown', handleKeyDown)
+  return {
+    /** Animate to a slide; `count` is the copy of the first slide after the last. */
+    scrollToStep(step: number) {
+      animateTo(Math.max(0, Math.min(count, step)) + offset)
+    },
+    stop() {
+      stopAnimation()
+      clearTimeout(settleTimeout)
+      resizeObserver.disconnect()
+      carousel.removeEventListener('scroll', handleScroll)
+      carousel.removeEventListener('scrollend', handleScrollEnd)
+      carousel.removeEventListener('touchstart', handleTouchStart)
+      carousel.removeEventListener('touchmove', handleTouchMove)
+      carousel.removeEventListener('touchend', handleTouchEnd)
+      carousel.removeEventListener('touchcancel', handleTouchCancel)
+      const capturedPointerId = pointerId
+      pointerId = null
+      if (capturedPointerId !== null && carousel.hasPointerCapture(capturedPointerId)) carousel.releasePointerCapture(capturedPointerId)
+      carousel.style.cursor = originalCursor
+      carousel.removeEventListener('pointerdown', handlePointerDown)
+      window.removeEventListener('pointermove', handlePointerMove)
+      window.removeEventListener('pointerup', handlePointerEnd)
+      window.removeEventListener('pointercancel', handlePointerEnd)
+      carousel.removeEventListener('lostpointercapture', handlePointerEnd)
+      carousel.removeEventListener('click', handleClick, true)
+      carousel.removeEventListener('dragstart', handleDragStart)
+      carousel.removeEventListener('wheel', handleWheel)
+      carousel.removeEventListener('keydown', handleKeyDown)
+    },
   }
 }

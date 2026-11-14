@@ -39,7 +39,6 @@ try {
           const media = slide.querySelector('.hero-mobile-media')
           const title = slide.querySelector('h2')
           const details = slide.querySelector('.hero-mobile-details')
-          const footer = slide.querySelector('.hero-mobile-footer')
           const pagination = document.querySelector('.hero-mobile-pagination')
           const image = media.querySelector('img')
           const video = media.querySelector('video')
@@ -50,10 +49,9 @@ try {
             top: slide.getBoundingClientRect().top,
             height: slide.getBoundingClientRect().height,
             imageBottom: box.bottom,
-            titleBottom: title.getBoundingClientRect().bottom,
+            // The title's row, which the round arrow can make taller than the text.
+            titleBottom: title.parentElement.getBoundingClientRect().bottom,
             detailsTop: details.getBoundingClientRect().top,
-            footerTop: footer.getBoundingClientRect().top,
-            testimonialTop: footer.firstElementChild?.getBoundingClientRect().top ?? null,
             captionBottom: slide.querySelector('.hero-mobile-caption').getBoundingClientRect().bottom,
             imageCenter: box.top + box.height / 2,
             mediaHeight: getComputedStyle(media).height,
@@ -79,9 +77,8 @@ try {
         })
         near(result.top, 0, 'slide remains snapped')
         near(result.height, 844, 'slide remains full height')
-        near(result.imageBottom, result.footerTop, 'image fades out where the testimonial starts, or below the pills')
-        if (result.testimonialTop !== null) near(result.imageBottom, result.testimonialTop, 'image ends at the top of the testimonial')
-        assert.ok(result.titleBottom < result.imageBottom && result.detailsTop < result.imageBottom, 'title, description and pills sit over the image')
+        near(result.imageBottom, result.titleBottom, 'image ends at the title bottom')
+        assert.ok(result.detailsTop >= result.imageBottom - 1, 'description and pills are outside the image')
         assert.ok(result.captionBottom <= 845, `caption fits inside the viewport: ${JSON.stringify({theme, width, index, ...result})}`)
         near(result.paginationTop, 20, 'visible lines have the same top and left inset')
         near(result.paginationLeft, 20, 'pagination at the left gutter')
@@ -111,7 +108,7 @@ try {
   const desktop = await page.locator('.hero-project-slideshow').boundingBox()
   near(desktop.width / desktop.height, 16 / 9, 'desktop aspect ratio unchanged')
   assert.deepEqual(errors, [], 'no runtime errors')
-  console.log(JSON.stringify({ engine, result: 'PASS', checks: ['image/testimonial boundary', 'solid text area', 'eased mask', 'top-left pagination', 'per-slide colors', 'both themes', 'responsive wrapping', 'muted video', 'desktop unchanged'] }))
+  console.log(JSON.stringify({ engine, result: 'PASS', checks: ['image/title boundary', 'solid text area', 'eased mask', 'top-left pagination', 'per-slide colors', 'both themes', 'responsive wrapping', 'muted video', 'desktop unchanged'] }))
 } finally {
   await browser.close()
 }

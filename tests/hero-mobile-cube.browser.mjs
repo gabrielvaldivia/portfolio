@@ -30,10 +30,21 @@ try {
   assert.equal(await underNav(page), true, 'the full-screen hero turns the menu icon white')
   assert.equal(await page.locator('.mobile-site-nav .site-menu-toggle').evaluate(el => getComputedStyle(el).color), 'rgb(255, 255, 255)')
 
+  // Safari on iPhone runs CSS scroll snapping and native smooth scrolling in a
+  // separate process, where they stopped slow swipes between slides. The
+  // carousel must drive every movement itself.
+  assert.equal(await carousel.evaluate(el => getComputedStyle(el).scrollSnapType), 'none', 'the carousel has no CSS scroll snapping')
+  await page.evaluate(() => {
+    window.__smoothScrolls = 0
+    const scrollTo = Element.prototype.scrollTo
+    Element.prototype.scrollTo = function (...args) {
+      if (this.classList?.contains('hero-mobile-carousel') && args[0]?.behavior === 'smooth') window.__smoothScrolls++
+      return scrollTo.apply(this, args)
+    }
+  })
+
   // Every frame, through rapid taps and slow swipes across both loop seams:
-  // faces turn, while the slides (the scroll-snap targets) never transform.
-  // Safari derives snap points from transformed boxes, so a transformed slide
-  // creates false snap points where the carousel can rest mid-turn.
+  // faces turn, while the slides themselves never transform or hide.
   await page.evaluate(() => {
     const track = document.querySelector('.hero-mobile-carousel')
     window.__cube = { frames: 0, turning: 0, snapTransformed: 0, hidden: 0 }
@@ -88,14 +99,26 @@ try {
     await swipe(1, distance, 40)
     await restsOnSlide(`a slow ${distance}px drag comes to rest on a whole slide, flat`)
   }
+  // A vertical drag that interrupts a turn still lets it finish.
+  const pageY = await page.evaluate(() => scrollY)
+  await tap(300)
+  await page.waitForTimeout(120)
+  await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 200, y: 300 }] })
+  for (const y of [320, 340, 360]) {
+    await touch.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 200, y }] })
+    await page.waitForTimeout(16)
+  }
+  await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+  await restsOnSlide('a turn interrupted by a vertical drag finishes on a whole slide')
+  await page.evaluate(y => scrollTo({ top: y, behavior: 'instant' }), pageY)
   await touch.detach()
   const cube = await page.evaluate(() => window.__cube)
   assert.ok(cube.turning > 20, `faces turn in 3D between pages: ${JSON.stringify(cube)}`)
-  assert.equal(cube.snapTransformed, 0, 'scroll-snap slides are never transformed')
+  assert.equal(cube.snapTransformed, 0, 'slides are never transformed; only their faces turn')
+  assert.equal(await page.evaluate(() => window.__smoothScrolls), 0, 'the carousel never asks the browser for a smooth scroll')
   assert.equal(cube.hidden, 0, 'no slide is hidden, so a late style update can never show a gap')
 
   // Whatever stops a scroll between slides, the carousel finishes the turn.
-  await page.addStyleTag({ content: '.hero-mobile-carousel { scroll-snap-type: none !important }' })
   await carousel.evaluate(track => track.scrollTo({ left: track.scrollLeft + track.clientWidth * 0.45, behavior: 'instant' }))
   await restsOnSlide('a scroll stopped mid-turn settles on a whole slide')
   assert.deepEqual(errors, [], 'no browser runtime errors')
@@ -108,7 +131,7 @@ try {
   const transformed = await reduced.page.locator('.hero-mobile-face').evaluateAll(faces => faces.filter(face => face.style.transform).length)
   assert.equal(transformed, 0, 'reduced motion keeps flat slides')
   assert.deepEqual(reduced.errors, [], 'no browser runtime errors with reduced motion')
-  console.log('PASS: faces turn while snap targets stay flat, slow drags and stopped scrolls rest on a slide, reduced motion stays flat, white menu over the hero')
+  console.log('PASS: carousel drives its own motion, faces turn while slides stay flat, slow drags and interrupted or stopped turns rest on a slide, reduced motion stays flat, white menu over the hero')
 } finally {
   await browser.close()
 }
