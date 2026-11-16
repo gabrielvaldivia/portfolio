@@ -254,7 +254,16 @@ type MarqueeDrag = {
   samples: DragSample[]
 }
 
-export function LikedWorkMarquee({ items }: { items: LikedWorkMarqueeItem[] }) {
+export function LikedWorkMarquee({
+  items,
+  direction = 'left',
+  label = 'Most liked work',
+}: {
+  items: LikedWorkMarqueeItem[]
+  direction?: 'left' | 'right'
+  label?: string
+}) {
+  const autoSpeed = direction === 'right' ? -MARQUEE_SPEED_PX_PER_SECOND : MARQUEE_SPEED_PX_PER_SECOND
   const marqueeRef = useRef<HTMLDivElement>(null)
   const firstCardRef = useRef<HTMLDivElement>(null)
   const nextWindowRef = useRef<HTMLDivElement>(null)
@@ -275,7 +284,7 @@ export function LikedWorkMarquee({ items }: { items: LikedWorkMarqueeItem[] }) {
   const focusedRef = useRef(false)
   const dragRef = useRef<MarqueeDrag | null>(null)
   const suppressClickRef = useRef(false)
-  const velocityRef = useRef(MARQUEE_SPEED_PX_PER_SECOND)
+  const velocityRef = useRef(autoSpeed)
   const coastingRef = useRef(false)
   const x = useMotionValue(0)
   const effectiveWindowSize = Math.min(windowSize, items.length)
@@ -395,7 +404,7 @@ export function LikedWorkMarquee({ items }: { items: LikedWorkMarqueeItem[] }) {
     const loopDistance = loopDistanceRef.current
     if (loopDistance <= 0) return
 
-    const target = hoveredRef.current || focusedRef.current ? 0 : MARQUEE_SPEED_PX_PER_SECOND
+    const target = hoveredRef.current || focusedRef.current ? 0 : autoSpeed
     const next = advanceMarquee(velocityRef.current, target, Math.min(delta, 64) / 1000, coastingRef.current ? 0.5 : 0.22)
     velocityRef.current = next.velocity
     if (Math.abs(next.velocity - target) < 0.5) {
@@ -475,7 +484,7 @@ export function LikedWorkMarquee({ items }: { items: LikedWorkMarqueeItem[] }) {
         isDragging ? 'cursor-grabbing' : 'cursor-grab',
       )}
       role="region"
-      aria-label="Most liked work"
+      aria-label={label}
       onPointerEnter={(event) => { hoveredRef.current = event.pointerType !== 'touch' }}
       onPointerLeave={() => {
         hoveredRef.current = false

@@ -213,6 +213,15 @@ function resolveHeroProjects(slides: any[], projects: any[]) {
   })
 }
 
+/** Alternate items between two rows; short lists repeat in reverse so both rows stay full. */
+function splitLikedWorkRows(items: LikedWorkMarqueeItem[]): [LikedWorkMarqueeItem[], LikedWorkMarqueeItem[]] {
+  if (items.length < 12) return [items, [...items].reverse()]
+  return [
+    items.filter((_, index) => index % 2 === 0),
+    items.filter((_, index) => index % 2 === 1),
+  ]
+}
+
 function buildLikedWorkMarqueeItems(items: any[]): LikedWorkMarqueeItem[] {
   return items.flatMap((item, index) => {
     const target = item?.target
@@ -374,6 +383,7 @@ export default async function HomePage() {
   ))?.testimonials || []
   const faqItems = getFAQItemsFromSections(sections)
   const likedWorkItems = buildLikedWorkMarqueeItems(likedWorkResult as any[])
+  const likedWorkRows = splitLikedWorkRows(likedWorkItems)
   const suggestedQuestions = (askedQuestions as { normalized: string; question: string }[])
     .map(({ normalized, question }) => {
       const authored = faqItems.find((item) => normalizeAskedQuestion(item.question) === normalized)
@@ -585,8 +595,9 @@ export default async function HomePage() {
                 </Link>
               </div>
             </HomeContainer>
-            <div className="home-work-marquee mt-10 tablet:mt-12 desktop:mt-16">
-              <LikedWorkMarquee items={likedWorkItems} />
+            <div className="home-work-marquee mt-10 flex flex-col gap-4 tablet:mt-12 tablet:gap-6 desktop:mt-16">
+              <LikedWorkMarquee items={likedWorkRows[0]} label="Most liked work" />
+              <LikedWorkMarquee items={likedWorkRows[1]} direction="right" label="More liked work" />
             </div>
           </section>
         )
