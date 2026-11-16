@@ -111,7 +111,7 @@ function WorkThumbnail({
     return (
       <div className="flex size-full items-center justify-center overflow-hidden rounded-xl border border-border bg-background-alt p-4 tablet:rounded-2xl tablet:p-5" aria-hidden="true">
         <div className="flex size-full min-h-0 flex-col overflow-hidden rounded-lg border border-border bg-elevated shadow-sm tablet:rounded-xl">
-          <div className="grid h-5 shrink-0 grid-cols-[1fr_80px_1fr] items-center gap-1.5 border-b border-border bg-gray-200 px-1.5 tablet:h-6 tablet:px-2">
+          <div className="grid h-5 shrink-0 grid-cols-[1fr_minmax(0,2fr)_1fr] items-center gap-1.5 border-b border-border bg-gray-200 px-1.5 tablet:h-6 tablet:px-2">
             <div className="flex shrink-0 items-center gap-1">
               <span className="size-1 rounded-full bg-red-400 tablet:size-1.25" />
               <span className="size-1 rounded-full bg-yellow-400 tablet:size-1.25" />
@@ -252,7 +252,8 @@ function WorkCard({
       {/* The name shows on hover and stays while expanded; it opens the project. */}
       <div
         className={cn(
-          'absolute bottom-3 left-3 z-20 transition-opacity duration-150',
+          // Leave room for the like pill on the right.
+          'absolute bottom-3 left-3 z-20 max-w-[calc(100%-6.5rem)] transition-opacity duration-150',
           expanded
             ? 'opacity-100 delay-150'
             : 'pointer-events-none hidden opacity-0 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 [@media(hover:hover)]:block',
@@ -264,7 +265,7 @@ function WorkCard({
           tabIndex={expanded ? undefined : -1}
           aria-hidden={expanded ? undefined : 'true'}
           // Matches the like pill.
-          className="inline-flex h-8 max-w-[calc(100vw-4rem)] items-center rounded-full bg-black/20 px-2.5 text-caption font-medium text-white backdrop-blur-md transition-colors duration-150 hover:bg-black/30 focus-visible:ring-2 focus-visible:ring-content/30 dark:hover:bg-white/15"
+          className="inline-flex h-8 max-w-full items-center rounded-full bg-black/20 px-2.5 text-caption font-medium text-white backdrop-blur-md transition-colors duration-150 hover:bg-black/30 focus-visible:ring-2 focus-visible:ring-content/30 dark:hover:bg-white/15"
         >
           <span className="truncate">{item.title}</span>
         </Link>
@@ -289,7 +290,7 @@ function WorkCard({
   )
 }
 
-const MARQUEE_SPEED_PX_PER_SECOND = -64
+const MARQUEE_SPEED_PX_PER_SECOND = -44
 const DEFAULT_MARQUEE_WINDOW_SIZE = 8
 
 type MarqueeDrag = {
