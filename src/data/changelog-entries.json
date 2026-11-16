@@ -3,7 +3,7 @@
   "date": "2026-11-16",
   "title": "A two-row Work marquee that opens up",
   "changes": [
-   "The homepage Work marquee now has two slower rows drifting in opposite directions, with each project's name on hover and wider address bars on website previews. Click a project to expand it across both rows, its name linking to the case study; click again to shrink it."
+   "The homepage Work marquee now has two slower rows of the most-liked work, alternating between rows with projects spread out. Names show on hover, and website previews get wider address bars. Click a project to expand it across both rows; its name links to the case study."
   ]
  },
  {

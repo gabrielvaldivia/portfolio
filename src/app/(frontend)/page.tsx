@@ -13,6 +13,7 @@ import { normalizeHeroPills } from '@/lib/heroProjectPills'
 import { resolveHeroTestimonial } from '@/lib/heroTestimonial'
 import type { LikedWorkMarqueeItem } from '@/components/LikedWorkMarquee'
 import { LikedWorkMarqueeRows } from '@/components/LikedWorkMarqueeRows'
+import { splitIntoAlternatingRows } from '@/lib/likedWorkRows'
 import { ApproachTimelineItem } from '@/components/ApproachTimelineItem'
 import { buildPageMetadata } from '@/lib/pageMetadata'
 import { withSiteSocialDefaults } from '@/lib/pageMetadataDefaults'
@@ -214,13 +215,10 @@ function resolveHeroProjects(slides: any[], projects: any[]) {
   })
 }
 
-/** Alternate items between two rows; short lists repeat in reverse so both rows stay full. */
+/** Most-liked first, alternating rows, with each project's cards kept apart. */
 function splitLikedWorkRows(items: LikedWorkMarqueeItem[]): [LikedWorkMarqueeItem[], LikedWorkMarqueeItem[]] {
-  if (items.length < 12) return [items, [...items].reverse()]
-  return [
-    items.filter((_, index) => index % 2 === 0),
-    items.filter((_, index) => index % 2 === 1),
-  ]
+  // Cards from one project share a page, so the path without its module hash identifies the project.
+  return splitIntoAlternatingRows(items, (item) => item.href.split('#')[0])
 }
 
 function buildLikedWorkMarqueeItems(items: any[]): LikedWorkMarqueeItem[] {
