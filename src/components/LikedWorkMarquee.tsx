@@ -224,7 +224,7 @@ function WorkCard({
   const inset = expanded ? `${expanded.inset}px` : '0px'
   return (
     <motion.div
-      className="liked-work-card group absolute left-1/2 rounded-xl hover:z-10 focus-within:z-10 tablet:rounded-2xl"
+      className="group absolute left-1/2 rounded-xl hover:z-10 focus-within:z-10 tablet:rounded-2xl"
       // The card overflows its fixed slot when expanded, growing toward the other row.
       style={{
         translate: '-50% 0',
@@ -232,6 +232,7 @@ function WorkCard({
         bottom: rowIndex === 0 ? undefined : inset,
         height: expanded ? `${expanded.height}px` : '100%',
         width: expanded ? `${expanded.width}px` : '100%',
+        transition: CARD_TRANSITION,
       }}
       whileHover={reduceMotion || expanded ? undefined : { scale: 1.012 }}
       transition={{ type: 'spring', stiffness: 500, damping: 22, mass: 0.35 }}
@@ -291,6 +292,13 @@ function WorkCard({
     </motion.div>
   )
 }
+
+// Expanding a card shifts its neighbors and grows it across both rows together.
+const EXPAND_EASING = '560ms cubic-bezier(0.32, 0.72, 0, 1)'
+const SLOT_TRANSITION = `translate ${EXPAND_EASING}`
+const CARD_TRANSITION = ['width', 'height', 'top', 'bottom']
+  .map((property) => `${property} ${EXPAND_EASING}`)
+  .join(', ')
 
 const MARQUEE_SPEED_PX_PER_SECOND = -44
 const DEFAULT_MARQUEE_WINDOW_SIZE = 8
@@ -646,11 +654,12 @@ export function LikedWorkMarquee({
               aria-hidden={duplicate ? 'true' : undefined}
               data-marquee-slot
               data-position={position}
-              className="liked-work-slot relative shrink-0"
+              className="relative shrink-0"
               style={{
                 height: 'var(--liked-work-card-height)',
                 width: `calc(var(--liked-work-card-height) * ${item.aspectRatio})`,
                 translate: shift ? `${shift}px 0` : undefined,
+                transition: SLOT_TRANSITION,
                 zIndex: isExpanded ? 10 : undefined,
               }}
             >
