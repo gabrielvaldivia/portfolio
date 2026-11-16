@@ -10,7 +10,7 @@ import {
   useMotionValue,
   useReducedMotion,
 } from 'motion/react'
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
 import { flushSync } from 'react-dom'
 import { ActivityVideoThumbnail } from '@/components/ActivityVideoThumbnail'
 import { LazyModuleLikeButton } from '@/components/LazyModuleLikeButton'
@@ -22,6 +22,7 @@ import {
   getCircularMarqueeEntries,
   getMarqueeReleaseVelocity,
   getMarqueeWindowSize,
+  orderRightwardMarqueeItems,
   type DragSample,
   type MarqueeRowExpansion,
 } from '@/lib/marqueeMotion'
@@ -352,8 +353,14 @@ export function LikedWorkMarquee({
   // While expanded, mount one extra window on the left so shifted cards never reveal an empty edge.
   const lead = expanded && !renderAllItems ? effectiveWindowSize : 0
   const leadOffsetRef = useRef(0)
+  const isRightward = direction === 'right' && !renderAllItems
+  // Rightward rows start with their top-ranked card at the right edge.
+  const orderedItems = useMemo(
+    () => isRightward ? orderRightwardMarqueeItems(items, effectiveWindowSize) : items,
+    [isRightward, items, effectiveWindowSize],
+  )
   const mountedEntries = getCircularMarqueeEntries(
-    items,
+    orderedItems,
     windowStart - lead,
     renderAllItems ? items.length : effectiveWindowSize * 2 + lead,
   )
@@ -381,7 +388,7 @@ export function LikedWorkMarquee({
     windowStartRef.current = 0
     setWindowStart(0)
     x.set(0)
-  }, [items, x])
+  }, [orderedItems, x])
 
   useLayoutEffect(() => {
     if (renderAllItems) {
@@ -392,11 +399,22 @@ export function LikedWorkMarquee({
 
     const firstCard = firstCardRef.current
     const nextWindow = nextWindowRef.current
-    loopDistanceRef.current = firstCard && nextWindow
+    const distance = firstCard && nextWindow
       ? nextWindow.offsetLeft - firstCard.offsetLeft
       : 0
-    x.set(0)
-  }, [effectiveWindowSize, renderAllItems, x])
+    loopDistanceRef.current = distance
+
+    const marquee = marqueeRef.current
+    const track = marquee?.querySelector('.liked-work-marquee-track')
+    if (!isRightward || !marquee || !track || distance <= 0) {
+      x.set(0)
+      return
+    }
+    // Align the first window's last card, the top-ranked one, to the right edge.
+    const gap = parseFloat(getComputedStyle(track).columnGap) || 0
+    const offset = marquee.clientWidth - (distance - gap)
+    x.set(Math.min(0, Math.max(offset, -distance + 1)))
+  }, [effectiveWindowSize, renderAllItems, isRightward, orderedItems, x])
 
   // Keep cards visually still when the extra lead window mounts or unmounts.
   useLayoutEffect(() => {

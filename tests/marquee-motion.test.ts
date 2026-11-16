@@ -6,6 +6,7 @@ import {
   getMarqueeReleaseVelocity,
   getMarqueeRowExpansion,
   getMarqueeWindowSize,
+  orderRightwardMarqueeItems,
   wrapMarqueePosition,
 } from '../src/lib/marqueeMotion'
 
@@ -81,4 +82,12 @@ test('opens a matching gap in the other row around the center', () => {
   assert.equal(120 + 100 + row.leftShift, 160)
   assert.equal(240 + row.rightShift, 400)
   assert.equal(row.expandedPosition, undefined)
+})
+
+test('puts top ranks at the end of a rightward row and next ranks before it', () => {
+  const ordered = orderRightwardMarqueeItems(['1', '2', '3', '4', '5', '6'], 3)
+  // The first window reads 3, 2, 1 left to right, so 1 starts at the right edge.
+  assert.deepEqual(ordered.slice(0, 3), ['3', '2', '1'])
+  // Wrapping left from the window continues down the ranks: 4, 5, 6.
+  assert.deepEqual(getCircularMarqueeEntries(ordered, -3, 3).map(({ item }) => item), ['6', '5', '4'])
 })

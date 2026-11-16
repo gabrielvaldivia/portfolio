@@ -115,3 +115,14 @@ export function getMarqueeRowExpansion(
     rightShift: after ? rightEdge - after.left : 0,
   }
 }
+
+/**
+ * Order a rightward row so its first window ends with the top-ranked item and
+ * lower ranks follow to the left, where new cards enter as the row moves.
+ */
+export function orderRightwardMarqueeItems<T>(items: T[], windowSize: number) {
+  if (items.length <= 1) return items
+  const reversed = [...items].reverse()
+  const split = items.length - Math.min(Math.max(windowSize, 1), items.length)
+  return [...reversed.slice(split), ...reversed.slice(0, split)]
+}
