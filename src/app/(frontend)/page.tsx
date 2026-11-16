@@ -268,7 +268,8 @@ function buildLikedWorkMarqueeItems(items: any[]): LikedWorkMarqueeItem[] {
     return [{
       id: String(item.id || item.targetId || index),
       href,
-      title: String(target.label || target.sourceTitle || 'Work'),
+      // The project name alone; the module caption stays in the thumbnail's alt text.
+      title: String(target.sourceTitle || target.label || 'Work'),
       likeCount,
       aspectRatio,
       thumbnail: {

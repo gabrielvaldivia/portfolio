@@ -1,6 +1,36 @@
 {
-  "throughCommit": "6a75b4cd13ba8fcf7778ae9306bbd2d04b8429a7",
+  "throughCommit": "f1b3b23997241d4432e9e6a11a4dd9e11c50afa3",
   "commits": [
+    {
+      "hash": "f1b3b23997241d4432e9e6a11a4dd9e11c50afa3",
+      "date": "2026-11-16",
+      "subject": "Show only the project name in work marquee pills"
+    },
+    {
+      "hash": "ba1bf71adefc9d0b7392e4e44fbe7225cfad2009",
+      "date": "2026-11-16",
+      "subject": "Slow the work marquee and widen website address bars"
+    },
+    {
+      "hash": "2879a670b109d73205a2280ce887fa2b20406ccf",
+      "date": "2026-11-16",
+      "subject": "Show project names on marquee hover and match the like pill"
+    },
+    {
+      "hash": "f24a4653decc8158ebfffcddde748b9e3f3d0ad0",
+      "date": "2026-11-16",
+      "subject": "Expand work marquee cards across both rows on click"
+    },
+    {
+      "hash": "baf14ca72c7ffa1140f699918e6a648df20fc442",
+      "date": "2026-11-16",
+      "subject": "Add a reversed second row to the work marquee"
+    },
+    {
+      "hash": "bf3282cac5743b713c322ba5934f625ac6e20a15",
+      "date": "2026-11-14",
+      "subject": "Remove the title particles lab, portrait styles page, and Dive review"
+    },
     {
       "hash": "6a75b4cd13ba8fcf7778ae9306bbd2d04b8429a7",
       "date": "2026-11-14",
