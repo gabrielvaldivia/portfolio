@@ -1,6 +1,31 @@
 {
-  "throughCommit": "f1b3b23997241d4432e9e6a11a4dd9e11c50afa3",
+  "throughCommit": "425822cea8dcd3220ef04b9eb9ec09bfe182b303",
   "commits": [
+    {
+      "hash": "425822cea8dcd3220ef04b9eb9ec09bfe182b303",
+      "date": "2026-11-16",
+      "subject": "Animate marquee card expansion with inline transitions"
+    },
+    {
+      "hash": "fcf27ad023274596721b44e8c85b3289fb1005eb",
+      "date": "2026-11-16",
+      "subject": "Open both marquee rows on their most-liked cards"
+    },
+    {
+      "hash": "efad52f4b400adc4003991b3edfb60648796afac",
+      "date": "2026-11-16",
+      "subject": "Scale the website preview's browser bar with its card"
+    },
+    {
+      "hash": "2a4cba012ab048218ab9aede94b8a1d9eaa146d5",
+      "date": "2026-11-16",
+      "subject": "Spread projects apart in the work marquee rows"
+    },
+    {
+      "hash": "031dc030a4c9c0cc6f0a3856d468425696ca3fc5",
+      "date": "2026-11-16",
+      "subject": "Show only the project name in work marquee pills"
+    },
     {
       "hash": "f1b3b23997241d4432e9e6a11a4dd9e11c50afa3",
       "date": "2026-11-16",
