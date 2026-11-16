@@ -4,6 +4,7 @@ import {
   advanceMarquee,
   getCircularMarqueeEntries,
   getMarqueeReleaseVelocity,
+  getMarqueeRowExpansion,
   getMarqueeWindowSize,
   wrapMarqueePosition,
 } from '../src/lib/marqueeMotion'
@@ -62,4 +63,22 @@ test('friction is independent of frame rate', () => {
   const secondHalf = advanceMarquee(half.velocity, 0, 0.05, 0.5)
   assert.ok(Math.abs(full.velocity - secondHalf.velocity) < 0.0001)
   assert.ok(Math.abs(full.distance - half.distance - secondHalf.distance) < 0.0001)
+})
+
+test('centers an expanded card and opens room beside it', () => {
+  const slots = [0, 1, 2, 3].map((position) => ({ position, left: position * 120, width: 100 }))
+  const row = getMarqueeRowExpansion(slots, 300, 200, 20, 1)
+  assert.equal(row.expandedShift, 300 - 170)
+  // The neighbors land one gap away from the expanded card's edges.
+  assert.equal(0 + 100 + row.leftShift, 300 - 100 - 20)
+  assert.equal(240 + row.rightShift, 300 + 100 + 20)
+})
+
+test('opens a matching gap in the other row around the center', () => {
+  const slots = [0, 1, 2, 3].map((position) => ({ position, left: position * 120, width: 100 }))
+  const row = getMarqueeRowExpansion(slots, 280, 200, 20)
+  assert.equal(row.pivot, 2)
+  assert.equal(120 + 100 + row.leftShift, 160)
+  assert.equal(240 + row.rightShift, 400)
+  assert.equal(row.expandedPosition, undefined)
 })

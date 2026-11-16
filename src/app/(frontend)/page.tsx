@@ -11,7 +11,8 @@ import { AskMeAnything, AskMeAnythingRestart } from '@/components/AskMeAnything'
 import { HomeHeroProjects } from '@/components/HomeHeroProjects'
 import { normalizeHeroPills } from '@/lib/heroProjectPills'
 import { resolveHeroTestimonial } from '@/lib/heroTestimonial'
-import { LikedWorkMarquee, type LikedWorkMarqueeItem } from '@/components/LikedWorkMarquee'
+import type { LikedWorkMarqueeItem } from '@/components/LikedWorkMarquee'
+import { LikedWorkMarqueeRows } from '@/components/LikedWorkMarqueeRows'
 import { ApproachTimelineItem } from '@/components/ApproachTimelineItem'
 import { buildPageMetadata } from '@/lib/pageMetadata'
 import { withSiteSocialDefaults } from '@/lib/pageMetadataDefaults'
@@ -595,9 +596,8 @@ export default async function HomePage() {
                 </Link>
               </div>
             </HomeContainer>
-            <div className="home-work-marquee mt-10 flex flex-col gap-4 tablet:mt-12 tablet:gap-6 desktop:mt-16">
-              <LikedWorkMarquee items={likedWorkRows[0]} label="Most liked work" />
-              <LikedWorkMarquee items={likedWorkRows[1]} direction="right" label="More liked work" />
+            <div className="home-work-marquee mt-10 tablet:mt-12 desktop:mt-16">
+              <LikedWorkMarqueeRows rows={likedWorkRows} />
             </div>
           </section>
         )

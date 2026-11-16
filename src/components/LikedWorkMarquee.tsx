@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import {
+  AnimatePresence,
   motion,
   useAnimationFrame,
   useInView,
@@ -22,6 +23,7 @@ import {
   getMarqueeReleaseVelocity,
   getMarqueeWindowSize,
   type DragSample,
+  type MarqueeRowExpansion,
 } from '@/lib/marqueeMotion'
 
 type LikedWorkThumbnail = ResponsiveImageMedia & {
@@ -204,22 +206,32 @@ function WorkCard({
   reduceMotion = false,
   imageLoading,
   loadMedia,
+  rowIndex,
+  expanded,
+  onToggle,
 }: {
   item: LikedWorkMarqueeItem
   duplicate?: boolean
   reduceMotion?: boolean
   imageLoading: 'eager' | 'lazy'
   loadMedia: boolean
+  rowIndex: number
+  expanded?: { width: number; height: number; inset: number }
+  onToggle?: () => void
 }) {
+  const inset = expanded ? `${expanded.inset}px` : '0px'
   return (
     <motion.div
-      className="group relative shrink-0 rounded-xl hover:z-10 focus-within:z-10 tablet:rounded-2xl"
-      // An explicit width keeps video metadata from widening the flex slot in WebKit.
+      className="liked-work-card group absolute left-1/2 rounded-xl hover:z-10 focus-within:z-10 tablet:rounded-2xl"
+      // The card overflows its fixed slot when expanded, growing toward the other row.
       style={{
-        height: 'var(--liked-work-card-height)',
-        width: `calc(var(--liked-work-card-height) * ${item.aspectRatio})`,
+        translate: '-50% 0',
+        top: rowIndex === 0 ? inset : undefined,
+        bottom: rowIndex === 0 ? undefined : inset,
+        height: expanded ? `${expanded.height}px` : '100%',
+        width: expanded ? `${expanded.width}px` : '100%',
       }}
-      whileHover={reduceMotion ? undefined : { scale: 1.012 }}
+      whileHover={reduceMotion || expanded ? undefined : { scale: 1.012 }}
       transition={{ type: 'spring', stiffness: 500, damping: 22, mass: 0.35 }}
     >
       <Link
@@ -227,11 +239,52 @@ function WorkCard({
         aria-label={item.title}
         tabIndex={duplicate ? -1 : undefined}
         draggable={false}
+        onClick={onToggle ? (event) => {
+          // Keyboard activation and modified clicks keep normal link behavior.
+          if (event.detail === 0 || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+          event.preventDefault()
+          onToggle()
+        } : undefined}
         className="block size-full cursor-inherit rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-content tablet:rounded-2xl"
       >
         {loadMedia && <WorkThumbnail thumbnail={item.thumbnail} imageLoading={imageLoading} />}
       </Link>
-      <div className="pointer-events-none absolute bottom-3 left-3 z-20 hidden opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 desktop:block">
+      <AnimatePresence>
+        {Boolean(expanded) && (
+          <motion.div
+            className="absolute bottom-3 left-3 z-20 tablet:bottom-4 tablet:left-4"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0, transition: { delay: 0.18, duration: 0.24, ease: 'easeOut' } }}
+            exit={{ opacity: 0, transition: { duration: 0.12 } }}
+          >
+            <Link
+              href={item.href}
+              draggable={false}
+              className="inline-flex max-w-[calc(100vw-4rem)] items-center gap-1.5 rounded-full bg-elevated px-3.5 py-2 text-body text-content shadow-sm ring-1 ring-border transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content"
+            >
+              <span className="truncate">{item.title}</span>
+              <svg
+                aria-hidden="true"
+                className="size-4 shrink-0"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 8h10M9 4l4 4-4 4" />
+              </svg>
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <div
+        className={cn(
+          'pointer-events-none absolute bottom-3 z-20 hidden opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 desktop:block',
+          expanded ? 'right-4' : 'left-3',
+        )}
+      >
         <LazyModuleLikeButton
           targetId={item.id}
           initialCount={item.likeCount}
@@ -258,10 +311,21 @@ export function LikedWorkMarquee({
   items,
   direction = 'left',
   label = 'Most liked work',
+  rowIndex = 0,
+  expansion = null,
+  expanded = false,
+  onToggleCard,
+  onCollapse,
 }: {
   items: LikedWorkMarqueeItem[]
   direction?: 'left' | 'right'
   label?: string
+  rowIndex?: number
+  /** Shifts for this row while any card in the group is expanded. */
+  expansion?: MarqueeRowExpansion | null
+  expanded?: boolean
+  onToggleCard?: (rowIndex: number, position: number) => void
+  onCollapse?: () => void
 }) {
   const autoSpeed = direction === 'right' ? -MARQUEE_SPEED_PX_PER_SECOND : MARQUEE_SPEED_PX_PER_SECOND
   const marqueeRef = useRef<HTMLDivElement>(null)
@@ -280,7 +344,6 @@ export function LikedWorkMarquee({
     Math.min(items.length, DEFAULT_MARQUEE_WINDOW_SIZE)
   ))
   const [windowStart, setWindowStart] = useState(0)
-  const hoveredRef = useRef(false)
   const focusedRef = useRef(false)
   const dragRef = useRef<MarqueeDrag | null>(null)
   const suppressClickRef = useRef(false)
@@ -289,10 +352,14 @@ export function LikedWorkMarquee({
   const x = useMotionValue(0)
   const effectiveWindowSize = Math.min(windowSize, items.length)
   const renderAllItems = Boolean(prefersReducedMotion || keyboardExpanded)
+  const canExpand = !renderAllItems && Boolean(onToggleCard)
+  // While expanded, mount one extra window on the left so shifted cards never reveal an empty edge.
+  const lead = expanded && !renderAllItems ? effectiveWindowSize : 0
+  const leadOffsetRef = useRef(0)
   const mountedEntries = getCircularMarqueeEntries(
     items,
-    windowStart,
-    renderAllItems ? items.length : effectiveWindowSize * 2,
+    windowStart - lead,
+    renderAllItems ? items.length : effectiveWindowSize * 2 + lead,
   )
 
   useEffect(() => {
@@ -334,6 +401,18 @@ export function LikedWorkMarquee({
       : 0
     x.set(0)
   }, [effectiveWindowSize, renderAllItems, x])
+
+  // Keep cards visually still when the extra lead window mounts or unmounts.
+  useLayoutEffect(() => {
+    if (lead > 0) {
+      const offset = firstCardRef.current?.offsetLeft ?? 0
+      leadOffsetRef.current = offset
+      x.set(x.get() - offset)
+    } else if (leadOffsetRef.current) {
+      x.set(x.get() + leadOffsetRef.current)
+      leadOffsetRef.current = 0
+    }
+  }, [lead, x])
 
   const rotateWindow = (direction: -1 | 1, carry: number) => {
     const nextStart = windowStartRef.current + direction * effectiveWindowSize
@@ -386,6 +465,10 @@ export function LikedWorkMarquee({
       if (!horizontal || Math.abs(event.deltaY) > Math.abs(event.deltaX) && !event.shiftKey) return
 
       event.preventDefault()
+      if (expanded) {
+        onCollapse?.()
+        return
+      }
       velocityRef.current = 0
       coastingRef.current = false
       const lineHeight = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? 16 : 1
@@ -399,12 +482,16 @@ export function LikedWorkMarquee({
   })
 
   useAnimationFrame((_time, delta) => {
+    if (expanded) {
+      velocityRef.current = 0
+      return
+    }
     if (!isInView || prefersReducedMotion || dragRef.current) return
 
     const loopDistance = loopDistanceRef.current
     if (loopDistance <= 0) return
 
-    const target = hoveredRef.current || focusedRef.current ? 0 : autoSpeed
+    const target = focusedRef.current ? 0 : autoSpeed
     const next = advanceMarquee(velocityRef.current, target, Math.min(delta, 64) / 1000, coastingRef.current ? 0.5 : 0.22)
     velocityRef.current = next.velocity
     if (Math.abs(next.velocity - target) < 0.5) {
@@ -442,8 +529,14 @@ export function LikedWorkMarquee({
         dragRef.current = null
         return
       }
-      drag.active = true
       suppressClickRef.current = true
+      if (expanded) {
+        // Dragging an expanded group closes it instead of scrolling mid-layout.
+        dragRef.current = null
+        onCollapse?.()
+        return
+      }
+      drag.active = true
       setIsDragging(true)
       // Capture only after dragging starts, so a normal click still reaches its link.
       event.currentTarget.setPointerCapture(event.pointerId)
@@ -459,10 +552,6 @@ export function LikedWorkMarquee({
   const finishDrag = (event: PointerEvent<HTMLDivElement>) => {
     const drag = dragRef.current
     if (!drag || drag.pointerId !== event.pointerId) return
-    const bounds = event.currentTarget.getBoundingClientRect()
-    hoveredRef.current = event.pointerType !== 'touch'
-      && event.clientX >= bounds.left && event.clientX <= bounds.right
-      && event.clientY >= bounds.top && event.clientY <= bounds.bottom
     velocityRef.current = drag.active && event.type === 'pointerup'
       ? getMarqueeReleaseVelocity(drag.samples, event.timeStamp)
       : 0
@@ -480,14 +569,14 @@ export function LikedWorkMarquee({
     <div
       ref={marqueeRef}
       className={cn(
-        'liked-work-marquee -my-2 w-full min-w-0 touch-pan-y select-none overflow-hidden py-2 motion-reduce:cursor-auto motion-reduce:touch-auto motion-reduce:overflow-x-auto',
+        'liked-work-marquee relative -my-2 w-full min-w-0 touch-pan-y select-none overflow-x-clip py-2 motion-reduce:cursor-auto motion-reduce:touch-auto motion-reduce:overflow-x-auto',
         isDragging ? 'cursor-grabbing' : 'cursor-grab',
+        expansion?.expandedPosition !== undefined && 'z-10',
       )}
+      data-marquee-row={rowIndex}
       role="region"
       aria-label={label}
-      onPointerEnter={(event) => { hoveredRef.current = event.pointerType !== 'touch' }}
       onPointerLeave={() => {
-        hoveredRef.current = false
         if (dragRef.current && !dragRef.current.active) dragRef.current = null
       }}
       onPointerDown={startDrag}
@@ -521,19 +610,35 @@ export function LikedWorkMarquee({
       }}
     >
       <motion.div
-        className="liked-work-marquee-track"
+        className="liked-work-marquee-track relative"
         role="list"
         style={{ x }}
       >
         {mountedEntries.map(({ item, position }, index) => {
-          const duplicate = !renderAllItems && index >= effectiveWindowSize
+          const duplicate = !renderAllItems && (index < lead || index >= lead + effectiveWindowSize)
+          const isExpanded = expansion?.expandedPosition === position
+          const shift = !expansion
+            ? 0
+            : isExpanded
+              ? expansion.expandedShift ?? 0
+              : position < expansion.pivot
+                ? expansion.leftShift
+                : expansion.rightShift
           return (
             <div
               key={`${position}:${item.id}`}
-              ref={index === 0 ? firstCardRef : index === effectiveWindowSize ? nextWindowRef : undefined}
+              ref={index === lead ? firstCardRef : index === lead + effectiveWindowSize ? nextWindowRef : undefined}
               role={duplicate ? undefined : 'listitem'}
               aria-hidden={duplicate ? 'true' : undefined}
-              className="shrink-0"
+              data-marquee-slot
+              data-position={position}
+              className="liked-work-slot relative shrink-0"
+              style={{
+                height: 'var(--liked-work-card-height)',
+                width: `calc(var(--liked-work-card-height) * ${item.aspectRatio})`,
+                translate: shift ? `${shift}px 0` : undefined,
+                zIndex: isExpanded ? 10 : undefined,
+              }}
             >
               <WorkCard
                 item={item}
@@ -543,6 +648,9 @@ export function LikedWorkMarquee({
                 // The animated window is bounded; load its images before they
                 // enter the clipped viewport instead of relying on native lazy loading.
                 imageLoading={renderAllItems ? 'lazy' : 'eager'}
+                rowIndex={rowIndex}
+                expanded={isExpanded ? expansion?.expandedSize : undefined}
+                onToggle={canExpand ? () => onToggleCard?.(rowIndex, position) : undefined}
               />
             </div>
           )

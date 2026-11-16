@@ -56,3 +56,62 @@ export function advanceMarquee(velocity: number, target: number, seconds: number
     distance: target * seconds + (velocity - target) * decay * (1 - remaining),
   }
 }
+
+export type MarqueeSlotMeasure = {
+  position: number
+  left: number
+  width: number
+}
+
+/** How a row's cards shift while one card is expanded across both rows. */
+export type MarqueeRowExpansion = {
+  pivot: number
+  leftShift: number
+  rightShift: number
+  expandedPosition?: number
+  expandedShift?: number
+  /** Pixel size of the expanded card, plus its inset from the far edge of the two-row span. */
+  expandedSize?: { width: number; height: number; inset: number }
+}
+
+/**
+ * Center the expanded card and open a matching gap in every row.
+ * Cards before the pivot move as one group, cards after it as another,
+ * so cards outside the measured window keep their spacing.
+ */
+export function getMarqueeRowExpansion(
+  slots: MarqueeSlotMeasure[],
+  center: number,
+  expandedWidth: number,
+  gap: number,
+  expandedPosition?: number,
+): MarqueeRowExpansion {
+  const sorted = [...slots].sort((a, b) => a.position - b.position)
+  const leftEdge = center - expandedWidth / 2 - gap
+  const rightEdge = center + expandedWidth / 2 + gap
+
+  if (expandedPosition !== undefined) {
+    const index = sorted.findIndex((slot) => slot.position === expandedPosition)
+    const expanded = sorted[index]
+    if (!expanded) return { pivot: expandedPosition, leftShift: 0, rightShift: 0 }
+    const before = sorted[index - 1]
+    const after = sorted[index + 1]
+    const expandedShift = center - (expanded.left + expanded.width / 2)
+    return {
+      pivot: expandedPosition,
+      expandedPosition,
+      expandedShift,
+      leftShift: before ? leftEdge - (before.left + before.width) : expandedShift,
+      rightShift: after ? rightEdge - after.left : expandedShift,
+    }
+  }
+
+  const pivotIndex = sorted.findIndex((slot) => slot.left + slot.width / 2 >= center)
+  const before = sorted[(pivotIndex === -1 ? sorted.length : pivotIndex) - 1]
+  const after = pivotIndex === -1 ? undefined : sorted[pivotIndex]
+  return {
+    pivot: after ? after.position : (before?.position ?? 0) + 1,
+    leftShift: before ? leftEdge - (before.left + before.width) : 0,
+    rightShift: after ? rightEdge - after.left : 0,
+  }
+}

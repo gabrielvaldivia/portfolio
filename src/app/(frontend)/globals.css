@@ -733,6 +733,19 @@ p {
   width: max-content;
 }
 
+/* Expanding a card shifts its neighbors and grows it across both rows together. */
+.liked-work-slot {
+  transition: translate 560ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.liked-work-card {
+  transition:
+    width 560ms cubic-bezier(0.32, 0.72, 0, 1),
+    height 560ms cubic-bezier(0.32, 0.72, 0, 1),
+    top 560ms cubic-bezier(0.32, 0.72, 0, 1),
+    bottom 560ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
 @media (min-width: 810px) {
   .liked-work-marquee {
     --liked-work-marquee-gap: 24px;
