@@ -249,48 +249,42 @@ function WorkCard({
       >
         {loadMedia && <WorkThumbnail thumbnail={item.thumbnail} imageLoading={imageLoading} />}
       </Link>
+      {/* The name shows on hover and stays while expanded; it opens the project. */}
+      <div
+        className={cn(
+          'absolute bottom-3 left-3 z-20 transition-opacity duration-150',
+          expanded
+            ? 'opacity-100 delay-150'
+            : 'pointer-events-none hidden opacity-0 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 [@media(hover:hover)]:block',
+        )}
+      >
+        <Link
+          href={item.href}
+          draggable={false}
+          tabIndex={expanded ? undefined : -1}
+          aria-hidden={expanded ? undefined : 'true'}
+          // Matches the like pill.
+          className="inline-flex h-8 max-w-[calc(100vw-4rem)] items-center rounded-full bg-black/20 px-2.5 text-caption font-medium text-white backdrop-blur-md transition-colors duration-150 hover:bg-black/30 focus-visible:ring-2 focus-visible:ring-content/30 dark:hover:bg-white/15"
+        >
+          <span className="truncate">{item.title}</span>
+        </Link>
+      </div>
       <AnimatePresence>
         {Boolean(expanded) && (
           <motion.div
-            className="absolute bottom-3 left-3 z-20 tablet:bottom-4 tablet:left-4"
+            className="absolute right-3 bottom-3 z-20"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0, transition: { delay: 0.18, duration: 0.24, ease: 'easeOut' } }}
             exit={{ opacity: 0, transition: { duration: 0.12 } }}
           >
-            <Link
-              href={item.href}
-              draggable={false}
-              className="inline-flex max-w-[calc(100vw-4rem)] items-center gap-1.5 rounded-full bg-elevated px-3.5 py-2 text-body text-content shadow-sm ring-1 ring-border transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content"
-            >
-              <span className="truncate">{item.title}</span>
-              <svg
-                aria-hidden="true"
-                className="size-4 shrink-0"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 8h10M9 4l4 4-4 4" />
-              </svg>
-            </Link>
+            <LazyModuleLikeButton
+              targetId={item.id}
+              initialCount={item.likeCount}
+              tabIndex={duplicate ? -1 : undefined}
+            />
           </motion.div>
         )}
       </AnimatePresence>
-      <div
-        className={cn(
-          'pointer-events-none absolute bottom-3 z-20 hidden opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 desktop:block',
-          expanded ? 'right-4' : 'left-3',
-        )}
-      >
-        <LazyModuleLikeButton
-          targetId={item.id}
-          initialCount={item.likeCount}
-          tabIndex={duplicate ? -1 : undefined}
-        />
-      </div>
     </motion.div>
   )
 }
