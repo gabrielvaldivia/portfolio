@@ -184,7 +184,8 @@ const BrowserBlock: Block = {
   imageURL: '/block-icons/Browser.svg',
   fields: [
     imageLayoutFields,
-    { name: 'image', type: 'upload', relationTo: 'media', required: true },
+    // A video upload plays inside the browser frame.
+    { name: 'image', type: 'upload', relationTo: 'media', required: true, label: 'Image or video' },
     { name: 'address', type: 'text', defaultValue: 'gabrielvaldivia.com' },
     { name: 'caption', type: 'text' },
     {

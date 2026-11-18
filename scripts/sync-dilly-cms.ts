@@ -1,4 +1,5 @@
 // Adds Dilly to the Playground, or updates it, with its screen recordings and screenshots.
+// The full-game recording plays inside a browser module, which takes a video upload.
 // Media is uploaded through the Payload local API, so images get the usual resized versions.
 // The files stay out of this repo: they show real players' portraits from the live app.
 // Usage: npx payload run scripts/sync-dilly-cms.ts -- <assetDir>
@@ -99,12 +100,7 @@ const data = {
   links: [{ label: 'Visit website', url: 'https://dilly.vercel.app' }],
   content: [
     browser('dilly-select', media.desktopSelect, 'Fighters sit on a spinning globe; tap one to put them in 1P or 2P.', '6'),
-    {
-      blockType: 'video' as const, id: 'dilly-desktop-flow', video: media.desktopFlow,
-      caption: 'A full game: pick two fighters, score it to deuce, hold + to win, and take the K.O.',
-      columns: '6' as const, rows: 'wrap' as const, fit: 'contain' as const, padding: '40' as const, bgColor: 'alt', border: false,
-      autoplay: true, loop: true, muted: true, controls: false,
-    },
+    browser('dilly-desktop-flow', media.desktopFlow, 'A full game: pick two fighters, score it to deuce, hold + to win, and take the K.O.', '6'),
     iphoneVideo('dilly-iphone-select', media.mobileSelect),
     iphoneVideo('dilly-iphone-score', media.mobileScore),
     iphoneVideo('dilly-iphone-ko', media.mobileKO),

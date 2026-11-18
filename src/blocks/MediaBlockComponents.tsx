@@ -6,6 +6,7 @@ import { LazyModuleLikeButton } from '@/components/LazyModuleLikeButton'
 import { PayloadImage } from '@/components/PayloadImage'
 import { VideoPlayer } from '@/components/VideoPlayer'
 import { cn } from '@/lib/cn'
+import { isVideoMedia } from '@/lib/mediaKind'
 
 type ModuleRenderMode = 'page' | 'lightbox'
 
@@ -304,8 +305,10 @@ function BrowserBlockComponent({
             <div className="w-14 shrink-0 tablet:w-16" style={{ width: scaledLength(64) }} aria-hidden="true" />
           </div>
           <div className="relative bg-background" style={{ aspectRatio }}>
-            <PayloadImage media={image} alt={image.alt || ''} fill className={objectFit} sizes={getBlockImageSizes(columns, isLightbox)} />
-            {imageBorder && <div className="pointer-events-none absolute inset-0 z-10 border border-border" />}
+            {isVideoMedia(image)
+              ? <LazyVideo src={image.url} className={cn('absolute inset-0 h-full w-full', objectFit)} />
+              : <PayloadImage media={image} alt={image.alt || ''} fill className={objectFit} sizes={getBlockImageSizes(columns, isLightbox)} />}
+            {imageBorder &&<div className="pointer-events-none absolute inset-0 z-10 border border-border" />}
           </div>
         </div>
         {_likeTargetId && <ModuleLikeOverlay targetId={_likeTargetId} />}

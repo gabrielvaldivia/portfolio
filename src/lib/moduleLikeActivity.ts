@@ -20,6 +20,7 @@ import {
   normalizeActivityCursor,
 } from '@/lib/moduleLikeActivityPagination'
 import { getPhotos, type Photo, type PhotoExif } from '@/lib/photos'
+import { isVideoMedia } from '@/lib/mediaKind'
 import { noteHighlightActivityRows, resolveHighlightActivity, type HighlightActivityData, type HighlightActivityLocation } from '@/lib/noteHighlightActivity'
 
 type PortfolioActivityRow = {
@@ -452,7 +453,7 @@ function getBlockThumbnail(block: any) {
     rounded: isChecked(block?.rounded),
   }
 
-  if (image) {
+  if (image && !isVideoMedia(image)) {
     const preferred = getPreferredImage(image)
     if (!preferred.url) return null
     return {
@@ -467,13 +468,15 @@ function getBlockThumbnail(block: any) {
     }
   }
 
-  if (video?.url) {
+  // A browser module's upload can itself be a video.
+  const clip = image || video
+  if (clip?.url) {
     return {
       type: 'video' as const,
-      url: video.url,
-      alt: video.alt || caption || '',
-      width: video.width,
-      height: video.height,
+      url: clip.url,
+      alt: clip.alt || caption || '',
+      width: clip.width,
+      height: clip.height,
       ...presentation,
       frame,
     }
