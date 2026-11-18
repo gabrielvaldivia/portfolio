@@ -1,6 +1,11 @@
 {
-  "throughCommit": "425822cea8dcd3220ef04b9eb9ec09bfe182b303",
+  "throughCommit": "dbe94e50cbe40a502635bafcf079b5fc5e280eb0",
   "commits": [
+    {
+      "hash": "dbe94e50cbe40a502635bafcf079b5fc5e280eb0",
+      "date": "2026-11-16",
+      "subject": "Slim the website preview browser bar"
+    },
     {
       "hash": "425822cea8dcd3220ef04b9eb9ec09bfe182b303",
       "date": "2026-11-16",
