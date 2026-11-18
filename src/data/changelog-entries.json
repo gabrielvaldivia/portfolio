@@ -1,5 +1,12 @@
 [
  {
+  "date": "2026-11-18",
+  "title": "Fresh Projector screenshots",
+  "changes": [
+   "Projector’s Playground page has new screenshots of the current app in browser frames: income by month, the team schedule, contracts, and clients, all from its demo workspace."
+  ]
+ },
+ {
   "date": "2026-11-17",
   "title": "Conga and Dilly join the Playground",
   "changes": [

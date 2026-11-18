@@ -1,6 +1,16 @@
 {
-  "throughCommit": "dbe94e50cbe40a502635bafcf079b5fc5e280eb0",
+  "throughCommit": "2e5cd11c291b7d31652c1e1cb804ca81f12d1135",
   "commits": [
+    {
+      "hash": "2e5cd11c291b7d31652c1e1cb804ca81f12d1135",
+      "date": "2026-11-17",
+      "subject": "Let browser modules play a video upload"
+    },
+    {
+      "hash": "ebec6aeed2eea746273347c00b2d94bf866bcf7a",
+      "date": "2026-11-17",
+      "subject": "Add Conga and Dilly to the Playground"
+    },
     {
       "hash": "dbe94e50cbe40a502635bafcf079b5fc5e280eb0",
       "date": "2026-11-16",
