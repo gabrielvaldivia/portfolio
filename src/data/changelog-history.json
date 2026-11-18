@@ -1,6 +1,11 @@
 {
-  "throughCommit": "2e5cd11c291b7d31652c1e1cb804ca81f12d1135",
+  "throughCommit": "2e9abd8660cd798bcf850fb26f00807aa842f0e1",
   "commits": [
+    {
+      "hash": "2e9abd8660cd798bcf850fb26f00807aa842f0e1",
+      "date": "2026-11-18",
+      "subject": "Refresh Projector's Playground screenshots"
+    },
     {
       "hash": "2e5cd11c291b7d31652c1e1cb804ca81f12d1135",
       "date": "2026-11-17",
