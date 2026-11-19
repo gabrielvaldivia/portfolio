@@ -1,6 +1,11 @@
 {
-  "throughCommit": "358eb9bcd305279df0a7795f5daa38f5e871cd4a",
+  "throughCommit": "ee38e317c5e4407e5a5933e07e8597e9f65a6dd8",
   "commits": [
+    {
+      "hash": "ee38e317c5e4407e5a5933e07e8597e9f65a6dd8",
+      "date": "2026-11-18",
+      "subject": "Type out notes on a visitor's first open"
+    },
     {
       "hash": "358eb9bcd305279df0a7795f5daa38f5e871cd4a",
       "date": "2026-11-18",

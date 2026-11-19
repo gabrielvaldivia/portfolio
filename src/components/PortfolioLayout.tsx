@@ -8,7 +8,6 @@ import { PageTransition } from '@/components/PageTransition'
 import { getFooterSocialLinks, getNavigationPages, getSiteSettings } from '@/lib/queries'
 import { normalizeSocialLink } from '@/lib/socialLinks'
 import { SITE_ORIGIN } from '@/lib/siteMetadata'
-import { noteTypingHeadScript } from '@/lib/noteTyping'
 
 
 export async function PortfolioLayout({ children }: { children: React.ReactNode }) {
@@ -44,7 +43,6 @@ export async function PortfolioLayout({ children }: { children: React.ReactNode 
   return (
     <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
-        <script dangerouslySetInnerHTML={{ __html: noteTypingHeadScript }} />
         <link rel="describedby" href="/llms.txt" />
         <link
           rel="alternate"
