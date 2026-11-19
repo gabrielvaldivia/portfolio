@@ -1,4 +1,4 @@
-// Adds the stageshow mobile tour to Dilly's Playground page without touching its other modules,
+// Adds the iPhone tour (the real app, recorded in the stageshow phone frame) to Dilly's Playground page without touching its other modules,
 // for when the rest of sync-dilly-cms.ts's assets aren't at hand. The tour goes after the desktop flow.
 // Usage: npx payload run scripts/add-dilly-mobile-tour.ts -- <path/to/dilly-mobile-tour.mp4>
 import fs from 'node:fs'
@@ -13,8 +13,8 @@ if (path.basename(filePath) !== filename || !fs.existsSync(filePath)) {
   process.exit(1)
 }
 
-const alt = 'A tour of Dilly on iPhone: picking Leah for 2P, the versus splash, a point run, holding + to jump to the winning score, the K.O. screen with the loser’s beaten-up portrait and excuse, then Records'
-const dimensions = { width: 900, height: 1230 }
+const alt = 'A tour of the real Dilly app on iPhone: spinning the fighter globe, picking Leah for 2P, the versus splash, a point run, dragging the score slider to 11, the K.O. screen with the loser’s beaten-up portrait and excuse, then Records'
+const dimensions = { width: 840, height: 1470 }
 
 const payload = await getPayload({ config })
 
@@ -32,7 +32,7 @@ if (mediaId) {
 
 const block = {
   blockType: 'video', id: 'dilly-mobile-tour', video: mediaId,
-  caption: 'A whole game on iPhone: pick a fighter, score it, hold + to win, and take the K.O.',
+  caption: 'A whole game on iPhone: spin the globe, pick a fighter, slide the score to 11, and take the K.O.',
   columns: '6', rows: '3', fit: 'contain', padding: '0', bgColor: '#06050E', border: false,
   autoplay: true, loop: true, muted: true, controls: false,
 }
