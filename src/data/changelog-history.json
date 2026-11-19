@@ -1,6 +1,11 @@
 {
-  "throughCommit": "ee38e317c5e4407e5a5933e07e8597e9f65a6dd8",
+  "throughCommit": "93bb81c2c72d30cb155e7685d2f3587e3a02a70c",
   "commits": [
+    {
+      "hash": "93bb81c2c72d30cb155e7685d2f3587e3a02a70c",
+      "date": "2026-11-18",
+      "subject": "Remove the note typing animation"
+    },
     {
       "hash": "ee38e317c5e4407e5a5933e07e8597e9f65a6dd8",
       "date": "2026-11-18",

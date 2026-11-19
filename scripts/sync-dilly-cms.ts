@@ -1,4 +1,5 @@
 // Adds Dilly to the Playground, or updates it, with its screen recordings and screenshots.
+// The mobile tour is a faux walkthrough built with the stageshow kit, recorded frame by frame.
 // The full-game recording plays inside a browser module, which takes a video upload.
 // Media is uploaded through the Payload local API, so images get the usual resized versions.
 // The files stay out of this repo: they show real players' portraits from the live app.
@@ -12,6 +13,7 @@ const assetDir = path.resolve(process.argv[process.argv.length - 1] || '')
 const address = 'dilly.vercel.app'
 
 const assets = {
+  mobileTour: { filename: 'dilly-mobile-tour.mp4', alt: 'A tour of Dilly on iPhone: picking Leah for 2P, the versus splash, a point run, holding + to jump to the winning score, the K.O. screen with the loser’s beaten-up portrait and excuse, then Records', width: 900, height: 1230 },
   desktopFlow: { filename: 'dilly-desktop-flow.mp4', alt: 'A full game of Dilly on desktop: picking fighters on the globe, the versus splash, scoring to deuce, holding + to win, the K.O. screen, and the rivalry records', width: 1920, height: 1200 },
   mobileSelect: { filename: 'dilly-mobile-select.mp4', alt: 'Spinning the fighter globe and swapping fighters on iPhone, then the versus splash', width: 786, height: 1704 },
   mobileScore: { filename: 'dilly-mobile-score.mp4', alt: 'Scoring a Dilly game on iPhone: a point run, ruler drags, game point, deuce, and holding + to jump to the winning score', width: 786, height: 1704 },
@@ -101,6 +103,13 @@ const data = {
   content: [
     browser('dilly-select', media.desktopSelect, 'Fighters sit on a spinning globe; tap one to put them in 1P or 2P.', '6'),
     browser('dilly-desktop-flow', media.desktopFlow, 'A full game: pick two fighters, score it to deuce, hold + to win, and take the K.O.', '6'),
+    {
+      blockType: 'video' as const, id: 'dilly-mobile-tour', video: media.mobileTour,
+      caption: 'A whole game on iPhone: pick a fighter, score it, hold + to win, and take the K.O.',
+      // The portrait video sits in a wide band of its own background color.
+      columns: '6' as const, rows: '3' as const, fit: 'contain' as const, padding: '0' as const, bgColor: '#06050E', border: false,
+      autoplay: true, loop: true, muted: true, controls: false,
+    },
     iphoneVideo('dilly-iphone-select', media.mobileSelect),
     iphoneVideo('dilly-iphone-score', media.mobileScore),
     iphoneVideo('dilly-iphone-ko', media.mobileKO),
