@@ -1,6 +1,11 @@
 {
-  "throughCommit": "2e9abd8660cd798bcf850fb26f00807aa842f0e1",
+  "throughCommit": "d13ec66df4d87c54d7fefc9efd8a43c89cce6788",
   "commits": [
+    {
+      "hash": "d13ec66df4d87c54d7fefc9efd8a43c89cce6788",
+      "date": "2026-11-18",
+      "subject": "Add a Projector walkthrough video and side-sheet screenshots"
+    },
     {
       "hash": "2e9abd8660cd798bcf850fb26f00807aa842f0e1",
       "date": "2026-11-18",

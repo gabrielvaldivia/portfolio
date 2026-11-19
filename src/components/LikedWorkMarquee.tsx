@@ -111,8 +111,10 @@ function WorkThumbnail({
   if (thumbnail.browser) {
     return (
       <div className="flex size-full items-center justify-center overflow-hidden rounded-xl border border-border bg-background-alt p-4 tablet:rounded-2xl tablet:p-5" aria-hidden="true">
-        {/* Bar sizes use container width units so its proportions hold when the card expands. */}
-        <div className="@container flex size-full min-h-0 flex-col overflow-hidden rounded-lg border border-border bg-elevated shadow-sm tablet:rounded-xl">
+        {/* Bar and corner sizes use container width units so the window keeps its proportions at any card size.
+            The wrapper is the container because an element's own container units can't size its corners. */}
+        <div className="@container size-full min-h-0">
+        <div className="@container flex size-full min-h-0 flex-col overflow-hidden rounded-[1.25cqw] border border-border bg-elevated shadow-sm">
           <div className="grid h-[4.4cqw] shrink-0 grid-cols-[1fr_minmax(0,2fr)_1fr] items-center gap-[1.1cqw] border-b border-border bg-gray-200 px-[1.5cqw]">
             <div className="flex shrink-0 items-center gap-[0.75cqw]">
               <span className="size-[0.95cqw] rounded-full bg-red-400" />
@@ -130,6 +132,7 @@ function WorkThumbnail({
           <div className="relative min-h-0 flex-1 overflow-hidden bg-background">
             <WorkMedia thumbnail={thumbnail} className={mediaClassName} imageLoading={imageLoading} />
           </div>
+        </div>
         </div>
       </div>
     )
