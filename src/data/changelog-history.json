@@ -1,6 +1,11 @@
 {
-  "throughCommit": "d13ec66df4d87c54d7fefc9efd8a43c89cce6788",
+  "throughCommit": "cac3f23d575da4e402617fbce906eb928034df4f",
   "commits": [
+    {
+      "hash": "cac3f23d575da4e402617fbce906eb928034df4f",
+      "date": "2026-11-18",
+      "subject": "Scale homepage browser thumbnail corners with their size"
+    },
     {
       "hash": "d13ec66df4d87c54d7fefc9efd8a43c89cce6788",
       "date": "2026-11-18",

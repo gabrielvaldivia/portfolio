@@ -271,7 +271,7 @@ function WorkCard({
           tabIndex={expanded ? undefined : -1}
           aria-hidden={expanded ? undefined : 'true'}
           // Matches the like pill.
-          className="inline-flex h-8 max-w-full items-center rounded-full bg-black/20 px-2.5 text-caption font-medium text-white backdrop-blur-md transition-colors duration-150 hover:bg-black/30 focus-visible:ring-2 focus-visible:ring-content/30 dark:hover:bg-white/15"
+          className="inline-flex h-8 max-w-full items-center rounded-full bg-black/20 px-2.5 text-caption font-medium text-white backdrop-blur-md transition-colors duration-150 hover:bg-black/30 focus-visible:ring-2 focus-visible:ring-content/30"
         >
           <span className="truncate">{item.title}</span>
         </Link>
