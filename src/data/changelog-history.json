@@ -1,6 +1,11 @@
 {
-  "throughCommit": "cac3f23d575da4e402617fbce906eb928034df4f",
+  "throughCommit": "358eb9bcd305279df0a7795f5daa38f5e871cd4a",
   "commits": [
+    {
+      "hash": "358eb9bcd305279df0a7795f5daa38f5e871cd4a",
+      "date": "2026-11-18",
+      "subject": "Keep like buttons visible on hover over light media"
+    },
     {
       "hash": "cac3f23d575da4e402617fbce906eb928034df4f",
       "date": "2026-11-18",

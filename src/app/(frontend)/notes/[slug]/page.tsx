@@ -1,6 +1,7 @@
 import { NoteArticle } from '@/components/NoteArticle'
 import { RichText } from '@/components/RichText'
 import { NoteHighlights } from '@/components/NoteHighlights'
+import { NoteTypewriter } from '@/components/NoteTypewriter'
 import { NotesSubscribeForm } from '@/components/NotesSubscribeForm'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { getNoteHighlightText } from '@/lib/noteHighlightAnchors'
@@ -123,9 +124,11 @@ export default async function NotePage({ params }: NotePageProps) {
       <NoteArticle
         note={note}
         bodyContent={
-          <NoteHighlights key={note.id} noteId={String(note.id)} likeTargetId={getNoteLikeTargetId(note.slug)} version={highlightTextVersion(getNoteHighlightText(note.body))}>
-            <RichText data={note.body} renderLinkedImages />
-          </NoteHighlights>
+          <NoteTypewriter key={note.id} slug={note.slug}>
+            <NoteHighlights noteId={String(note.id)} likeTargetId={getNoteLikeTargetId(note.slug)} version={highlightTextVersion(getNoteHighlightText(note.body))}>
+              <RichText data={note.body} renderLinkedImages />
+            </NoteHighlights>
+          </NoteTypewriter>
         }
       >
         <NotesSubscribeForm key={note.id} />
