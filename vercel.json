@@ -10,15 +10,15 @@
     },
     {
       "path": "/api/notes/publish-scheduled",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 * * * *"
     },
     {
       "path": "/api/engagement-models/notifications",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 * * * *"
     },
     {
       "path": "/api/notes/send-newsletters",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 * * * *"
     }
   ],
   "fluid": true,
