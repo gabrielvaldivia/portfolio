@@ -1,7 +1,7 @@
 import type { PublicHighlight } from './noteHighlightAnchors'
 
 export type HighlightVisibility = { you: boolean; them: boolean }
-export const defaultHighlightVisibility: HighlightVisibility = { you: true, them: true }
+export const defaultHighlightVisibility: HighlightVisibility = { you: true, them: false }
 export const highlightVisibilityStorageKey = 'gv-note-highlights-visible-v2'
 export const legacyHighlightVisibilityStorageKey = 'gv-note-highlights-visible-v1'
 
@@ -10,6 +10,7 @@ export function parseHighlightVisibility(value: string | null, legacy: string | 
     const parsed = value ? JSON.parse(value) : null
     if (typeof parsed?.you === 'boolean' && typeof parsed?.them === 'boolean') return { you: parsed.you, them: parsed.them }
   } catch { /* Ignore malformed preferences. */ }
+  if (legacy === null) return defaultHighlightVisibility
   return { you: legacy !== 'false', them: legacy !== 'false' }
 }
 
