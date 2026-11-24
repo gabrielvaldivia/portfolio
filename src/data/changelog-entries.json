@@ -3,7 +3,7 @@
   "date": "2026-11-24",
   "title": "Case studies get a sidebar on big screens",
   "changes": [
-   "On screens 2000px and wider, case studies keep the title, description and credits in a fixed sidebar while the work scrolls beside it, with images growing to fill the space. Contact form errors now replace the placeholder text instead of adding lines."
+   "On screens 2000px and wider, case studies keep the title, description and credits in a fixed sidebar while the work scrolls beside it. The homepage headline now smears under your cursor like project titles, and contact form errors replace the placeholder text."
   ]
  },
  {

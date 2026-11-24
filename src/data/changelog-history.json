@@ -1,6 +1,11 @@
 {
-  "throughCommit": "a7a5e71d115676be550e3574d6adc9f8fb58db55",
+  "throughCommit": "0e43807bdd419e25e8bac0f289f9ed741efd2c39",
   "commits": [
+    {
+      "hash": "0e43807bdd419e25e8bac0f289f9ed741efd2c39",
+      "date": "2026-11-24",
+      "subject": "Pin case study details in a sidebar on screens 2000px and wider"
+    },
     {
       "hash": "a7a5e71d115676be550e3574d6adc9f8fb58db55",
       "date": "2026-11-24",

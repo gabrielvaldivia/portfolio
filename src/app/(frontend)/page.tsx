@@ -8,6 +8,7 @@ import { HScrollContainer } from '@/components/HScrollContainer'
 import { normalizeSocialLink } from '@/lib/socialLinks'
 import { ContactForm } from '@/components/ContactForm'
 import { AskMeAnything, AskMeAnythingRestart } from '@/components/AskMeAnything'
+import { HomeHeroHeading } from '@/components/HomeHeroHeading'
 import { HomeHeroProjects } from '@/components/HomeHeroProjects'
 import { normalizeHeroPills } from '@/lib/heroProjectPills'
 import { resolveHeroTestimonial } from '@/lib/heroTestimonial'
@@ -325,20 +326,7 @@ function HomeHeroTagline({ heading = HOME_HERO_TAGLINE }: { heading?: string | n
 
   return (
     <div className="hero-intro-snap-point home-hero-tagline home-page-gutters home-grid tablet:pt-20 desktop:pt-24">
-      <h1
-        aria-label={lines.join(' ')}
-        className="home-hero-heading tablet:col-span-6 text-left"
-      >
-        {lines.map((line, index) => (
-          <span
-            key={`${line}-${index}`}
-            aria-hidden="true"
-            className={lines.length > 1 ? 'tablet:block tablet:whitespace-nowrap' : undefined}
-          >
-            {line}{index < lines.length - 1 ? ' ' : ''}
-          </span>
-        ))}
-      </h1>
+      <HomeHeroHeading lines={lines} className="tablet:col-span-6" />
     </div>
   )
 }

@@ -23,13 +23,16 @@ export function useReducedMotion() {
   return reduced
 }
 
-export function ParticleTitle({ effect, title, enabled, bleed = DEFAULT_BLEED, fitOnMobile = false, sidebarSize }: {
+export function ParticleTitle({ effect, title, enabled, bleed = DEFAULT_BLEED, fitOnMobile = false, sidebarSize, className, children }: {
   effect: EffectDef
   title: string
   enabled: boolean
   bleed?: Bleed
   fitOnMobile?: boolean
   sidebarSize?: number
+  className?: string
+  /** Your own text instead of the fitted one-line title; mark the element holding all of it with `data-particle-text`. */
+  children?: React.ReactNode
 }) {
   const { x: BLEED_X, top: BLEED_TOP, bottom: BLEED_BOTTOM } = bleed
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -61,7 +64,7 @@ export function ParticleTitle({ effect, title, enabled, bleed = DEFAULT_BLEED, f
     }
 
     const setup = () => {
-      span = wrap.querySelector('span')
+      span = wrap.querySelector<HTMLElement>('[data-particle-text]') || wrap.querySelector('span')
       if (!span) return false
       const rect = wrap.getBoundingClientRect()
       const w = Math.round(rect.width + BLEED_X * 2)
@@ -196,7 +199,7 @@ export function ParticleTitle({ effect, title, enabled, bleed = DEFAULT_BLEED, f
   }, [effect, title, enabled, BLEED_X, BLEED_TOP, BLEED_BOTTOM])
 
   return (
-    <div ref={wrapRef} className="relative" style={{ marginLeft: '-5px' }}>
+    <div ref={wrapRef} className={`relative ${className ?? ''}`} style={children ? undefined : { marginLeft: '-5px' }}>
       <canvas
         ref={canvasRef}
         aria-hidden
@@ -204,7 +207,7 @@ export function ParticleTitle({ effect, title, enabled, bleed = DEFAULT_BLEED, f
         style={{ left: -BLEED_X, top: -BLEED_TOP, zIndex: effect.behind ? 0 : 2 }}
       />
       <div className="relative" style={{ zIndex: 1 }}>
-        <FitText className="font-heading" fitOnMobile={fitOnMobile} sidebarSize={sidebarSize}>{title}</FitText>
+        {children ?? <FitText className="font-heading" fitOnMobile={fitOnMobile} sidebarSize={sidebarSize}>{title}</FitText>}
       </div>
     </div>
   )
