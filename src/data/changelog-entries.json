@@ -1,9 +1,16 @@
 [
  {
   "date": "2026-11-24",
-  "title": "Contact form errors in place",
+  "title": "Case studies get a sidebar on big screens",
   "changes": [
-   "Contact form errors now appear right where you type: an empty field swaps its placeholder for the error in red, so the form stays compact instead of growing a line per mistake."
+   "On screens 2000px and wider, case studies keep the title, description and credits in a fixed sidebar while the work scrolls beside it, with images growing to fill the space. Contact form errors now replace the placeholder text instead of adding lines."
+  ]
+ },
+ {
+  "date": "2026-11-21",
+  "title": "Quieter note highlights",
+  "changes": [
+   "Notes now hide other readers’ highlights by default, so you can read without their marks in the way."
   ]
  },
  {

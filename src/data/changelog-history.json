@@ -1,6 +1,21 @@
 {
-  "throughCommit": "b47320983518fe1b50d296fb287c795f21674641",
+  "throughCommit": "a7a5e71d115676be550e3574d6adc9f8fb58db55",
   "commits": [
+    {
+      "hash": "a7a5e71d115676be550e3574d6adc9f8fb58db55",
+      "date": "2026-11-24",
+      "subject": "Show contact form errors in place of placeholder text"
+    },
+    {
+      "hash": "1d6a9c93acde080e0e0588c36fcad9090d054f4e",
+      "date": "2026-11-21",
+      "subject": "Hide other readers' highlights by default"
+    },
+    {
+      "hash": "573ccb051b455da372f1c51a3d487b4d7fe16038",
+      "date": "2026-11-21",
+      "subject": "chore: reduce scheduled cron frequency"
+    },
     {
       "hash": "b47320983518fe1b50d296fb287c795f21674641",
       "date": "2026-11-19",

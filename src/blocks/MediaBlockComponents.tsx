@@ -35,7 +35,8 @@ const paddingClasses: Record<string, string> = {
   '80': 'p-8 tablet:p-12 desktop:p-20',
 }
 
-const ROW_HEIGHT = 200
+// One grid row is 200px at the 1320px content width and grows with wider grids (see --row-unit in globals.css).
+const ROW_UNIT = 'var(--row-unit, 200px)'
 const ROW_GAP = 40
 const BROWSER_REFERENCE_WIDTH = 1280
 
@@ -73,7 +74,7 @@ function phoneOverlaySizeStyle(id: string) {
 function getRowHeight(rows?: string) {
   const isWrap = !rows || rows === 'wrap'
   const rowCount = isWrap ? 0 : parseInt(rows, 10)
-  return rowCount > 0 ? ROW_HEIGHT * rowCount + ROW_GAP * (rowCount - 1) : null
+  return rowCount > 0 ? `calc(${rowCount} * ${ROW_UNIT} + ${ROW_GAP * (rowCount - 1)}px)` : null
 }
 
 function getSurfaceBackground(bgColor?: string) {
@@ -146,7 +147,7 @@ function ImageBlockComponent({
         <div
           data-module-image-content
           className={`relative w-full ${shadow ? 'drop-shadow-md' : ''} ${roundedClass}`}
-          style={{ aspectRatio, ...(rowHeight && !isLightbox ? { ['--row-height' as string]: `${rowHeight}px` } : {}) }}
+          style={{ aspectRatio, ...(rowHeight && !isLightbox ? { ['--row-height' as string]: rowHeight } : {}) }}
         >
           <div className={`absolute inset-0 ${roundedClass} ${rounded || imageBorder ? 'overflow-hidden' : ''}`}>
             <PayloadImage media={image} alt={image.alt || ''} fill className={objectFit} sizes={getBlockImageSizes(columns, isLightbox)} />
@@ -222,7 +223,7 @@ function VideoBlockComponent({
         data-module-video-frame
         className={cn(bg, 'relative overflow-hidden', border ? 'border border-border' : '', hasPadding ? padClass : '')}
         style={{
-          ...(rowHeight ? { ['--row-height' as string]: `${rowHeight}px` } : {}),
+          ...(rowHeight ? { ['--row-height' as string]: rowHeight } : {}),
           ...(customBg ? { backgroundColor: customBg } : {}),
         }}
       >
@@ -339,12 +340,11 @@ function framedLightboxSizeStyle(aspectRatio: number, contained: boolean) {
     : lightboxFrameSizeStyle(aspectRatio)
 }
 
-function framedDesktopSizeStyle(isLightbox: boolean, rowHeight: number | null, aspectRatio: number, contained = false) {
+function framedDesktopSizeStyle(isLightbox: boolean, rowHeight: string | null, aspectRatio: number, contained = false) {
   if (isLightbox) return framedLightboxSizeStyle(aspectRatio, contained)
   if (rowHeight === null) return ''
 
-  const rowWidth = (rowHeight * aspectRatio).toFixed(2)
-  return `width: ${rowWidth}px; max-width: 100%; height: auto;`
+  return `width: calc(${rowHeight} * ${aspectRatio.toFixed(4)}); max-width: 100%; height: auto;`
 }
 
 function FramedVideoOrImage({

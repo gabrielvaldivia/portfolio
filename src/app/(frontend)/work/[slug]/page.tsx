@@ -92,28 +92,30 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
       <JsonLd data={structuredData} />
 
       <article>
-        <Container>
-          <div className="pb-20">
-            {/* The fitted title is drawn by a client component; keep a real heading for assistive tech. */}
-            <h1 className="sr-only">{project.title}</h1>
-            <div aria-hidden>
-              <WorkTitle title={project.title} />
+        {/* Wide screens: title, description and meta sit in a fixed left sidebar while the work scrolls. */}
+        <Container className="wide:max-w-none wide:pl-[560px]">
+          {/* Pinned to the browser's left edge; its top padding clears the site header (which stays clickable through it) plus 64px, matching the gap above the work. */}
+          <aside className="wide:pointer-events-none wide:fixed wide:inset-y-0 wide:left-0 wide:w-[520px] wide:px-10 wide:pt-[178px] wide:pb-10">
+            <div className="pb-20 wide:pb-10 wide:pointer-events-auto">
+              {/* The fitted title is drawn by a client component; keep a real heading for assistive tech. */}
+              <h1 className="sr-only">{project.title}</h1>
+              {/* In the sidebar, pull the 64px title up so its cap height lines up with the top of the work. */}
+              <div aria-hidden className="wide:-mt-4">
+                <WorkTitle title={project.title} />
+              </div>
             </div>
-          </div>
-          <div className="flex flex-col gap-20">
 
-            {/* Hero: 2-column — description left, meta right */}
-            <div className="flex flex-col tablet:flex-row gap-10 tablet:gap-10 desktop:gap-20">
-              {/* Description */}
-              <div className="flex-1">
+            {/* Description beside meta from tablet; stacked in the sidebar on wide screens */}
+            <div className="flex flex-col tablet:flex-row wide:flex-col gap-10 desktop:gap-20 wide:gap-10 wide:pointer-events-auto">
+              {/* Same size as the body text in the project's content blocks. */}
+              <div className="flex-1 text-body">
                 {project.description ? (
                   <RichText data={project.description} />
                 ) : project.subtitle ? (
-                  <p className="text-[20px] leading-[1.4]">{project.subtitle}</p>
+                  <p>{project.subtitle}</p>
                 ) : null}
               </div>
 
-              {/* Meta */}
               <div className="flex-1 space-y-5">
                 {team.length > 0 && (
                   <MetaRow label="Team">
@@ -142,9 +144,10 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
                 )}
               </div>
             </div>
+          </aside>
 
-
-            {/* Content blocks */}
+          {/* Content blocks */}
+          <div className="mt-20 wide:mx-auto wide:mt-16 wide:max-w-[2000px] min-w-0">
             <RenderBlocks blocks={project.content as any[]} likeNamespace={`project:${slug}`} />
           </div>
         </Container>

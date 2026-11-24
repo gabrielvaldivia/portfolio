@@ -105,8 +105,11 @@ export function Footer({
 
   if (pathname.startsWith('/chat') || pathname === '/timeline') return null
 
+  // Case studies pin a sidebar to the left edge from the wide breakpoint; the full-width footer slides over it.
+  const overCaseSidebar = /^\/work\/[^/]+\/?$/.test(pathname)
+
   return (
-    <footer className="pt-5 pb-5 tablet:pb-10">
+    <footer className={`pt-5 pb-5 tablet:pb-10 ${overCaseSidebar ? 'wide:relative wide:z-10 wide:bg-background' : ''}`}>
       <div className="w-full px-5 tablet:px-10">
         <div className="flex flex-col items-center gap-5 tablet:grid tablet:grid-cols-3 tablet:items-center">
           <div className="tablet:justify-self-start">

@@ -133,6 +133,7 @@ html[data-credits-playing='true']::-webkit-scrollbar {
   --breakpoint-tablet: 810px;
   --breakpoint-desktop: 1280px;
   --breakpoint-desktopXL: 1560px;
+  --breakpoint-wide: 2000px;
 
   /* Text roles are namespaced so text-body remains the font-size utility. */
   --color-text-strong: rgb(var(--color-content-rgb));
@@ -217,6 +218,9 @@ html[data-credits-playing='true']::-webkit-scrollbar {
 
 @media (min-width: 1280px) {
   .content-block-grid {
+    /* Row heights scale with the grid: 200px at the 1320px content width, larger on wider grids (like the 2000px+ sidebar layout). */
+    container-type: inline-size;
+    --row-unit: max(200px, calc(100cqw * 200 / 1320));
     grid-auto-rows: minmax(200px, auto);
   }
   [style*="--row-height"] {

@@ -23,12 +23,13 @@ export function useReducedMotion() {
   return reduced
 }
 
-export function ParticleTitle({ effect, title, enabled, bleed = DEFAULT_BLEED, fitOnMobile = false }: {
+export function ParticleTitle({ effect, title, enabled, bleed = DEFAULT_BLEED, fitOnMobile = false, sidebarSize }: {
   effect: EffectDef
   title: string
   enabled: boolean
   bleed?: Bleed
   fitOnMobile?: boolean
+  sidebarSize?: number
 }) {
   const { x: BLEED_X, top: BLEED_TOP, bottom: BLEED_BOTTOM } = bleed
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -203,7 +204,7 @@ export function ParticleTitle({ effect, title, enabled, bleed = DEFAULT_BLEED, f
         style={{ left: -BLEED_X, top: -BLEED_TOP, zIndex: effect.behind ? 0 : 2 }}
       />
       <div className="relative" style={{ zIndex: 1 }}>
-        <FitText className="font-heading" fitOnMobile={fitOnMobile}>{title}</FitText>
+        <FitText className="font-heading" fitOnMobile={fitOnMobile} sidebarSize={sidebarSize}>{title}</FitText>
       </div>
     </div>
   )
