@@ -1,6 +1,11 @@
 {
-  "throughCommit": "bb9b0f1d22a6c6a87fcd76290c56be932189227c",
+  "throughCommit": "c7fe163fa5fdea7da7cb0f28e64c6b630bb80371",
   "commits": [
+    {
+      "hash": "c7fe163fa5fdea7da7cb0f28e64c6b630bb80371",
+      "date": "2026-11-24",
+      "subject": "Replace the client Tags input with one that adds tags on Enter"
+    },
     {
       "hash": "bb9b0f1d22a6c6a87fcd76290c56be932189227c",
       "date": "2026-11-24",
