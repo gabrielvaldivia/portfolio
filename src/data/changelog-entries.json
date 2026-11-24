@@ -1,5 +1,12 @@
 [
  {
+  "date": "2026-11-24",
+  "title": "Contact form errors in place",
+  "changes": [
+   "Contact form errors now appear right where you type: an empty field swaps its placeholder for the error in red, so the form stays compact instead of growing a line per mistake."
+  ]
+ },
+ {
   "date": "2026-11-19",
   "title": "A Dilly walkthrough on iPhone",
   "changes": [

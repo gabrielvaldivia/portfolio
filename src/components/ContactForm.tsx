@@ -5,7 +5,13 @@ import { cn } from '@/lib/cn'
 
 type SubmitState = 'idle' | 'sending' | 'sent' | 'error'
 type FieldName = 'fromEmail' | 'subject' | 'message'
-type FieldErrors = Partial<Record<FieldName, string>>
+// An empty field shows its error as the placeholder; a filled one shows it beneath.
+type FieldError = { text: string; filled: boolean }
+type FieldErrors = Partial<Record<FieldName, FieldError>>
+
+function placeholderFor(error: FieldError | undefined, fallback: string) {
+  return error && !error.filled ? error.text : fallback
+}
 
 export function ContactForm({ email }: { email: string }) {
   const messageRef = useRef<HTMLTextAreaElement>(null)
@@ -43,11 +49,11 @@ export function ContactForm({ email }: { email: string }) {
     const message = String(formData.get('message') || '').trim()
     const nextFieldErrors: FieldErrors = {}
 
-    if (!fromEmail) nextFieldErrors.fromEmail = 'Enter your email.'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fromEmail)) nextFieldErrors.fromEmail = 'Use a valid email address.'
-    if (!subject) nextFieldErrors.subject = 'Add a subject.'
-    if (!message) nextFieldErrors.message = 'Add a message.'
-    else if (message.length < 10) nextFieldErrors.message = 'Add a little more detail.'
+    if (!fromEmail) nextFieldErrors.fromEmail = { text: 'Enter your email.', filled: false }
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fromEmail)) nextFieldErrors.fromEmail = { text: 'Use a valid email address.', filled: true }
+    if (!subject) nextFieldErrors.subject = { text: 'Add a subject.', filled: false }
+    if (!message) nextFieldErrors.message = { text: 'Add a message.', filled: false }
+    else if (message.length < 10) nextFieldErrors.message = { text: 'Add a little more detail.', filled: true }
 
     if (Object.keys(nextFieldErrors).length) {
       setFieldErrors(nextFieldErrors)
@@ -115,15 +121,21 @@ export function ContactForm({ email }: { email: string }) {
           required
           maxLength={254}
           autoComplete="email"
-          placeholder="you@example.com"
+          placeholder={placeholderFor(fieldErrors.fromEmail, 'you@example.com')}
           aria-invalid={Boolean(fieldErrors.fromEmail)}
           aria-describedby={fieldErrors.fromEmail ? 'contact-from-error' : undefined}
           onChange={() => clearFieldError('fromEmail')}
-          className="col-span-5 w-full bg-transparent text-left text-body text-text-strong outline-none placeholder:text-text-muted"
+          className={cn(
+            'col-span-5 w-full bg-transparent text-left text-body text-text-strong outline-none',
+            fieldErrors.fromEmail ? 'placeholder:text-text-error' : 'placeholder:text-text-muted',
+          )}
         />
         {fieldErrors.fromEmail && (
-          <span id="contact-from-error" className="col-span-5 col-start-2 mt-2 text-caption text-text-error">
-            {fieldErrors.fromEmail}
+          <span
+            id="contact-from-error"
+            className={fieldErrors.fromEmail.filled ? 'col-span-5 col-start-2 mt-2 text-caption text-text-error' : 'sr-only'}
+          >
+            {fieldErrors.fromEmail.text}
           </span>
         )}
       </label>
@@ -138,14 +150,21 @@ export function ContactForm({ email }: { email: string }) {
           type="text"
           required
           maxLength={160}
+          placeholder={placeholderFor(fieldErrors.subject, '')}
           aria-invalid={Boolean(fieldErrors.subject)}
           aria-describedby={fieldErrors.subject ? 'contact-subject-error' : undefined}
           onChange={() => clearFieldError('subject')}
-          className="col-span-5 w-full bg-transparent text-left text-body text-text-strong outline-none placeholder:text-text-muted"
+          className={cn(
+            'col-span-5 w-full bg-transparent text-left text-body text-text-strong outline-none',
+            fieldErrors.subject ? 'placeholder:text-text-error' : 'placeholder:text-text-muted',
+          )}
         />
         {fieldErrors.subject && (
-          <span id="contact-subject-error" className="col-span-5 col-start-2 mt-2 text-caption text-text-error">
-            {fieldErrors.subject}
+          <span
+            id="contact-subject-error"
+            className={fieldErrors.subject.filled ? 'col-span-5 col-start-2 mt-2 text-caption text-text-error' : 'sr-only'}
+          >
+            {fieldErrors.subject.text}
           </span>
         )}
       </label>
@@ -159,7 +178,7 @@ export function ContactForm({ email }: { email: string }) {
           minLength={10}
           maxLength={5000}
           rows={4}
-          placeholder="Message"
+          placeholder={placeholderFor(fieldErrors.message, 'Message')}
           aria-invalid={Boolean(fieldErrors.message)}
           aria-describedby={fieldErrors.message ? 'contact-message-error' : undefined}
           onInput={(event) => {
@@ -168,11 +187,17 @@ export function ContactForm({ email }: { email: string }) {
             textarea.style.height = 'auto'
             textarea.style.height = `${textarea.scrollHeight}px`
           }}
-          className="block w-full resize-none overflow-hidden bg-transparent text-left text-body text-text-strong outline-none placeholder:text-text-muted"
+          className={cn(
+            'block w-full resize-none overflow-hidden bg-transparent text-left text-body text-text-strong outline-none',
+            fieldErrors.message ? 'placeholder:text-text-error' : 'placeholder:text-text-muted',
+          )}
         />
         {fieldErrors.message && (
-          <span id="contact-message-error" className="mt-2 block text-caption text-text-error">
-            {fieldErrors.message}
+          <span
+            id="contact-message-error"
+            className={fieldErrors.message.filled ? 'mt-2 block text-caption text-text-error' : 'sr-only'}
+          >
+            {fieldErrors.message.text}
           </span>
         )}
       </label>

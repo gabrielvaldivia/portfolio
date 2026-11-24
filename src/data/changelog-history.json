@@ -1,6 +1,11 @@
 {
-  "throughCommit": "f9ff2994802182b56d54d747ddad1a4876fc4774",
+  "throughCommit": "b47320983518fe1b50d296fb287c795f21674641",
   "commits": [
+    {
+      "hash": "b47320983518fe1b50d296fb287c795f21674641",
+      "date": "2026-11-19",
+      "subject": "Record the Dilly iPhone walkthrough from the real app"
+    },
     {
       "hash": "f9ff2994802182b56d54d747ddad1a4876fc4774",
       "date": "2026-11-19",
