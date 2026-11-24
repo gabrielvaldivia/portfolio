@@ -37,6 +37,7 @@ import { SubscriberMetrics as SubscriberMetrics_250e8e0178af6135d064edcf304cfc48
 import { VisualBlocksField as VisualBlocksField_334887cd3dd9e4705996313cb6c3842e } from '../../../components/admin/VisualBlocksField'
 import { ShareImageField as ShareImageField_49a3f0b9583b3d4e71335d40dab91321 } from '../../../components/admin/ShareImageField'
 import { ProjectsListView as ProjectsListView_772fdc37b48b88ab436f590733e04fa2 } from '../../../components/admin/ProjectsListView'
+import { TagsField as TagsField_1e6bb50edd0036d5a5f23b3f1cfff222 } from '../../../components/admin/TagsField'
 import { PhotosListUploadStatus as PhotosListUploadStatus_96d485995b7b3edb90cf326c4478039d } from '../../../components/admin/PhotosListActions'
 import { MediaSaveButton as MediaSaveButton_85a09aeff9bc9d675c907495712c757d } from '../../../components/admin/MediaSaveButton'
 import { PhotosListView as PhotosListView_5c948fc8aa8b1d48429df697e10e6b08 } from '../../../components/admin/PhotosListView'
@@ -94,6 +95,7 @@ export const importMap = {
   "./components/admin/VisualBlocksField#VisualBlocksField": VisualBlocksField_334887cd3dd9e4705996313cb6c3842e,
   "./components/admin/ShareImageField#ShareImageField": ShareImageField_49a3f0b9583b3d4e71335d40dab91321,
   "./components/admin/ProjectsListView#ProjectsListView": ProjectsListView_772fdc37b48b88ab436f590733e04fa2,
+  "./components/admin/TagsField#TagsField": TagsField_1e6bb50edd0036d5a5f23b3f1cfff222,
   "./components/admin/PhotosListActions#PhotosListUploadStatus": PhotosListUploadStatus_96d485995b7b3edb90cf326c4478039d,
   "./components/admin/MediaSaveButton#MediaSaveButton": MediaSaveButton_85a09aeff9bc9d675c907495712c757d,
   "./components/admin/PhotosListView#PhotosListView": PhotosListView_5c948fc8aa8b1d48429df697e10e6b08,

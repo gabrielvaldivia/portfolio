@@ -1,6 +1,11 @@
 {
-  "throughCommit": "0e43807bdd419e25e8bac0f289f9ed741efd2c39",
+  "throughCommit": "bb9b0f1d22a6c6a87fcd76290c56be932189227c",
   "commits": [
+    {
+      "hash": "bb9b0f1d22a6c6a87fcd76290c56be932189227c",
+      "date": "2026-11-24",
+      "subject": "Give the homepage headline the Smear hover effect"
+    },
     {
       "hash": "0e43807bdd419e25e8bac0f289f9ed741efd2c39",
       "date": "2026-11-24",

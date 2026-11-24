@@ -21,8 +21,8 @@ export const Clients: CollectionConfig = {
       type: 'text',
       hasMany: true,
       admin: {
-        description: 'Used to filter clients on the public Clients page.',
-        placeholder: 'Add a tag',
+        description: 'Used to filter clients on the public Clients page. Press Enter to add each tag.',
+        components: { Field: './components/admin/TagsField#TagsField' },
       },
     },
     { name: 'details', type: 'textarea', admin: { description: 'Longer description used as context for the AI chat. Not shown on the site.' } },
